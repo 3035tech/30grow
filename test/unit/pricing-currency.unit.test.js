@@ -96,6 +96,24 @@ for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419']) {
   });
 }
 
+test('Spanish pricing page has no English fallback', async () => {
+  const { default: enCatalog } = await import('../../lib/i18n/catalogs/en-US.js');
+  const keys = [];
+  const walk = (node, prefix) => {
+    for (const [k, v] of Object.entries(node)) {
+      if (typeof v === 'string') keys.push(prefix + k);
+      else walk(v, `${prefix}${k}.`);
+    }
+  };
+  walk(enCatalog.pricing, '');
+  const sameAsEnglish = new Set(['planLabel', 'footerBrand']);
+  for (const locale of ['es-419', 'es-ES']) {
+    const untranslated = keys.filter((k) => !sameAsEnglish.has(k) && t(locale, `pricing.${k}`) === t('en', `pricing.${k}`));
+    assert.deepEqual(untranslated, [], locale);
+    for (const k of keys) assert.doesNotMatch(t(locale, `pricing.${k}`), / — /);
+  }
+});
+
 test('public pricing does not change regional currencies for payroll and expenses', () => {
   assert.equal(localeRegionConfig('pt-PT').currency, 'EUR');
   assert.equal(getPublicPricing('en-US').monthlyTotal, 39);

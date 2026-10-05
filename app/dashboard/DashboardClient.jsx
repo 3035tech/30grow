@@ -1465,7 +1465,13 @@ function DashboardClientContent({
               {tab === 'whistleblowing' && showWhistleblowing && (
                 <WhistleblowingAdminTab locale={locale} companyId={scopedCompanyId} />
               )}
-              {tab === 'companies' && showCompanies && <CompaniesAdminTab navigateDashboard={navigateWithOpts} locale={locale} />}
+              {tab === 'companies' && showCompanies && (
+                <CompaniesAdminTab
+                  navigateDashboard={navigateWithOpts}
+                  locale={locale}
+                  isSuperAdmin={isSuperAdminPayload(sessionAuth)}
+                />
+              )}
               {tab === 'users' && showUsers && (
                 <UsersAdminTab
                   navigateDashboard={navigateWithOpts}

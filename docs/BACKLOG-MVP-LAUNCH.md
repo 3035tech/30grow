@@ -134,6 +134,8 @@ Aplicar lista antes de formulário, ação principal clara, loading/erro/empty s
 
 **Objetivo:** vender apenas o que já existe e pode ser demonstrado.
 
+**Evidência atual (out/2026):** `/pricing` em es-419/es-ES sem texto caindo para o inglês (teste em `test/unit/pricing-currency.unit.test.js`); preço público até 200 colaboradores, acima disso contato comercial. Pendente: revisão nativa fr-FR/de-DE (B-I18N-01) e conferência landing/FAQ/`llms.txt` contra o produto.
+
 1. Revisar landpage, preços, FAQ, `llms.txt`, metadados e JSON-LD.
 2. Alinhar nomes dos módulos entre site, onboarding, menu e proposta comercial.
 3. Remover promessa não entregue e destacar diferenciais comprováveis.

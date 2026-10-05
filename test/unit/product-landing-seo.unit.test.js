@@ -53,6 +53,26 @@ assert.match(software.operatingSystem, /iOS/);
 assert.ok(software.featureList.some((item) => /2FA/.test(item)));
 assert.ok(software.featureList.some((item) => /Contratar melhor/i.test(item)));
 
+// Translated landings must not fall back to English copy (ids, icons and brand excepted).
+const flatStrings = (node, path = '', out = []) => {
+  if (typeof node === 'string') out.push([path, node]);
+  else if (Array.isArray(node)) node.forEach((v, i) => flatStrings(v, `${path}[${i}]`, out));
+  else if (node && typeof node === 'object') for (const [k, v] of Object.entries(node)) flatStrings(v, path ? `${path}.${k}` : k, out);
+  return out;
+};
+const enStrings = new Map(flatStrings(en));
+const sameAsEnglishOk = /(\.id|\.icon|^footerBrand|^ui\.navModules|^ui\.types\[\d\]\.name|^ui\.pipelineStages\[0\]|metrics\[0\]\.label)$/;
+for (const locale of ['es-419', 'es-ES', 'fr-FR', 'de-DE', 'pt-PT']) {
+  const untranslated = flatStrings(seo.getProductLandingCopy(locale))
+    .filter(([path, value]) => enStrings.get(path) === value && /[a-z]{3,}/i.test(value) && !sameAsEnglishOk.test(path))
+    .map(([path]) => path);
+  assert.deepEqual(untranslated, [], `${locale} landing has English fallback`);
+}
+for (const locale of ['pt-BR', 'en', 'es-419', 'fr-FR', 'de-DE']) {
+  const step1 = seo.getProductLandingCopy(locale).steps[0].body;
+  assert.match(step1, /conta|account|cuenta|compte|Konto/i, `${locale} step 1 mentions self-serve signup`);
+}
+
 const gptRule = crawler.buildRobotsRules().find((rule) => rule.userAgent === 'GPTBot');
 assert.ok(gptRule.allow.includes('/'));
 assert.ok(gptRule.allow.includes('/llms.txt'));

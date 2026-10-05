@@ -7,8 +7,10 @@ import { t, localeHtmlLang } from '../../../lib/i18n';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
 import {
   PRODUCT_FEEDBACK_KINDS,
+  PRODUCT_FEEDBACK_SEVERITIES,
   PRODUCT_FEEDBACK_STATUSES,
 } from '../../../lib/domain-status';
+import { COMPANY_MODULES } from '../../../lib/company-modules';
 import {
   S,
   AdminListPager,
@@ -24,8 +26,11 @@ import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
 import { StatusToneChip } from '../../_components/StatusToneChip';
+import { StatMetricTile } from '../../_components/StatMetricTile';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { InlineCallout } from '../../_components/InlineCallout';
+
+const STATUS_FILTERS = ['all', 'open', ...PRODUCT_FEEDBACK_STATUSES];
 
 function statusTone(status) {
   if (status === 'new') return 'info';
@@ -36,12 +41,21 @@ function statusTone(status) {
 
 function kindTone(kind) {
   if (kind === 'bug') return 'danger';
-  if (kind === 'ux') return 'warning';
+  if (kind === 'ux' || kind === 'commercial') return 'warning';
   return 'info';
 }
 
+function severityTone(severity) {
+  if (severity === 'critical' || severity === 'high') return 'danger';
+  if (severity === 'medium') return 'warning';
+  return 'neutral';
+}
+
+const moduleLabel = (locale, moduleKey) =>
+  moduleKey ? t(locale, `onboarding.modules.item.${moduleKey}.title`) : t(locale, 'panel.productFeedback.moduleNone');
+
 /**
- * Super-admin inbox: product suggestions from managers.
+ * Super-admin support inbox: bugs, questions, sales requests and ideas from managers.
  */
 export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard }) {
   const { promptForm, toast } = useAppFeedback();
@@ -50,19 +64,21 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
   const dateLocale = localeHtmlLang(locale);
 
   const filters = useMemo(() => {
-    const status = (urlParams.get('fbStatus') || 'all').toLowerCase();
-    const kind = (urlParams.get('fbKind') || 'all').toLowerCase();
-    const q = (urlParams.get('fbQ') || '').trim();
+    const pick = (key, allowed, fallback = 'all') => {
+      const raw = (urlParams.get(key) || fallback).toLowerCase();
+      return allowed.includes(raw) ? raw : fallback;
+    };
     const pageRaw = parseInt(urlParams.get('fbPage') || '1', 10);
-    const page = Number.isFinite(pageRaw) && pageRaw >= 1 ? pageRaw : 1;
     const sizeRaw = parseInt(urlParams.get('fbPageSize') || '20', 10);
-    const pageSize = PAGE_SIZE_OPTIONS.includes(sizeRaw) ? sizeRaw : 20;
     return {
-      status: ['all', ...PRODUCT_FEEDBACK_STATUSES].includes(status) ? status : 'all',
-      kind: ['all', ...PRODUCT_FEEDBACK_KINDS].includes(kind) ? kind : 'all',
-      q,
-      page,
-      pageSize,
+      status: pick('fbStatus', STATUS_FILTERS),
+      kind: pick('fbKind', ['all', ...PRODUCT_FEEDBACK_KINDS]),
+      severity: pick('fbSeverity', ['all', ...PRODUCT_FEEDBACK_SEVERITIES]),
+      module: pick('fbModule', ['all', ...COMPANY_MODULES]),
+      overdue: urlParams.get('fbOverdue') === '1',
+      q: (urlParams.get('fbQ') || '').trim(),
+      page: Number.isFinite(pageRaw) && pageRaw >= 1 ? pageRaw : 1,
+      pageSize: PAGE_SIZE_OPTIONS.includes(sizeRaw) ? sizeRaw : 20,
     };
   }, [spKey]);
 
@@ -70,6 +86,8 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
   const [error, setError] = useState('');
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [summary, setSummary] = useState(null);
+  const [assignees, setAssignees] = useState([]);
   const [qDraft, setQDraft] = useState(filters.q);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -79,13 +97,17 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
 
   const pushFilters = (patch) => {
     if (!navigateDashboard) return;
+    const next = { ...filters, ...patch };
     navigateDashboard({
       tab: 'product-feedback',
-      fbStatus: patch.status !== undefined ? patch.status : filters.status,
-      fbKind: patch.kind !== undefined ? patch.kind : filters.kind,
-      fbQ: patch.q !== undefined ? patch.q || null : filters.q || null,
-      fbPage: patch.page !== undefined ? patch.page : filters.page,
-      fbPageSize: patch.pageSize !== undefined ? patch.pageSize : filters.pageSize,
+      fbStatus: next.status,
+      fbKind: next.kind,
+      fbSeverity: next.severity,
+      fbModule: next.module,
+      fbOverdue: next.overdue ? '1' : null,
+      fbQ: next.q || null,
+      fbPage: next.page,
+      fbPageSize: next.pageSize,
     });
   };
 
@@ -100,7 +122,10 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
           pageSize: String(filters.pageSize),
           status: filters.status,
           kind: filters.kind,
+          severity: filters.severity,
+          module: filters.module,
         });
+        if (filters.overdue) qs.set('overdue', '1');
         if (filters.q) qs.set('q', filters.q);
         const res = await fetch(`/api/admin/product-feedback?${qs.toString()}`);
         const data = await res.json();
@@ -108,6 +133,8 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
         if (!cancelled) {
           setItems(Array.isArray(data.items) ? data.items : []);
           setTotal(typeof data.total === 'number' ? data.total : 0);
+          setSummary(data.summary || null);
+          setAssignees(Array.isArray(data.assignees) ? data.assignees : []);
         }
       } catch (e) {
         if (!cancelled) {
@@ -121,21 +148,63 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
     return () => {
       cancelled = true;
     };
-  }, [filters.page, filters.pageSize, filters.status, filters.kind, filters.q, locale, reloadKey]);
+  }, [filters.page, filters.pageSize, filters.status, filters.kind, filters.severity, filters.module, filters.overdue, filters.q, locale, reloadKey]);
+
+  const formatWhen = (iso) => {
+    const na = t(locale, 'panel.common.notApplicable');
+    if (!iso) return na;
+    try {
+      return new Date(iso).toLocaleString(dateLocale, { dateStyle: 'short', timeStyle: 'short' });
+    } catch {
+      return na;
+    }
+  };
 
   const reviewItem = async (row) => {
     const result = await promptForm({
       title: t(locale, 'panel.productFeedback.reviewTitle'),
+      message: `#${row.id} · ${t(locale, `panel.productFeedback.kind.${row.kind}`)}`,
       fields: [
         {
           key: 'status',
           label: t(locale, 'panel.productFeedback.colStatus'),
           type: 'select',
           defaultValue: row.status,
-          options: PRODUCT_FEEDBACK_STATUSES.map((s) => ({
-            value: s,
-            label: t(locale, `panel.productFeedback.status.${s}`),
-          })),
+          options: PRODUCT_FEEDBACK_STATUSES.map((s) => ({ value: s, label: t(locale, `panel.productFeedback.status.${s}`) })),
+        },
+        {
+          key: 'severity',
+          label: t(locale, 'panel.productFeedback.severityLabel'),
+          type: 'select',
+          defaultValue: row.severity,
+          options: PRODUCT_FEEDBACK_SEVERITIES.map((s) => ({ value: s, label: t(locale, `panel.productFeedback.severity.${s}`) })),
+        },
+        {
+          key: 'moduleKey',
+          label: t(locale, 'panel.productFeedback.colModule'),
+          type: 'select',
+          defaultValue: row.moduleKey || '',
+          options: [
+            { value: '', label: t(locale, 'panel.productFeedback.moduleNone') },
+            ...COMPANY_MODULES.map((m) => ({ value: m, label: moduleLabel(locale, m) })),
+          ],
+        },
+        {
+          key: 'assigneeUserId',
+          label: t(locale, 'panel.productFeedback.assigneeLabel'),
+          type: 'select',
+          defaultValue: row.assigneeUserId ? String(row.assigneeUserId) : '',
+          options: [
+            { value: '', label: t(locale, 'panel.productFeedback.assigneeNone') },
+            ...assignees.map((a) => ({ value: String(a.id), label: a.displayName || a.email })),
+          ],
+        },
+        {
+          key: 'duplicateOfId',
+          label: t(locale, 'panel.productFeedback.duplicateOfLabel'),
+          type: 'number',
+          defaultValue: row.duplicateOfId ? String(row.duplicateOfId) : '',
+          help: t(locale, 'panel.productFeedback.duplicateOfHint'),
         },
         {
           key: 'adminNotes',
@@ -148,12 +217,20 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
       ],
     });
     if (!result) return;
+    const toId = (v) => {
+      const n = parseInt(String(v ?? '').trim(), 10);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    };
     try {
       const res = await fetch(`/api/admin/product-feedback/${row.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: result.status,
+          severity: result.severity,
+          moduleKey: result.moduleKey || null,
+          assigneeUserId: toId(result.assigneeUserId),
+          duplicateOfId: toId(result.duplicateOfId),
           adminNotes: result.adminNotes ?? '',
         }),
       });
@@ -166,18 +243,14 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
     }
   };
 
-  const formatWhen = (iso) => {
-    const na = t(locale, 'panel.common.notApplicable');
-    if (!iso) return na;
-    try {
-      return new Date(iso).toLocaleString(dateLocale, {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      });
-    } catch {
-      return na;
-    }
-  };
+  const filtersActive = Boolean(
+    String(qDraft || '').trim() ||
+      filters.status !== 'all' ||
+      filters.kind !== 'all' ||
+      filters.severity !== 'all' ||
+      filters.module !== 'all' ||
+      filters.overdue
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -188,16 +261,54 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
 
       <InlineCallout tone="info">{t(locale, 'panel.productFeedback.superAdminHint')}</InlineCallout>
 
+      {summary ? (
+        <section className="flex flex-col gap-3" aria-label={t(locale, 'panel.productFeedback.summaryHint', { days: summary.responseBusinessDays })}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <StatMetricTile
+              value={summary.open}
+              label={t(locale, 'panel.productFeedback.summaryOpen')}
+              onClick={() => pushFilters({ status: 'open', overdue: false, page: 1 })}
+            />
+            <StatMetricTile value={summary.awaitingResponse} label={t(locale, 'panel.productFeedback.summaryAwaiting')} />
+            <StatMetricTile
+              value={summary.overdue}
+              label={t(locale, 'panel.productFeedback.summaryOverdue')}
+              className={summary.overdue > 0 ? 'border-danger/50 bg-danger/[0.05]' : ''}
+              onClick={() => pushFilters({ overdue: true, page: 1 })}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {PRODUCT_FEEDBACK_KINDS.map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => pushFilters({ status: 'open', kind: k, page: 1 })}
+                className={cn(S.filterChip, 'min-h-touch')}
+              >
+                {t(locale, `panel.productFeedback.kind.${k}`)} · {summary.openByKind?.[k] ?? 0}
+              </button>
+            ))}
+          </div>
+          {summary.topModules?.length ? (
+            <p className={cn(S.muted, 'm-0')}>
+              {t(locale, 'panel.productFeedback.summaryTopModules')}:{' '}
+              {summary.topModules.map((m) => `${moduleLabel(locale, m.moduleKey)} (${m.n})`).join(' · ')}
+            </p>
+          ) : null}
+          <p className={cn(S.faint, 'm-0')}>
+            {t(locale, 'panel.productFeedback.summaryHint', { days: summary.responseBusinessDays })}
+          </p>
+        </section>
+      ) : null}
+
       <AdminListFilters
         aria-label={t(locale, 'panel.productFeedback.title')}
         locale={locale}
         onClear={() => {
           setQDraft('');
-          pushFilters({ status: 'all', kind: 'all', q: '', page: 1 });
+          pushFilters({ status: 'all', kind: 'all', severity: 'all', module: 'all', overdue: false, q: '', page: 1 });
         }}
-        clearEnabled={Boolean(
-          String(qDraft || '').trim() || filters.status !== 'all' || filters.kind !== 'all'
-        )}
+        clearEnabled={filtersActive}
       >
         <AdminListSearch
           locale={locale}
@@ -214,10 +325,9 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
           onChange={(v) => pushFilters({ status: v, page: 1 })}
         >
           <option value="all">{t(locale, 'panel.productFeedback.statusAll')}</option>
+          <option value="open">{t(locale, 'panel.productFeedback.statusOpen')}</option>
           {PRODUCT_FEEDBACK_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {t(locale, `panel.productFeedback.status.${s}`)}
-            </option>
+            <option key={s} value={s}>{t(locale, `panel.productFeedback.status.${s}`)}</option>
           ))}
         </AdminListFilterSelect>
         <AdminListFilterSelect
@@ -227,10 +337,36 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
         >
           <option value="all">{t(locale, 'panel.productFeedback.kindAll')}</option>
           {PRODUCT_FEEDBACK_KINDS.map((k) => (
-            <option key={k} value={k}>
-              {t(locale, `panel.productFeedback.kind.${k}`)}
-            </option>
+            <option key={k} value={k}>{t(locale, `panel.productFeedback.kind.${k}`)}</option>
           ))}
+        </AdminListFilterSelect>
+        <AdminListFilterSelect
+          label={t(locale, 'panel.productFeedback.filterSeverity')}
+          value={filters.severity}
+          onChange={(v) => pushFilters({ severity: v, page: 1 })}
+        >
+          <option value="all">{t(locale, 'panel.productFeedback.severityAll')}</option>
+          {PRODUCT_FEEDBACK_SEVERITIES.map((s) => (
+            <option key={s} value={s}>{t(locale, `panel.productFeedback.severityShort.${s}`)}</option>
+          ))}
+        </AdminListFilterSelect>
+        <AdminListFilterSelect
+          label={t(locale, 'panel.productFeedback.filterModule')}
+          value={filters.module}
+          onChange={(v) => pushFilters({ module: v, page: 1 })}
+        >
+          <option value="all">{t(locale, 'panel.productFeedback.moduleAll')}</option>
+          {COMPANY_MODULES.map((m) => (
+            <option key={m} value={m}>{moduleLabel(locale, m)}</option>
+          ))}
+        </AdminListFilterSelect>
+        <AdminListFilterSelect
+          label={t(locale, 'panel.productFeedback.filterOverdue')}
+          value={filters.overdue ? '1' : 'all'}
+          onChange={(v) => pushFilters({ overdue: v === '1', page: 1 })}
+        >
+          <option value="all">{t(locale, 'panel.productFeedback.overdueAll')}</option>
+          <option value="1">{t(locale, 'panel.productFeedback.overdueOnly')}</option>
         </AdminListFilterSelect>
       </AdminListFilters>
 
@@ -238,7 +374,7 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
       {loading ? <AppLoading locale={locale} variant="panel" /> : null}
 
       {!loading && !error && items.length === 0 ? (
-        <ContentEnter animKey={`fb-empty|${filters.status}|${filters.kind}|${filters.q}`}>
+        <ContentEnter animKey={`fb-empty|${spKey}`}>
           <EmptyState
             title={t(locale, 'panel.productFeedback.emptyTitle')}
             message={t(locale, 'panel.productFeedback.emptyBody')}
@@ -247,7 +383,7 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
       ) : null}
 
       {!loading && items.length > 0 ? (
-        <ContentEnter animKey={`${filters.status}-${filters.kind}-${filters.page}-${items.length}`}>
+        <ContentEnter animKey={`${spKey}-${items.length}`}>
           <>
             <p className={cn(S.muted, 'm-0 text-xs')}>
               {t(locale, 'panel.productFeedback.count', { n: total })}
@@ -255,11 +391,13 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
             <AdminTableShell locale={locale} animKey={`fb-${reloadKey}-${items.map((r) => r.id).join(',')}`}>
               <thead>
                 <tr>
-                  <AdminTh>{t(locale, 'panel.productFeedback.colWhen')}</AdminTh>
+                  <AdminTh>{t(locale, 'panel.productFeedback.colId')}</AdminTh>
                   <AdminTh>{t(locale, 'panel.productFeedback.colKind')}</AdminTh>
                   <AdminTh>{t(locale, 'panel.productFeedback.colMessage')}</AdminTh>
                   <AdminTh>{t(locale, 'panel.productFeedback.colFrom')}</AdminTh>
-                  <AdminTh>{t(locale, 'panel.productFeedback.colScreen')}</AdminTh>
+                  <AdminTh>{t(locale, 'panel.productFeedback.colModule')}</AdminTh>
+                  <AdminTh>{t(locale, 'panel.productFeedback.colSla')}</AdminTh>
+                  <AdminTh>{t(locale, 'panel.productFeedback.colOwner')}</AdminTh>
                   <AdminTh>{t(locale, 'panel.productFeedback.colStatus')}</AdminTh>
                   <AdminActionsTh />
                 </tr>
@@ -268,15 +406,31 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
                 {items.map((row) => (
                   <tr key={row.id}>
                     <td className="whitespace-nowrap font-mono text-2xs text-ink-muted">
-                      {formatWhen(row.createdAt)}
+                      #{row.id}
+                      <div>{formatWhen(row.createdAt)}</div>
                     </td>
                     <td>
-                      <StatusToneChip tone={kindTone(row.kind)}>
-                        {t(locale, `panel.productFeedback.kind.${row.kind}`)}
-                      </StatusToneChip>
+                      <div className="flex flex-col items-start gap-1">
+                        <StatusToneChip tone={kindTone(row.kind)}>
+                          {t(locale, `panel.productFeedback.kind.${row.kind}`)}
+                        </StatusToneChip>
+                        <StatusToneChip tone={severityTone(row.severity)}>
+                          {t(locale, `panel.productFeedback.severityShort.${row.severity}`)}
+                        </StatusToneChip>
+                      </div>
                     </td>
                     <td className="max-w-md">
                       <p className="m-0 whitespace-pre-wrap text-prose text-ink">{row.message}</p>
+                      {row.duplicateOfId ? (
+                        <p className="m-0 mt-1 text-2xs text-ink-muted">
+                          {t(locale, 'panel.productFeedback.duplicateBadge', { id: row.duplicateOfId })}
+                        </p>
+                      ) : null}
+                      {row.duplicateCount > 0 ? (
+                        <p className="m-0 mt-1 text-2xs font-medium text-ink">
+                          {t(locale, 'panel.productFeedback.duplicatesCount', { n: row.duplicateCount })}
+                        </p>
+                      ) : null}
                       {row.adminNotes ? (
                         <p className="m-0 mt-1 text-2xs text-ink-faint">
                           {t(locale, 'panel.productFeedback.adminNotes')}: {row.adminNotes}
@@ -295,26 +449,47 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
                         {row.companySlug ? ` · ${row.companySlug}` : ''}
                       </div>
                       {!row.contactOk ? (
-                        <div className="text-2xs text-warning">
-                          {t(locale, 'panel.productFeedback.noContact')}
-                        </div>
+                        <div className="text-2xs text-warning">{t(locale, 'panel.productFeedback.noContact')}</div>
                       ) : null}
                     </td>
-                    <td className="font-mono text-2xs text-ink-muted">
-                      {row.activeTab || t(locale, 'panel.common.notApplicable')}
-                      {row.activeSection ? ` / ${row.activeSection}` : ''}
+                    <td className="text-prose text-ink-muted">
+                      {moduleLabel(locale, row.moduleKey)}
+                      <div className="font-mono text-2xs text-ink-faint">
+                        {row.activeTab || t(locale, 'panel.common.notApplicable')}
+                        {row.activeSection ? ` / ${row.activeSection}` : ''}
+                      </div>
+                    </td>
+                    <td className="text-2xs">
+                      {row.answered ? (
+                        <span className="text-success">
+                          {t(locale, 'panel.productFeedback.slaAnswered', { date: formatWhen(row.firstResponseAt) })}
+                        </span>
+                      ) : row.overdue ? (
+                        <span className="font-medium text-danger">
+                          {t(locale, 'panel.productFeedback.slaOverdue', { date: formatWhen(row.dueAt) })}
+                        </span>
+                      ) : (
+                        <span className="text-ink-muted">
+                          {t(locale, 'panel.productFeedback.slaDue', { date: formatWhen(row.dueAt) })}
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-prose text-ink-muted">
+                      {row.assigneeName || row.assigneeEmail || t(locale, 'panel.productFeedback.assigneeNone')}
                     </td>
                     <td>
                       <StatusToneChip tone={statusTone(row.status)}>
                         {t(locale, `panel.productFeedback.status.${row.status}`)}
                       </StatusToneChip>
                     </td>
-                    <AdminActionsCell>
-                      <AdminEditButton
-                        label={t(locale, 'panel.productFeedback.review')}
-                        onClick={() => void reviewItem(row)}
-                      />
-                    </AdminActionsCell>
+                    <td className="text-right">
+                      <AdminActionsCell>
+                        <AdminEditButton
+                          label={t(locale, 'panel.productFeedback.review')}
+                          onClick={() => void reviewItem(row)}
+                        />
+                      </AdminActionsCell>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -4,7 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { t } from '../../lib/i18n';
 import { helpSuggestionLabels, helpTabLabel } from '../../lib/help-screen-context';
-import { PRODUCT_FEEDBACK_KINDS } from '../../lib/domain-status';
+import {
+  PRODUCT_FEEDBACK_KIND,
+  PRODUCT_FEEDBACK_KINDS,
+  PRODUCT_FEEDBACK_SEVERITY,
+  PRODUCT_FEEDBACK_SEVERITIES,
+} from '../../lib/domain-status';
+import { SUPPORT_CONTACT_EMAIL, SUPPORT_RESPONSE_BUSINESS_DAYS } from '../../lib/product-feedback';
 import { S } from './dashboard-shared';
 import { Icon } from '../_components/Icon';
 import { useAppFeedback } from '../_components/AppFeedback';
@@ -108,15 +114,29 @@ export function HelpAssistantWidget({
   const openSuggestForm = async () => {
     const values = await promptForm({
       title: t(locale, 'panel.productFeedback.suggestTitle'),
+      message: t(locale, 'panel.productFeedback.supportLine', {
+        days: SUPPORT_RESPONSE_BUSINESS_DAYS,
+        email: SUPPORT_CONTACT_EMAIL,
+      }),
       fields: [
         {
           key: 'kind',
           label: t(locale, 'panel.productFeedback.filterKind'),
           type: 'select',
-          defaultValue: 'idea',
+          defaultValue: PRODUCT_FEEDBACK_KIND.QUESTION,
           options: PRODUCT_FEEDBACK_KINDS.map((k) => ({
             value: k,
             label: t(locale, `panel.productFeedback.kind.${k}`),
+          })),
+        },
+        {
+          key: 'severity',
+          label: t(locale, 'panel.productFeedback.severityLabel'),
+          type: 'select',
+          defaultValue: PRODUCT_FEEDBACK_SEVERITY.MEDIUM,
+          options: PRODUCT_FEEDBACK_SEVERITIES.map((s) => ({
+            value: s,
+            label: t(locale, `panel.productFeedback.severity.${s}`),
           })),
         },
         {
@@ -148,6 +168,7 @@ export function HelpAssistantWidget({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           kind: values.kind,
+          severity: values.severity,
           message,
           contactOk: values.contactOk !== false,
           activeTab: activeTab || null,
@@ -156,7 +177,7 @@ export function HelpAssistantWidget({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.productFeedback.sendFailed'));
-      toast(t(locale, 'panel.productFeedback.sendOk'), 'ok');
+      toast(t(locale, 'panel.productFeedback.sendOk', { days: SUPPORT_RESPONSE_BUSINESS_DAYS }), 'ok');
     } catch (e) {
       toast(e?.message || t(locale, 'panel.productFeedback.sendFailed'), 'error');
     }

@@ -4,20 +4,26 @@ import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.
 import { query } from '../../../../../lib/db.js';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../lib/permissions.js';
 import { updateProductFeedback } from '../../../../../lib/product-feedback.js';
-import { PRODUCT_FEEDBACK_STATUSES } from '../../../../../lib/domain-status.js';
+import { PRODUCT_FEEDBACK_SEVERITIES, PRODUCT_FEEDBACK_STATUSES } from '../../../../../lib/domain-status.js';
+import { COMPANY_MODULES } from '../../../../../lib/company-modules.js';
+import { audit, auditRequestContext } from '../../../../../lib/audit.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 
 const patchBodySchema = z
   .object({
     status: z.enum(/** @type {[string, ...string[]]} */ (PRODUCT_FEEDBACK_STATUSES)).optional(),
     adminNotes: z.string().max(4000).optional(),
+    severity: z.enum(/** @type {[string, ...string[]]} */ (PRODUCT_FEEDBACK_SEVERITIES)).optional(),
+    moduleKey: z.enum(/** @type {[string, ...string[]]} */ (COMPANY_MODULES)).nullable().optional(),
+    assigneeUserId: zPositiveInt.nullable().optional(),
+    duplicateOfId: zPositiveInt.nullable().optional(),
   })
-  .refine((b) => b.status != null || b.adminNotes != null, {
-    message: 'status_or_notes',
+  .refine((b) => Object.values(b).some((v) => v !== undefined), {
+    message: 'empty_patch',
   });
 
 /**
- * PATCH /api/admin/product-feedback/[id] — super-admin only.
+ * PATCH /api/admin/product-feedback/[id] — super-admin triage (status, notes, impact, module, owner, duplicate).
  */
 export const PATCH = withAdminApi(
   {
@@ -35,14 +41,21 @@ export const PATCH = withAdminApi(
     if (!idParsed.success) {
       return apiError(request, ERR.INVALID_ID, 400);
     }
-    const result = await updateProductFeedback({ query }, {
-      id: idParsed.data,
-      status: body.status,
-      adminNotes: body.adminNotes,
-    });
+    const result = await updateProductFeedback({ query }, { id: idParsed.data, ...body });
     if (!result.ok) {
       return apiErrorFromResult(request, result, { fallbackCode: ERR.NOT_FOUND });
     }
+    await audit({
+      action: 'product_feedback_triage',
+      actorUserId: payload.userId,
+      targetType: 'product_feedback',
+      targetId: idParsed.data,
+      metadata: {
+        fields: Object.keys(body).filter((k) => body[k] !== undefined && k !== 'adminNotes'),
+        notesChanged: body.adminNotes !== undefined,
+      },
+      ...auditRequestContext(request),
+    });
     return NextResponse.json({ ok: true, item: result.item });
   }
 );

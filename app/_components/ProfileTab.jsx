@@ -108,20 +108,23 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   };
 
   const modulesDirty = !modulesSelectionEqual(companyModuleIds, companyModulesBaseline);
+  const removedModuleNames = companyModulesBaseline
+    .filter((moduleId) => !companyModuleIds.includes(moduleId))
+    .map((moduleId) => t(locale, `onboarding.modules.item.${moduleId}.title`));
 
   const saveCompanyModules = async () => {
     if (!modulesDirty) {
       toast?.(t(locale, 'dashboard.profileModulesNoChange'), 'info');
       return;
     }
-    const removedAny = companyModulesBaseline.some(
-      (moduleId) => !companyModuleIds.includes(moduleId)
-    );
-    if (removedAny && feedback?.confirm) {
+    if (removedModuleNames.length && feedback?.confirm) {
       const confirmed = await feedback.confirm({
         title: t(locale, 'dashboard.profileModulesConfirmTitle'),
-        message: t(locale, 'dashboard.profileModulesConfirmRemove'),
+        message: t(locale, 'dashboard.profileModulesConfirmRemoveList', {
+          modules: removedModuleNames.join(', '),
+        }),
         confirmLabel: t(locale, 'dashboard.profileModulesSave'),
+        danger: true,
       });
       if (!confirmed) return;
     }
@@ -275,6 +278,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
     }
   };
 
+  const hasBillingSection = ['admin', 'hr'].includes(role);
   const saveAccountDisabled = saving || !email.trim();
   const savePasswordDisabled = saving || !currentPassword || !newPassword || !newPassword2;
 
@@ -304,11 +308,11 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                 onChange={setProfileSection}
                 tabs={[
                   { id: 'account', label: t(locale, 'dashboard.profileSectionAccount') },
+                  { id: 'security', label: t(locale, 'dashboard.profileSectionSecurity') },
                   ...(canEditCompanyModules
                     ? [{ id: 'modules', label: t(locale, 'dashboard.profileSectionModules') }]
                     : []),
-                  { id: 'security', label: t(locale, 'dashboard.profileSectionSecurity') },
-                  ...(['admin', 'hr'].includes(role)
+                  ...(hasBillingSection
                     ? [{ id: 'billing', label: t(locale, 'dashboard.profileSectionBilling') }]
                     : []),
                 ]}
@@ -338,7 +342,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                       <div className="self-end rounded-control border border-ink/10 bg-surface px-3.5 py-3">
                         <p className="m-0 font-ui text-xs text-ink-muted">{t(locale, 'dashboard.profileRole')}</p>
                         <p className="mb-0 mt-1 font-ui text-sm font-medium text-ink">
-                          {role}{companyName ? ` · ${companyName}` : ''}
+                          {role ? t(locale, `common.roles.${role}`) : ''}{companyName ? ` · ${companyName}` : ''}
                         </p>
                       </div>
                     </div>
@@ -372,6 +376,13 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                         maxHeightClass="max-h-none"
                       />
                     </div>
+                    {removedModuleNames.length ? (
+                      <InlineCallout tone="warning" role="status" className="mt-4 text-xs">
+                        {t(locale, 'dashboard.profileModulesPendingRemoval', {
+                          modules: removedModuleNames.join(', '),
+                        })}
+                      </InlineCallout>
+                    ) : null}
                     <div className="mt-6 flex flex-wrap justify-end gap-2 border-t border-ink/10 pt-4">
                       {modulesDirty ? (
                         <button type="button" disabled={modulesSaving} onClick={() => setCompanyModuleIds([...companyModulesBaseline])} className={dashS.btnGhost}>
@@ -385,7 +396,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                   </section>
                 ) : null}
 
-                {['admin', 'hr'].includes(role) && profileSection === 'billing' ? (
+                {hasBillingSection && profileSection === 'billing' ? (
                   <BillingTab
                     locale={locale}
                     role={role}

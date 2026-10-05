@@ -22,11 +22,11 @@ function moduleOptions(locale) {
   }));
 }
 
-function roleSelectOptions(includeAdmin) {
+function roleSelectOptions(locale, includeAdmin) {
   return [
-    { value: 'hr', label: 'hr' },
-    { value: 'direction', label: 'direction' },
-    ...(includeAdmin ? [{ value: 'admin', label: 'admin' }] : []),
+    { value: 'hr', label: t(locale, 'common.roles.hr') },
+    { value: 'direction', label: t(locale, 'common.roles.direction') },
+    ...(includeAdmin ? [{ value: 'admin', label: t(locale, 'common.roles.admin') }] : []),
   ];
 }
 
@@ -220,7 +220,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
           key: 'role',
           type: 'select',
           label: t(locale, canManageAllCompanies ? 'panel.admin.editUserRole' : 'panel.admin.editUserRoleTenant'),
-          options: roleSelectOptions(canManageAllCompanies),
+          options: roleSelectOptions(locale, canManageAllCompanies),
           defaultValue: 'hr',
         },
         ...(canManageAllCompanies
@@ -373,7 +373,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
           key: 'role',
           type: 'select',
           label: t(locale, canManageAllCompanies ? 'panel.admin.editUserRole' : 'panel.admin.editUserRoleTenant'),
-          options: roleSelectOptions(canManageAllCompanies),
+          options: roleSelectOptions(locale, canManageAllCompanies),
           defaultValue: u?.role ?? 'hr',
         },
         ...(canManageAllCompanies
@@ -541,9 +541,9 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
             }}
           >
             <option value="">{t(locale, 'panel.admin.filterAll')}</option>
-            <option value="hr">hr</option>
-            <option value="direction">direction</option>
-            {canManageAllCompanies ? <option value="admin">admin</option> : null}
+            <option value="hr">{t(locale, 'common.roles.hr')}</option>
+            <option value="direction">{t(locale, 'common.roles.direction')}</option>
+            {canManageAllCompanies ? <option value="admin">{t(locale, 'common.roles.admin')}</option> : null}
           </AdminListFilterSelect>
           <AdminListFilterSelect
             label={t(locale, 'panel.admin.filterActive')}
@@ -630,7 +630,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
                       </td>
                       <td className="px-4 py-3 text-ink">{u.email}</td>
                       <td className="px-4 py-3">
-                        <StatusToneChip tone="neutral">{u.role}</StatusToneChip>
+                        <StatusToneChip tone="neutral">{t(locale, `common.roles.${u.role}`)}</StatusToneChip>
                         {u.capabilitiesCustomized ? (
                           <StatusToneChip
                             tone="brand"

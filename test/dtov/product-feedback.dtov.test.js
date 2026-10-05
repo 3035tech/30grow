@@ -5,12 +5,15 @@ import assert from 'node:assert/strict';
 import { query, pool } from '../../lib/db.js';
 import {
   PRODUCT_FEEDBACK_KIND,
+  PRODUCT_FEEDBACK_SEVERITY,
   PRODUCT_FEEDBACK_STATUS,
 } from '../../lib/domain-status.js';
+import { COMPANY_MODULE } from '../../lib/company-modules.js';
 import {
   createProductFeedback,
   listProductFeedback,
   parseProductFeedbackListParams,
+  summarizeProductFeedback,
   updateProductFeedback,
 } from '../../lib/product-feedback.js';
 
@@ -74,6 +77,67 @@ async function main() {
   });
   assert.equal(updated.ok, true);
   assert.equal(updated.item.status, PRODUCT_FEEDBACK_STATUS.REVIEWING);
+  assert.ok(updated.item.firstResponseAt, 'triage stamps the first response');
+
+  // MVP-11: severity, module from tab, SLA, duplicates, summary.
+  const bug = await createProductFeedback({ query }, {
+    companyId,
+    userId,
+    kind: PRODUCT_FEEDBACK_KIND.BUG,
+    severity: PRODUCT_FEEDBACK_SEVERITY.HIGH,
+    message: 'DTOV: o botão de publicar vaga não responde no celular.',
+    activeTab: 'vacancies',
+  });
+  assert.equal(bug.ok, true, bug.errorCode);
+  assert.ok(bug.responseDueAt);
+  const again = await createProductFeedback({ query }, {
+    companyId,
+    userId,
+    kind: PRODUCT_FEEDBACK_KIND.BUG,
+    message: 'DTOV: mesmo problema ao publicar vaga pelo celular.',
+    activeTab: 'vacancies',
+  });
+  assert.equal(again.ok, true);
+
+  const badKind = await createProductFeedback({ query }, {
+    companyId, userId, kind: 'complaint', message: 'DTOV: tipo inválido de mensagem.',
+  });
+  assert.equal(badKind.ok, false);
+
+  const dup = await updateProductFeedback({ query }, { id: again.id, duplicateOfId: bug.id });
+  assert.equal(dup.ok, true, dup.errorCode);
+  assert.equal(Number(dup.item.duplicateOfId), Number(bug.id));
+  const self = await updateProductFeedback({ query }, { id: bug.id, duplicateOfId: bug.id });
+  assert.equal(self.ok, false);
+  const badModule = await updateProductFeedback({ query }, { id: bug.id, moduleKey: 'nope' });
+  assert.equal(badModule.ok, false);
+  const badAssignee = await updateProductFeedback({ query }, { id: bug.id, assigneeUserId: userId });
+  assert.equal(badAssignee.ok, false, 'company HR cannot own support items');
+
+  const filtered = await listProductFeedback({ query }, {
+    status: 'open',
+    severity: PRODUCT_FEEDBACK_SEVERITY.HIGH,
+    module: COMPANY_MODULE.RECRUITING,
+    q: 'DTOV',
+  });
+  const bugRow = filtered.items.find((r) => Number(r.id) === Number(bug.id));
+  assert.ok(bugRow, 'filter by severity + module finds the bug');
+  assert.equal(bugRow.moduleKey, COMPANY_MODULE.RECRUITING);
+  assert.equal(bugRow.duplicateCount, 1);
+  assert.equal(bugRow.overdue, false);
+  assert.ok(bugRow.dueAt);
+
+  // Backdate one unanswered item past the SLA window.
+  await query(`UPDATE product_feedback SET created_at = NOW() - INTERVAL '6 days' WHERE id = $1`, [bug.id]);
+  const late = await listProductFeedback({ query }, { overdue: '1', q: 'DTOV' });
+  assert.ok(late.items.some((r) => Number(r.id) === Number(bug.id) && r.overdue));
+
+  const summary = await summarizeProductFeedback({ query });
+  assert.ok(summary.overdue >= 1);
+  assert.ok(summary.awaitingResponse >= 1);
+  assert.ok(summary.openByKind.bug >= 1);
+  assert.equal(summary.responseBusinessDays, 1);
+  assert.ok(summary.topModules.some((m) => m.moduleKey === COMPANY_MODULE.RECRUITING));
 
   console.log('product-feedback.dtov.test.js OK');
 }

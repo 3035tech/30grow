@@ -37,6 +37,7 @@ import { COMPANY_LOGO_ACCEPT } from '../../../lib/company-logo-limits';
 import { CompanyModulesField } from '../../_components/CompanyModulesField';
 import { ContentEnter } from '../../_components/AppLoading';
 import { AiUsageAdminPanel } from './AiUsageAdminPanel';
+import { OnboardingFunnelAdminPanel } from './OnboardingFunnelAdminPanel';
 import {
   modulesSelectionForPersist,
   modulesSelectionForUi,
@@ -216,7 +217,7 @@ function emptyCompanyForm() {
   };
 }
 
-export function CompaniesAdminTab({ navigateDashboard, locale }) {
+export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = false }) {
   const { confirm, notice } = useAppFeedback();
   const urlParams = useSearchParams();
   const spKey = urlParams.toString();
@@ -226,7 +227,12 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
   const companiesQ = String(sp.companiesQ || '').trim();
   const companiesActive = String(sp.companiesActive || '').trim();
   const hasCompaniesFilter = Boolean(companiesQ || companiesActive);
-  const companiesView = sp.companiesView === 'aiUsage' ? 'aiUsage' : 'list';
+  const companiesView =
+    sp.companiesView === 'aiUsage'
+      ? 'aiUsage'
+      : sp.companiesView === 'onboarding' && isSuperAdmin
+        ? 'onboarding'
+        : 'list';
   const [searchDraft, setSearchDraft] = useState(companiesQ);
   const dateLocale = localeHtmlLang(locale);
 
@@ -637,7 +643,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
         onChange={(next) =>
           navigateDashboard?.({
             tab: 'companies',
-            companiesView: next === 'aiUsage' ? 'aiUsage' : null,
+            companiesView: next === 'list' ? null : next,
             scroll: false,
             clientOnly: true,
           })
@@ -645,12 +651,17 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
         tabs={[
           { id: 'list', label: t(locale, 'panel.admin.companiesViewList') },
           { id: 'aiUsage', label: t(locale, 'panel.admin.aiUsageTitle') },
+          ...(isSuperAdmin ? [{ id: 'onboarding', label: t(locale, 'panel.admin.onboardingFunnelTitle') }] : []),
         ]}
       />
 
       {companiesView === 'aiUsage' ? (
         <ContentEnter animKey="aiUsage">
           <AiUsageAdminPanel locale={locale} />
+        </ContentEnter>
+      ) : companiesView === 'onboarding' ? (
+        <ContentEnter animKey="onboarding">
+          <OnboardingFunnelAdminPanel locale={locale} />
         </ContentEnter>
       ) : (
       <div className={S.card}>

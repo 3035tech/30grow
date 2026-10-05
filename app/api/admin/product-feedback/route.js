@@ -5,15 +5,18 @@ import { query } from '../../../../lib/db.js';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/permissions.js';
 import {
   createProductFeedback,
+  listFeedbackAssignees,
   listProductFeedback,
+  summarizeProductFeedback,
 } from '../../../../lib/product-feedback.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
 import { z } from '../../../../lib/validate.js';
-import { PRODUCT_FEEDBACK_KINDS } from '../../../../lib/domain-status.js';
+import { PRODUCT_FEEDBACK_KINDS, PRODUCT_FEEDBACK_SEVERITIES } from '../../../../lib/domain-status.js';
 
 const createBodySchema = z.object({
   kind: z.enum(/** @type {[string, ...string[]]} */ (PRODUCT_FEEDBACK_KINDS)),
   message: z.string().trim().min(10).max(4000),
+  severity: z.enum(/** @type {[string, ...string[]]} */ (PRODUCT_FEEDBACK_SEVERITIES)).optional(),
   activeTab: z.string().trim().max(80).optional().nullable(),
   activeSection: z.string().trim().max(80).optional().nullable(),
   contactOk: z.boolean().optional(),
@@ -24,6 +27,9 @@ const listQuerySchema = z.object({
   pageSize: z.coerce.number().int().positive().optional(),
   status: z.string().optional(),
   kind: z.string().optional(),
+  severity: z.string().optional(),
+  module: z.string().optional(),
+  overdue: z.string().optional(),
   q: z.string().optional(),
 });
 
@@ -58,6 +64,7 @@ export const POST = withAdminApi(
       userId: payload.userId,
       kind: body.kind,
       message: body.message,
+      severity: body.severity,
       activeTab: body.activeTab,
       activeSection: body.activeSection,
       contactOk: body.contactOk,
@@ -65,7 +72,7 @@ export const POST = withAdminApi(
     if (!result.ok) {
       return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA });
     }
-    return NextResponse.json({ ok: true, id: result.id, createdAt: result.createdAt });
+    return NextResponse.json({ ok: true, id: result.id, createdAt: result.createdAt, responseDueAt: result.responseDueAt });
   }
 );
 
@@ -81,7 +88,12 @@ export const GET = withAdminApi(
     if (!isSuperAdminPayload(payload) || !requireCapability(payload, CAP.USERS_MANAGE)) {
       return apiError(request, ERR.UNAUTHORIZED, 401);
     }
-    const data = await listProductFeedback({ query }, q);
-    return NextResponse.json(data);
+    const db = { query };
+    const [data, summary, assignees] = await Promise.all([
+      listProductFeedback(db, q),
+      summarizeProductFeedback(db),
+      listFeedbackAssignees(db),
+    ]);
+    return NextResponse.json({ ...data, summary, assignees });
   }
 );

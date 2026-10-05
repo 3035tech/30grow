@@ -231,6 +231,12 @@ export function useDashboardNavigation({
     if (fbStatus && fbStatus !== 'all') p.set('fbStatus', String(fbStatus));
     const fbKind = opts.fbKind !== undefined ? opts.fbKind : urlParams.get('fbKind') || 'all';
     if (fbKind && fbKind !== 'all') p.set('fbKind', String(fbKind));
+    const fbSeverity = opts.fbSeverity !== undefined ? opts.fbSeverity : urlParams.get('fbSeverity') || 'all';
+    if (fbSeverity && fbSeverity !== 'all') p.set('fbSeverity', String(fbSeverity));
+    const fbModule = opts.fbModule !== undefined ? opts.fbModule : urlParams.get('fbModule') || 'all';
+    if (fbModule && fbModule !== 'all') p.set('fbModule', String(fbModule));
+    const fbOverdue = opts.fbOverdue !== undefined ? opts.fbOverdue : urlParams.get('fbOverdue');
+    if (fbOverdue === '1') p.set('fbOverdue', '1');
     const fbQ = opts.fbQ !== undefined ? opts.fbQ : urlParams.get('fbQ') || '';
     if (fbQ) p.set('fbQ', String(fbQ));
     const fbPageRaw = opts.fbPage != null ? opts.fbPage : parseInt(urlParams.get('fbPage') || '1', 10);

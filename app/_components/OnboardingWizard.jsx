@@ -15,6 +15,17 @@ import {
   companyHasModule,
   modulesSelectionForUi,
 } from '../../lib/company-modules';
+import { ONBOARDING_EVENT } from '../../lib/domain-status';
+
+function trackOnboardingEvent(step, event, objective = null) {
+  if (typeof window === 'undefined') return;
+  fetch('/api/admin/onboarding/events', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ step, event, objective }),
+    keepalive: true,
+  }).catch(() => {});
+}
 
 const ALL_STEPS = [
   { id: 'welcome', icon: 'sparkles' },
@@ -89,18 +100,25 @@ export default function OnboardingWizard({ locale, userName, auth = null, onComp
     stepTitleRef.current?.focus();
   }, [currentStep]);
 
+  useEffect(() => {
+    trackOnboardingEvent(step.id, ONBOARDING_EVENT.VIEWED);
+  }, [step.id]);
+
   const chooseObjective = (nextObjective) => {
     setObjective(nextObjective);
     setSelectedModules([...(OBJECTIVE_MODULES[nextObjective] || OBJECTIVE_MODULES.complete)]);
     setModulesTouched(true);
-    handleNext();
+    handleNext(ONBOARDING_EVENT.COMPLETED, nextObjective);
   };
 
-  const handleNext = () => {
+  const handleNext = (event = ONBOARDING_EVENT.COMPLETED, chosenObjective = null) => {
+    trackOnboardingEvent(step.id, event, chosenObjective);
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
+
+  const handleStepSkip = () => handleNext(ONBOARDING_EVENT.SKIPPED);
 
   const handleSkip = async () => {
     await markComplete({ skipModules: true });
@@ -117,6 +135,7 @@ export default function OnboardingWizard({ locale, userName, auth = null, onComp
 
   const markComplete = async ({ skipModules = false } = {}) => {
     if (completing) return false;
+    trackOnboardingEvent(step.id, skipModules ? ONBOARDING_EVENT.SKIPPED : ONBOARDING_EVENT.COMPLETED);
     setCompleting(true);
     setCompleteError('');
     try {
@@ -234,7 +253,7 @@ export default function OnboardingWizard({ locale, userName, auth = null, onComp
               </InlineCallout>
               <button
                 type="button"
-                onClick={handleNext}
+                onClick={() => handleNext()}
                 className="inline-flex min-h-touch items-center rounded-control bg-action px-6 py-3 text-base font-medium text-action-ink hover:bg-action-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
               >
                 {t(locale, 'onboarding.welcome.cta')}
@@ -381,7 +400,7 @@ export default function OnboardingWizard({ locale, userName, auth = null, onComp
                 </Link>
                 <button
                   type="button"
-                  onClick={handleNext}
+                  onClick={handleStepSkip}
                   className="flex-1 rounded-control border border-ink/12 bg-white px-4 py-3 text-base text-ink hover:bg-ink/5"
                 >
                   {t(locale, 'onboarding.vacancy.skipCta')}
@@ -448,7 +467,7 @@ export default function OnboardingWizard({ locale, userName, auth = null, onComp
 
               <button
                 type="button"
-                onClick={handleNext}
+                onClick={handleStepSkip}
                 className="w-full rounded-control border border-ink/12 bg-white px-4 py-3 text-base text-ink hover:bg-ink/5"
               >
                 {t(locale, 'onboarding.invite.skipCta')}
