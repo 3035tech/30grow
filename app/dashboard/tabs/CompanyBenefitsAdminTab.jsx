@@ -5,6 +5,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { AdminRichFormDrawer } from '../../_components/AdminRichFormDrawer';
+import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
 import { cn } from '../../../lib/cn';
 import { RichTextView } from '../../_components/RichTextView';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
@@ -39,7 +40,8 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
   const [sortDir, setSortDir] = useState('asc');
   const [nameQ, setNameQ] = useState('');
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const { confirm, notice, promptForm, toast } = useAppFeedback();
+  const { confirm, promptForm, toast } = useAppFeedback();
+  const [viewing, setViewing] = useState(null);
 
   function companyQs(prefix = '?') {
     if (!companyId) return '';
@@ -516,18 +518,7 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
                     <AdminActionsCell>
                       <AdminViewButton
                         label={t('view')}
-                        onClick={() =>
-                          notice({
-                            title: ben.name,
-                            message: [
-                              ben.category ? `${t('category_col')}: ${ben.category}` : null,
-                              `${t('type_col')}: ${t(ben.benefitType)}`,
-                              ben.description ? String(ben.description).replace(/<[^>]+>/g, ' ').trim() : null,
-                            ]
-                              .filter(Boolean)
-                              .join('\n'),
-                          })
-                        }
+                        onClick={() => setViewing(ben)}
                       />
                       <AdminEditButton label={t('edit')} onClick={() => handleEdit(ben)} />
                       <AdminDeleteButton label={t('deactivate')} onClick={() => handleDeactivate(ben)} />
@@ -552,6 +543,33 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
           />
         </>
       )}
+      <AdminRecordViewDrawer
+        open={Boolean(viewing)}
+        title={viewing?.name || ''}
+        locale={locale}
+        onClose={() => setViewing(null)}
+        onEdit={viewing ? () => handleEdit(viewing) : null}
+        editLabel={t('edit')}
+        sections={
+          viewing
+            ? [
+                {
+                  key: 'meta',
+                  fields: [
+                    { key: 'category', label: t('category_col'), value: viewing.category },
+                    { key: 'type', label: t('type_col'), value: viewing.benefitType ? t(viewing.benefitType) : '' },
+                    {
+                      key: 'description',
+                      label: t('formDescLabel'),
+                      value: viewing.description,
+                      kind: RECORD_FIELD_KIND.HTML,
+                    },
+                  ],
+                },
+              ]
+            : []
+        }
+      />
     </div>
   );
 }

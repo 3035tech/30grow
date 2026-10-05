@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import {
-  dialogBtnSolidClass,
+  dialogBtnPrimaryClass,
   dialogCardClass,
   dialogOverlayClass,
 } from './app-dialog-styles';
@@ -60,14 +60,6 @@ export function SystemNoticeModal({
         : tone === 'warning'
           ? 'text-warning'
           : 'text-info';
-  const btnBgClass =
-    tone === 'ok'
-      ? 'bg-success'
-      : tone === 'error'
-        ? 'bg-danger'
-        : tone === 'warning'
-          ? 'bg-warning'
-          : 'bg-info';
 
   return createPortal(
     <div
@@ -103,7 +95,7 @@ export function SystemNoticeModal({
             type="button"
             onClick={onClose}
             autoFocus
-            className={cn(dialogBtnSolidClass, btnBgClass)}
+            className={dialogBtnPrimaryClass}
           >
             {t(locale, 'panel.common.ok')}
           </button>

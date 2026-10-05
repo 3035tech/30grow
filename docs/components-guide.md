@@ -148,9 +148,13 @@ const [rubric, setRubric] = useState({});
 </AdminRichFormDrawer>
 ```
 
+### Visualizar registro (`AdminRecordViewDrawer`)
+
+A ação **Ver** (olho) das listagens admin abre `AdminRecordViewDrawer` (`app/_components/AdminRecordViewDrawer.jsx`), construído sobre `AdminRichFormDrawer`. Recebe `sections` (`[{ key, title?, fields: [{ key, label, value, kind?, full?, emptyText? }], content? }]`): rótulo acima do valor em grade de 2 colunas, campos vazios somem (ou mostram `emptyText`), `kind` `html` usa `RichTextView`, `link` usa `CopyableLink`, `longText` preserva quebras. `headerMeta` recebe chips de status; `onEdit` adiciona o CTA primário Editar (fecha a gaveta e abre o formulário); `secondaryActions` vai à esquerda do rodapé (ex.: Excluir em ghost `text-danger`). Usado em Empresas, Usuários, Cargos, Trilhas, Benefícios, Mural, Ciclos de avaliação e Desligamentos. `notice()` fica para avisos curtos, não para fichas de registro.
+
 ### Fechar modal (×)
 
-Modais de cadastro, edição e visualização (`AdminRichFormDrawer`, `PromptFormDialog`/`promptForm`, recorte de logo, visualização de desligamento) têm o **×** no canto superior direito via `DialogCloseButton` (`app/_components/DialogCloseButton.jsx`, rótulo `panel.common.close`). Modal novo com formulário reutiliza esse componente. Confirmações e avisos (`ConfirmDialog`, `SystemNoticeModal`) ficam **sem ×**: pedem decisão explícita (Cancelar/Confirmar/OK). Em todos, Esc e clique fora continuam fechando.
+Modais de cadastro, edição e visualização (`AdminRichFormDrawer`, `AdminRecordViewDrawer`, `PromptFormDialog`/`promptForm`, recorte de logo) têm o **×** no canto superior direito via `DialogCloseButton` (`app/_components/DialogCloseButton.jsx`, rótulo `panel.common.close`). Modal novo com formulário reutiliza esse componente. Confirmações e avisos (`ConfirmDialog`, `SystemNoticeModal`) ficam **sem ×**: pedem decisão explícita (Cancelar/Confirmar/OK). Em todos, Esc e clique fora continuam fechando.
 
 ---
 

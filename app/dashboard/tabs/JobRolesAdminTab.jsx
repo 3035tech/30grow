@@ -36,6 +36,8 @@ import { fieldInputClass } from '../../_components/form-control-styles';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { RichTextEditor } from '../../_components/RichTextEditor';
 import { htmlToPlainText } from '../../../lib/sanitize-html';
+import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
+import { StatusToneChip } from '../../_components/StatusToneChip';
 import {
   digitsOnly,
   formatSalaryDisplay,
@@ -61,6 +63,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
   const [aiBusy, setAiBusy] = useState(false);
   const [roles, setRoles] = useState([]);
   const [error, setError] = useState('');
+  const [viewingRole, setViewingRole] = useState(null);
   const [drawerMode, setDrawerMode] = useState(null); // 'create' | 'edit' | null
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -517,35 +520,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
                         <AdminActionsCell>
                           <AdminViewButton
                             label={t(locale, 'jobRoles.viewButton')}
-                            onClick={() =>
-                              notice({
-                                title: role.name,
-                                message: [
-                                  role.description
-                                    ? htmlToPlainText(role.description) ||
-                                      t(locale, 'jobRoles.noDescription')
-                                    : t(locale, 'jobRoles.noDescription'),
-                                  '',
-                                  formatVacancySalaryRangeDisplay(
-                                    role.marketSalaryMin,
-                                    role.marketSalaryMax
-                                  )
-                                    ? `${t(locale, 'jobRoles.colMarketBand')}: ${formatVacancySalaryRangeDisplay(
-                                        role.marketSalaryMin,
-                                        role.marketSalaryMax
-                                      )}`
-                                    : t(locale, 'jobRoles.marketBandEmptyView'),
-                                  '',
-                                  Object.keys(role.rubric || {}).length
-                                    ? t(locale, 'jobRoles.rubricLabel') +
-                                      ': ' +
-                                      Object.entries(role.rubric)
-                                        .map(([k, v]) => `${k} ${v}%`)
-                                        .join(', ')
-                                    : t(locale, 'jobRoles.rubricEmpty'),
-                                ].join('\n'),
-                              })
-                            }
+                            onClick={() => setViewingRole(role)}
                           />
                           <AdminEditButton
                             label={t(locale, 'jobRoles.editButton')}
@@ -565,27 +540,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
                         <AdminActionsCell>
                           <AdminViewButton
                             label={t(locale, 'jobRoles.viewButton')}
-                            onClick={() =>
-                              notice({
-                                title: role.name,
-                                message: [
-                                  role.description
-                                    ? htmlToPlainText(role.description) ||
-                                      t(locale, 'jobRoles.noDescription')
-                                    : t(locale, 'jobRoles.noDescription'),
-                                  '',
-                                  formatVacancySalaryRangeDisplay(
-                                    role.marketSalaryMin,
-                                    role.marketSalaryMax
-                                  )
-                                    ? `${t(locale, 'jobRoles.colMarketBand')}: ${formatVacancySalaryRangeDisplay(
-                                        role.marketSalaryMin,
-                                        role.marketSalaryMax
-                                      )}`
-                                    : t(locale, 'jobRoles.marketBandEmptyView'),
-                                ].join('\n'),
-                              })
-                            }
+                            onClick={() => setViewingRole(role)}
                           />
                         </AdminActionsCell>
                       )}
@@ -749,6 +704,56 @@ export function JobRolesAdminTab({ locale, companyId }) {
           </FormField>
         </div>
       </AdminRichFormDrawer>
+      <AdminRecordViewDrawer
+        open={Boolean(viewingRole)}
+        title={viewingRole?.name || ''}
+        locale={locale}
+        onClose={() => setViewingRole(null)}
+        onEdit={viewingRole?.active ? () => openEdit(viewingRole) : null}
+        editLabel={t(locale, 'jobRoles.editButton')}
+        headerMeta={
+          viewingRole ? (
+            <StatusToneChip tone={viewingRole.active ? 'success' : 'neutral'}>
+              {t(locale, viewingRole.active ? 'panel.recordView.active' : 'jobRoles.inactive')}
+            </StatusToneChip>
+          ) : null
+        }
+        sections={
+          viewingRole
+            ? [
+                {
+                  key: 'content',
+                  fields: [
+                    {
+                      key: 'description',
+                      label: t(locale, 'jobRoles.colDescription'),
+                      value: htmlToPlainText(viewingRole.description || '') ? viewingRole.description : '',
+                      kind: RECORD_FIELD_KIND.HTML,
+                      emptyText: t(locale, 'jobRoles.noDescription'),
+                    },
+                    {
+                      key: 'marketBand',
+                      label: t(locale, 'jobRoles.colMarketBand'),
+                      value: formatVacancySalaryRangeDisplay(viewingRole.marketSalaryMin, viewingRole.marketSalaryMax),
+                      emptyText: t(locale, 'jobRoles.marketBandEmptyView'),
+                    },
+                    {
+                      key: 'rubric',
+                      label: t(locale, 'jobRoles.rubricLabel'),
+                      value: Object.values(viewingRole.rubric || {}).some((weight) => Number(weight) > 0) ? (
+                        <RubricEditor value={viewingRole.rubric} locale={locale} compact />
+                      ) : (
+                        ''
+                      ),
+                      full: true,
+                      emptyText: t(locale, 'jobRoles.rubricEmpty'),
+                    },
+                  ],
+                },
+              ]
+            : []
+        }
+      />
     </div>
   );
 }

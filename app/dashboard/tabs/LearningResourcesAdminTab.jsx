@@ -5,6 +5,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading } from '../../_components/AppLoading';
 import { RichTextView } from '../../_components/RichTextView';
+import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
 import { TagChips } from '../../_components/TagInput';
 import { AdminListFilters, AdminListFilterSelect, AdminListResults } from '../../_components/AdminListFilters';
 import { formatTagList, parseTagList } from '../../../lib/tag-list';
@@ -37,7 +38,8 @@ export function LearningResourcesAdminTab({ locale = 'pt-BR', companyId }) {
   const [sort, setSort] = useState('title');
   const [sortDir, setSortDir] = useState('asc');
   const [nameQ, setNameQ] = useState('');
-  const { confirm, notice, promptForm, toast } = useAppFeedback();
+  const { confirm, promptForm, toast } = useAppFeedback();
+  const [viewing, setViewing] = useState(null);
 
   function companyQs(prefix = '?') {
     if (!companyId) return '';
@@ -407,21 +409,7 @@ export function LearningResourcesAdminTab({ locale = 'pt-BR', companyId }) {
                     <AdminActionsCell>
                       <AdminViewButton
                         label={t('view')}
-                        onClick={() =>
-                          notice({
-                            title: res.title,
-                            message: [
-                              `${t('type_col')}: ${t(res.resourceType)}`,
-                              res.theme?.length ? `${t('theme_col')}: ${formatTagList(res.theme)}` : null,
-                              res.durationHours != null
-                                ? `${t('duration_col')}: ${res.durationHours}${t('hours')}`
-                                : null,
-                              res.url || null,
-                            ]
-                              .filter(Boolean)
-                              .join('\n'),
-                          })
-                        }
+                        onClick={() => setViewing(res)}
                       />
                       <AdminEditButton label={t('edit')} onClick={() => handleEdit(res)} />
                       <AdminDeleteButton label={t('deactivate')} onClick={() => handleDeactivate(res)} />
@@ -447,6 +435,49 @@ export function LearningResourcesAdminTab({ locale = 'pt-BR', companyId }) {
         </>
       )}
       </AdminListResults>
+      <AdminRecordViewDrawer
+        open={Boolean(viewing)}
+        title={viewing?.title || ''}
+        locale={locale}
+        onClose={() => setViewing(null)}
+        onEdit={viewing ? () => handleEdit(viewing) : null}
+        editLabel={t('edit')}
+        sections={
+          viewing
+            ? [
+                {
+                  key: 'meta',
+                  fields: [
+                    { key: 'type', label: t('type_col'), value: viewing.resourceType ? t(viewing.resourceType) : '' },
+                    {
+                      key: 'duration',
+                      label: t('duration_col'),
+                      value: viewing.durationHours != null ? `${viewing.durationHours}${t('hours')}` : '',
+                    },
+                    {
+                      key: 'theme',
+                      label: t('theme_col'),
+                      value: viewing.theme?.length ? <TagChips tags={viewing.theme} /> : '',
+                      full: true,
+                    },
+                    {
+                      key: 'url',
+                      label: i18nT(locale, 'panel.recordView.link'),
+                      value: viewing.url,
+                      kind: RECORD_FIELD_KIND.LINK,
+                    },
+                    {
+                      key: 'description',
+                      label: t('formDescLabel'),
+                      value: viewing.description,
+                      kind: RECORD_FIELD_KIND.HTML,
+                    },
+                  ],
+                },
+              ]
+            : []
+        }
+      />
     </div>
   );
 }

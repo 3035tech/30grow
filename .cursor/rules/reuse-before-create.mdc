@@ -22,6 +22,7 @@ Para **cada nova tela** (ou pedaço grande de UI):
  - Confirm / aviso / toast / loading → `useAppFeedback` (`AppFeedbackProvider`), `ConfirmDialog`, `SystemNoticeModal`, `AppLoading` — **nunca** `window.confirm` / `alert` / `prompt`
  - Transição de tela / conteúdo → `ContentEnter`, `AppLoading variant="panel"`, `NavLoadBar`, `CollapsibleBlock` / `DisclosureToggle`, `IconActionTip` — **obrigatório** em UI nova ou bloco em edição; não inventar fade/skeleton paralelo nem chevron/`+/−`/`▾` ad hoc para expandir
  - Cadastro simples (criar/editar) → `promptForm` / `PromptFormDialog` (select, boolean, checkboxGroup, date)
+ - Visualizar registro (ação “olho” em listagem) → `AdminRecordViewDrawer` (`app/_components/AdminRecordViewDrawer.jsx`; `sections` com `fields` rótulo/valor, `RECORD_FIELD_KIND` text/longText/html/link, `onEdit` vira o CTA primário). Não usar `notice()` com linhas de texto
  - Fechar modal de cadastro/edição/visualização → `DialogCloseButton` (× no canto superior direito; já embutido em `PromptFormDialog` e `AdminRichFormDrawer`). Confirmações/avisos (`ConfirmDialog`, `SystemNoticeModal`) ficam sem ×
  - **Campos de formulário (label acima do controle)** → `FormField` + `formFieldRowClass` / `S.fieldRow` (`app/_components/FormField.jsx`); pai com `items-start` — nunca label inline ao lado do input em grades; hint/readonly não estica irmãos
  - Campos de data / datetime → `DateField` (`app/_components/DateField.jsx`); no `<input type="date">` solto

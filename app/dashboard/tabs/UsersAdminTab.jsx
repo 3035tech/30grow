@@ -11,6 +11,7 @@ import { AdminListFilters, AdminListFilterSelect } from '../../_components/Admin
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { StatusToneChip } from '../../_components/StatusToneChip';
+import { AdminRecordViewDrawer } from '../../_components/AdminRecordViewDrawer';
 
 const BTN_GHOST =
   'min-h-touch rounded-control border border-ink/12 bg-transparent px-3.5 py-2.5 font-mono text-xs text-ink-muted disabled:cursor-default disabled:opacity-60';
@@ -41,7 +42,8 @@ function companySelectOptions(locale, companyOptions) {
 }
 
 export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies = true, currentUserId = null }) {
-  const { promptForm, notice } = useAppFeedback();
+  const { promptForm } = useAppFeedback();
+  const [viewingUser, setViewingUser] = useState(null);
   const urlParams = useSearchParams();
   const spKey = urlParams.toString();
   const dateLocale = localeHtmlLang(locale);
@@ -338,22 +340,46 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
     }
   };
 
-  const viewUser = async (u) => {
-    const companyLabel =
-      u.companyName ||
-      (u.companyId != null ? `#${u.companyId}` : t(locale, 'panel.common.notApplicable'));
-    const lines = [
-      String(u.email || ''),
-      `${t(locale, 'panel.admin.colRole')}: ${u.role || '—'}`,
-      `${t(locale, 'panel.admin.colCompany')}: ${companyLabel}`,
-      `${t(locale, 'panel.admin.colUserActive')}: ${
-        u.active ? t(locale, 'panel.common.yes') : t(locale, 'panel.common.no')
-      }`,
+  const userViewSections = (u) => {
+    const origin = u.origin || 'admin';
+    return [
+      {
+        key: 'identity',
+        title: t(locale, 'panel.recordView.sectionIdentity'),
+        fields: [
+          { key: 'email', label: t(locale, 'panel.admin.colEmail'), value: u.email },
+          { key: 'role', label: t(locale, 'panel.admin.colRole'), value: u.role ? t(locale, `common.roles.${u.role}`) : '' },
+          {
+            key: 'company',
+            label: t(locale, 'panel.admin.colCompany'),
+            value: u.companyName || (u.companyId != null ? `#${u.companyId}` : ''),
+          },
+          {
+            key: 'origin',
+            label: t(locale, 'panel.admin.colOrigin'),
+            value: (
+              <StatusToneChip
+                tone={origin === 'admin' ? 'neutral' : 'info'}
+                title={t(locale, `panel.admin.originHint.${origin}`)}
+              >
+                {t(locale, `panel.admin.origin.${origin}`)}
+              </StatusToneChip>
+            ),
+          },
+        ],
+      },
+      {
+        key: 'status',
+        title: t(locale, 'panel.recordView.sectionStatus'),
+        fields: [
+          {
+            key: 'created',
+            label: t(locale, 'panel.admin.colCreated'),
+            value: u.createdAt ? new Date(u.createdAt).toLocaleString(dateLocale) : '',
+          },
+        ],
+      },
     ];
-    await notice({
-      title: u.displayName || u.email || `#${u.id}`,
-      message: lines.join('\n'),
-    });
   };
 
   const editUser = async (u) => {
@@ -682,7 +708,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
                           ) : (
                             <AdminViewButton
                               label={t(locale, 'panel.admin.viewUser')}
-                              onClick={() => viewUser(u)}
+                              onClick={() => setViewingUser(u)}
                               disabled={loading}
                             />
                           )}
@@ -724,6 +750,32 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
           </>
         )}
       </div>
+      <AdminRecordViewDrawer
+        open={Boolean(viewingUser)}
+        title={viewingUser ? viewingUser.displayName || viewingUser.email || `#${viewingUser.id}` : ''}
+        locale={locale}
+        onClose={() => setViewingUser(null)}
+        onEdit={viewingUser ? () => editUser(viewingUser) : null}
+        editLabel={t(locale, 'panel.admin.editUser')}
+        headerMeta={
+          viewingUser ? (
+            <>
+              <StatusToneChip tone={viewingUser.active ? 'success' : 'neutral'}>
+                {t(locale, viewingUser.active ? 'panel.recordView.active' : 'panel.recordView.inactive')}
+              </StatusToneChip>
+              {viewingUser.capabilitiesCustomized ? (
+                <StatusToneChip tone="brand" title={t(locale, 'panel.admin.userModulesHint')}>
+                  {t(locale, 'panel.admin.userModulesCustom')}
+                </StatusToneChip>
+              ) : null}
+              {viewingUser.signupPending ? (
+                <StatusToneChip tone="warning">{t(locale, 'panel.admin.signupPendingBadge')}</StatusToneChip>
+              ) : null}
+            </>
+          ) : null
+        }
+        sections={viewingUser ? userViewSections(viewingUser) : []}
+      />
     </div>
   );
 }

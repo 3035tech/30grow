@@ -11,7 +11,8 @@ import { cn } from '../../../lib/cn';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading } from '../../_components/AppLoading';
-import { PERFORMANCE_CYCLE_STATUS } from '../../../lib/domain-status.js';
+import { PERFORMANCE_CYCLE_STATUS, PERFORMANCE_REVIEW_STATUS } from '../../../lib/domain-status.js';
+import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
 import { toDateOnlyIso } from '../../../lib/format-display-date.js';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
@@ -28,6 +29,7 @@ import {
   AdminViewButton,
   AdminIconButton,
   PanelSubNav,
+  S,
   SortableTh,
   clientSortNextDir,
 } from '../dashboard-shared';
@@ -38,6 +40,8 @@ import { StatusToneChip } from '../../_components/StatusToneChip';
 import { htmlToPlainText } from '../../../lib/sanitize-html';
 import { FormalCompetencyReviewsBlock } from '../../_components/FormalCompetencyReviewsBlock';
 import { CompetencyCatalogBlock } from '../../_components/CompetencyCatalogBlock';
+
+const CYCLE_VIEW_REVIEWS_LIMIT = 20;
 
 export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId }) {
   const [mode, setMode] = useState('formal');
@@ -50,6 +54,8 @@ export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId }) {
   const [nameQ, setNameQ] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedCycle, setSelectedCycle] = useState(null);
+  const [viewingCycle, setViewingCycle] = useState(null);
+  const [cycleReviews, setCycleReviews] = useState({ cycleId: null, loading: false, error: false, rows: [] });
   const { confirm, notice, promptForm, toast } = useAppFeedback();
 
   function companyQs(prefix = '?') {
@@ -217,37 +223,90 @@ export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId }) {
 
   async function handleViewCycle(cycle) {
     setSelectedCycle(cycle);
-    const lines = [
-      `${t('status')}: ${getStatusLabel(cycle.status)}`,
-      `${t('periodStart')}: ${formatDate(cycle.periodStart)}`,
-      `${t('periodEnd')}: ${formatDate(cycle.periodEnd)}`,
-      `${t('reviewsCount')}: ${cycle.reviewCount || 0}` +
-        (cycle.submittedCount != null ? ` (${cycle.submittedCount} ${t('submittedCount')})` : ''),
-    ];
-    if (cycle.description) lines.push('', String(cycle.description).trim());
+    setViewingCycle(cycle);
+    setCycleReviews({ cycleId: cycle.id, loading: true, error: false, rows: [] });
+    let rows = [];
+    let error = false;
     try {
       const res = await fetch(
-        `/api/admin/performance-cycles/${cycle.id}/reviews?limit=20${
+        `/api/admin/performance-cycles/${cycle.id}/reviews?limit=${CYCLE_VIEW_REVIEWS_LIMIT}${
           companyId ? `&companyId=${companyId}` : ''
         }`
       );
       if (res.ok) {
         const data = await res.json();
-        const reviews = data.reviews || [];
-        if (reviews.length) {
-          lines.push('', '·');
-          for (const r of reviews.slice(0, 12)) {
-            lines.push(
-              `• ${r.candidateName || r.candidateEmail || `#${r.candidateId}`}: ${r.status}`
-            );
-          }
-          if (reviews.length > 12) lines.push(`… +${reviews.length - 12}`);
-        }
+        rows = data.reviews || [];
+      } else {
+        error = true;
       }
     } catch {
-      /* view still shows cycle meta */
+      error = true;
     }
-    await notice({ title: cycle.title, message: lines.join('\n') });
+    setCycleReviews((cur) => (cur.cycleId === cycle.id ? { cycleId: cycle.id, loading: false, error, rows } : cur));
+  }
+
+  function cycleViewSections(cycle) {
+    const total = Number(cycle.reviewCount || 0);
+    let reviewsContent;
+    if (cycleReviews.loading) reviewsContent = <AppLoading locale={locale} />;
+    else if (cycleReviews.error) {
+      reviewsContent = <p className={cn(S.muted, 'm-0')}>{i18nT(locale, 'panel.recordView.reviewsLoadError')}</p>;
+    } else if (!cycleReviews.rows.length) {
+      reviewsContent = <p className={cn(S.muted, 'm-0')}>{i18nT(locale, 'panel.recordView.reviewsEmpty')}</p>;
+    } else {
+      reviewsContent = (
+        <>
+          <ul className="m-0 flex list-none flex-col divide-y divide-ink/5 p-0">
+            {cycleReviews.rows.map((r) => {
+              const submitted = r.status === PERFORMANCE_REVIEW_STATUS.SUBMITTED;
+              return (
+                <li key={r.id ?? r.candidateId} className="flex items-center justify-between gap-3 py-2">
+                  <span className="min-w-0 break-words text-sm text-ink">
+                    {r.candidateName || r.candidateEmail || `#${r.candidateId}`}
+                  </span>
+                  <StatusToneChip tone={submitted ? 'success' : 'warning'} className="shrink-0">
+                    {i18nT(locale, submitted ? 'performanceReviews.reviewSubmitted' : 'performanceReviews.reviewDraft')}
+                  </StatusToneChip>
+                </li>
+              );
+            })}
+          </ul>
+          {total > cycleReviews.rows.length ? (
+            <p className={cn(S.muted, 'm-0 mt-2')}>
+              {i18nT(locale, 'panel.recordView.reviewsMore', { shown: cycleReviews.rows.length, total })}
+            </p>
+          ) : null}
+        </>
+      );
+    }
+    return [
+      {
+        key: 'meta',
+        fields: [
+          { key: 'periodStart', label: t('periodStart'), value: cycle.periodStart ? formatDate(cycle.periodStart) : '' },
+          { key: 'periodEnd', label: t('periodEnd'), value: cycle.periodEnd ? formatDate(cycle.periodEnd) : '' },
+          {
+            key: 'reviews',
+            label: t('reviewsCount'),
+            value:
+              cycle.submittedCount != null
+                ? `${total} (${cycle.submittedCount} ${t('submittedCount')})`
+                : String(total),
+          },
+          {
+            key: 'description',
+            label: t('cycleDescription'),
+            value: htmlToPlainText(cycle.description || '') ? cycle.description : '',
+            kind: RECORD_FIELD_KIND.HTML,
+          },
+        ],
+      },
+      {
+        key: 'reviews',
+        title: i18nT(locale, 'panel.recordView.sectionReviews'),
+        content: reviewsContent,
+      },
+    ];
   }
 
   async function handleSideReviewInvite(cycle) {
@@ -593,6 +652,20 @@ export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId }) {
       ) : null}
       </>
       )}
+      <AdminRecordViewDrawer
+        open={Boolean(viewingCycle)}
+        title={viewingCycle?.title || ''}
+        locale={locale}
+        onClose={() => setViewingCycle(null)}
+        onEdit={viewingCycle ? () => handleEditCycle(viewingCycle) : null}
+        editLabel={t('edit')}
+        headerMeta={
+          viewingCycle ? (
+            <StatusToneChip tone={getStatusTone(viewingCycle.status)}>{getStatusLabel(viewingCycle.status)}</StatusToneChip>
+          ) : null
+        }
+        sections={viewingCycle ? cycleViewSections(viewingCycle) : []}
+      />
     </div>
   );
 }

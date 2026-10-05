@@ -2,20 +2,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { createPortal } from 'react-dom';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
-import { RichTextView } from '../../_components/RichTextView';
-import { DialogCloseButton } from '../../_components/DialogCloseButton';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
-import {
-  dialogBtnGhostClass,
-  dialogBtnPrimaryClass,
-  dialogCardClass,
-  dialogOverlayClass,
-} from '../../_components/app-dialog-styles';
+import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
+import { dialogBtnGhostClass } from '../../_components/app-dialog-styles';
+import { htmlToPlainText } from '../../../lib/sanitize-html';
 import { EMPLOYMENT_STATUS, EXIT_REASONS, EXIT_TYPES } from '../../../lib/domain-status.js';
 import { useRehireEmployee } from '../../_components/useRehireEmployee';
 import { formatDisplayDate, toDateOnlyIso } from '../../../lib/format-display-date.js';
@@ -548,122 +542,48 @@ export function ExitAnalysisAdminTab({ locale = 'pt-BR', companyId, isAdmin }) {
         </>
       )}
 
-      {viewRecord ? (
-        <ExitRecordViewDialog
-          locale={locale}
-          record={viewRecord}
-          t={t}
-          formatDate={formatDate}
-          canWrite={canWrite}
-          onClose={() => setViewRecord(null)}
-          onEdit={() => handleEdit(viewRecord)}
-          onDelete={() => handleDelete(viewRecord)}
-        />
-      ) : null}
+      <AdminRecordViewDrawer
+        open={Boolean(viewRecord)}
+        title={viewRecord?.candidateName || t('viewTitle')}
+        locale={locale}
+        onClose={() => setViewRecord(null)}
+        onEdit={canWrite && viewRecord ? () => handleEdit(viewRecord) : null}
+        editLabel={t('edit')}
+        headerMeta={viewRecord?.candidateEmail ? <span>{viewRecord.candidateEmail}</span> : null}
+        secondaryActions={
+          canWrite && viewRecord ? (
+            <button
+              type="button"
+              onClick={() => handleDelete(viewRecord)}
+              className={cn(dialogBtnGhostClass, 'border-danger/30 text-danger')}
+            >
+              {t('delete')}
+            </button>
+          ) : null
+        }
+        sections={
+          viewRecord
+            ? [
+                {
+                  key: 'exit',
+                  fields: [
+                    { key: 'exitDate', label: t('exitDate'), value: viewRecord.exitDate ? formatDate(viewRecord.exitDate) : '' },
+                    { key: 'exitType', label: t('exitType'), value: viewRecord.exitType ? t(viewRecord.exitType) : '' },
+                    { key: 'exitReason', label: t('exitReason'), value: viewRecord.exitReason ? t(viewRecord.exitReason) : '', full: true },
+                    {
+                      key: 'notes',
+                      label: t('notes'),
+                      value: htmlToPlainText(viewRecord.notes || '') ? viewRecord.notes : '',
+                      kind: RECORD_FIELD_KIND.HTML,
+                      emptyText: t('noNotes'),
+                    },
+                  ],
+                },
+              ]
+            : []
+        }
+      />
     </div>
     </ContentEnter>
-  );
-}
-
-function ExitRecordViewDialog({ locale, record, t, formatDate, canWrite, onClose, onEdit, onDelete }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!record) return undefined;
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.();
-    };
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [record, onClose]);
-
-  if (!mounted || !record) return null;
-
-  const hasNotes = Boolean(String(record.notes || '').replace(/<[^>]*>/g, '').trim());
-
-  return createPortal(
-    <div
-      className={cn('app-dialog-overlay', dialogOverlayClass)}
-      role="presentation"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
-      }}
-    >
-      <div
-        className={cn(dialogCardClass, 'max-w-[520px]')}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="exit-record-view-title"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <h3 id="exit-record-view-title" className="m-0 min-w-0 pt-1.5 text-lg font-semibold text-ink">
-            {t('viewTitle')}
-          </h3>
-          <DialogCloseButton onClick={onClose} locale={locale} className="-mr-2 -mt-1" />
-        </div>
-        <dl className="mt-4 flex flex-col gap-3 text-sm">
-          <div>
-            <dt className="font-mono text-2xs uppercase tracking-wider text-ink-faint">{t('candidateName')}</dt>
-            <dd className="m-0 mt-0.5 text-ink">{record.candidateName}</dd>
-            {record.candidateEmail ? (
-              <dd className="m-0 text-xs text-ink-muted">
-                {t('email')}: {record.candidateEmail}
-              </dd>
-            ) : null}
-          </div>
-          <div>
-            <dt className="font-mono text-2xs uppercase tracking-wider text-ink-faint">{t('exitDate')}</dt>
-            <dd className="m-0 mt-0.5 text-ink">{formatDate(record.exitDate)}</dd>
-          </div>
-          <div>
-            <dt className="font-mono text-2xs uppercase tracking-wider text-ink-faint">{t('exitType')}</dt>
-            <dd className="m-0 mt-0.5 text-ink">{t(record.exitType)}</dd>
-          </div>
-          <div>
-            <dt className="font-mono text-2xs uppercase tracking-wider text-ink-faint">{t('exitReason')}</dt>
-            <dd className="m-0 mt-0.5 text-ink">{t(record.exitReason)}</dd>
-          </div>
-          <div>
-            <dt className="font-mono text-2xs uppercase tracking-wider text-ink-faint">{t('notes')}</dt>
-            <dd className="m-0 mt-1">
-              {hasNotes ? (
-                <RichTextView html={record.notes} className="rounded-control border border-ink/8 bg-canvas px-3 py-2" />
-              ) : (
-                <span className="text-ink-muted">{t('noNotes')}</span>
-              )}
-            </dd>
-          </div>
-        </dl>
-        <div className="mt-5 flex flex-wrap justify-end gap-2">
-          {canWrite ? (
-            <>
-              <button type="button" onClick={onEdit} className={dialogBtnGhostClass}>
-                {t('edit')}
-              </button>
-              <button
-                type="button"
-                onClick={onDelete}
-                className={cn(dialogBtnGhostClass, 'border-danger/30 text-danger')}
-              >
-                {t('delete')}
-              </button>
-            </>
-          ) : null}
-          <button type="button" onClick={onClose} className={dialogBtnPrimaryClass}>
-            {t('close')}
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body
   );
 }

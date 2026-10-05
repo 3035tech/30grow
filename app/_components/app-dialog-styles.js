@@ -16,10 +16,11 @@ export const dialogOverlayElevatedClass =
 export const dialogCardClass =
   'w-full max-w-[420px] rounded-card border border-ink/12 bg-surface px-6 py-6 shadow-dialog';
 
+/** Same action tokens as `S.btnPrimary` (dashboard-shared). */
 export const dialogBtnPrimaryClass =
-  'min-h-touch cursor-pointer rounded-control border-none bg-brand-500 px-5 py-2.5 font-ui text-sm font-medium text-white dark:text-canvas';
+  'min-h-touch cursor-pointer rounded-control border-none bg-action px-5 py-2.5 font-ui text-sm font-medium text-action-ink transition-colors hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 disabled:cursor-default disabled:opacity-55';
 
-/** Primary button without brand fill — pair with `bg-brand-500` | `bg-danger` | `bg-success`. */
+/** Solid button without fill, for destructive confirms: pair with `bg-danger`. */
 export const dialogBtnSolidClass =
   'min-h-touch cursor-pointer rounded-control border-none px-5 py-2.5 font-ui text-sm font-medium text-white';
 

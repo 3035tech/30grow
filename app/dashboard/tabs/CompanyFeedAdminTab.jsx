@@ -22,12 +22,15 @@ import {
 } from '../dashboard-shared';
 import { t } from '../../../lib/i18n';
 import { formatDisplayDateTime } from '../../../lib/format-display-date';
+import { htmlToPlainText } from '../../../lib/sanitize-html';
+import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
 
 /**
  * B-2712 posts + B-2716 kudos moderation (one tab).
  */
 export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
-  const { confirm, notice, promptForm, toast } = useAppFeedback();
+  const { confirm, promptForm, toast } = useAppFeedback();
+  const [viewing, setViewing] = useState(null);
   const [posts, setPosts] = useState([]);
   const [kudos, setKudos] = useState([]);
   const [postsTotal, setPostsTotal] = useState(0);
@@ -156,24 +159,44 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
     load();
   }
 
-  async function viewPost(post) {
-    const plain = String(post.bodyHtml || '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    await notice({
-      title: post.title,
-      message: plain || t(locale, 'panel.companyFeed.emptyBody'),
-      tone: 'info',
-    });
-  }
-
-  async function viewKudo(row) {
-    await notice({
-      title: `${row.fromName} → ${row.toName}`,
-      message: row.message || t(locale, 'panel.companyFeed.emptyKudo'),
-      tone: 'info',
-    });
+  function viewSections() {
+    if (!viewing) return [];
+    const { kind, row } = viewing;
+    if (kind === 'post') {
+      return [
+        {
+          key: 'post',
+          fields: [
+            { key: 'author', label: t(locale, 'panel.companyFeed.colAuthor'), value: row.authorName },
+            { key: 'when', label: t(locale, 'panel.companyFeed.colWhen'), value: formatDisplayDateTime(row.createdAt, locale) },
+            {
+              key: 'body',
+              label: t(locale, 'panel.companyFeed.fieldBody'),
+              value: htmlToPlainText(row.bodyHtml || '') ? row.bodyHtml : '',
+              kind: RECORD_FIELD_KIND.HTML,
+              emptyText: t(locale, 'panel.companyFeed.emptyBody'),
+            },
+          ],
+        },
+      ];
+    }
+    return [
+      {
+        key: 'kudo',
+        fields: [
+          { key: 'from', label: t(locale, 'panel.companyFeed.colFrom'), value: row.fromName },
+          { key: 'to', label: t(locale, 'panel.companyFeed.colTo'), value: row.toName },
+          { key: 'when', label: t(locale, 'panel.companyFeed.colWhen'), value: formatDisplayDateTime(row.createdAt, locale) },
+          {
+            key: 'message',
+            label: t(locale, 'panel.companyFeed.colMessage'),
+            value: row.message,
+            kind: RECORD_FIELD_KIND.LONG_TEXT,
+            emptyText: t(locale, 'panel.companyFeed.emptyKudo'),
+          },
+        ],
+      },
+    ];
   }
 
   async function removePost(post) {
@@ -308,7 +331,7 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
                     <AdminActionsCell>
                       <AdminViewButton
                         label={t(locale, 'panel.common.view')}
-                        onClick={() => viewPost(p)}
+                        onClick={() => setViewing({ kind: 'post', row: p })}
                       />
                       <AdminEditButton
                         label={t(locale, 'panel.common.edit')}
@@ -375,7 +398,7 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
                         <AdminActionsCell>
                           <AdminViewButton
                             label={t(locale, 'panel.common.view')}
-                            onClick={() => viewKudo(k)}
+                            onClick={() => setViewing({ kind: 'kudo', row: k })}
                           />
                           <AdminDeleteButton
                             label={t(locale, 'panel.common.delete')}
@@ -398,6 +421,18 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
           )}
         </CollapsibleBlock>
       </div>
+      <AdminRecordViewDrawer
+        open={Boolean(viewing)}
+        title={
+          viewing?.kind === 'kudo'
+            ? t(locale, 'panel.recordView.kudoFromTo', { from: viewing.row.fromName, to: viewing.row.toName })
+            : viewing?.row.title || ''
+        }
+        locale={locale}
+        onClose={() => setViewing(null)}
+        onEdit={viewing?.kind === 'post' ? () => editPost(viewing.row) : null}
+        sections={viewSections()}
+      />
     </ContentEnter>
   );
 }

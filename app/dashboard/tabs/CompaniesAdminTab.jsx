@@ -29,6 +29,8 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { DateField } from '../../_components/DateField';
 import { EmptyState } from '../../_components/EmptyState';
 import { AdminRichFormDrawer } from '../../_components/AdminRichFormDrawer';
+import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
+import { StatusToneChip } from '../../_components/StatusToneChip';
 import { CopyableLink } from '../../_components/CopyableLink';
 import { RichTextEditor } from '../../_components/RichTextEditor';
 import { FormField } from '../../_components/FormField';
@@ -218,7 +220,7 @@ function emptyCompanyForm() {
 }
 
 export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = false }) {
-  const { confirm, notice } = useAppFeedback();
+  const { confirm } = useAppFeedback();
   const urlParams = useSearchParams();
   const spKey = urlParams.toString();
   const sp = useMemo(() => Object.fromEntries(urlParams.entries()), [spKey]);
@@ -245,6 +247,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
 
+  const [viewingCompany, setViewingCompany] = useState(null);
   const [drawerMode, setDrawerMode] = useState(null); // null | 'create' | 'edit'
   const [editingCompany, setEditingCompany] = useState(null);
   const [form, setForm] = useState(emptyCompanyForm);
@@ -399,6 +402,85 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
     setPendingLogoFile(null);
     setLogoError('');
     setDrawerMode('create');
+  };
+
+  const companyViewSections = (c) => {
+    const token = c.activeToken || '';
+    const exp = c.activeTokenExpiresAt ? new Date(c.activeTokenExpiresAt) : null;
+    const careersPath = c.slug ? publicCompanyPath(c.slug) : '';
+    const careersUrl = careersPath && appUrl ? `${appUrl}${careersPath}` : careersPath;
+    const anniversary = c.anniversaryDate ? new Date(`${String(c.anniversaryDate).slice(0, 10)}T00:00:00`) : null;
+    const aiLimit = c.aiMonthlyCallLimit;
+    let aiLimitLabel = t(locale, 'panel.recordView.aiLimitDefault');
+    if (aiLimit != null && Number(aiLimit) === 0) aiLimitLabel = t(locale, 'panel.recordView.aiLimitBlocked');
+    else if (aiLimit != null) {
+      aiLimitLabel = t(locale, 'panel.recordView.aiLimitValue', { n: Number(aiLimit).toLocaleString(dateLocale) });
+    } else if (aiDefaultLimit != null) {
+      aiLimitLabel = `${aiLimitLabel} (${t(locale, 'panel.recordView.aiLimitValue', { n: Number(aiDefaultLimit).toLocaleString(dateLocale) })})`;
+    }
+    return [
+      {
+        key: 'identity',
+        title: t(locale, 'panel.recordView.sectionIdentity'),
+        fields: [
+          { key: 'slug', label: t(locale, 'panel.admin.colSlug'), value: c.slug },
+          {
+            key: 'website',
+            label: t(locale, 'panel.admin.colWebsite'),
+            value: c.website ? (/^https?:\/\//i.test(c.website) ? c.website : `https://${c.website}`) : '',
+            kind: RECORD_FIELD_KIND.LINK,
+          },
+          {
+            key: 'anniversary',
+            label: t(locale, 'panel.admin.editCompanyAnniversary'),
+            value: anniversary && !Number.isNaN(anniversary.getTime()) ? anniversary.toLocaleDateString(dateLocale) : '',
+          },
+        ],
+      },
+      {
+        key: 'status',
+        title: t(locale, 'panel.recordView.sectionStatus'),
+        fields: [
+          {
+            key: 'employees',
+            label: t(locale, 'panel.admin.colActiveEmployees'),
+            value: Number(c.activeEmployees || 0).toLocaleString(dateLocale),
+          },
+          {
+            key: 'created',
+            label: t(locale, 'panel.admin.colCreated'),
+            value: c.createdAt ? new Date(c.createdAt).toLocaleDateString(dateLocale) : '',
+          },
+        ],
+      },
+      {
+        key: 'access',
+        title: t(locale, 'panel.recordView.sectionAccess'),
+        fields: [
+          {
+            key: 'testLink',
+            label: exp
+              ? `${t(locale, 'panel.recordView.testLink')} · ${t(locale, 'panel.recordView.linkExpires', { date: exp.toLocaleDateString(dateLocale) })}`
+              : t(locale, 'panel.recordView.testLink'),
+            value: token && appUrl ? `${appUrl}/t/${token}` : '',
+            kind: RECORD_FIELD_KIND.LINK,
+            emptyText: t(locale, 'panel.recordView.noActiveLink'),
+          },
+          {
+            key: 'careers',
+            label: t(locale, 'panel.admin.colCareers'),
+            value: c.publicProfileEnabled && careersUrl ? careersUrl : '',
+            kind: RECORD_FIELD_KIND.LINK,
+            emptyText: t(locale, 'panel.admin.companyPublicPageOff'),
+          },
+        ],
+      },
+      {
+        key: 'usage',
+        title: t(locale, 'panel.recordView.sectionUsage'),
+        fields: [{ key: 'aiLimit', label: t(locale, 'panel.admin.companyAiLimit'), value: aiLimitLabel }],
+      },
+    ];
   };
 
   const editCompany = async (c) => {
@@ -816,20 +898,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
                         <AdminActionsCell>
                           <AdminViewButton
                             label={t(locale, 'panel.admin.view')}
-                            onClick={() =>
-                              notice({
-                                title: c.name,
-                                message: [
-                                  c.slug ? `slug: ${c.slug}` : null,
-                                  c.website || null,
-                                  c.active
-                                    ? t(locale, 'panel.common.yes')
-                                    : t(locale, 'panel.common.no'),
-                                ]
-                                  .filter(Boolean)
-                                  .join('\n'),
-                              })
-                            }
+                            onClick={() => setViewingCompany(c)}
                             disabled={loading}
                           />
                           <AdminEditButton
@@ -878,6 +947,28 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
         )}
       </div>
       )}
+
+      <AdminRecordViewDrawer
+        open={Boolean(viewingCompany)}
+        title={viewingCompany?.name || ''}
+        locale={locale}
+        onClose={() => setViewingCompany(null)}
+        onEdit={viewingCompany ? () => editCompany(viewingCompany) : null}
+        headerMeta={
+          viewingCompany ? (
+            <>
+              {viewingCompany.logoUrl ? (
+                <img src={viewingCompany.logoUrl} alt="" width={28} height={28} className="shrink-0 rounded-md object-contain" />
+              ) : null}
+              <StatusToneChip tone={viewingCompany.active ? 'success' : 'neutral'}>
+                {t(locale, viewingCompany.active ? 'panel.recordView.activeFem' : 'panel.recordView.inactiveFem')}
+              </StatusToneChip>
+              <span className="font-mono text-ink-faint">#{viewingCompany.id}</span>
+            </>
+          ) : null
+        }
+        sections={viewingCompany ? companyViewSections(viewingCompany) : []}
+      />
 
       <AdminRichFormDrawer
         open={drawerMode === 'create' || drawerMode === 'edit'}

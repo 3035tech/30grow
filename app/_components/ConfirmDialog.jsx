@@ -6,6 +6,7 @@ import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import {
   dialogBtnGhostClass,
+  dialogBtnPrimaryClass,
   dialogBtnSolidClass,
   dialogCardClass,
   dialogOverlayClass,
@@ -80,7 +81,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             autoFocus
-            className={cn(dialogBtnSolidClass, danger ? 'bg-danger' : 'bg-brand-500')}
+            className={danger ? cn(dialogBtnSolidClass, 'bg-danger') : dialogBtnPrimaryClass}
           >
             {confirmLabel || t(locale, 'panel.common.confirmAction')}
           </button>
