@@ -21,6 +21,7 @@ import { StatusToneChip } from './StatusToneChip';
 import { DpDependentsEditor } from './DpDependentsEditor';
 import { Icon } from './Icon';
 import { InlineCallout } from './InlineCallout';
+import { TimeClockScheduleBlock } from './TimeClockScheduleBlock';
 import { PrivateAttachment } from './PrivateAttachment';
 import { formatDisplayDateTime } from '../../lib/format-display-date';
 import { RichTextView } from './RichTextView';
@@ -944,6 +945,10 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
   });
   const pendingDocCount = orderedDocs.filter((d) => d.status === DP_DOCUMENT_STATUS.PENDING).length;
   const requestedLeaveCount = leaves.filter((l) => l.status === DP_LEAVE_STATUS.REQUESTED).length;
+  const timeClockEnabled = resolveTimeClockEligibility({
+    workFormat: candidate?.workFormat,
+    override: candidate?.timeClockOverride,
+  }).enabled;
 
   return (
     <ContentEnter
@@ -1067,6 +1072,11 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
                 <ProfileInfo className="sm:col-span-2 lg:col-span-4" pre label={t(locale, 'panel.dp.internalNotes')}>{profile.internalNotes}</ProfileInfo>
               ) : null}
             </ProfileSection>
+            {!readOnly && scopedCompanyId && timeClockEnabled ? (
+              <section className="mt-4 border-t border-ink/10 pt-4">
+                <TimeClockScheduleBlock locale={locale} companyId={scopedCompanyId} candidateId={candidateId} />
+              </section>
+            ) : null}
             <ProfileSection
               title={i18nT(locale, 'ui.dpBlock.dependents')}
               plain

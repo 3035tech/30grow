@@ -79,7 +79,9 @@ function isoPlusDays(days) {
 /**
  * Company leave inbox + simple 60-day calendar list (DP leve).
  */
-export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
+const DP_SECTIONS = ['pending', 'leaves', 'documents', 'time', 'onboarding'];
+
+export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, initialSection = '', initialTimeView = '' }) {
   const { promptForm, toast } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
@@ -101,7 +103,9 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
   const [absenteeismPeople, setAbsenteeismPeople] = useState(0);
   const [firstAbsenteeismCandidateId, setFirstAbsenteeismCandidateId] = useState(null);
   const [exporting, setExporting] = useState(false);
-  const [workspaceSection, setWorkspaceSection] = useState('pending');
+  const [workspaceSection, setWorkspaceSection] = useState(() => (DP_SECTIONS.includes(initialSection) ? initialSection : 'pending'));
+  const [timeView, setTimeView] = useState(initialTimeView || '');
+  const [pendingTimeRequests, setPendingTimeRequests] = useState(0);
 
   const load = useCallback(async () => {
     if (!companyId) {
@@ -146,6 +150,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
       setPendingDocsList([]);
       setAbsenteeismPeople(0);
       setFirstAbsenteeismCandidateId(null);
+      setPendingTimeRequests(0);
       return;
     }
     try {
@@ -158,6 +163,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
       const docs = Array.isArray(data.pendingDocs) ? data.pendingDocs : [];
       setPendingDocsList(docs);
       setAbsenteeismPeople(Number(data.absenteeismPeople) || 0);
+      setPendingTimeRequests(Number(data.pendingTimeRequests) || 0);
       const firstAbs = Array.isArray(data.absenteeism) ? data.absenteeism[0] : null;
       setFirstAbsenteeismCandidateId(
         firstAbs?.candidateId != null ? Number(firstAbs.candidateId) : null
@@ -433,7 +439,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
           { id: 'pending', label: t(locale, 'panel.dp.workspacePending') },
           { id: 'leaves', label: t(locale, 'panel.dp.workspaceLeaves') },
           { id: 'documents', label: t(locale, 'panel.dp.workspaceDocuments'), badge: pendingDocsPeople || undefined },
-          { id: 'time', label: t(locale, 'panel.dp.workspaceTime') },
+          { id: 'time', label: t(locale, 'panel.dp.workspaceTime'), badge: pendingTimeRequests || undefined },
           { id: 'onboarding', label: t(locale, 'panel.dp.workspaceOnboarding') },
         ]}
       />
@@ -462,9 +468,9 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
       />
 
       {workspaceSection === 'pending' ? (
-        requestedCount + pendingDocsPeople + absenteeismPeople > 0 ? (
-          <ContentEnter animKey={`dp-pending|${requestedCount}|${pendingDocsPeople}|${absenteeismPeople}`}>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        requestedCount + pendingDocsPeople + absenteeismPeople + pendingTimeRequests > 0 ? (
+          <ContentEnter animKey={`dp-pending|${requestedCount}|${pendingDocsPeople}|${absenteeismPeople}|${pendingTimeRequests}`}>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <StatMetricTile
                 value={requestedCount}
                 label={t(locale, 'panel.dp.pendingLeaveTitle')}
@@ -473,6 +479,15 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
                   setWorkspaceSection('leaves');
                   setStatusFilter(DP_LEAVE_STATUS.REQUESTED);
                   setPage(1);
+                }}
+              />
+              <StatMetricTile
+                value={pendingTimeRequests}
+                label={t(locale, 'panel.dp.pendingTimeRequestsTitle')}
+                hint={t(locale, 'panel.dp.pendingTimeRequestsHint')}
+                onClick={() => {
+                  setTimeView('requests');
+                  setWorkspaceSection('time');
                 }}
               />
               <StatMetricTile
@@ -514,6 +529,8 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard }) {
         locale={locale}
         companyId={companyId}
         navigateDashboard={navigateDashboard}
+        initialView={timeView}
+        onRequestsChanged={() => void loadAttention()}
       /> : null}
 
       {workspaceSection === 'leaves' ? <VacationPoolBlock locale={locale} companyId={companyId} reloadKey={reloadKey} /> : null}

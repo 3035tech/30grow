@@ -1489,6 +1489,8 @@ function DashboardClientContent({
                   locale={locale}
                   companyId={scopedCompanyId}
                   navigateDashboard={navigateWithOpts}
+                  initialSection={urlParams.get('dpSection') || ''}
+                  initialTimeView={urlParams.get('timeView') || ''}
                 />
               )}
               {tab === 'learning-resources' && showLearning && <LearningResourcesAdminTab locale={locale} companyId={scopedCompanyId} />}

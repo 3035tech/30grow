@@ -93,6 +93,14 @@ async function main() {
   assert.equal(today.nextKind, TIME_PUNCH_KIND.OUT);
   assert.equal(today.open, true);
   assert.ok(today.punches.some((p) => p.id === punchIn.punch.id));
+  assert.equal(today.lastLocation, null, 'punch without coordinates has no last location');
+
+  await query(`UPDATE employee_time_punches SET latitude = -23.55, longitude = -46.63 WHERE id = $1`, [punchIn.punch.id]);
+  const located = await getEmployeeTimeClockToday({ query }, { companyId, candidateId });
+  assert.deepEqual(
+    { latitude: located.lastLocation?.latitude, longitude: located.lastLocation?.longitude, punchKind: located.lastLocation?.punchKind },
+    { latitude: -23.55, longitude: -46.63, punchKind: TIME_PUNCH_KIND.IN }
+  );
 
   const punchOut = await createTimePunch({ query }, {
     companyId,

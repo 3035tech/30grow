@@ -16,7 +16,6 @@ import { EmptyState } from './EmptyState';
 import { AppLoading, ContentEnter } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';
 import { CollapsibleBlock } from './CollapsibleBlock';
-import { DateField } from './DateField';
 import { FormField } from './FormField';
 import { InlineCallout } from './InlineCallout';
 import { StatusToneChip } from './StatusToneChip';
@@ -27,7 +26,7 @@ function localYearMonth() {
 }
 
 /**
- * B-2722 — Hour bank admin (DP hub): settings, balances, pending, generate, CSV.
+ * B-2722 — Hour bank admin (DP hub): settings, balances, pending, CSV. Balance is computed from the timesheet.
  */
 export function HourBankAdminBlock({
   locale = 'pt-BR',
@@ -39,7 +38,6 @@ export function HourBankAdminBlock({
   onChanged = null,
 }) {
   const { toast, promptForm } = useAppFeedback();
-  const [day, setDay] = useState(localIsoToday);
   const [month, setMonth] = useState(localYearMonth);
   const [balances, setBalances] = useState([]);
   const [pending, setPending] = useState([]);
@@ -183,7 +181,7 @@ export function HourBankAdminBlock({
           type: 'date',
           label: t(locale, 'panel.hourBank.workOnLabel'),
           required: true,
-          defaultValue: day,
+          defaultValue: localIsoToday(),
         },
         {
           key: 'note',
@@ -211,36 +209,6 @@ export function HourBankAdminBlock({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'manual');
       toast(t(locale, 'panel.hourBank.manualSaved'), 'ok');
-      await reloadAll();
-    } catch (e) {
-      toast(e?.message || t(locale, 'panel.hourBank.saveError'), 'error');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const generate = async () => {
-    setBusy(true);
-    try {
-      const res = await fetch('/api/admin/hour-bank', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          companyId,
-          action: 'generate',
-          day,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'generate');
-      toast(
-        t(locale, 'panel.hourBank.generated', {
-          created: data.created ?? 0,
-          skipped: data.skipped ?? 0,
-          duplicates: data.duplicates ?? 0,
-        }),
-        'ok'
-      );
       await reloadAll();
     } catch (e) {
       toast(e?.message || t(locale, 'panel.hourBank.saveError'), 'error');
@@ -326,13 +294,6 @@ export function HourBankAdminBlock({
           <p className={cn(S.muted, 'mb-3 text-prose')}>{t(locale, 'panel.hourBank.note')}</p>
 
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-            <FormField label={t(locale, 'panel.hourBank.dayLabel')} className="min-w-[10rem]">
-              <DateField
-                value={day}
-                onChange={(e) => setDay(e.target.value || localIsoToday())}
-                disabled={busy}
-              />
-            </FormField>
             <FormField label={t(locale, 'panel.hourBank.monthLabel')} className="min-w-[8rem]">
               <input
                 type="month"
@@ -356,14 +317,6 @@ export function HourBankAdminBlock({
                 onClick={() => void addManual()}
                 disabled={busy || !enabled}
               />
-              <button
-                type="button"
-                className={cn(S.btnBrandSoft, 'min-h-touch text-sm')}
-                disabled={busy || !enabled}
-                onClick={() => void generate()}
-              >
-                {t(locale, 'panel.hourBank.generateBtn')}
-              </button>
               <button
                 type="button"
                 className={cn(S.btnGhost, 'min-h-touch text-sm')}

@@ -120,7 +120,7 @@ Convenções que valem para todos os módulos:
 ### Departamento pessoal (DP leve)
 
 - Hub DP: pendências, férias e afastamentos (saldo por período aquisitivo), documentos com anexo privado, assinatura interna, admissão.
-- **Ponto digital** e **banco de horas** (teto por empresa, créditos do ponto, aprovação do RH, CSV mensal; migration `099`).
+- **Ponto digital** e **banco de horas** (saldo calculado do espelho + lançamentos, teto por empresa, congelado no fechamento, CSV mensal; migrations `099` e `143`), jornada por colaborador e feriados.
 - Fora de escopo: eSocial, holerite, folha. Detalhe: [`DP-PRIVATE-ATTACHMENTS.md`](DP-PRIVATE-ATTACHMENTS.md), [`dp-address-and-clock-timeline.md`](dp-address-and-clock-timeline.md).
 
 ---

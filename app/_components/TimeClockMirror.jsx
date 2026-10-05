@@ -11,8 +11,10 @@ import {
   TIME_PUNCH_KIND,
   TIME_PUNCH_REVIEW,
   TIME_PUNCH_SOURCE,
+  TIME_REQUEST_STATUS,
+  TIME_SCHEDULE_SOURCE,
 } from '../../lib/domain-status.js';
-import { formatMinutesClock, localIsoToday, shiftIsoDay } from '../../lib/time-clock-format.js';
+import { formatMinutesClock, localIsoToday, timeClockPeriodFor as periodFor } from '../../lib/time-clock-format.js';
 import { TIME_CLOCK_REASON } from '../../lib/people/time-clock-eligibility.js';
 import {
   S,
@@ -32,9 +34,12 @@ import { FormField } from './FormField';
 import { Icon } from './Icon';
 import { IconActionTip } from './IconActionTip';
 import { InlineCallout } from './InlineCallout';
+import { PunchLocationMap } from './PunchLocationMap';
 import { SegmentedControl } from './SegmentedControl';
 import { StatMetricTile } from './StatMetricTile';
 import { StatusToneChip } from './StatusToneChip';
+import { TimeClockScheduleBlock } from './TimeClockScheduleBlock';
+import { TimeRequestCard, TimeRequestStatusChip, excuseSummary } from './TimeRequestParts';
 
 const K = 'panel.timeClockMgr';
 
@@ -48,21 +53,10 @@ const OCCURRENCE_TONE = {
   [TIME_DAY_OCCURRENCE.MISSING]: 'warning',
   [TIME_DAY_OCCURRENCE.JUSTIFIED]: 'info',
   [TIME_DAY_OCCURRENCE.REST]: 'neutral',
+  [TIME_DAY_OCCURRENCE.HOLIDAY]: 'info',
 };
 
 const HM_RE = /^([01]?\d|2[0-3]):[0-5]\d$/;
-
-function periodFor(preset) {
-  const today = localIsoToday();
-  if (preset === '7') return { from: shiftIsoDay(today, -6), to: today };
-  if (preset === 'month') return { from: `${today.slice(0, 8)}01`, to: today };
-  if (preset === 'prevMonth') {
-    const firstThis = `${today.slice(0, 8)}01`;
-    const lastPrev = shiftIsoDay(firstThis, -1);
-    return { from: `${lastPrev.slice(0, 8)}01`, to: lastPrev };
-  }
-  return { from: shiftIsoDay(today, -29), to: today };
-}
 
 function timeOf(value, locale) {
   const d = new Date(value);
@@ -156,38 +150,7 @@ function MinutesCell({ value, tone }) {
   );
 }
 
-const MAP_SPAN_DEG = 0.004;
-
-function PunchLocationMap({ latitude, longitude, locale }) {
-  const bbox = [longitude - MAP_SPAN_DEG, latitude - MAP_SPAN_DEG, longitude + MAP_SPAN_DEG, latitude + MAP_SPAN_DEG]
-    .map((n) => n.toFixed(6))
-    .join(',');
-  const marker = `${latitude.toFixed(6)},${longitude.toFixed(6)}`;
-  return (
-    <div className="flex flex-col gap-1.5">
-      <iframe
-        title={t(locale, `${K}.punchMapTitle`)}
-        src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`}
-        className="h-48 w-full rounded-control border border-ink/10"
-        loading="lazy"
-        referrerPolicy="no-referrer"
-      />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className={cn(S.faint, 'font-mono tabular-nums')}>{marker}</span>
-        <a
-          href={`https://www.openstreetmap.org/?mlat=${latitude.toFixed(6)}&mlon=${longitude.toFixed(6)}#map=17/${latitude.toFixed(6)}/${longitude.toFixed(6)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex min-h-touch items-center text-prose text-brand-600 dark:text-brand-300"
-        >
-          {t(locale, `${K}.punchMapOpen`)}
-        </a>
-      </div>
-    </div>
-  );
-}
-
-function DayDetail({ day, locale, onMarkOk, busy }) {
+function DayDetail({ day, locale, onMarkOk, busy, companyId }) {
   const punches = [...(day.punches || [])].sort(
     (a, b) => new Date(a.punchedAt).getTime() - new Date(b.punchedAt).getTime()
   );
@@ -240,14 +203,29 @@ function DayDetail({ day, locale, onMarkOk, busy }) {
         <StatMetricTile value={formatMinutesClock(day.missingMinutes)} label={t(locale, `${K}.colMissing`)} />
       </div>
 
+      {day.holiday ? (
+        <InlineCallout tone="info">{t(locale, `${K}.holidayHint`, { name: day.holiday.name })}</InlineCallout>
+      ) : null}
+      {day.daySchedule && day.isWorkday && !day.holiday ? (
+        <p className={cn(S.muted, 'm-0 text-prose')}>
+          {t(locale, day.daySchedule.breakStart ? `${K}.dayScheduleBreak` : `${K}.daySchedule`, {
+            start: day.daySchedule.workdayStart,
+            end: day.daySchedule.workdayEnd,
+            breakStart: day.daySchedule.breakStart,
+            breakEnd: day.daySchedule.breakEnd,
+            break: day.daySchedule.breakMinutes,
+          })}
+          {' · '}
+          {t(locale, `panel.timeClockSchedule.${day.daySchedule.source === TIME_SCHEDULE_SOURCE.EMPLOYEE ? 'sourceEmployee' : 'sourceCompany'}`)}
+        </p>
+      ) : null}
+
       {day.locked ? <InlineCallout tone="info">{t(locale, `${K}.lockedHint`)}</InlineCallout> : null}
 
       {day.justification ? (
         <section>
           <h3 className={cn(S.label, 'mb-2')}>{t(locale, `${K}.justificationTitle`)}</h3>
-          <p className="m-0 font-ui text-sm text-ink">
-            {t(locale, `${K}.reason.${day.justification.reason}`)}
-          </p>
+          <p className="m-0 font-ui text-sm text-ink">{excuseSummary(locale, day.justification)}</p>
           {day.justification.note ? (
             <p className={cn(S.muted, 'm-0 mt-1 text-prose')}>{day.justification.note}</p>
           ) : null}
@@ -317,6 +295,22 @@ function DayDetail({ day, locale, onMarkOk, busy }) {
           </ul>
         )}
       </section>
+
+      {(day.requests || []).length ? (
+        <section>
+          <h3 className={cn(S.label, 'mb-2')}>{t(locale, 'panel.timeRequests.requestsTitle')}</h3>
+          <div className="flex flex-col gap-2">
+            {day.requests.map((req) => (
+              <TimeRequestCard
+                key={req.id}
+                request={req}
+                locale={locale}
+                fileHref={`/api/admin/time-clock/requests/${req.id}/file?companyId=${encodeURIComponent(companyId)}`}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section>
         <h3 className={cn(S.label, 'mb-2')}>{t(locale, `${K}.historyTitle`)}</h3>
@@ -531,7 +525,7 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
 
   const person = data?.person;
   const totals = data?.totals;
-  const schedule = data?.schedule;
+  const schedule = data?.days?.[data.days.length - 1]?.daySchedule || data?.schedule;
   const occurrences = totals ? totals.absences + totals.incomplete + totals.review : 0;
   const meta = person
     ? [
@@ -565,6 +559,16 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
           </InlineCallout>
         ) : null}
       </div>
+
+      <TimeClockScheduleBlock
+        locale={locale}
+        companyId={companyId}
+        candidateId={candidateId}
+        onChanged={() => {
+          void load();
+          onChanged?.();
+        }}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <FormField label={t(locale, `${K}.periodLabel`)}>
@@ -615,12 +619,17 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
               {t(locale, `${K}.periodClamped`, { from: data.from, to: data.to, max: data.maxDays })}
             </InlineCallout>
           ) : null}
+          {totals.pendingRequests > 0 ? (
+            <InlineCallout tone="warning" className="mb-3">
+              {t(locale, 'panel.timeRequests.mirrorPendingHint', { n: totals.pendingRequests })}
+            </InlineCallout>
+          ) : null}
           {lockedDays > 0 ? (
             <InlineCallout tone="info" className="mb-3">
               {t(locale, `${K}.lockedDaysHint`, { n: lockedDays })}
             </InlineCallout>
           ) : null}
-          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5">
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
             <StatMetricTile value={formatMinutesClock(totals.workedMinutes)} label={t(locale, `${K}.totalWorked`)} />
             <StatMetricTile value={formatMinutesClock(totals.extraMinutes)} label={t(locale, `${K}.colExtra`)} />
             <StatMetricTile value={formatMinutesClock(totals.missingMinutes)} label={t(locale, `${K}.colMissing`)} />
@@ -669,13 +678,17 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
                           </span>
                         </IconActionTip>
                       ) : null}
+                      {day.holiday ? <p className={cn(S.faint, 'm-0 mt-0.5')}>{day.holiday.name}</p> : null}
                     </td>
                     <td className="px-4 py-2.5 align-middle">
                       <PunchTimes day={day} locale={locale} />
                       {day.justification ? (
-                        <p className={cn(S.faint, 'm-0 mt-0.5')}>
-                          {t(locale, `${K}.reason.${day.justification.reason}`)}
-                        </p>
+                        <p className={cn(S.faint, 'm-0 mt-0.5')}>{excuseSummary(locale, day.justification)}</p>
+                      ) : null}
+                      {(day.requests || []).some((r) => r.status === TIME_REQUEST_STATUS.PENDING) ? (
+                        <span className="mt-1 inline-flex">
+                          <TimeRequestStatusChip status={TIME_REQUEST_STATUS.PENDING} locale={locale} />
+                        </span>
                       ) : null}
                       {voided > 0 ? (
                         <p className={cn(S.faint, 'm-0 mt-0.5')}>{t(locale, `${K}.voidedCount`, { n: voided })}</p>
@@ -738,7 +751,7 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
         onClose={() => setDetailIso(null)}
         maxWidth="640px"
       >
-        {detailDay ? <DayDetail day={detailDay} locale={locale} onMarkOk={markOk} busy={busy} /> : null}
+        {detailDay ? <DayDetail day={detailDay} locale={locale} onMarkOk={markOk} busy={busy} companyId={companyId} /> : null}
       </AdminRichFormDrawer>
     </div>
   );

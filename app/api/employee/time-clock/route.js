@@ -70,6 +70,7 @@ export async function POST(request) {
       nextKind: today.ok ? today.nextKind : null,
       open: today.ok ? today.open : null,
       schedule: today.ok ? today.schedule : null,
+      lastLocation: today.ok ? today.lastLocation : null,
     });
   } catch (err) {
     console.error('POST /api/employee/time-clock', err);

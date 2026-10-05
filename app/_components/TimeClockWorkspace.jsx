@@ -25,7 +25,9 @@ import { SegmentedControl } from './SegmentedControl';
 import { StatusToneChip } from './StatusToneChip';
 import { TimeClockAdminBlock } from './TimeClockAdminBlock';
 import { TimeClockClosuresBlock } from './TimeClockClosuresBlock';
+import { TimeClockHolidaysBlock } from './TimeClockHolidaysBlock';
 import { TimeClockMirror } from './TimeClockMirror';
+import { TimeClockRequestsBlock } from './TimeClockRequestsBlock';
 
 const K = 'panel.timeClockMgr';
 const PAGE_SIZE = 25;
@@ -312,12 +314,15 @@ function BankBalances({ locale, companyId, onOpen, reloadKey }) {
   );
 }
 
+const VIEWS = ['control', 'requests', 'bank', 'holidays', 'closing'];
+
 /**
  * DP › Ponto: manager workspace with Controle de ponto (people → mirror),
- * Banco de horas (balances + approvals) and Fechamento (period closures).
+ * Solicitações (collaborator requests), Banco de horas (balances + approvals),
+ * Feriados (company / unit calendar) and Fechamento (period closures).
  */
-export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashboard }) {
-  const [view, setView] = useState('control');
+export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashboard, initialView = '', onRequestsChanged }) {
+  const [view, setView] = useState(() => (VIEWS.includes(initialView) ? initialView : 'control'));
   const [personId, setPersonId] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
   const bump = useCallback(() => setReloadKey((n) => n + 1), []);
@@ -340,7 +345,9 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
         }}
         options={[
           { id: 'control', label: t(locale, `${K}.viewControl`) },
+          { id: 'requests', label: t(locale, `${K}.viewRequests`) },
           { id: 'bank', label: t(locale, `${K}.viewBank`) },
+          { id: 'holidays', label: t(locale, `${K}.viewHolidays`) },
           { id: 'closing', label: t(locale, `${K}.viewClosing`) },
         ]}
         className="self-start"
@@ -383,6 +390,19 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
           />
         </>
       ) : null}
+
+      {view === 'requests' ? (
+        <TimeClockRequestsBlock
+          locale={locale}
+          companyId={companyId}
+          onChanged={() => {
+            bump();
+            onRequestsChanged?.();
+          }}
+        />
+      ) : null}
+
+      {view === 'holidays' ? <TimeClockHolidaysBlock locale={locale} companyId={companyId} onChanged={bump} /> : null}
 
       {view === 'closing' ? <TimeClockClosuresBlock locale={locale} companyId={companyId} /> : null}
     </div>

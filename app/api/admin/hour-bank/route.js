@@ -1,6 +1,6 @@
 /**
  * GET   /api/admin/hour-bank — balances | entries | export CSV
- * POST  /api/admin/hour-bank — manual entry | generate from day | settings
+ * POST  /api/admin/hour-bank — manual entry | settings
  * PATCH /api/admin/hour-bank — approve/reject pending entry
  */
 
@@ -18,7 +18,6 @@ import {
   createHourBankManualEntry,
   decideHourBankEntry,
   exportHourBankCsv,
-  generateHourBankForCompanyDay,
   listHourBankBalances,
   listHourBankEntries,
 } from '../../../../lib/people/hour-bank.js';
@@ -37,12 +36,11 @@ const listQuerySchema = z.object({
 
 const postBodySchema = z.object({
   companyId: zPositiveInt.optional(),
-  action: z.enum(['manual', 'generate', 'settings']),
+  action: z.enum(['manual', 'settings']),
   candidateId: zPositiveInt.optional(),
   entryKind: z.enum(/** @type {[string, ...string[]]} */ (HOUR_BANK_ENTRY_KINDS)).optional(),
   minutes: z.coerce.number().int().min(1).max(1440).optional(),
   workOn: z.string().max(16).optional(),
-  day: z.string().max(16).optional(),
   note: z.string().max(500).optional().nullable(),
   hourBankEnabled: z.boolean().optional(),
   hourBankMaxMinutes: z.coerce.number().int().min(0).max(20000).optional(),
@@ -144,31 +142,6 @@ export const POST = withAdminApi(
         metadata: {
           hourBankEnabled: result.schedule.hourBankEnabled,
           hourBankMaxMinutes: result.schedule.hourBankMaxMinutes,
-        },
-      });
-      return NextResponse.json(result);
-    }
-
-    if (body.action === 'generate') {
-      const result = await generateHourBankForCompanyDay(null, {
-        companyId,
-        day: body.day || body.workOn,
-        createdByUserId: payload.userId || null,
-      });
-      if (!result.ok) {
-        return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA });
-      }
-      await audit({
-        actorUserId: payload.userId || null,
-        action: 'hour_bank.generate_day',
-        companyId,
-        targetType: 'company',
-        targetId: companyId,
-        metadata: {
-          day: result.day,
-          created: result.created,
-          skipped: result.skipped,
-          duplicates: result.duplicates,
         },
       });
       return NextResponse.json(result);

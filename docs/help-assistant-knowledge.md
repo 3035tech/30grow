@@ -46,7 +46,8 @@ Após **Test pass** (pipeline Dev → Test → Validate), antes de dar a entrega
 | Motivadores: copy situacional + templates hedged + sync sem DELETE | Guia `motivators` + `npm run db:seed-motivators-all` + `docs/RH2-decisions.md` (B-RH2-20) |
 | Super admin (auditoria, leads, sugestões) | Seção `access` (passos 10–11) + `productFeedback` |
 | DP leve (ficha / docs / assinatura interna / férias / saldo / template D1) | Seção `dpLight` + FAQ `faqDpLight` / `faqLeaveBalance` |
-| Ponto digital MVP + visão do gestor (Controle de ponto / espelho por período, ajuste com anulação, justificativa, Fechamento) | Seção `timeClock` (passos 5–8; passo 8 = ponto por colaborador / PJ e Cooperado) + FAQ `faqTimeClock` + `docs/time-clock-manager.md` |
+| Ponto digital MVP + visão do gestor (Controle de ponto / espelho por período, ajuste com anulação, justificativa, Fechamento) + pedidos de ajuste/abono do colaborador com aprovação (Solicitações) + jornada por colaborador e Feriados + tela de batida com localização (web e app) | Seção `timeClock` (passos 5–14; passo 8 = ponto por colaborador / PJ e Cooperado; 10 = pedidos do colaborador; 11 = aprovação; 12 = jornada; 13 = feriados; 14 = tela de batida e localização) + FAQ `faqTimeClock` + `docs/time-clock-manager.md` |
+| Banco de horas calculado (extras − faltas do espelho + lançamentos, teto, congelado no fechamento) | Seção `hourBank` (passo 2) + FAQ `faqHourBank` |
 | Banco de horas | Seção `hourBank` + FAQ `faqHourBank` |
 | Reativar ex-colaborador / filtro Ex-colaboradores | Seção `b1000Exit` (passos 2 e 7) + FAQ `faqRehire` |
 | Mural / kudos | Seção `companyFeed` + FAQ `faqCompanyFeed` |

@@ -4,8 +4,9 @@ import { query } from '../../../../../lib/db.js';
 import { CAP } from '../../../../../lib/permissions.js';
 import { getAbsenteeismPulse, getDpAttentionPulse } from '../../../../../lib/people/employee-dp.js';
 import { DP_LEAVE_STATUS } from '../../../../../lib/domain-status.js';
+import { countPendingTimeRequests } from '../../../../../lib/people/time-clock-requests.js';
 
-/** GET /api/admin/dp/attention — pending docs + leave + absenteeism for inbox chips. */
+/** GET /api/admin/dp/attention — pending docs + leave + absenteeism + time requests for inbox chips. */
 export const GET = withAdminApi(
   {
     anyCap: [CAP.DP_VIEW, CAP.TEAM_VIEW],
@@ -14,9 +15,10 @@ export const GET = withAdminApi(
     logLabel: 'dp-attention',
   },
   async ({ companyId }) => {
-    const [pulse, absenteeism] = await Promise.all([
+    const [pulse, absenteeism, pendingTimeRequests] = await Promise.all([
       getDpAttentionPulse({ query }, { companyId, cap: 20 }),
       getAbsenteeismPulse({ query }, { companyId, cap: 20 }),
+      countPendingTimeRequests({ query }, { companyId }),
     ]);
     return NextResponse.json({
       ok: true,
@@ -25,6 +27,7 @@ export const GET = withAdminApi(
         (l) => l.status === DP_LEAVE_STATUS.REQUESTED
       ).length,
       absenteeismPeople: (absenteeism.items || []).length,
+      pendingTimeRequests,
       absenteeismLookbackDays: absenteeism.lookbackDays || 90,
       absenteeism: absenteeism.items || [],
       pendingDocs: pulse.pendingDocs || [],
