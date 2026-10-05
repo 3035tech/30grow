@@ -116,7 +116,7 @@ async function main() {
       await withTransaction(async (db) => {
         const ids = (await db.query(`SELECT id FROM formal_reviews WHERE cycle_id = $1 ORDER BY id`, [legacyId])).rows;
         for (const { id } of ids) {
-          const r = await openFormalReview(db, { companyId, reviewId: id, managerUserId: null });
+          const r = await openFormalReview(db, { companyId, reviewId: id });
           assert.equal(r.ok, true, r.errorCode);
         }
       });

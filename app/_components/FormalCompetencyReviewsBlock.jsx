@@ -14,9 +14,11 @@ import {
   FORMAL_LIKERT_MIN,
   FORMAL_RATER_ROLE,
   FORMAL_RATER_STATUS,
+  FORMAL_REVIEW_CYCLE_DISPLAY_STATUS,
   FORMAL_REVIEW_CYCLE_STATUS,
   FORMAL_REVIEW_MODEL,
   FORMAL_REVIEW_STATUS,
+  formalCycleDisplayStatus,
 } from '../../lib/domain-status.js';
 import { useAppFeedback } from './AppFeedback';
 import { EmptyState } from './EmptyState';
@@ -66,10 +68,16 @@ function cycleStatusTone(status) {
 }
 
 function cycleStatusLabel(locale, status) {
-  if (status === 'scheduled') return i18nT(locale, 'ui.formalCompetencyReviewsBlock.scheduled');
+  if (status === FORMAL_REVIEW_CYCLE_DISPLAY_STATUS.SCHEDULED) return i18nT(locale, 'ui.formalCompetencyReviewsBlock.scheduled');
   if (status === FORMAL_REVIEW_CYCLE_STATUS.OPEN) return tf(locale, 'statusOpen');
   if (status === FORMAL_REVIEW_CYCLE_STATUS.CLOSED) return tf(locale, 'statusClosed');
   return tf(locale, 'statusDraft');
+}
+
+function markCycleOpen(cycle) {
+  if (!cycle) return cycle;
+  const status = FORMAL_REVIEW_CYCLE_STATUS.OPEN;
+  return { ...cycle, status, displayStatus: formalCycleDisplayStatus(status, cycle.periodStart) };
 }
 
 function reviewStatusTone(status) {
@@ -392,7 +400,7 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
       const response = await fetch(`/api/admin/formal-review-cycles/${selectedCycle.id}/publish`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(withCompany({})) });
       const data = await response.json();
       if (!response.ok) throw new Error(apiToastError(locale, data, 'saveError'));
-      setSelectedCycle(previous => ({ ...previous, status: 'open', displayStatus: previous.periodStart?.slice(0, 10) > new Date().toISOString().slice(0, 10) ? 'scheduled' : 'open' }));
+      setSelectedCycle(markCycleOpen);
       await loadReviews(selectedCycle.id);
       await loadCatalogAndCycles();
       toast(tf(locale, 'opened'), 'ok');
@@ -506,7 +514,7 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
       toast(tf(locale, successKey), 'ok');
       if (json.review) setSelectedReview(json.review);
       else await loadReviewDetail(selectedReview.id);
-      if (path === 'open') setSelectedCycle(previous => previous ? { ...previous, status: 'open', displayStatus: previous.periodStart?.slice(0, 10) > new Date().toISOString().slice(0, 10) ? 'scheduled' : 'open' } : previous);
+      if (path === 'open') setSelectedCycle(markCycleOpen);
       if (selectedCycle) await loadReviews(selectedCycle.id);
       await loadCatalogAndCycles();
     } catch (err) {

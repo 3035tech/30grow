@@ -10,6 +10,7 @@ import { withTransaction } from '../../../../../../lib/db.js';
 
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),
+  // Accepted for older clients; the manager respondent always comes from the subject's manager.
   managerUserId: zPositiveInt.optional().nullable(),
 });
 
@@ -31,16 +32,12 @@ export const POST = withAdminApi(
     companyFrom: 'body',
     logLabel: 'formal-review-open POST',
   },
-  async ({ request, payload, companyId, body, params }) => {
+  async ({ request, payload, companyId, params }) => {
     const reviewId = Number(params?.id);
     if (!Number.isFinite(reviewId) || reviewId <= 0) {
       return apiErrorFromResult(request, { ok: false, errorCode: ERR.INVALID_ID });
     }
-    const result = await withTransaction(db => openFormalReview(db, {
-      companyId,
-      reviewId,
-      managerUserId: body.managerUserId || payload.userId,
-    }));
+    const result = await withTransaction(db => openFormalReview(db, { companyId, reviewId }));
     if (!result.ok) {
       return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA });
     }
