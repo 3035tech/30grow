@@ -184,7 +184,12 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
       {loading && !data ? (
         <AppLoading variant="panel" />
       ) : !data ? (
-        <p className={cn(S.muted, 'm-0 text-prose')}>{t(locale, `${KS}.loadError`)}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className={cn(S.muted, 'm-0 text-prose')}>{t(locale, `${KS}.loadError`)}</p>
+          <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void load()}>
+            {t(locale, 'common.retry')}
+          </button>
+        </div>
       ) : (
         <ContentEnter animKey={`schedule|${candidateId}|${items.length}|${current?.id || 0}`}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

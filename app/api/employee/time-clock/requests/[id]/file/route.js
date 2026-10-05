@@ -8,6 +8,8 @@ import { getEmployeeSessionPayload } from '../../../../../../../lib/employee-ses
 import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
 import { zPositiveInt } from '../../../../../../../lib/validate.js';
 import { dpDownloadResponse } from '../../../../../../../lib/people/dp-download-response.js';
+import { readBoundedFormData, singleFormFile } from '../../../../../../../lib/bounded-multipart.js';
+import { DP_DOC_MAX_BYTES } from '../../../../../../../lib/dp-upload-validation.js';
 import {
   clearTimeRequestAttachment,
   downloadTimeRequestAttachment,
@@ -42,9 +44,8 @@ export async function POST(request, { params }) {
     if (error) return error;
     const rl = await checkRateLimit(`emp-time-request-file:${session.candidateId}`, 20, 60 * 60 * 1000);
     if (!rl.ok) return apiError(request, ERR.RATE_LIMIT, 429);
-    const form = await request.formData();
-    const file = form.get('file');
-    if (!file || typeof file.arrayBuffer !== 'function') return apiError(request, ERR.INVALID_DATA, 400);
+    const file = singleFormFile(await readBoundedFormData(request, DP_DOC_MAX_BYTES));
+    if (!file) return apiError(request, ERR.INVALID_DATA, 400);
     const buffer = Buffer.from(await file.arrayBuffer());
     const result = await uploadTimeRequestAttachment({
       companyId: session.companyId,

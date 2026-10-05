@@ -7,7 +7,7 @@ import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.
 import { query } from '../../../../../lib/db.js';
 import { getEmployeeSessionPayload } from '../../../../../lib/employee-session.js';
 import { getEmployeeTimeHistory } from '../../../../../lib/people/time-clock-requests.js';
-import { ISO_DAY_PATTERN as ISO_DAY } from '../../../../../lib/people/time-clock-request-api.js';
+import { parseIsoDay } from '../../../../../lib/people/time-day-summary.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,7 @@ export async function GET(request) {
     const url = new URL(request.url);
     const from = url.searchParams.get('from');
     const to = url.searchParams.get('to');
-    if ((from && !ISO_DAY.test(from)) || (to && !ISO_DAY.test(to))) {
+    if ((from && parseIsoDay(from) !== from) || (to && parseIsoDay(to) !== to)) {
       return apiError(request, ERR.INVALID_DATE, 400);
     }
     const data = await getEmployeeTimeHistory({ query }, {

@@ -14,7 +14,7 @@ import {
   TIME_REQUEST_STATUS,
   TIME_SCHEDULE_SOURCE,
 } from '../../lib/domain-status.js';
-import { formatMinutesClock, localIsoToday, timeClockPeriodFor as periodFor } from '../../lib/time-clock-format.js';
+import { formatMinutesClock, hmInZone, localIsoToday, timeClockPeriodFor as periodFor } from '../../lib/time-clock-format.js';
 import { TIME_CLOCK_REASON } from '../../lib/people/time-clock-eligibility.js';
 import {
   S,
@@ -58,10 +58,8 @@ const OCCURRENCE_TONE = {
 
 const HM_RE = /^([01]?\d|2[0-3]):[0-5]\d$/;
 
-function timeOf(value, locale) {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleTimeString(localeHtmlLang(locale), { hour: '2-digit', minute: '2-digit' });
+function timeOf(value, tz) {
+  return hmInZone(value, tz);
 }
 
 function dateTimeOf(value, locale) {
@@ -99,7 +97,7 @@ async function postJson(url, body, method = 'POST') {
   return data;
 }
 
-function PunchTimes({ day, locale }) {
+function PunchTimes({ day, locale, tz }) {
   const active = activePunches(day);
   if (active.length === 0) {
     return <span className={cn(S.faint, 'whitespace-nowrap')}>{t(locale, `${K}.noPunch`)}</span>;
@@ -123,7 +121,7 @@ function PunchTimes({ day, locale }) {
                   className={cn(manual && 'underline decoration-dotted underline-offset-2')}
                   title={manual ? t(locale, `${K}.manualPunchTip`) : undefined}
                 >
-                  {timeOf(p.punchedAt, locale)}
+                  {timeOf(p.punchedAt, tz)}
                 </span>
               </span>
             );
@@ -150,7 +148,7 @@ function MinutesCell({ value, tone }) {
   );
 }
 
-function DayDetail({ day, locale, onMarkOk, busy, companyId }) {
+function DayDetail({ day, locale, tz, onMarkOk, busy, companyId }) {
   const punches = [...(day.punches || [])].sort(
     (a, b) => new Date(a.punchedAt).getTime() - new Date(b.punchedAt).getTime()
   );
@@ -160,7 +158,7 @@ function DayDetail({ day, locale, onMarkOk, busy, companyId }) {
       at: p.createdAt,
       key: `c${p.id}`,
       text: t(locale, p.source === TIME_PUNCH_SOURCE.MANAGER ? `${K}.histManual` : `${K}.histPunch`, {
-        time: timeOf(p.punchedAt, locale),
+        time: timeOf(p.punchedAt, tz),
         kind: t(locale, p.punchKind === TIME_PUNCH_KIND.IN ? 'panel.timeClock.kindIn' : 'panel.timeClock.kindOut'),
         name: p.createdByName || '',
       }),
@@ -170,14 +168,14 @@ function DayDetail({ day, locale, onMarkOk, busy, companyId }) {
       events.push({
         at: p.voidedAt,
         key: `v${p.id}`,
-        text: t(locale, `${K}.histVoided`, { time: timeOf(p.punchedAt, locale), name: p.voidedByName || '' }),
+        text: t(locale, `${K}.histVoided`, { time: timeOf(p.punchedAt, tz), name: p.voidedByName || '' }),
         note: p.voidReason,
       });
     } else if (p.reviewedAt && p.reviewStatus === TIME_PUNCH_REVIEW.OK) {
       events.push({
         at: p.reviewedAt,
         key: `r${p.id}`,
-        text: t(locale, `${K}.histReviewed`, { time: timeOf(p.punchedAt, locale), name: p.reviewedByName || '' }),
+        text: t(locale, `${K}.histReviewed`, { time: timeOf(p.punchedAt, tz), name: p.reviewedByName || '' }),
       });
     }
   }
@@ -252,7 +250,7 @@ function DayDetail({ day, locale, onMarkOk, busy, companyId }) {
                     p.voidedAt ? 'text-ink-faint line-through' : 'text-ink'
                   )}
                 >
-                  {timeOf(p.punchedAt, locale)}
+                  {timeOf(p.punchedAt, tz)}
                 </span>
                 <StatusToneChip tone={p.punchKind === TIME_PUNCH_KIND.IN ? 'success' : 'info'}>
                   {t(locale, p.punchKind === TIME_PUNCH_KIND.IN ? 'panel.timeClock.kindIn' : 'panel.timeClock.kindOut')}
@@ -415,7 +413,7 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
               label: t(locale, `${K}.voidLabel`),
               options: active.map((p) => ({
                 value: String(p.id),
-                label: `${timeOf(p.punchedAt, locale)} · ${t(locale, p.punchKind === TIME_PUNCH_KIND.IN ? 'panel.timeClock.kindIn' : 'panel.timeClock.kindOut')}`,
+                label: `${timeOf(p.punchedAt, tz)} · ${t(locale, p.punchKind === TIME_PUNCH_KIND.IN ? 'panel.timeClock.kindIn' : 'panel.timeClock.kindOut')}`,
               })),
             }]
           : []),
@@ -526,6 +524,7 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
   const person = data?.person;
   const totals = data?.totals;
   const schedule = data?.days?.[data.days.length - 1]?.daySchedule || data?.schedule;
+  const tz = data?.schedule?.timezone;
   const occurrences = totals ? totals.absences + totals.incomplete + totals.review : 0;
   const meta = person
     ? [
@@ -681,7 +680,7 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
                       {day.holiday ? <p className={cn(S.faint, 'm-0 mt-0.5')}>{day.holiday.name}</p> : null}
                     </td>
                     <td className="px-4 py-2.5 align-middle">
-                      <PunchTimes day={day} locale={locale} />
+                      <PunchTimes day={day} locale={locale} tz={tz} />
                       {day.justification ? (
                         <p className={cn(S.faint, 'm-0 mt-0.5')}>{excuseSummary(locale, day.justification)}</p>
                       ) : null}
@@ -751,7 +750,7 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
         onClose={() => setDetailIso(null)}
         maxWidth="640px"
       >
-        {detailDay ? <DayDetail day={detailDay} locale={locale} onMarkOk={markOk} busy={busy} companyId={companyId} /> : null}
+        {detailDay ? <DayDetail day={detailDay} locale={locale} tz={tz} onMarkOk={markOk} busy={busy} companyId={companyId} /> : null}
       </AdminRichFormDrawer>
     </div>
   );

@@ -530,6 +530,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
         companyId={companyId}
         navigateDashboard={navigateDashboard}
         initialView={timeView}
+        onViewChange={setTimeView}
         onRequestsChanged={() => void loadAttention()}
       /> : null}
 

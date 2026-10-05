@@ -4,7 +4,8 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { z } from 'zod';
 import { ERR, HTTP_STATUS } from '../../lib/api-error-codes.js';
-import * as mobileMultipart from '../../lib/mobile-multipart.js';
+import * as boundedMultipart from '../../lib/bounded-multipart.js';
+import { parseIsoDay } from '../../lib/people/time-day-summary.js';
 
 async function moduleAt(path, dependencies) {
   const context = vm.createContext({ URL, Buffer, Response, Request, console, queueMicrotask, setTimeout, clearTimeout });
@@ -20,7 +21,7 @@ const common = {
   apiErrorFromResult: (_request, result) => ({ code: result.errorCode, status: 409 }),
   mobileEmployeeBearerToken: () => 'test', checkRateLimit: async () => ({ ok: true }), clientIpFromRequest: () => '127.0.0.1',
   zPositiveInt: z.coerce.number().int().positive(),
-  ISO_DAY_PATTERN: /^\d{4}-\d{2}-\d{2}$/, TIME_REQUEST_RATE_LIMIT: 20, TIME_REQUEST_RATE_WINDOW_MS: 3600000,
+  parseIsoDay, TIME_REQUEST_RATE_LIMIT: 20, TIME_REQUEST_RATE_WINDOW_MS: 3600000,
 };
 const plain = (value) => JSON.parse(JSON.stringify(value));
 const BASE = '../../app/api/mobile/v1/employee/time-clock';
@@ -34,6 +35,7 @@ test('mobile time history: bearer, ISO period and tenant from the session only',
     assert.equal(ok.body.ok, true); assert.equal(ok.headers['Cache-Control'], 'no-store');
     assert.deepEqual(plain(calls[0]), { companyId, candidateId: companyId * 10, from: '2026-09-01', to: '2026-09-30' });
     assert.equal((await route.GET({ url: 'https://example.test/h?from=01/09/2026' })).code, ERR.INVALID_DATE);
+    assert.equal((await route.GET({ url: 'https://example.test/h?to=2026-02-30' })).code, ERR.INVALID_DATE);
     assert.equal(calls.length, 1);
     deps.authenticateMobileEmployee = async () => null;
     assert.equal((await (await moduleAt(`${BASE}/history/route.js`, deps)).GET({ url: 'https://example.test/h' })).status, 401);
@@ -73,15 +75,16 @@ function uploadRequest({ size = 100, extra = false } = {}) {
   return new Request('https://example.test/file', { method: 'POST', body });
 }
 
-test('mobile time request proof: single bounded file, own request only, safe download headers', async () => {
+test('mobile time request proof: single bounded file, own request only, shared rate-limited download', async () => {
   for (const companyId of [1, 2]) {
     const session = { companyId, candidateId: companyId * 10 };
     const uploads = [];
     const deps = {
-      ...common, ...mobileMultipart, DP_DOC_MAX_BYTES: 5 * 1024 * 1024, authenticateMobileEmployee: async () => session,
+      ...common, ...boundedMultipart, DP_DOC_MAX_BYTES: 5 * 1024 * 1024, authenticateMobileEmployee: async () => session,
       uploadTimeRequestAttachment: async (input) => { uploads.push(input); return { ok: true, id: input.id, hasFile: true }; },
       clearTimeRequestAttachment: async (input) => ({ ok: true, id: input.id, hasFile: false, input }),
-      downloadTimeRequestAttachment: async (input) => { assert.deepEqual(plain(input), { companyId, candidateId: companyId * 10, id: 22 }); return { ok: true, body: Buffer.from('pdf'), fileName: 'a\r\n.pdf', contentType: 'application/pdf' }; },
+      downloadTimeRequestAttachment: async (input) => { assert.deepEqual(plain(input), { companyId, candidateId: companyId * 10, id: 22 }); return { ok: true, fileName: 'a.pdf' }; },
+      dpDownloadResponse: async (_request, actorKey, load) => ({ actorKey, result: await load() }),
     };
     const route = await moduleAt(`${BASE}/requests/[id]/file/route.js`, deps);
     const props = { params: Promise.resolve({ id: '22' }) };
@@ -93,8 +96,8 @@ test('mobile time request proof: single bounded file, own request only, safe dow
     assert.equal((await route.POST(oversized, props)).code, ERR.INVALID_CV_FILE_SIZE);
     assert.equal(uploads.length, 1);
     const opened = await route.GET({}, props);
-    assert.equal(opened.headers.get('cache-control'), 'private, no-store');
-    assert.equal(opened.headers.get('content-disposition'), 'attachment; filename="a__.pdf"');
+    assert.equal(opened.actorKey, `mobile-employee:${companyId * 10}`);
+    assert.equal(opened.result.fileName, 'a.pdf');
     assert.equal((await route.DELETE({}, props)).body.hasFile, false);
     deps.authenticateMobileEmployee = async () => null;
     const anonymous = await moduleAt(`${BASE}/requests/[id]/file/route.js`, deps);

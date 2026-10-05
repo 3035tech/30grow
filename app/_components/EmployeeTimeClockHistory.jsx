@@ -12,7 +12,14 @@ import {
   TIME_REQUEST_STATUS,
 } from '../../lib/domain-status.js';
 import { DP_DOC_ALLOWED_MIMES, DP_DOC_MAX_BYTES } from '../../lib/dp-upload-validation.js';
-import { formatMinutesClock, hmInZone, hmSpanMinutes, timeClockPeriodFor } from '../../lib/time-clock-format.js';
+import {
+  TIME_ADJUST_MAX_ADD,
+  TIME_ADJUST_MAX_VOID,
+  formatMinutesClock,
+  hmInZone,
+  hmSpanMinutes,
+  timeClockPeriodFor,
+} from '../../lib/time-clock-format.js';
 import { S } from '../dashboard/dashboard-shared';
 import { AdminRichFormDrawer } from './AdminRichFormDrawer';
 import { AppLoading, ContentEnter } from './AppLoading';
@@ -33,7 +40,6 @@ import {
 } from './TimeRequestParts';
 
 const KM = 'panel.timeClockMgr';
-const MAX_ADD = 8;
 
 const OCCURRENCE_TONE = {
   [TIME_DAY_OCCURRENCE.OK]: 'success',
@@ -196,7 +202,8 @@ function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
     setError('');
     if (rows.some((r) => !r.removed && !r.time)) return setError(t(locale, `${KR}.timeMissing`));
     if (!diff.voidPunchIds.length && !diff.add.length) return setError(t(locale, `${KR}.nothingChanged`));
-    if (diff.add.length > MAX_ADD) return setError(t(locale, `${KR}.tooManyChanges`, { max: MAX_ADD }));
+    if (diff.add.length > TIME_ADJUST_MAX_ADD) return setError(t(locale, `${KR}.tooManyChanges`, { max: TIME_ADJUST_MAX_ADD }));
+    if (diff.voidPunchIds.length > TIME_ADJUST_MAX_VOID) return setError(t(locale, `${KR}.tooManyChanges`, { max: TIME_ADJUST_MAX_VOID }));
     if (justification.trim().length < 3) return setError(t(locale, `${KR}.justificationShort`));
     if (proofError(file, locale)) return setError(proofError(file, locale));
     setBusy(true);
@@ -426,7 +433,7 @@ function DayPanel({ day, tz, locale, onChanged }) {
       title: t(locale, `${KR}.cancelTitle`),
       message: t(locale, `${KR}.cancelConfirm`),
       confirmLabel: t(locale, `${KR}.cancelRequest`),
-      tone: 'danger',
+      danger: true,
     });
     if (!ok) return;
     setBusyId(req.id);
@@ -584,7 +591,9 @@ export function EmployeeTimeClockHistory({ locale = 'pt-BR', reloadKey = 0 }) {
   const [failed, setFailed] = useState(false);
   const [openIso, setOpenIso] = useState(null);
 
+  const loadSeq = useRef(0);
   const load = useCallback(async () => {
+    const seq = ++loadSeq.current;
     setLoading(true);
     setFailed(false);
     try {
@@ -592,11 +601,11 @@ export function EmployeeTimeClockHistory({ locale = 'pt-BR', reloadKey = 0 }) {
       const res = await fetch(`/api/employee/time-clock/history?${new URLSearchParams(range)}`);
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || String(res.status));
-      setData(json);
+      if (seq === loadSeq.current) setData(json);
     } catch {
-      setFailed(true);
+      if (seq === loadSeq.current) setFailed(true);
     } finally {
-      setLoading(false);
+      if (seq === loadSeq.current) setLoading(false);
     }
   }, [preset]);
 
@@ -628,14 +637,32 @@ export function EmployeeTimeClockHistory({ locale = 'pt-BR', reloadKey = 0 }) {
       {loading && !data ? (
         <AppLoading variant="panel" />
       ) : failed && !data ? (
-        <InlineCallout tone="danger">
+        <InlineCallout
+          tone="danger"
+          role="alert"
+          action={(
+            <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void load()}>
+              {t(locale, 'common.retry')}
+            </button>
+          )}
+        >
           {t(locale, `${KR}.historyError`)}
-          <button type="button" className={cn(S.btnGhost, 'ml-2 min-h-touch')} onClick={() => void load()}>
-            {t(locale, 'common.retry')}
-          </button>
         </InlineCallout>
       ) : (
         <ContentEnter animKey={`emp-tc-history|${data.from}|${data.to}|${totals.pendingRequests}`}>
+          {failed ? (
+            <InlineCallout
+              tone="danger" className="mb-4"
+              role="alert"
+              action={(
+                <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void load()}>
+                  {t(locale, 'common.retry')}
+                </button>
+              )}
+            >
+              {t(locale, `${KR}.historyError`)}
+            </InlineCallout>
+          ) : null}
           <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatMetricTile value={formatMinutesClock(totals.workedMinutes)} label={t(locale, `${KM}.totalWorked`)} />
             <StatMetricTile value={formatMinutesClock(totals.extraMinutes)} label={t(locale, `${KM}.colExtra`)} />

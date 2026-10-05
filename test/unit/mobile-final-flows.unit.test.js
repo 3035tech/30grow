@@ -8,7 +8,7 @@ import { z } from 'zod';
 import * as domainStatus from '../../lib/domain-status.js';
 import * as fileMagic from '../../lib/file-magic.js';
 import * as dpUpload from '../../lib/dp-upload-validation.js';
-import * as mobileMultipart from '../../lib/mobile-multipart.js';
+import * as boundedMultipart from '../../lib/bounded-multipart.js';
 import * as notificationCatalog from '../../lib/employee-notification-catalog.js';
 import { ERR, HTTP_STATUS } from '../../lib/api-error-codes.js';
 import { normalizeDependentRelation, normalizeEmergencyRelation } from '../../lib/kinship-relation.js';
@@ -65,7 +65,7 @@ test('attachment route: bearer, owned row lock before storage, no cross-tenant w
   for (const companyId of [1, 2]) {
     const calls = []; let own = true; let uploads = 0;
     const session = { companyId, candidateId: companyId * 10 };
-    const deps = { ...common, ...mobileMultipart, DP_DOC_MAX_BYTES: 5 * 1024 * 1024, authenticateMobileEmployee: async () => session, query: async () => ({}),
+    const deps = { ...common, ...boundedMultipart, DP_DOC_MAX_BYTES: 5 * 1024 * 1024, authenticateMobileEmployee: async () => session, query: async () => ({}),
       withTransaction: async (fn) => fn({ query: async (sql, values) => { calls.push({ sql, values }); return { rowCount: own ? 1 : 0 }; } }),
       uploadLeaveAttachment: async (_db, input) => { uploads++; assert.equal(input.companyId, companyId); assert.equal(input.candidateId, companyId * 10); assert.equal(input.id, 22); return { ok: true }; },
       downloadLeaveAttachment: async (_db, input) => { assert.equal(input.companyId, companyId); return { ok: true, body: Buffer.from('pdf'), fileName: 'a\r\n.pdf', contentType: 'application/pdf' }; },

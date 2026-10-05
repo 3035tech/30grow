@@ -321,8 +321,12 @@ const VIEWS = ['control', 'requests', 'bank', 'holidays', 'closing'];
  * Solicitações (collaborator requests), Banco de horas (balances + approvals),
  * Feriados (company / unit calendar) and Fechamento (period closures).
  */
-export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashboard, initialView = '', onRequestsChanged }) {
-  const [view, setView] = useState(() => (VIEWS.includes(initialView) ? initialView : 'control'));
+export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashboard, initialView = '', onViewChange, onRequestsChanged }) {
+  const [view, setViewState] = useState(() => (VIEWS.includes(initialView) ? initialView : 'control'));
+  const setView = (id) => {
+    setViewState(id);
+    onViewChange?.(id);
+  };
   const [personId, setPersonId] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
   const bump = useCallback(() => setReloadKey((n) => n + 1), []);

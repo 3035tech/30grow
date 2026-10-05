@@ -68,6 +68,7 @@ DP → Ponto (`TimeClockWorkspace`) com as abas Controle de ponto, Solicitaçõe
 - Gestor: DP → Ponto → **Solicitações** (card "Pedidos de ponto" no topo do DP e badge na sub-aba). Notificação in-app `time_request_submitted` a cada pedido.
 - **Aprovar** aplica na mesma transação o caminho do gestor: ajuste = anula a marcação original (nunca apaga) e insere as novas com origem `manager`; abono = justificativa do dia com `excused_start`/`excused_end` e `source_request_id`. Se as marcações mudaram depois do pedido, a aprovação falha com `TIME_REQUEST_STALE` (reprove e peça outro). Dia em período fechado só pode ser reprovado.
 - **Reprovar** aceita motivo opcional (≤ 500). O colaborador recebe `time_request_decided` nos dois casos.
+- **API mobile (Bearer do app, empresa e pessoa só do token):** `GET /api/mobile/v1/employee/time-clock/history?from=&to=` (datas ISO válidas), `POST …/time-clock/requests` (mesmo schema e auditoria da web; 20 pedidos/hora por pessoa), `DELETE …/time-clock/requests/:id` (cancelar pendente), `GET|POST|DELETE …/time-clock/requests/:id/file` (comprovante: um único campo `file`, limite lido em streaming; download pelo mesmo helper do DP, com limite por pessoa). As telas do app ainda não usam essas rotas.
 - Abono por intervalo desconta só o intervalo das horas faltantes; abono de dia inteiro zera a falta (regra anterior). O banco de horas usa o espelho recalculado.
 
 ## Regras assumidas

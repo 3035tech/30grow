@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import {
@@ -189,20 +189,30 @@ export function TimeClockRequestsBlock({ locale = 'pt-BR', companyId, onChanged 
     };
   }, [companyId, status, page, q, reloadKey, locale, toast]);
 
+  const openIdRef = useRef(null);
+  const close = useCallback(() => {
+    openIdRef.current = null;
+    setOpenId(null);
+    setDetail(null);
+  }, []);
+
   const loadDetail = useCallback(async (id) => {
     setDetail(null);
     try {
       const res = await fetch(`/api/admin/time-clock/requests/${id}?companyId=${encodeURIComponent(companyId)}`);
       const data = await res.json().catch(() => ({}));
+      if (openIdRef.current !== id) return;
       if (!res.ok) throw new Error(data?.error || String(res.status));
       setDetail(data);
     } catch (e) {
+      if (openIdRef.current !== id) return;
       toast(e?.message || t(locale, `${KR}.listError`), 'error');
-      setOpenId(null);
+      close();
     }
-  }, [companyId, locale, toast]);
+  }, [companyId, locale, toast, close]);
 
   const open = (id) => {
+    openIdRef.current = id;
     setOpenId(id);
     void loadDetail(id);
   };
@@ -218,7 +228,7 @@ export function TimeClockRequestsBlock({ locale = 'pt-BR', companyId, onChanged 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || String(res.status));
       toast(t(locale, decision === TIME_REQUEST_DECISION.APPROVE ? `${KR}.approved` : `${KR}.rejected`), 'ok');
-      setOpenId(null);
+      close();
       setReloadKey((k) => k + 1);
       onChanged?.();
     } catch (e) {
@@ -336,7 +346,7 @@ export function TimeClockRequestsBlock({ locale = 'pt-BR', companyId, onChanged 
         locale={locale}
         title={t(locale, `${KR}.reviewTitle`)}
         eyebrow={detail?.item ? `${detail.item.candidateName} · ${dayLabel(detail.item.day, locale)}` : null}
-        onClose={() => setOpenId(null)}
+        onClose={close}
         maxWidth="640px"
         footer={pendingDetail ? (
           <div className="flex flex-wrap justify-end gap-2">

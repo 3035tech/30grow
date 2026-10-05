@@ -101,7 +101,7 @@ i18n por chunk de locale (`I18nBoot`), lazy de tour/wizard/radar/Sentry Replay, 
 
 ### B-2804 — Performance: pendências da varredura (escopo maior)
 
-1. **Bug de correção: banco de horas diário** (`generateHourBankForCompanyDay`, `lib/people/hour-bank.js`): lê no máximo `HOUR_BANK_LIST_CAP` (200) marcações do dia; empresas com mais de ~50 colaboradores batendo ponto ficam sem crédito de extra para o restante. Corrigir com agregação SQL por `candidate_id` (ou paginação) + insert em lote `ON CONFLICT (company_id, dedupe_key) DO NOTHING`.
+1. **Banco de horas calculado em escala**: `computeHourBankBalances` refaz extras − faltas desde o início do banco a cada leitura (custo ∝ pessoas × dias). Para empresas grandes ou bancos antigos, partir do último saldo congelado no fechamento (`time_clock_closure_balances`) e só recalcular os dias abertos.
 2. **Publicar ciclo de avaliação formal**: ~20 queries por avaliação dentro de transação com lock; reescrever em set-based (raters `INSERT … SELECT`, um `UPDATE` por ciclo) + endpoint de matriz de respondentes para a confirmação (hoje N GETs no cliente).
 3. **Trocar questionário do ciclo**: DELETE + INSERT por item por rascunho → `INSERT … SELECT … CROSS JOIN unnest(...)`.
 4. **HR Score em lote**: `detectTrendChange` recalcula o radar por pessoa (reusa sinais já carregados em batch); `saveHrScore` em upsert `unnest`.
@@ -612,6 +612,7 @@ Princípios: mesmo tenant `company_id` + hub `candidates`; CAP novas (`dp.ponto`
 7. **Fase 2 (pedido do RH) ✅ ENTREGUE:** jornada por colaborador com vigência (início, fim, intervalo e dias da semana, ou voltar à escala da empresa); aba Feriados (empresa ou unidade, anual, busca/ano, importar nacionais do ano); banco de horas calculado (extras − faltas desde o início do banco + lançamentos aprovados, teto da empresa, congelado por pessoa no fechamento). Schema `143_time_clock_schedules_holidays_bank.sql`.
 8. **Fase 3 (pedido do RH) ✅ ENTREGUE:** tela de batida com indicador de localização, botão Obter/Atualizar localização e local da última batida (mapa sob demanda); mesmo fluxo no app mobile. Sem migration.
 9. **Depois:** assinatura do espelho pelo colaborador; snapshot/resumo por fechamento (totais congelados + export).
+10. **Depois (polish):** apagar o comprovante do armazenamento quando o colaborador cancela o pedido (hoje fica guardado junto do pedido cancelado); idempotência no POST de pedidos do app (header `Idempotency-Key`); no app, separar "permissão negada" (atalho para Ajustes) de "localização indisponível".
 
 ### B-2722 — Banco de horas / horas extras ✅ ENTREGUE
 1. Regras por empresa (ativar + teto de saldo); saldo por colaborador; lançamentos manuais + créditos derivados do ponto (**B-2721**, ≥15 min além da escala, idempotente por pessoa/dia).

@@ -15,14 +15,15 @@ import { CollapsibleBlock } from './CollapsibleBlock';
 import { Icon } from './Icon';
 import { PunchLocationMap, osmLink } from './PunchLocationMap';
 
-function formatTime(value, locale) {
+function formatTime(value, locale, timeZone) {
   if (!value) return '—';
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleTimeString(localeHtmlLang(locale), {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  try {
+    return d.toLocaleTimeString(localeHtmlLang(locale), { hour: '2-digit', minute: '2-digit', timeZone: timeZone || undefined });
+  } catch {
+    return d.toLocaleTimeString(localeHtmlLang(locale), { hour: '2-digit', minute: '2-digit' });
+  }
 }
 
 const FRESH_FIX_MS = 60 * 1000;
@@ -149,7 +150,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
           title={t(locale, 'employeeHome.timeClock.emptyTitle')}
           message={t(locale, 'employeeHome.timeClock.loadError')}
         />
-        <button type="button" className={S.btnGhost} onClick={() => void load()}>
+        <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void load()}>
           {t(locale, 'common.retry')}
         </button>
       </div>
@@ -285,7 +286,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
               key={p.id}
               className="grid grid-cols-[4rem_1rem_minmax(0,1fr)] gap-x-3"
             >
-              <time dateTime={p.punchedAt} className="pt-3 text-right font-mono text-sm tabular-nums text-ink">{formatTime(p.punchedAt, locale)}</time>
+              <time dateTime={p.punchedAt} className="pt-3 text-right font-mono text-sm tabular-nums text-ink">{formatTime(p.punchedAt, locale, data.schedule?.timezone)}</time>
               <div className="relative flex justify-center" aria-hidden="true">
                 {index < data.punches.length - 1 ? <span className="absolute -bottom-5 left-1/2 top-5 w-px -translate-x-1/2 bg-ink/15" /> : null}
                 <span className={cn('relative mt-4 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-canvas', p.punchKind === TIME_PUNCH_KIND.IN ? 'bg-success' : 'bg-info')} />

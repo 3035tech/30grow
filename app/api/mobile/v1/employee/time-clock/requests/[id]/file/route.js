@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../../../../lib/api-error.js';
 import { DP_DOC_MAX_BYTES } from '../../../../../../../../../lib/dp-upload-validation.js';
+import { dpDownloadResponse } from '../../../../../../../../../lib/people/dp-download-response.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile-employee-session.js';
-import { readBoundedFormData, singleFormFile } from '../../../../../../../../../lib/mobile-multipart.js';
+import { readBoundedFormData, singleFormFile } from '../../../../../../../../../lib/bounded-multipart.js';
 import { clearTimeRequestAttachment, downloadTimeRequestAttachment, uploadTimeRequestAttachment } from '../../../../../../../../../lib/people/time-clock-requests.js';
 import { checkRateLimit } from '../../../../../../../../../lib/rate-limit.js';
 import { zPositiveInt } from '../../../../../../../../../lib/validate.js';
@@ -21,15 +22,10 @@ async function context(request, params) {
 }
 
 export async function GET(request, { params }) {
-  try {
-    const ctx = await context(request, params); if (ctx.error) return ctx.error;
-    const result = await downloadTimeRequestAttachment({ companyId: ctx.session.companyId, candidateId: ctx.session.candidateId, id: ctx.id });
-    if (!result.ok) return apiErrorFromResult(request, result);
-    const name = result.fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    return new NextResponse(result.body, { headers: { 'Cache-Control': 'private, no-store', 'Content-Type': result.contentType, 'Content-Disposition': `attachment; filename="${name}"`, 'X-Content-Type-Options': 'nosniff' } });
-  } catch {
-    return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
-  }
+  const ctx = await context(request, params); if (ctx.error) return ctx.error;
+  return dpDownloadResponse(request, `mobile-employee:${ctx.session.candidateId}`, () =>
+    downloadTimeRequestAttachment({ companyId: ctx.session.companyId, candidateId: ctx.session.candidateId, id: ctx.id })
+  );
 }
 
 export async function POST(request, { params }) {

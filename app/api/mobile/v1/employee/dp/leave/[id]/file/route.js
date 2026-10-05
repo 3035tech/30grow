@@ -6,7 +6,7 @@ import { DP_DOC_MAX_BYTES, downloadLeaveAttachment, getEmployeeDisplayName, getE
 import { checkRateLimit } from '../../../../../../../../../lib/rate-limit.js';
 import { notifyCompanyManagers } from '../../../../../../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../../../../../../lib/manager-notification-catalog.js';
-import { readBoundedFormData, singleFormFile } from '../../../../../../../../../lib/mobile-multipart.js';
+import { readBoundedFormData, singleFormFile } from '../../../../../../../../../lib/bounded-multipart.js';
 
 export const dynamic = 'force-dynamic';
 const UPLOAD_LIMIT = 20;
