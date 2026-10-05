@@ -63,12 +63,13 @@ function uploadRequest({ size = 100, extra = false } = {}) {
 }
 test('attachment route: bearer, owned row lock before storage, no cross-tenant writes and bounded multipart', async () => {
   for (const companyId of [1, 2]) {
-    const calls = []; let own = true; let uploads = 0;
+    const calls = [], cleared = []; let own = true; let uploads = 0;
     const session = { companyId, candidateId: companyId * 10 };
     const deps = { ...common, ...boundedMultipart, DP_DOC_MAX_BYTES: 5 * 1024 * 1024, authenticateMobileEmployee: async () => session, query: async () => ({}),
       withTransaction: async (fn) => fn({ query: async (sql, values) => { calls.push({ sql, values }); return { rowCount: own ? 1 : 0 }; } }),
       uploadLeaveAttachment: async (_db, input) => { uploads++; assert.equal(input.companyId, companyId); assert.equal(input.candidateId, companyId * 10); assert.equal(input.id, 22); return { ok: true }; },
       downloadLeaveAttachment: async (_db, input) => { assert.equal(input.companyId, companyId); return { ok: true, body: Buffer.from('pdf'), fileName: 'a\r\n.pdf', contentType: 'application/pdf' }; },
+      clearLeaveAttachment: async (_db, input) => { cleared.push(input); return input.id === 22 ? { ok: true } : { ok: false, errorCode: ERR.NOT_FOUND }; },
       getEmployeeDpHome: async () => ({ ok: true, leaves: [] }), getEmployeeDisplayName: async () => '', notifyCompanyManagers: async () => {}, NOTIF: { DP_LEAVE_FILE: 'file' },
     };
     const route = await moduleAt(uploadPath, deps), props = { params: Promise.resolve({ id: '22' }) };
@@ -83,9 +84,13 @@ test('attachment route: bearer, owned row lock before storage, no cross-tenant w
     assert.equal((await route.POST(uploadRequest(), { params: Promise.resolve({ id: '../22' }) })).status, 400);
     const opened = await route.GET({}, props);
     assert.equal(opened.headers.get('cache-control'), 'private, no-store'); assert.equal(opened.headers.get('content-disposition'), 'attachment; filename="a__.pdf"');
+    assert.equal((await route.DELETE({}, props)).body.ok, true);
+    assert.deepEqual(JSON.parse(JSON.stringify(cleared[0])), { id: 22, companyId, candidateId: companyId * 10 });
+    assert.equal((await route.DELETE({}, { params: Promise.resolve({ id: '23' }) })).code, ERR.NOT_FOUND);
     deps.authenticateMobileEmployee = async () => null;
     const anonymous = await moduleAt(uploadPath, deps);
     assert.equal((await anonymous.POST(uploadRequest(), props)).status, 401); assert.equal((await anonymous.GET({}, props)).status, 401);
+    assert.equal((await anonymous.DELETE({}, props)).status, 401); assert.equal(cleared.length, 2);
   }
 });
 test('attachment domain checks employee/company/leave and storage prefix; upload reuses sick/status/magic guards', async () => {

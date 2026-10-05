@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../../../../lib/api-error.js';
 import { query, withTransaction } from '../../../../../../../../../lib/db.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile-employee-session.js';
-import { DP_DOC_MAX_BYTES, downloadLeaveAttachment, getEmployeeDisplayName, getEmployeeDpHome, uploadLeaveAttachment } from '../../../../../../../../../lib/people/employee-dp.js';
+import { DP_DOC_MAX_BYTES, clearLeaveAttachment, downloadLeaveAttachment, getEmployeeDisplayName, getEmployeeDpHome, uploadLeaveAttachment } from '../../../../../../../../../lib/people/employee-dp.js';
 import { checkRateLimit } from '../../../../../../../../../lib/rate-limit.js';
 import { notifyCompanyManagers } from '../../../../../../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../../../../../../lib/manager-notification-catalog.js';
@@ -53,4 +53,14 @@ export async function POST(request, props) {
     if (error?.code === ERR.INVALID_CV_FILE_SIZE || error?.code === ERR.INVALID_CV_FILE_TYPE) return apiError(request, error.code, HTTP_STATUS.BAD_REQUEST);
     return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
+}
+export async function DELETE(request, props) {
+  try {
+    const ctx = await context(request, props); if (ctx.error) return ctx.error;
+    const result = await clearLeaveAttachment({ query }, { id: ctx.id, companyId: ctx.session.companyId, candidateId: ctx.session.candidateId });
+    if (!result.ok) return apiErrorFromResult(request, result);
+    const home = await getEmployeeDpHome({ query }, ctx.session);
+    if (!home.ok) return apiErrorFromResult(request, home);
+    return NextResponse.json(home, { headers: { 'Cache-Control': 'no-store' } });
+  } catch { return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR); }
 }
