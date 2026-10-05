@@ -7,10 +7,9 @@ import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.
 import { query } from '../../../../../lib/db.js';
 import { getEmployeeSessionPayload } from '../../../../../lib/employee-session.js';
 import { getEmployeeTimeHistory } from '../../../../../lib/people/time-clock-requests.js';
+import { ISO_DAY_PATTERN as ISO_DAY } from '../../../../../lib/people/time-clock-request-api.js';
 
 export const dynamic = 'force-dynamic';
-
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(request) {
   try {

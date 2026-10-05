@@ -6,30 +6,11 @@ import { DP_DOC_MAX_BYTES, downloadLeaveAttachment, getEmployeeDisplayName, getE
 import { checkRateLimit } from '../../../../../../../../../lib/rate-limit.js';
 import { notifyCompanyManagers } from '../../../../../../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../../../../../../lib/manager-notification-catalog.js';
+import { readBoundedFormData, singleFormFile } from '../../../../../../../../../lib/mobile-multipart.js';
 
 export const dynamic = 'force-dynamic';
 const UPLOAD_LIMIT = 20;
 const UPLOAD_WINDOW_MS = 60 * 60 * 1000;
-const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
-async function boundedFormData(request) {
-  const reader = request.body?.getReader();
-  if (!reader) return null;
-  const chunks = []; let bytes = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      bytes += value.byteLength;
-      if (bytes > DP_DOC_MAX_BYTES + MULTIPART_OVERHEAD_BYTES) {
-        await reader.cancel();
-        throw Object.assign(new Error('upload_limit'), { code: ERR.INVALID_CV_FILE_SIZE });
-      }
-      chunks.push(value);
-    }
-  } finally { reader.releaseLock(); }
-  try { return await new Response(Buffer.concat(chunks), { headers: { 'Content-Type': request.headers.get('content-type') || '' } }).formData(); }
-  catch { return null; }
-}
 async function context(request, props) {
   const session = await authenticateMobileEmployee(mobileEmployeeBearerToken(request));
   if (!session) return { error: apiError(request, ERR.UNAUTHORIZED, HTTP_STATUS.UNAUTHORIZED) };
@@ -51,11 +32,8 @@ export async function POST(request, props) {
     const ctx = await context(request, props); if (ctx.error) return ctx.error;
     const limit = await checkRateLimit(`mobile-leave-file:${ctx.session.companyId}:${ctx.session.candidateId}`, UPLOAD_LIMIT, UPLOAD_WINDOW_MS);
     if (!limit.ok) return apiError(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS);
-    if (Number(request.headers.get('content-length')) > DP_DOC_MAX_BYTES + MULTIPART_OVERHEAD_BYTES) return apiError(request, ERR.INVALID_CV_FILE_SIZE, HTTP_STATUS.BAD_REQUEST);
-    const form = await boundedFormData(request);
-    if (!form) return apiError(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST);
-    const file = form.get('file');
-    if ([...form.keys()].some((key) => key !== 'file') || form.getAll('file').length !== 1 || !file || typeof file.arrayBuffer !== 'function') return apiError(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST);
+    const file = singleFormFile(await readBoundedFormData(request, DP_DOC_MAX_BYTES));
+    if (!file) return apiError(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST);
     if (!file.size || file.size > DP_DOC_MAX_BYTES) return apiError(request, ERR.INVALID_CV_FILE_SIZE, HTTP_STATUS.BAD_REQUEST);
     const buffer = Buffer.from(await file.arrayBuffer());
     const result = await withTransaction(async (client) => {
