@@ -7,7 +7,7 @@ import {
   requireCapability,
   verifySessionWithCapabilities,
 } from '../../../../../../lib/ae/require-admin';
-import { apiError, ERR } from '../../../../../../lib/api-error';
+import { apiError, ERR, httpStatusForError } from '../../../../../../lib/api-error';
 import { queryRead } from '../../../../../../lib/db';
 import { isOpenAiConfigured } from '../../../../../../lib/openai-chat';
 import { normalizeLocale } from '../../../../../../lib/i18n';
@@ -104,6 +104,7 @@ export async function POST(request, props) {
   const body = await request.json().catch(() => ({}));
   const action = String(body.action || '').trim();
   const locale = normalizeLocale(body.locale || payload?.locale || 'pt-BR');
+  const usage = { companyId: vacancy.companyId, userId: payload.userId };
 
   try {
     if (action === 'executiveNote') {
@@ -113,7 +114,7 @@ export async function POST(request, props) {
         scope
       );
       if (!candidates.length) return apiError(request, ERR.ASSIST_AI_NEED_CANDIDATES, 400);
-      const out = await suggestExecutiveNoteAi({ vacancy, candidates, locale });
+      const out = await suggestExecutiveNoteAi({ vacancy, candidates, locale, usage });
       return NextResponse.json({ ok: true, action, executiveNote: out.executiveNote, model: out.model });
     }
 
@@ -124,7 +125,7 @@ export async function POST(request, props) {
         scope
       );
       if (!candidates.length) return apiError(request, ERR.ASSIST_AI_NEED_CANDIDATES, 400);
-      const out = await suggestShortlistAi({ vacancy, candidates, locale });
+      const out = await suggestShortlistAi({ vacancy, candidates, locale, usage });
       return NextResponse.json({
         ok: true,
         action,
@@ -140,7 +141,7 @@ export async function POST(request, props) {
         scope
       );
       if (!candidates.length) return apiError(request, ERR.ASSIST_AI_NEED_CANDIDATES, 400);
-      const out = await suggestCandidateFieldsAi({ vacancy, candidates, locale });
+      const out = await suggestCandidateFieldsAi({ vacancy, candidates, locale, usage });
       return NextResponse.json({ ok: true, action, fields: out.fields, model: out.model });
     }
 
@@ -150,6 +151,7 @@ export async function POST(request, props) {
         notesHtml,
         candidateName: body.candidateName || '',
         locale,
+        usage,
       });
       return NextResponse.json({ ok: true, action, summaryHtml: out.summaryHtml, model: out.model });
     }
@@ -167,6 +169,7 @@ export async function POST(request, props) {
         vacancy: draftVacancy,
         locale,
         mode: body.mode || 'auto',
+        usage,
       });
       return NextResponse.json({
         ok: true,
@@ -189,7 +192,6 @@ export async function POST(request, props) {
     if (code === 'ASSIST_AI_NOTES_EMPTY') {
       return apiError(request, code, 400);
     }
-    const status = code === 'RUBRIC_AI_AUTH' ? 502 : code === 'RUBRIC_AI_NOT_CONFIGURED' ? 503 : 502;
-    return apiError(request, code, status);
+    return apiError(request, code, httpStatusForError(code, 502));
   }
 }

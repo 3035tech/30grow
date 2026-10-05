@@ -38,7 +38,14 @@ export async function POST(request) {
     body.activeSection != null ? String(body.activeSection).trim().slice(0, 64) : null;
 
   try {
-    const out = await answerHelpQuestion({ question, locale, history, activeTab, activeSection });
+    const out = await answerHelpQuestion({
+      question,
+      locale,
+      history,
+      activeTab,
+      activeSection,
+      usage: { companyId: payload.companyId ?? null, userId: payload.userId },
+    });
     return NextResponse.json({ ok: true, ...out });
   } catch (e) {
     const code = e?.code || 'HELP_ASSIST_FAILED';

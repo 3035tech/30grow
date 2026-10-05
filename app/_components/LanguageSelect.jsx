@@ -2,7 +2,16 @@
 
 import { SelectField } from './SelectField';
 
-import { LOCALES, LOCALE_COOKIE, localeAccessibleLabel, localeFlag, localeLabel, normalizeLocale, t } from '../../lib/i18n';
+import {
+  LOCALES,
+  LOCALE_COOKIE,
+  localeAccessibleLabel,
+  localeFlag,
+  localeLabel,
+  localeShortCode,
+  normalizeLocale,
+  t,
+} from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { fieldSelectClass } from './form-control-styles';
 
@@ -56,6 +65,8 @@ export default function LanguageSelect({ locale, onChange, persistUser = false, 
       <span className="font-medium normal-case tracking-normal">{t(current, 'common.language')}</span>
       <SelectField
         aria-label={t(current, 'common.language')}
+        title={compact ? localeLabel(current) : undefined}
+        valueLabel={compact ? `${localeFlag(current)} ${localeShortCode(current)}` : undefined}
         value={current}
         onChange={(e) => changeLocale(e.target.value)}
         className={cn(

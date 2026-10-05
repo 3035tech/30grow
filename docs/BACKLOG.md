@@ -405,7 +405,7 @@ Copiloto no painel para perguntas do tipo **“por que o João não aparece na m
 
 ## Aberto — Epic B-2700 (controle de custo de IA)
 
-Teto por empresa, registro de tokens/custo, kill switch, fornecedor/modelo configuráveis e cache. Análise completa (estado atual, estimativa de custo, recomendação de fornecedor e itens B-2701–B-2706): [`docs/BACKLOG-AI-COST-CONTROL.md`](./BACKLOG-AI-COST-CONTROL.md).
+Entregue (out/2026): registro de consumo (B-2701), teto mensal por empresa ajustável no admin (B-2702), kill switch + `OPENAI_BASE_URL` (B-2703), modelo por funcionalidade (B-2704), tela de consumo no admin (B-2706). **Aberto:** cache de respostas repetidas (B-2705). Detalhe: [`docs/BACKLOG-AI-COST-CONTROL.md`](./BACKLOG-AI-COST-CONTROL.md).
 
 ---
 

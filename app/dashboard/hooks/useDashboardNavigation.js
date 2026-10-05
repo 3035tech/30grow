@@ -277,6 +277,9 @@ export function useDashboardNavigation({
         ? opts.companiesActive
         : urlParams.get('companiesActive') || '';
     if (companiesActive) p.set('companiesActive', String(companiesActive));
+    const companiesView =
+      opts.companiesView !== undefined ? opts.companiesView : urlParams.get('companiesView') || '';
+    if (companiesView) p.set('companiesView', String(companiesView));
 
     const resolvedTab =
       opts.tab !== undefined ? opts.tab : urlParams.get('tab') || 'overview';

@@ -19,6 +19,7 @@ import {
   AdminTableShell,
   AdminTh,
   AdminViewButton,
+  PanelSubNav,
   S,
   SortableTh,
   clientSortNextDir,
@@ -34,6 +35,8 @@ import { FormField } from '../../_components/FormField';
 import { CompanyLogoCropDialog } from '../../_components/CompanyLogoCropDialog';
 import { COMPANY_LOGO_ACCEPT } from '../../../lib/company-logo-limits';
 import { CompanyModulesField } from '../../_components/CompanyModulesField';
+import { ContentEnter } from '../../_components/AppLoading';
+import { AiUsageAdminPanel } from './AiUsageAdminPanel';
 import {
   modulesSelectionForPersist,
   modulesSelectionForUi,
@@ -208,6 +211,7 @@ function emptyCompanyForm() {
     publicProfileEnabled: false,
     anniversaryDate: '',
     active: true,
+    aiMonthlyCallLimit: '',
     moduleIds: [],
   };
 }
@@ -222,6 +226,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
   const companiesQ = String(sp.companiesQ || '').trim();
   const companiesActive = String(sp.companiesActive || '').trim();
   const hasCompaniesFilter = Boolean(companiesQ || companiesActive);
+  const companiesView = sp.companiesView === 'aiUsage' ? 'aiUsage' : 'list';
   const [searchDraft, setSearchDraft] = useState(companiesQ);
   const dateLocale = localeHtmlLang(locale);
 
@@ -230,6 +235,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
   const [companiesTotal, setCompaniesTotal] = useState(0);
   const [companiesTotalPages, setCompaniesTotalPages] = useState(1);
   const [logoStorageConfigured, setLogoStorageConfigured] = useState(false);
+  const [aiDefaultLimit, setAiDefaultLimit] = useState(null);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
 
@@ -342,6 +348,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
       setCompaniesTotal(typeof data.total === 'number' ? data.total : 0);
       setCompaniesTotalPages(typeof data.totalPages === 'number' ? data.totalPages : 1);
       setLogoStorageConfigured(Boolean(data.logoStorageConfigured));
+      setAiDefaultLimit(Number.isFinite(data.aiDefaultMonthlyCallLimit) ? data.aiDefaultMonthlyCallLimit : null);
     } catch (e) {
       setError(e?.message || t(locale, 'panel.common.error'));
     } finally {
@@ -350,11 +357,20 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
   };
 
   useEffect(() => {
-    loadCompanies();
+    if (companiesView === 'list') loadCompanies();
   }, [spKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const setFormField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const aiUsage = useMemo(() => {
+    if (drawerMode !== 'edit' || !editingCompany) return null;
+    const typed = String(form.aiMonthlyCallLimit ?? '').trim();
+    const limit = typed !== '' && Number.isInteger(Number(typed)) ? Number(typed) : aiDefaultLimit;
+    if (!Number.isFinite(limit) || limit < 0) return null;
+    const used = Number(editingCompany.aiUsedThisMonth) || 0;
+    return { used, limit, reached: used >= limit };
+  }, [drawerMode, editingCompany, form.aiMonthlyCallLimit, aiDefaultLimit]);
 
   const closeDrawer = () => {
     setDrawerMode(null);
@@ -390,6 +406,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
       anniversaryDate:
         c?.anniversaryDate != null ? String(c.anniversaryDate).slice(0, 10) : '',
       active: Boolean(c?.active),
+      aiMonthlyCallLimit: c?.aiMonthlyCallLimit != null ? String(c.aiMonthlyCallLimit) : '',
       moduleIds: [...SELECTABLE_COMPANY_MODULE_IDS],
     });
     setLogoPreviewUrl(c?.logoUrl ?? '');
@@ -497,6 +514,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
             aboutHtml: String(form.aboutHtml || '').trim() || null,
             publicProfileEnabled: form.publicProfileEnabled === true,
             anniversaryDate: String(form.anniversaryDate || '').trim() || null,
+            aiMonthlyCallLimit: String(form.aiMonthlyCallLimit ?? '').trim() || null,
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -593,6 +611,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
         title={t(locale, 'panel.admin.companiesTitle')}
         subtitle={t(locale, 'panel.admin.companiesRegisterDesc')}
         actions={
+          companiesView === 'list' ? (
           <>
             <AdminCreateButton
               label={t(locale, 'panel.admin.newCompanyBtn')}
@@ -608,9 +627,32 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
               {t(locale, 'panel.admin.refresh')}
             </button>
           </>
+          ) : null
         }
       />
 
+      <PanelSubNav
+        ariaLabel={t(locale, 'panel.admin.companiesViewsAria')}
+        active={companiesView}
+        onChange={(next) =>
+          navigateDashboard?.({
+            tab: 'companies',
+            companiesView: next === 'aiUsage' ? 'aiUsage' : null,
+            scroll: false,
+            clientOnly: true,
+          })
+        }
+        tabs={[
+          { id: 'list', label: t(locale, 'panel.admin.companiesViewList') },
+          { id: 'aiUsage', label: t(locale, 'panel.admin.aiUsageTitle') },
+        ]}
+      />
+
+      {companiesView === 'aiUsage' ? (
+        <ContentEnter animKey="aiUsage">
+          <AiUsageAdminPanel locale={locale} />
+        </ContentEnter>
+      ) : (
       <div className={S.card}>
         <AdminListFilters
           aria-label={t(locale, 'panel.admin.companiesList')}
@@ -824,6 +866,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
           </>
         )}
       </div>
+      )}
 
       <AdminRichFormDrawer
         open={drawerMode === 'create' || drawerMode === 'edit'}
@@ -1031,6 +1074,36 @@ export function CompaniesAdminTab({ navigateDashboard, locale }) {
               />
               {t(locale, 'panel.admin.editCompanyActive')}
             </label>
+          ) : null}
+          {drawerMode === 'edit' ? (
+            <FormField
+              label={t(locale, 'panel.admin.companyAiLimit')}
+              hint={t(locale, 'panel.admin.companyAiLimitHint', { default: aiDefaultLimit ?? '–' })}
+            >
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={1000000}
+                step={1}
+                value={form.aiMonthlyCallLimit}
+                onChange={(e) => setFormField('aiMonthlyCallLimit', e.target.value)}
+                placeholder={aiDefaultLimit != null ? String(aiDefaultLimit) : ''}
+                disabled={formSaving}
+                className={FIELD_INPUT}
+              />
+              {aiUsage ? (
+                <span
+                  className={cn(
+                    'mt-1 block font-mono text-2xs leading-snug tabular-nums',
+                    aiUsage.reached ? 'text-danger' : 'text-ink-muted'
+                  )}
+                >
+                  {t(locale, 'panel.admin.companyAiUsage', { used: aiUsage.used, limit: aiUsage.limit })}
+                  {aiUsage.reached ? ` · ${t(locale, 'panel.admin.companyAiLimitReached')}` : ''}
+                </span>
+              ) : null}
+            </FormField>
           ) : null}
           <FormField
             as="div"

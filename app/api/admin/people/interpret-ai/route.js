@@ -71,6 +71,7 @@ export const POST = withAdminApi(
 
     const locale = normalizeLocale(body.locale || payload?.locale || 'pt-BR');
     const cid = Number(companyId);
+    const usage = { companyId: cid, userId: payload.userId };
 
     if (body.kind === 'person') {
       const candidateId = Number(body.candidateId);
@@ -89,6 +90,7 @@ export const POST = withAdminApi(
       const out = await interpretPeopleSignalsAi({
         kind: 'person',
         locale,
+        usage,
         signals: {
           candidate: dossier.candidate,
           profile: dossier.profile,
@@ -111,6 +113,7 @@ export const POST = withAdminApi(
       const out = await interpretPeopleSignalsAi({
         kind: 'team',
         locale,
+        usage,
         signals: {
           narrative,
           forces: (intel?.forces || []).slice(0, 5),
@@ -152,6 +155,7 @@ export const POST = withAdminApi(
     const out = await interpretPeopleSignalsAi({
       kind: 'team',
       locale,
+      usage,
       signals: { workbench, climate, pdiSummary: pdi, hr: hrRollup?.overall || null },
     });
     if (!out.ok) return apiErrorFromResult(request, out, { fallbackCode: ERR.RUBRIC_AI_FAILED });

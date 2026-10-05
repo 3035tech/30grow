@@ -163,7 +163,9 @@ Lista completa e comentada em [`.env.example`](.env.example). As essenciais:
 | `SMTP_*` + `MAIL_FROM` | E-mail (convites, senha, alertas de vagas). `SMTP_MOCK=1` captura em memória |
 | `REDIS_URL` | Rate limit compartilhado entre réplicas (sem ele, limite por processo) |
 | `CRON_SECRET` | Autoriza `POST /api/cron/*` |
-| `OPENAI_API_KEY` | Assistentes de IA (opcional; sem chave respondem 503). `OPENAI_MOCK=1` em testes |
+| `OPENAI_API_KEY` | Assistentes de IA (opcional; sem chave respondem 503). `OPENAI_MOCK=1` em testes. `OPENAI_BASE_URL` aponta para fornecedor compatível (OpenRouter, Gemini) |
+| `AI_ENABLED` / `AI_COMPANY_MONTHLY_CALL_LIMIT` / `AI_GLOBAL_MONTHLY_CALL_LIMIT` | Controle de custo de IA: `AI_ENABLED=0` desliga tudo; teto de chamadas por empresa/mês (default 500, admin ajusta em Empresas → Editar; acima → 429 `AI_MONTHLY_LIMIT`); teto global opcional. Consumo em `ai_usage_events` (migration 144), visível em Empresas → Consumo de IA |
+| `AI_MODEL_<FUNCIONALIDADE>` | Modelo por funcionalidade (ex.: `AI_MODEL_HELP_ASSISTANT=gpt-4.1-nano`); vazio = `OPENAI_RUBRIC_MODEL`. Lista em `.env.example` |
 | `S3_*` / `AWS_*` | Logos e arquivos (LMS, DP). Política IAM: `npm run ops:render-s3-policy` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry (vazio = desligado) |
 | `TRIAL_MAX_*` | Limites do early access (vagas, candidatos, usuários, Motivadores, clima) |

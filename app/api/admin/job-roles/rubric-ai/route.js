@@ -45,7 +45,8 @@ export const POST = withAdminApi(
     try {
       const out = await suggestJobRoleRubricFromText(
         { name: body.name, description: body.description || '' },
-        locale
+        locale,
+        { companyId: payload.companyId ?? null, userId: payload.userId }
       );
       return NextResponse.json({
         ok: true,
@@ -65,13 +66,8 @@ export const POST = withAdminApi(
       if (code === 'RUBRIC_AI_NEED_CONTEXT' || code === ERR.RUBRIC_AI_NEED_CONTEXT) {
         return apiError(request, ERR.RUBRIC_AI_NEED_CONTEXT, httpStatusForError(ERR.RUBRIC_AI_NEED_CONTEXT));
       }
-      const status =
-        code === 'RUBRIC_AI_AUTH'
-          ? 502
-          : code === 'RUBRIC_AI_NOT_CONFIGURED' || code === ERR.RUBRIC_AI_NOT_CONFIGURED
-            ? 503
-            : 502;
-      return apiError(request, typeof code === 'string' ? code : 'RUBRIC_AI_FAILED', status);
+      const errorCode = typeof code === 'string' ? code : 'RUBRIC_AI_FAILED';
+      return apiError(request, errorCode, httpStatusForError(errorCode, 502));
     }
   }
 );

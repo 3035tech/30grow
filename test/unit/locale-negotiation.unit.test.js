@@ -7,6 +7,11 @@ const i18n = await import('../../lib/i18n.js');
 
 assert.deepEqual(i18n.LOCALES, LOCALES);
 assert.equal(i18n.LOCALE_COOKIE, 'NEXT_LOCALE');
+assert.equal(i18n.localeShortCode('es-419'), 'ES');
+assert.equal(i18n.localeShortCode('pt-PT'), 'PT');
+assert.equal(i18n.localeShortCode('en'), 'EN');
+assert.equal(i18n.localeShortCode('xx'), i18n.localeShortCode(normalizeLocale('xx')));
+for (const loc of LOCALES) assert.match(i18n.localeShortCode(loc), /^[A-Z]{2}$/);
 
 assert.equal(localeFromAcceptLanguage('pt-BR,pt;q=0.9,en;q=0.8'), 'pt-BR');
 assert.equal(localeFromAcceptLanguage('pt-PT,pt;q=0.9'), 'pt-PT');

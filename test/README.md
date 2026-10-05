@@ -10,6 +10,7 @@ test/
     fixtures/           # massa demo (catalog.json + seeders)
     full-regression.js  # SQL + libs offline
     http-smoke.js       # APIs / páginas via fetch (People/1:1 via candidato fixture)
+    ai-usage-proof.js   # teto de IA por empresa (admin → 429 AI_MONTHLY_LIMIT → Ajuda pelo Guia → ai_usage_events → relatório /api/admin/ai-usage); servidor :3010 no ar
     run-full-app.js     # orquestra SQL → Next :3010 → HTTP → Playwright
   e2e/                  # Playwright (Chromium) — layout e navegação
     browser-smoke.spec.js

@@ -1,6 +1,6 @@
 # Backlog — Controle de custo de IA (B-2700)
 
-Registro da análise de out/2026 para tratar no futuro. **Nada aqui está implementado.** Ao entregar um sub-item, remover daqui e do resumo em `docs/BACKLOG.md`.
+Registro da análise de out/2026. **B-2701–B-2704 e B-2706 entregues** (ver abaixo); B-2705 (cache) em aberto. Ao entregar um sub-item, remover daqui e do resumo em `docs/BACKLOG.md`.
 
 ## Estado atual (out/2026)
 
@@ -17,7 +17,7 @@ Registro da análise de out/2026 para tratar no futuro. **Nada aqui está implem
 | Tradução de catálogo (offline, dev) | `scripts/i18n-translate-catalog.mjs` | — | script local |
 
 - **Sem LLM (custo zero):** leitura de currículo (`candidate-cv`), temas de clima (`climate-themes`). `lib/health-status.js` só faz ping em `/v1/models`.
-- **Lacunas:** sem teto por empresa, sem registro de tokens/custo (o campo `usage` da resposta é ignorado), sem cache, sem kill switch, URL do fornecedor fixa no código.
+- **Lacunas (antes de B-2701–B-2703):** sem teto por empresa, sem registro de tokens/custo, sem kill switch, URL do fornecedor fixa. Ainda sem cache e sem modelo por funcionalidade.
 
 ## Ordem de grandeza de custo (estimativa; validar preços atuais)
 
@@ -39,29 +39,19 @@ Todo uso é geração de texto/JSON em português (sem imagem, áudio ou embeddi
 
 ## Itens de implementação
 
-### B-2701 — Registrar consumo de IA
-- Tabela `ai_usage_events` (`company_id` FK, `user_id`, `feature` com `CHECK` de domínio, `model`, `prompt_tokens`, `completion_tokens`, `cost_micros`, `created_at`). Índice `(company_id, created_at)`.
-- Gravar a partir de `usage` da resposta em `openAiChatCompletion` (insert único, fora de transação longa; falha de log não quebra a feature).
-- Constante de features em `lib/` (não literais soltos).
+### Entregue (out/2026): B-2701 + B-2702 + B-2703 + B-2704 + B-2706
 
-### B-2702 — Teto mensal por empresa
-- Antes da chamada: somar consumo do mês (índice acima) e bloquear ao estourar com erro amigável (`ERR` novo + i18n pt-BR/en: "Limite de IA do mês atingido").
-- Teto pode crescer com a faixa do plano (argumento comercial: "inclui X usos de IA/mês").
-- Admin pode ajustar teto por empresa.
+- **Modelo por funcionalidade (B-2704):** env `AI_MODEL_<FEATURE>` (ex.: `AI_MODEL_HELP_ASSISTANT=gpt-4.1-nano`); vazio = `OPENAI_RUBRIC_MODEL`. O evento grava o modelo usado, então a tela de consumo mostra o efeito da troca.
+- **Tela de consumo (B-2706):** Empresas → Consumo de IA (só admin; `GET /api/admin/ai-usage`). Filtros mês (12 últimos) / empresa / funcionalidade; totais de chamadas, tokens e custo estimado; chips por funcionalidade; tabela paginada por empresa com chamadas / teto (vermelho quando atingido).
 
-### B-2703 — Kill switch + fornecedor configurável
-- Env `AI_ENABLED=0` desliga todas as chamadas (UI mostra estado indisponível, não erro genérico).
-- Teto global mensal opcional (env).
-- Env `OPENAI_BASE_URL` (default OpenAI) para apontar a OpenRouter / Gemini compatível sem mudar código.
-
-### B-2704 — Modelo por funcionalidade
-- Env/config por feature: nano/Flash-Lite para Ajuda e textos simples; mini só para rubrica e interpretação.
+- **Consumo:** `ai_usage_events` (migration 144) com `company_id`, `user_id`, `feature` (CHECK = `AI_FEATURE` em `lib/ai-usage.js`), modelo, tokens e `cost_micros` estimado. Gravado por `openAiChatCompletion` quando a rota passa `usage`; falha de log não quebra a feature. Scripts offline (tradução) não passam `usage` e não tocam no banco.
+- **Teto por empresa:** `companies.ai_monthly_call_limit` (NULL = `AI_COMPANY_MONTHLY_CALL_LIMIT`, default 500; 0 = bloqueada). Checado antes da chamada; acima → 429 `AI_MONTHLY_LIMIT` (i18n 4 idiomas). Assistente de Ajuda cai para a resposta do Guia. Admin ajusta em Empresas → Editar (mostra uso do mês).
+- **Kill switch / fornecedor:** `AI_ENABLED=0` → "IA indisponível" (503 `RUBRIC_AI_NOT_CONFIGURED`); `AI_GLOBAL_MONTHLY_CALL_LIMIT` opcional; `OPENAI_BASE_URL` (só https). Health marca `skipped/disabled`.
+- **Limites conhecidos:** mês fechado em `date_trunc('month', NOW())` do Postgres (UTC: no Brasil vira às 21h do último dia); checagem e gravação não são atômicas, então chamadas simultâneas podem passar o teto em poucas unidades (o rate limit por usuário segura); preços em `PRICE_PER_MTOK` precisam de revisão ao trocar de modelo.
+- **Ação de ops ainda recomendada:** limite mensal + alertas no painel da OpenAI (rede de segurança fora do código).
 
 ### B-2705 — Cache de respostas repetidas
 - Redis (Upstash, já opcional no projeto) por hash de `feature + modelo + entrada normalizada`, TTL 24h, escopo por `company_id` quando houver dado da empresa no prompt.
 - Alvos: perguntas de Ajuda, rubrica do mesmo cargo.
 
-### B-2706 — Tela de consumo (admin)
-- Listagem paginada por empresa/mês/feature (padrão `AdminTableShell` + `AdminListPager`), com tokens e custo estimado.
-
-**Sugestão de corte:** B-2701 + B-2702 + B-2703 juntos (tudo passa por `lib/openai-chat.js`); B-2704/B-2705/B-2706 depois.
+**Próximo corte:** B-2705 (cache), só se o consumo real justificar. Medir antes na tela de consumo.

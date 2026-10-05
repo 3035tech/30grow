@@ -6,7 +6,7 @@ import {
   requireCapability,
   verifySessionWithCapabilities,
 } from '../../../../../lib/ae/require-admin';
-import { apiError, ERR } from '../../../../../lib/api-error';
+import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error';
 import { isOpenAiConfigured } from '../../../../../lib/openai-chat';
 import { normalizeLocale } from '../../../../../lib/i18n';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
@@ -58,6 +58,7 @@ export async function POST(request) {
       },
       locale,
       mode: body.mode || 'auto',
+      usage: { companyId: payload.companyId ?? null, userId: payload.userId },
     });
     return NextResponse.json({
       ok: true,
@@ -71,6 +72,6 @@ export async function POST(request) {
     if (code === 'ASSIST_AI_DESC_SHORT') {
       return NextResponse.json({ error: code, errorCode: code, raw: e.raw || null }, { status: 422 });
     }
-    return apiError(request, code, 502);
+    return apiError(request, code, httpStatusForError(code, 502));
   }
 }

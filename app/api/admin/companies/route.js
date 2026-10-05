@@ -10,6 +10,7 @@ import { CAP, requireCapability } from '../../../../lib/permissions';
 import { EMPLOYMENT_STATUS } from '../../../../lib/domain-status';
 import { parseCompanyProfileFromBody } from '../../../../lib/company-profile';
 import { isCompanyLogoStorageConfigured } from '../../../../lib/company-logo';
+import { aiDefaultCompanyMonthlyLimit } from '../../../../lib/ai-usage';
 import {
   checkCompanySlugAvailable,
   generateUniqueCompanySlug,
@@ -114,6 +115,7 @@ export async function GET(request) {
          c.public_profile_enabled AS "publicProfileEnabled",
          c.anniversary_date AS "anniversaryDate",
          c.logo_url AS "logoUrl",
+         c.ai_monthly_call_limit AS "aiMonthlyCallLimit",
          c.created_at AS "createdAt",
          lk.token AS "activeToken",
          lk.expires_at AS "activeTokenExpiresAt",
@@ -124,13 +126,18 @@ export async function GET(request) {
       ${orderSql}
        LIMIT $${lim} OFFSET $${off}
      )
-     SELECT p.*, emp.n AS "activeEmployees"
+     SELECT p.*, emp.n AS "activeEmployees", ai.n AS "aiUsedThisMonth"
      FROM page p
      LEFT JOIN LATERAL (
        SELECT COUNT(*)::int AS n
        FROM candidates ce
        WHERE ce.company_id = p.id AND ce.employment_status = '${EMPLOYMENT_STATUS.EMPLOYEE}'
      ) emp ON TRUE
+     LEFT JOIN LATERAL (
+       SELECT COUNT(*)::int AS n
+       FROM ai_usage_events e
+       WHERE e.company_id = p.id AND e.created_at >= date_trunc('month', NOW())
+     ) ai ON TRUE
      ORDER BY p.rn`,
     listParams
   );
@@ -142,6 +149,7 @@ export async function GET(request) {
     pageSize,
     totalPages,
     logoStorageConfigured: isCompanyLogoStorageConfigured(),
+    aiDefaultMonthlyCallLimit: aiDefaultCompanyMonthlyLimit(),
   });
 }
 

@@ -8,6 +8,7 @@ import { apiError, ERR } from '../../../../../lib/api-error';
 import { CAP, requireCapability } from '../../../../../lib/permissions';
 import { parseCompanyProfileFromBody } from '../../../../../lib/company-profile';
 import { slugify as slugifyRaw } from '../../../../../lib/slugify';
+import { parseAiMonthlyCallLimit } from '../../../../../lib/ai-usage';
 
 function slugify(input) {
   return slugifyRaw(input, { maxLength: 48 });
@@ -44,7 +45,8 @@ export async function PATCH(request, props) {
       `SELECT id, name, slug, active, website, about_html AS "aboutHtml",
               public_profile_enabled AS "publicProfileEnabled",
               anniversary_date AS "anniversaryDate",
-              logo_url AS "logoUrl"
+              logo_url AS "logoUrl",
+              ai_monthly_call_limit AS "aiMonthlyCallLimit"
        FROM companies WHERE id = $1 AND deleted = FALSE LIMIT 1`,
       [companyId]
     );
@@ -56,6 +58,13 @@ export async function PATCH(request, props) {
     const active = body.active != null ? Boolean(body.active) : null;
 
     if (name !== null && !name) return apiError(request, ERR.NAME_REQUIRED, 400);
+
+    let nextAiLimit = current.rows[0].aiMonthlyCallLimit ?? null;
+    if (Object.prototype.hasOwnProperty.call(body, 'aiMonthlyCallLimit')) {
+      const parsedAiLimit = parseAiMonthlyCallLimit(body.aiMonthlyCallLimit);
+      if (!parsedAiLimit.ok) return apiError(request, ERR.INVALID_PARAMS, 400);
+      nextAiLimit = parsedAiLimit.value;
+    }
     if (slug !== null && !slug) return apiError(request, ERR.INVALID_SLUG, 400);
 
     let profile;
@@ -98,12 +107,14 @@ export async function PATCH(request, props) {
       up = await query(
         `UPDATE companies
          SET name = $2, slug = $3, active = $4, website = $5, about_html = $6,
-             public_profile_enabled = $7, anniversary_date = $8::date
+             public_profile_enabled = $7, anniversary_date = $8::date,
+             ai_monthly_call_limit = $9
          WHERE id = $1 AND deleted = FALSE
          RETURNING id, name, slug, active, website, about_html AS "aboutHtml",
                    public_profile_enabled AS "publicProfileEnabled",
                    anniversary_date AS "anniversaryDate",
-                   logo_url AS "logoUrl", created_at AS "createdAt"`,
+                   logo_url AS "logoUrl", ai_monthly_call_limit AS "aiMonthlyCallLimit",
+                   created_at AS "createdAt"`,
         [
           companyId,
           nextName,
@@ -113,6 +124,7 @@ export async function PATCH(request, props) {
           nextAbout,
           nextPublicProfile,
           nextAnniversary,
+          nextAiLimit,
         ]
       );
     } catch (err) {

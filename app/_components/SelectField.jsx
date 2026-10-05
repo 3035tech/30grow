@@ -25,10 +25,11 @@ function optionList(children, group = '', groupDisabled = false) {
  * Single selection with custom popup. The hidden native select only preserves
  * form submission, reset and the existing onChange event contract.
  * It never opens a browser menu. Multiple selection is intentionally unsupported.
+ * `valueLabel` replaces the text on the closed trigger only; the list keeps the option labels.
  */
 export function SelectField({
   children, value, defaultValue, onChange, onBlur, onFocus, onInvalid, onClick, onKeyDown, ref: forwardedRef,
-  id, name, form, required, disabled, className, style, title,
+  id, name, form, required, disabled, className, style, title, valueLabel,
   'aria-label': ariaLabel, 'aria-labelledby': labelledBy,
   'aria-describedby': describedBy, 'aria-invalid': ariaInvalid, ...rest
 }) {
@@ -182,7 +183,7 @@ export function SelectField({
       onFocus={onFocus} onBlur={(event) => { setOpen(false); onBlur?.(event); }}
       onKeyDown={(event) => { onKeyDown?.(event); if (!event.defaultPrevented) keyboard(event); }}
       onClick={(event) => { onClick?.(event); if (!event.defaultPrevented) { if (open) setOpen(false); else show(); } }}>
-      {selected?.label || '\u00a0'}
+      {valueLabel || selected?.label || '\u00a0'}
     </button>
     <select ref={nativeRef} hidden aria-hidden="true" tabIndex={-1} name={name} form={form}
       disabled={disabled} required={required} value={value} defaultValue={defaultValue}
