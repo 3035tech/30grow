@@ -86,6 +86,12 @@ Navegação, carregamento e salvamento. Sem mudança de API nem de regra de neg�
 - Marcações, justificativas e lançamentos são lidos por janela própria de cada pessoa (`unnest(ids, from_days)` + range scan em `idx_time_punches_candidate_day` / `idx_hour_bank_candidate`), sem over-fetch pelo mínimo do lote.
 - Cache seguro: triggers invalidam em toda entrada do cálculo; lock consultivo por empresa evita corrida cron × edição. Detalhe: `docs/time-clock-manager.md` § Banco de horas.
 
+**Avaliação formal em lote (B-2804.2/3)**
+- Publicar ciclo: `publishFormalReviewCycle` faz as mesmas validações e escritas de `openFormalReview` para todas as avaliações em 6 queries fixas (antes ~15–20 por pessoa dentro da transação com lock do ciclo). Primeira avaliação inválida por id decide o erro; a rota faz rollback.
+- Confirmação: `GET /api/admin/formal-review-cycles/[id]/respondents` devolve a matriz do ciclo (cap 200 + total) em 2 queries; antes o cliente fazia 1 GET de detalhe por pessoa e só via as 40 da lista.
+- Trocar questionário: 1 `INSERT … SELECT unnest … WITH ORDINALITY` por tabela (competências do ciclo, perguntas abertas, itens de todos os rascunhos).
+- Prova: `test/dtov/formal-cycle-publish-batch.dtov.test.js` (lote = caminho por avaliação em 90/180/360 com autoavaliação, contagem de queries, rollback, troca de questionário).
+
 Pendências maiores (escopo/risco) estão em `docs/BACKLOG.md` § Performance.
 
 ## EXPLAIN checklist (DTOV)

@@ -42,5 +42,6 @@ test('editing questionnaire keeps its snapshot and refreshes only draft review i
   assert.equal(result.ok, true);
   assert.deepEqual(result.cycle.questionnaire[0], { competencyId: 7, label: 'Original', description: 'Historical wording', selfDescription: 'Reviewed first person' });
   const inserted = calls.find(call => call.sql.startsWith('INSERT INTO formal_review_items'));
-  assert.deepEqual(inserted.params, [8, 2, 7, 'Original', 'Historical wording', 'Reviewed first person', 0]);
+  assert.deepEqual(inserted.params, [[8], 2, [7], ['Original'], ['Historical wording'], ['Reviewed first person']]);
+  assert.equal(calls.filter(call => call.sql.startsWith('INSERT INTO formal_review_items')).length, 1, 'one insert for every draft review');
 });

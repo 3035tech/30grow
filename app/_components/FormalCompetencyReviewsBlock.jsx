@@ -374,17 +374,20 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
     if (!selectedCycle || busy) return;
     setBusy(true);
     try {
-      const matrix = await Promise.all(reviews.map(async review => {
-        const response = await fetch(`/api/admin/formal-reviews/${review.id}${companyQs()}`);
-        const data = await response.json();
-        if (!response.ok) throw new Error(apiToastError(locale, data, 'loadError'));
-        const r = data.review, manager = r.managerName || (i18nT(locale, 'ui.formalCompetencyReviewsBlock.missingManager'));
+      const matrixRes = await fetch(`/api/admin/formal-review-cycles/${selectedCycle.id}/respondents${companyQs()}`);
+      const respondents = await matrixRes.json().catch(() => ({}));
+      if (!matrixRes.ok) throw new Error(apiToastError(locale, respondents, 'loadError'));
+      const missingManager = i18nT(locale, 'ui.formalCompetencyReviewsBlock.missingManager');
+      const matrix = (respondents.items || []).map(r => {
+        const manager = r.managerName || missingManager;
         const rows = [`${manager} → ${r.subjectName}`];
-        if (r.model !== '90') rows.push(`${r.subjectName} → ${manager}`);
-        if (r.includeSelf) rows.push(`${r.subjectName} → ${r.subjectName}`);
-        if (r.model === '360') rows.push(`${r.raters.find(item => item.role === 'external')?.externalName || '—'} → ${r.subjectName}`);
+        if (respondents.model !== FORMAL_REVIEW_MODEL.NINETY) rows.push(`${r.subjectName} → ${manager}`);
+        if (respondents.includeSelf) rows.push(`${r.subjectName} → ${r.subjectName}`);
+        if (respondents.model === FORMAL_REVIEW_MODEL.THREE_SIXTY) rows.push(`${r.externalName || '—'} → ${r.subjectName}`);
         return rows.join('; ');
-      }));
+      });
+      const hidden = (respondents.total || 0) - matrix.length;
+      if (hidden > 0) matrix.push(i18nT(locale, 'ui.formalCompetencyReviewsBlock.respondentsMore', { count: hidden }));
       if (!await confirm({ title: i18nT(locale, 'ui.formalCompetencyReviewsBlock.confirmRespondentsAndPublishCycle'), message: matrix.join('\n') })) return;
       const response = await fetch(`/api/admin/formal-review-cycles/${selectedCycle.id}/publish`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(withCompany({})) });
       const data = await response.json();
