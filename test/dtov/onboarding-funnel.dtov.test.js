@@ -64,8 +64,24 @@ async function main() {
   assert.ok(company, 'company listed in funnel');
   const order = Object.values(ONBOARDING_STEP);
   assert.ok(order.indexOf(company.furthestStep) >= order.indexOf(ONBOARDING_STEP.MODULES), 'furthest step tracked');
-  assert.ok(company.firstVacancyAt || company.firstAnalysisAt, 'demo company already has first value');
-  assert.ok(funnel.firstValue.withAny >= 1);
+  const startedMs = new Date(company.startedAt).getTime();
+  for (const at of [company.firstVacancyAt, company.firstAnalysisAt]) {
+    if (at) assert.ok(new Date(at).getTime() >= startedMs, 'first value never predates the wizard');
+  }
+  const seeded = await query(
+    `SELECT MIN(created_at) AS at FROM vacancies WHERE company_id = $1 AND deleted = FALSE`,
+    [companyId]
+  );
+  const seededAt = seeded.rows[0]?.at;
+  if (seededAt && new Date(seededAt).getTime() < startedMs) {
+    assert.notEqual(
+      company.firstVacancyAt && new Date(company.firstVacancyAt).getTime(),
+      new Date(seededAt).getTime(),
+      'seeded vacancy before the wizard is not time-to-value'
+    );
+  }
+  if (company.hoursToFirstValue != null) assert.ok(company.hoursToFirstValue >= 0);
+  assert.ok(funnel.firstValue.withAny <= funnel.firstValue.companies);
   assert.ok(funnel.companies.length <= funnel.companyCap);
 
   const wide = await getOnboardingFunnel({ query }, { days: 7 });

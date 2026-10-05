@@ -69,7 +69,7 @@ export function OnboardingFunnelAdminPanel({ locale }) {
     <div className="flex flex-col gap-4">
       <p className={cn(S.muted, 'm-0')}>{t(locale, 'panel.admin.onboardingFunnelIntro')}</p>
 
-      <div className={S.card}>
+      <div className={S.card} aria-busy={loading}>
         <AdminListFilters
           aria-label={t(locale, 'panel.admin.onboardingFunnelTitle')}
           locale={locale}
@@ -96,7 +96,10 @@ export function OnboardingFunnelAdminPanel({ locale }) {
             <EmptyState message={t(locale, 'panel.admin.onboardingFunnelEmpty')} />
           </div>
         ) : data ? (
-          <ContentEnter animKey={`funnel-${days}`}>
+          <ContentEnter
+            animKey={`funnel-${data.days}`}
+            className={cn('transition-opacity', loading && 'pointer-events-none opacity-60')}
+          >
             <div className="mt-3 grid grid-cols-2 gap-2.5 md:grid-cols-4">
               <StatMetricTile value={numberFmt.format(started)} label={t(locale, 'panel.admin.onboardingFunnelStarted')} />
               <StatMetricTile
@@ -128,7 +131,7 @@ export function OnboardingFunnelAdminPanel({ locale }) {
               minWidth="640px"
               className="mt-4"
               ariaLabel={t(locale, 'panel.admin.onboardingFunnelStepsAria')}
-              animKey={`steps-${days}`}
+              animKey={`steps-${data.days}`}
             >
               <thead>
                 <tr className="bg-ink/[0.02]">
@@ -181,7 +184,7 @@ export function OnboardingFunnelAdminPanel({ locale }) {
                   locale={locale}
                   minWidth="720px"
                   ariaLabel={t(locale, 'panel.admin.onboardingFunnelCompaniesAria')}
-                  animKey={`companies-${days}`}
+                  animKey={`companies-${data.days}`}
                 >
                   <thead>
                     <tr className="bg-ink/[0.02]">

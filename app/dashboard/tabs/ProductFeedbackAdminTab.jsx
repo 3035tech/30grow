@@ -6,8 +6,11 @@ import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
 import {
+  PRODUCT_FEEDBACK_KIND,
   PRODUCT_FEEDBACK_KINDS,
+  PRODUCT_FEEDBACK_SEVERITY,
   PRODUCT_FEEDBACK_SEVERITIES,
+  PRODUCT_FEEDBACK_STATUS,
   PRODUCT_FEEDBACK_STATUSES,
 } from '../../../lib/domain-status';
 import { COMPANY_MODULES } from '../../../lib/company-modules';
@@ -33,21 +36,21 @@ import { InlineCallout } from '../../_components/InlineCallout';
 const STATUS_FILTERS = ['all', 'open', ...PRODUCT_FEEDBACK_STATUSES];
 
 function statusTone(status) {
-  if (status === 'new') return 'info';
-  if (status === 'reviewing') return 'warning';
-  if (status === 'done') return 'success';
+  if (status === PRODUCT_FEEDBACK_STATUS.NEW) return 'info';
+  if (status === PRODUCT_FEEDBACK_STATUS.REVIEWING) return 'warning';
+  if (status === PRODUCT_FEEDBACK_STATUS.DONE) return 'success';
   return 'neutral';
 }
 
 function kindTone(kind) {
-  if (kind === 'bug') return 'danger';
-  if (kind === 'ux' || kind === 'commercial') return 'warning';
+  if (kind === PRODUCT_FEEDBACK_KIND.BUG) return 'danger';
+  if (kind === PRODUCT_FEEDBACK_KIND.UX || kind === PRODUCT_FEEDBACK_KIND.COMMERCIAL) return 'warning';
   return 'info';
 }
 
 function severityTone(severity) {
-  if (severity === 'critical' || severity === 'high') return 'danger';
-  if (severity === 'medium') return 'warning';
+  if (severity === PRODUCT_FEEDBACK_SEVERITY.CRITICAL || severity === PRODUCT_FEEDBACK_SEVERITY.HIGH) return 'danger';
+  if (severity === PRODUCT_FEEDBACK_SEVERITY.MEDIUM) return 'warning';
   return 'neutral';
 }
 
@@ -128,7 +131,7 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
         if (filters.overdue) qs.set('overdue', '1');
         if (filters.q) qs.set('q', filters.q);
         const res = await fetch(`/api/admin/product-feedback?${qs.toString()}`);
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.productFeedback.loadFailed'));
         if (!cancelled) {
           setItems(Array.isArray(data.items) ? data.items : []);
@@ -388,7 +391,12 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
             <p className={cn(S.muted, 'm-0 text-xs')}>
               {t(locale, 'panel.productFeedback.count', { n: total })}
             </p>
-            <AdminTableShell locale={locale} animKey={`fb-${reloadKey}-${items.map((r) => r.id).join(',')}`}>
+            <AdminTableShell
+              locale={locale}
+              minWidth="1040px"
+              ariaLabel={t(locale, 'panel.productFeedback.title')}
+              animKey={`fb-${reloadKey}-${items.map((r) => r.id).join(',')}`}
+            >
               <thead>
                 <tr>
                   <AdminTh>{t(locale, 'panel.productFeedback.colId')}</AdminTh>

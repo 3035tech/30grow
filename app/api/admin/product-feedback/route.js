@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
-import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
+import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import { query } from '../../../../lib/db.js';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/permissions.js';
 import {
@@ -53,7 +53,7 @@ export const POST = withAdminApi(
       60 * 60 * 1000
     );
     if (!rl.ok) {
-      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+      return apiError(request, ERR.RATE_LIMIT, httpStatusForError(ERR.RATE_LIMIT), {}, {
         headers: { 'Retry-After': String(rl.retryAfterSec || 60) },
       });
     }
@@ -86,7 +86,7 @@ export const GET = withAdminApi(
   },
   async ({ request, payload, query: q }) => {
     if (!isSuperAdminPayload(payload) || !requireCapability(payload, CAP.USERS_MANAGE)) {
-      return apiError(request, ERR.UNAUTHORIZED, 401);
+      return apiError(request, ERR.UNAUTHORIZED, httpStatusForError(ERR.UNAUTHORIZED));
     }
     const db = { query };
     const [data, summary, assignees] = await Promise.all([

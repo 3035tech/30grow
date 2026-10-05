@@ -45,6 +45,9 @@ Após **Test pass** (pipeline Dev → Test → Validate), antes de dar a entrega
 | Módulos da empresa (SKU / acesso) | Guia `companyModules` + Meu perfil + onboarding wizard + `companies.enabled_modules` + `lib/company-modules.js` |
 | Motivadores: copy situacional + templates hedged + sync sem DELETE | Guia `motivators` + `npm run db:seed-motivators-all` + `docs/RH2-decisions.md` (B-RH2-20) |
 | Super admin (auditoria, leads, sugestões) | Seção `access` (passos 10–11) + `productFeedback` |
+| Suporte do piloto (canal, prazo de 1 dia útil, tipo/severidade/módulo, duplicatas) | Seção `productFeedback` (passos 1–4) + FAQ `faqProductFeedback` + `lib/product-feedback.js` |
+| Remover módulo da empresa (aviso + confirmação com nomes) | Seção `companyModules` (passo 5) |
+| Funil do onboarding (super admin: Empresas → Onboarding) | Ops/admin interno: `docs/BACKLOG-MVP-LAUNCH.md` MVP-08 + `lib/onboarding-funnel.js` (não exposto a gestor) |
 | DP leve (ficha / docs / assinatura interna / férias / saldo / template D1) | Seção `dpLight` + FAQ `faqDpLight` / `faqLeaveBalance` |
 | Limite mensal de IA por empresa / IA indisponível (kill switch) | FAQ `faqAiLimit` (seção `access`); no teto, o assistente responde pelo Guia (`source: retrieve`). Admin vê o consumo em Empresas → Consumo de IA. Ops: README + `docs/BACKLOG-AI-COST-CONTROL.md` |
 | Ponto digital MVP + visão do gestor (Controle de ponto / espelho por período, ajuste com anulação, justificativa, Fechamento) + pedidos de ajuste/abono do colaborador com aprovação (Solicitações) + jornada por colaborador e Feriados + tela de batida com localização (web e app) | Seção `timeClock` (passos 5–14; passo 8 = ponto por colaborador / PJ e Cooperado; 10 = pedidos do colaborador; 11 = aprovação; 12 = jornada; 13 = feriados; 14 = tela de batida e localização) + FAQ `faqTimeClock` + `docs/time-clock-manager.md` |

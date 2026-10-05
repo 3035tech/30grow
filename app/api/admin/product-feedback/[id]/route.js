@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
-import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
+import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
 import { query } from '../../../../../lib/db.js';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../lib/permissions.js';
 import { updateProductFeedback } from '../../../../../lib/product-feedback.js';
@@ -35,11 +35,11 @@ export const PATCH = withAdminApi(
   },
   async ({ request, payload, body, params }) => {
     if (!isSuperAdminPayload(payload) || !requireCapability(payload, CAP.USERS_MANAGE)) {
-      return apiError(request, ERR.UNAUTHORIZED, 401);
+      return apiError(request, ERR.UNAUTHORIZED, httpStatusForError(ERR.UNAUTHORIZED));
     }
     const idParsed = zPositiveInt.safeParse(params?.id);
     if (!idParsed.success) {
-      return apiError(request, ERR.INVALID_ID, 400);
+      return apiError(request, ERR.INVALID_ID, httpStatusForError(ERR.INVALID_ID));
     }
     const result = await updateProductFeedback({ query }, { id: idParsed.data, ...body });
     if (!result.ok) {

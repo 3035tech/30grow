@@ -94,6 +94,8 @@ Fluxo mínimo:
 
 ### MVP-07 — Configurações e módulos compreensíveis
 
+**Evidência (05/10/2026):** Meu perfil separa as tabs `Minha conta`, `Segurança`, `Módulos da empresa` (só dono da conta ou super admin) e `Plano` (admin/RH). Remover módulo mostra aviso inline com os nomes antes de salvar e confirmação destrutiva listando o que sai do menu; alterações seguem auditadas. O resumo de licença permanece acima das tabs por decisão anterior (visível em qualquer tab). Papéis aparecem traduzidos (`common.roles`) no perfil e em Usuários.
+
 **Objetivo:** deixar claro o que pertence ao usuário e o que altera a empresa.
 
 1. Usar `Configurações` com tabs `Minha conta`, `Módulos da empresa` e `Segurança`.
@@ -105,6 +107,8 @@ Fluxo mínimo:
 
 ### MVP-08 — Onboarding orientado ao primeiro valor
 
+**Evidência (05/10/2026):** o wizard registra `viewed` / `completed` / `skipped` por etapa em `onboarding_events` (migration 145: domínio fixo via `CHECK`, uma linha por usuário/etapa/evento, sem conteúdo sensível). Super admin vê em Empresas → Onboarding o funil por etapa (quantos pararam em cada uma), o objetivo escolhido e, por empresa, o tempo até a primeira vaga ou primeira pessoa analisada criada depois do início do wizard (dados de seed ou migrados não contam; 30/90 dias, até 50 empresas). Provas: `test/dtov/onboarding-funnel.dtov.test.js` e HTTP (evento inválido 400, anônimo 401, RH sem acesso ao funil 403).
+
 **Objetivo:** levar o novo cliente à primeira vaga ou à primeira pessoa analisada rapidamente.
 
 1. Perguntar objetivo inicial e módulos desejados sem apresentar toda a suíte.
@@ -115,6 +119,8 @@ Fluxo mínimo:
 **Aceite:** usuário novo chega ao primeiro resultado útil sem treinamento ao vivo; abandono por etapa pode ser observado.
 
 ### MVP-09 — Consistência das telas mais usadas
+
+**Evidência (05/10/2026):** Visão geral, Vagas, Banco de talentos, Equipe e Configurações conferidas em 1440 px e 390 px no DTOV; tabelas rolam dentro do próprio contêiner. Corrigido erro de hidratação na caixa de Suporte (célula de ações fora de `<td>`). `test/e2e/web-polish-surfaces.spec.js`: 4 passed.
 
 **Objetivo:** polir apenas superfícies que participam da demonstração e da rotina inicial.
 
@@ -134,7 +140,7 @@ Aplicar lista antes de formulário, ação principal clara, loading/erro/empty s
 
 **Objetivo:** vender apenas o que já existe e pode ser demonstrado.
 
-**Evidência atual (out/2026):** `/pricing` em es-419/es-ES sem texto caindo para o inglês (teste em `test/unit/pricing-currency.unit.test.js`); preço público até 200 colaboradores, acima disso contato comercial. Pendente: revisão nativa fr-FR/de-DE (B-I18N-01) e conferência landing/FAQ/`llms.txt` contra o produto.
+**Evidência atual (out/2026):** `/pricing` em es-419/es-ES sem texto caindo para o inglês (teste em `test/unit/pricing-currency.unit.test.js`); preço público até 200 colaboradores, acima disso contato comercial. Landing es-419/es-ES agora traduz pilares, como funciona, confiança, comparativo, quem constrói e FAQ (teste de fallback para inglês em `test/unit/product-landing-seo.unit.test.js` cobrindo es, fr, de e pt-PT). Passo 1 do "como funciona" alinhado ao cadastro self-serve em todos os idiomas. Revisão técnica fr/de feita; **pendente revisão por falante nativo** (B-I18N-01).
 
 1. Revisar landpage, preços, FAQ, `llms.txt`, metadados e JSON-LD.
 2. Alinhar nomes dos módulos entre site, onboarding, menu e proposta comercial.
@@ -144,6 +150,8 @@ Aplicar lista antes de formulário, ação principal clara, loading/erro/empty s
 **Aceite:** toda afirmação pública aponta para uma funcionalidade demonstrável; Google/Meta/IA recebem título, descrição, canonical e dados estruturados coerentes.
 
 ### MVP-11 — Suporte e feedback do piloto
+
+**Evidência (05/10/2026):** canal = formulário **Suporte** no painel + e-mail contact@3035tech.com; prazo de primeira resposta = **até 1 dia útil** (fins de semana ignorados; feriados ainda não). Cada registro tem tipo (bug, dúvida, comercial, ideia, UX), severidade, módulo derivado da aba, responsável, primeira resposta, prazo e vínculo de duplicata para agrupar recorrência; a caixa do super admin filtra por esses campos e destaca atrasados. Provas: `test/dtov/product-feedback.dtov.test.js` + HTTP de triagem.
 
 **Objetivo:** transformar problemas dos primeiros clientes em decisões rastreáveis.
 

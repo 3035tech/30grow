@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
-import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
+import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
 import { query } from '../../../../../lib/db.js';
 import { CAP } from '../../../../../lib/permissions.js';
 import { recordOnboardingEvent } from '../../../../../lib/onboarding-funnel.js';
@@ -33,7 +33,7 @@ export const POST = withAdminApi(
 
     const rl = await checkRateLimit(`onboarding-events:${payload.userId}`, 60, 60 * 60 * 1000);
     if (!rl.ok) {
-      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+      return apiError(request, ERR.RATE_LIMIT, httpStatusForError(ERR.RATE_LIMIT), {}, {
         headers: { 'Retry-After': String(rl.retryAfterSec || 60) },
       });
     }
