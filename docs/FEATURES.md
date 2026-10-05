@@ -36,7 +36,7 @@ Convenções que valem para todos os módulos:
 
 ### Planos, módulos e licenças
 
-- Página `/pricing` com calculadora por faixa de colaboradores ativos: preço fixo por faixa, equivalente por pessoa e acima de 500 sob consulta (tabela única `PUBLIC_PRICING_TIERS` em `lib/pricing-currency.js`).
+- Página `/pricing` com calculadora por faixa de colaboradores ativos: preço fixo por faixa, equivalente por pessoa até 200 colaboradores; acima disso a página mostra "sob consulta" e troca o CTA de cadastro por contato comercial (tabela única `PUBLIC_PRICING_TIERS` em `lib/pricing-currency.js`).
 - Módulos por empresa (`company_modules`): seleção vazia = só `core`; `NULL` = legado irrestrito. Remuneração é módulo sensível separado (`compensation.view` / `compensation.manage`, migration `112`).
 - Detalhe: [`company-modules.md`](company-modules.md), [`company-licenses.md`](company-licenses.md).
 

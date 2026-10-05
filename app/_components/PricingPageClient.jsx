@@ -177,7 +177,7 @@ export default function PricingPageClient({ locale: initialLocale, headerCopyByL
                 <div className="mb-4 rounded-card border border-brand-100 bg-brand-50/70 p-3.5">
                   {pricing.custom ? (
                     <p className="m-0 text-sm leading-relaxed text-ink" aria-live="polite">
-                      {t(locale, 'pricing.customQuoteBody')}
+                      {t(locale, 'pricing.customQuoteBody', { n: EARLY_ADOPTER_MAX_EMPLOYEES })}
                     </p>
                   ) : (
                     <>
@@ -224,12 +224,21 @@ export default function PricingPageClient({ locale: initialLocale, headerCopyByL
                   </ul>
                 </CollapsibleBlock>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <Link
-                    href="/signup"
-                    className="inline-flex min-h-touch items-center justify-center rounded-control bg-action hover:bg-action-hover text-action-ink px-4 py-3 text-sm font-semibold no-underline"
-                  >
-                    {t(locale, 'pricing.ctaSignup')}
-                  </Link>
+                  {pricing.custom ? (
+                    <a
+                      href={`mailto:${PRODUCT_LANDING_CONTACT_EMAIL}?subject=${encodeURIComponent(t(locale, 'pricing.enterpriseSubject'))}`}
+                      className="inline-flex min-h-touch items-center justify-center rounded-control bg-action hover:bg-action-hover text-action-ink px-4 py-3 text-sm font-semibold no-underline"
+                    >
+                      {t(locale, 'pricing.enterpriseCta')}
+                    </a>
+                  ) : (
+                    <Link
+                      href="/signup"
+                      className="inline-flex min-h-touch items-center justify-center rounded-control bg-action hover:bg-action-hover text-action-ink px-4 py-3 text-sm font-semibold no-underline"
+                    >
+                      {t(locale, 'pricing.ctaSignup')}
+                    </Link>
+                  )}
                   <Link
                     href="/login"
                     className="inline-flex min-h-touch items-center justify-center rounded-control border border-ink/12 bg-white/70 px-4 py-3 text-sm text-ink no-underline"

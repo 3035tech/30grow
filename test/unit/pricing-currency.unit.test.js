@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  PUBLIC_PRICING_MAX_EMPLOYEES,
   PUBLIC_PRICING_TIERS,
   formatPublicPrice,
   getPublicPricing,
@@ -10,7 +11,7 @@ import {
 } from '../../lib/pricing-currency.js';
 import { t, localeRegionConfig } from '../../lib/i18n.js';
 import { getProductLandingCopy, buildProductLandingJsonLd } from '../../lib/product-landing-seo.js';
-import { buildPricingJsonLd } from '../../lib/pricing-plans.js';
+import { EARLY_ADOPTER_MAX_EMPLOYEES, buildPricingJsonLd } from '../../lib/pricing-plans.js';
 
 test('pricing tiers are contiguous, ascending and end in a custom quote band', () => {
   for (let i = 1; i < PUBLIC_PRICING_TIERS.length; i += 1) {
@@ -31,15 +32,26 @@ test('band lookup respects edges and clamps below the minimum', () => {
   assert.equal(pricingTierFor(1).min, 5);
   assert.equal(pricingTierFor(10).max, 10);
   assert.equal(pricingTierFor(11).min, 11);
-  assert.equal(pricingTierFor(500).max, 500);
-  assert.equal(pricingTierFor(501).max, null);
+  assert.equal(pricingTierFor(200).max, 200);
+  assert.equal(pricingTierFor(201).max, null);
+  assert.equal(pricingTierFor(500).max, null);
+});
+
+test('public price stops at 200 employees; above that is contact-only', () => {
+  assert.equal(PUBLIC_PRICING_MAX_EMPLOYEES, 200);
+  assert.equal(EARLY_ADOPTER_MAX_EMPLOYEES, 200);
+  for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419', 'fr-FR', 'de-DE']) {
+    const body = t(locale, 'pricing.customQuoteBody', { n: PUBLIC_PRICING_MAX_EMPLOYEES });
+    assert.match(body, /200/);
+    assert.doesNotMatch(body, /500|\{n\}/);
+  }
 });
 
 for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419']) {
   const brazil = locale === 'pt-BR';
 
   test(`${locale}: fixed band price, annual discount and totals`, () => {
-    const cases = [[5, 69, 39], [10, 69, 39], [26, 299, 179], [100, 549, 329], [500, 1990, 1190]];
+    const cases = [[5, 69, 39], [10, 69, 39], [26, 299, 179], [100, 549, 329], [200, 990, 590]];
     for (const [employeeCount, brl, usd] of cases) {
       const list = brazil ? brl : usd;
       const monthly = getPublicPricing(locale, { employeeCount, billingCycle: 'monthly' });
@@ -51,7 +63,7 @@ for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419']) {
       assert.equal(annual.monthlyTotal, Math.round(list * 0.8));
       assert.equal(annual.annualTotal, Math.round(list * 0.8) * 12);
     }
-    const custom = getPublicPricing(locale, { employeeCount: 501 });
+    const custom = getPublicPricing(locale, { employeeCount: 201 });
     assert.equal(custom.custom, true);
     assert.equal(custom.monthlyTotal, null);
     assert.equal(publicPricingTierList(locale).length, PUBLIC_PRICING_TIERS.length - 1);
