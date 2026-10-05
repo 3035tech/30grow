@@ -101,7 +101,7 @@ i18n por chunk de locale (`I18nBoot`), lazy de tour/wizard/radar/Sentry Replay, 
 
 ### B-2804 — Performance: pendências da varredura (escopo maior)
 
-1. **Banco de horas calculado em escala**: `computeHourBankBalances` refaz extras − faltas desde o início do banco a cada leitura (custo ∝ pessoas × dias). Para empresas grandes ou bancos antigos, partir do último saldo congelado no fechamento (`time_clock_closure_balances`) e só recalcular os dias abertos.
+1. ~~**Banco de horas calculado em escala**~~ ✅ base = fechamento ou checkpoint diário (migration 148, cron `hour-bank-checkpoints`, invalidação por trigger) + janela por pessoa nas queries em lote.
 2. **Publicar ciclo de avaliação formal**: ~20 queries por avaliação dentro de transação com lock; reescrever em set-based (raters `INSERT … SELECT`, um `UPDATE` por ciclo) + endpoint de matriz de respondentes para a confirmação (hoje N GETs no cliente).
 3. **Trocar questionário do ciclo**: DELETE + INSERT por item por rascunho → `INSERT … SELECT … CROSS JOIN unnest(...)`.
 4. **HR Score em lote**: `detectTrendChange` recalcula o radar por pessoa (reusa sinais já carregados em batch); `saveHrScore` em upsert `unnest`.

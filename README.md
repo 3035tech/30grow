@@ -183,6 +183,7 @@ Todos exigem `Authorization: Bearer $CRON_SECRET` (ou `X-Cron-Secret`).
 | `POST /api/cron/notification-retention` | Limpeza de notificações antigas (gestores e colaboradores; migration 146 cria o índice da tabela do colaborador) |
 | `POST /api/cron/manager-weekly-digest` | Digest semanal do gestor |
 | `POST /api/cron/analytics-report?frequency=weekly\|monthly` | Relatório agendado por e-mail |
+| `POST /api/cron/hour-bank-checkpoints` | Diário: checkpoint do saldo do banco de horas (migration 148; ver `docs/time-clock-manager.md`) |
 
 Retenção LGPD (`RETENTION_DAYS`) e demais crons: ver `.env.example` e [`docs/privacy-retention-policy.md`](docs/privacy-retention-policy.md).
 

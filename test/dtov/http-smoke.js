@@ -1280,6 +1280,11 @@ export async function runHttpSmoke(baseUrl) {
   {
     const { res } = await req(base, '/api/cron/invite-reminders', { method: 'POST' });
     await expectStatus('cron', 'invite-reminders-unauth', res.status, [401]);
+    const { res: wrong } = await req(base, '/api/cron/hour-bank-checkpoints', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer wrong-secret' },
+    });
+    await expectStatus('cron', 'hour-bank-checkpoints-wrong-secret', wrong.status, [401]);
   }
   {
     const secret = process.env.CRON_SECRET || '';
@@ -1296,6 +1301,11 @@ export async function runHttpSmoke(baseUrl) {
         });
         await expectStatus('cron', path.split('/').pop().split('?')[0], res.status, [200, 500]);
       }
+      const { res: ckpt } = await req(base, '/api/cron/hour-bank-checkpoints', {
+        method: 'POST',
+        headers: { 'X-Cron-Secret': secret },
+      });
+      await expectStatus('cron', 'hour-bank-checkpoints', ckpt.status, [200]);
     } else {
       ok('cron', 'secret-skipped', 'CRON_SECRET not set');
     }

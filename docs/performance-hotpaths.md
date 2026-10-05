@@ -81,6 +81,11 @@ Navegação, carregamento e salvamento. Sem mudança de API nem de regra de neg�
 - Sucessão: sucessores de todos os papéis em 1 query (`ROW_NUMBER() OVER (PARTITION BY critical_role_id)`), antes 1 por papel.
 - Migration `138_performance_indexes_hotpaths.sql`: `manager_notifications (type, entity_id, created_at)`, `ae_invites (company_id, candidate_id)`, `candidate_invites (vacancy_id, candidate_id)`, `ae_attempts (company_id, candidate_id, completed_at) WHERE completed`, `climate_survey_responses (company_id, submitted_at)`, `vacancy_candidates (company_id|vacancy_id, pipeline_stage)`, `assessment_pipeline_history (assessment_id, changed_at DESC NULLS LAST, id DESC)`.
 
+**Banco de horas incremental (B-2804.1, migration 148)**
+- O saldo parte do mais recente entre fechamento e checkpoint diário (`hour_bank_checkpoints`, cron `hour-bank-checkpoints`): custo ∝ pessoas × ~32–39 dias, não × dias desde o início do banco.
+- Marcações, justificativas e lançamentos são lidos por janela própria de cada pessoa (`unnest(ids, from_days)` + range scan em `idx_time_punches_candidate_day` / `idx_hour_bank_candidate`), sem over-fetch pelo mínimo do lote.
+- Cache seguro: triggers invalidam em toda entrada do cálculo; lock consultivo por empresa evita corrida cron × edição. Detalhe: `docs/time-clock-manager.md` § Banco de horas.
+
 Pendências maiores (escopo/risco) estão em `docs/BACKLOG.md` § Performance.
 
 ## EXPLAIN checklist (DTOV)
