@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../lib/auth';
-import { query } from '../../../../lib/db';
+import { query, queryRead } from '../../../../lib/db';
 import { apiError, ERR } from '../../../../lib/api-error';
 import { verifySessionWithCapabilities } from '../../../../lib/session';
 import {
+  countUnreadNotificationsForUser,
   listNotificationsForUser,
   markAllNotificationsRead,
   markNotificationRead,
@@ -26,12 +27,17 @@ function withHref(row) {
   };
 }
 
-/** GET /api/me/notifications */
+/** GET /api/me/notifications — `?count=1` returns only { unreadCount, latestAt } (badge polling). */
 export async function GET(request) {
   const { payload, error } = await requireSession(request);
   if (error) return error;
 
   const url = new URL(request.url);
+  if (url.searchParams.get('count') === '1') {
+    return NextResponse.json(await countUnreadNotificationsForUser(queryRead, payload.userId), {
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
+  }
   const unreadOnly = url.searchParams.get('unread') === '1';
   const limit = parseInt(url.searchParams.get('limit') || '30', 10);
 
@@ -53,8 +59,8 @@ export async function PATCH(request) {
   const body = await request.json().catch(() => ({}));
   if (body.all === true) {
     const r = await markAllNotificationsRead(query, payload.userId);
-    const data = await listNotificationsForUser(query, payload.userId, { limit: 1 });
-    return NextResponse.json({ ok: true, updated: r.updated, unreadCount: data.unreadCount });
+    const { unreadCount } = await countUnreadNotificationsForUser(query, payload.userId);
+    return NextResponse.json({ ok: true, updated: r.updated, unreadCount });
   }
 
   const id = Number(body.id);
@@ -63,6 +69,6 @@ export async function PATCH(request) {
   const r = await markNotificationRead(query, payload.userId, id);
   if (!r.ok) return apiError(request, ERR.NOT_FOUND, 404);
 
-  const data = await listNotificationsForUser(query, payload.userId, { limit: 1 });
-  return NextResponse.json({ ok: true, unreadCount: data.unreadCount });
+  const { unreadCount } = await countUnreadNotificationsForUser(query, payload.userId);
+  return NextResponse.json({ ok: true, unreadCount });
 }

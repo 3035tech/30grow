@@ -32,6 +32,9 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [email, setEmail] = useState('');
+  const [savedEmail, setSavedEmail] = useState('');
+  const [emailReauthPassword, setEmailReauthPassword] = useState('');
+  const [emailReauthTotp, setEmailReauthTotp] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [role, setRole] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -81,6 +84,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.loadFailed'));
       const u = data.user || {};
       setEmail(u.email || '');
+      setSavedEmail(u.email || '');
       setDisplayName(u.displayName || '');
       setRole(u.role || '');
       setCompanyName(u.companyName || '');
@@ -237,24 +241,23 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
 
   useEffect(() => { load(); }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const save = async () => {
+  const save = async (scope) => {
     setSaving(true);
     setError('');
     setMsg('');
     try {
-      if (newPassword || newPassword2) {
+      let body;
+      if (scope === 'password') {
         if (newPassword !== newPassword2) {
           throw new Error(t(locale, 'dashboard.profilePasswordMismatch'));
         }
-      }
-      const body = {
-        email,
-        displayName,
-        locale,
-      };
-      if (newPassword) {
-        body.currentPassword = currentPassword;
-        body.newPassword = newPassword;
+        body = { currentPassword, newPassword };
+      } else {
+        body = { email, displayName, locale };
+        if (emailDirty) {
+          body.currentPassword = emailReauthPassword;
+          if (twoFaEnabled) body.totpCode = emailReauthTotp;
+        }
       }
       const res = await fetch('/api/me', {
         method: 'PATCH',
@@ -266,9 +269,14 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
       setCurrentPassword('');
       setNewPassword('');
       setNewPassword2('');
+      setEmailReauthPassword('');
+      setEmailReauthTotp('');
       setMsg(t(locale, 'dashboard.profileSaved'));
       if (data.user?.displayName != null) setDisplayName(data.user.displayName || '');
-      if (data.user?.email) setEmail(data.user.email);
+      if (data.user?.email) {
+        setEmail(data.user.email);
+        setSavedEmail(data.user.email);
+      }
       if (typeof onProfileSaved === 'function') onProfileSaved(data.user);
       setTimeout(() => setMsg(''), 3000);
     } catch (e) {
@@ -279,7 +287,10 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   };
 
   const hasBillingSection = ['admin', 'hr'].includes(role);
-  const saveAccountDisabled = saving || !email.trim();
+  const emailDirty = email.trim().toLowerCase() !== savedEmail.trim().toLowerCase();
+  const emailReauthMissing =
+    emailDirty && (!emailReauthPassword || (twoFaEnabled && emailReauthTotp.length !== 6));
+  const saveAccountDisabled = saving || !email.trim() || emailReauthMissing;
   const savePasswordDisabled = saving || !currentPassword || !newPassword || !newPassword2;
 
   return (
@@ -346,8 +357,25 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                         </p>
                       </div>
                     </div>
+                    {emailDirty ? (
+                      <ContentEnter animKey="email-reauth">
+                      <InlineCallout tone="info" className="mt-4">
+                        <p className="m-0 text-prose">{t(locale, 'dashboard.profileEmailReauthHint')}</p>
+                        <div className="mt-3 grid items-start gap-4 sm:grid-cols-2">
+                          <FormField label={t(locale, 'dashboard.profileEmailReauthPassword')}>
+                            <input type="password" autoComplete="current-password" value={emailReauthPassword} onChange={(e) => setEmailReauthPassword(e.target.value)} className={inputClass} />
+                          </FormField>
+                          {twoFaEnabled ? (
+                            <FormField label={t(locale, 'dashboard.profileEmailReauthTotp')}>
+                              <input inputMode="numeric" autoComplete="one-time-code" value={emailReauthTotp} onChange={(e) => setEmailReauthTotp(e.target.value.replace(/\D/g, '').slice(0, 6))} className={inputClass} maxLength={6} />
+                            </FormField>
+                          ) : null}
+                        </div>
+                      </InlineCallout>
+                      </ContentEnter>
+                    ) : null}
                     <div className="mt-6 flex justify-end border-t border-ink/10 pt-4">
-                      <button type="button" onClick={save} disabled={saveAccountDisabled} className={dashS.btnPrimary}>
+                      <button type="button" onClick={() => save('account')} disabled={saveAccountDisabled} className={dashS.btnPrimary}>
                         {saving ? t(locale, 'panel.common.loading') : t(locale, 'dashboard.profileSave')}
                       </button>
                     </div>
@@ -429,7 +457,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                         </FormField>
                       </div>
                       <div className="mt-6 flex justify-end border-t border-ink/10 pt-4">
-                        <button type="button" onClick={save} disabled={savePasswordDisabled} className={dashS.btnPrimary}>
+                        <button type="button" onClick={() => save('password')} disabled={savePasswordDisabled} className={dashS.btnPrimary}>
                           {saving ? t(locale, 'panel.common.loading') : t(locale, 'dashboard.profilePasswordSave')}
                         </button>
                       </div>

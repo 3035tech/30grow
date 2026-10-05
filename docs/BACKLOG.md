@@ -108,10 +108,10 @@ i18n por chunk de locale (`I18nBoot`), lazy de tour/wizard/radar/Sentry Replay, 
 5. **OKR hierarquia**: carrega áreas/atividades/assignees só para derivar ids; caps aplicados em JS; joins O(n·m) com `filter`.
 6. **Navegação client-only** para abas que buscam os próprios dados (Vagas, Usuários, LMS, OKR, Clima, PDI): hoje cada troca passa pelo loader SSR antes do fetch da aba.
 7. **Overview**: 8+ cards com fetch próprio após o SSR; avaliar dobrar resumos baratos em `buildOverviewMetrics`.
-8. **Notificações**: endpoint só de contagem para o polling (lista só ao abrir o dropdown), leitura em `queryRead`.
+8. ~~**Notificações**: endpoint só de contagem para o polling (lista só ao abrir o dropdown), leitura em `queryRead`.~~ ✅ `GET /api/me/notifications?count=1` (réplica) + lista ao abrir o dropdown.
 9. **`DISTINCT ON` por empresa** (behavioral intel, liderança, cultura): dirigir por `candidates` + `LATERAL … LIMIT 1`.
 10. **Convites em lote de clima/pulso**: validação por convite + SMTP síncrono no request.
-11. **Purge de `candidate_notifications`** (gestor já tem `purgeOldManagerNotifications`).
+11. ~~**Purge de `candidate_notifications`**~~ ✅ mesmo cron `notification-retention` (`lib/notification-retention.js`, índice na migration 146).
 
 ### B-202 — (opcional) caps/API restantes do audit
 _(fechado como “monitorar prod” — sem gap aberto claro.)_ Já entregue: vac-n1 LATERAL, export cap, purge batches, AE analytics sample, notify unnest, email unique idx (025), compat/leadership caps, indexes `061`. Reabrir só com evidência de produção.
@@ -611,8 +611,8 @@ Princípios: mesmo tenant `company_id` + hub `candidates`; CAP novas (`dp.ponto`
 6. **Pedidos do colaborador (pedido do RH, fase 1) ✅ ENTREGUE:** histórico por período em `/employee/time-clock`; pedido de Ajuste de ponto (incluir/alterar/remover marcações, justificativa) e de Abono (tipo, dia inteiro ou intervalo, comprovante); status por dia; fila DP → Ponto → Solicitações com aprovar/reprovar (motivo opcional) e notificações nos dois sentidos. Schema `142_time_clock_requests.sql`; ver `docs/time-clock-manager.md`.
 7. **Fase 2 (pedido do RH) ✅ ENTREGUE:** jornada por colaborador com vigência (início, fim, intervalo e dias da semana, ou voltar à escala da empresa); aba Feriados (empresa ou unidade, anual, busca/ano, importar nacionais do ano); banco de horas calculado (extras − faltas desde o início do banco + lançamentos aprovados, teto da empresa, congelado por pessoa no fechamento). Schema `143_time_clock_schedules_holidays_bank.sql`.
 8. **Fase 3 (pedido do RH) ✅ ENTREGUE:** tela de batida com indicador de localização, botão Obter/Atualizar localização e local da última batida (mapa sob demanda); mesmo fluxo no app mobile. Sem migration.
-9. **Depois:** assinatura do espelho pelo colaborador; snapshot/resumo por fechamento (totais congelados + export).
-10. **Depois (polish):** apagar o comprovante do armazenamento quando o colaborador cancela o pedido (hoje fica guardado junto do pedido cancelado); idempotência no POST de pedidos do app (header `Idempotency-Key`); no app, separar "permissão negada" (atalho para Ajustes) de "localização indisponível".
+9. **Resumo por fechamento + assinatura do espelho ✅ ENTREGUE (web):** totais por pessoa congelados ao fechar (`time_clock_closure_people`, migration 147) com hash de integridade; resumo no Fechamento (contagem por situação, filtro, CSV, "Gerar resumo" para fechamentos antigos); colaborador assina (nome digitado + confirmação, IP/UA) ou contesta com motivo em `/employee/time-clock`; notificações `time_mirror_available` / `time_mirror_disputed`. **Pendente:** mesma seção no app mobile (rotas `/api/mobile/v1/...` + tela).
+10. **Polish ✅ ENTREGUE:** cancelar o pedido apaga o comprovante do armazenamento; POST de pedidos aceita `Idempotency-Key` (migration 146; o app envia); no app, "permissão negada" (atalho Abrir Ajustes) separada de "localização indisponível".
 
 ### B-2722 — Banco de horas / horas extras ✅ ENTREGUE
 1. Regras por empresa (ativar + teto de saldo); saldo por colaborador; lançamentos manuais + créditos derivados do ponto (**B-2721**, ≥15 min além da escala, idempotente por pessoa/dia).
@@ -876,9 +876,8 @@ Já entregue: diferença por campo em ficha, DP (gestor e colaborador) e Usuári
 1. Visão de auditoria filtrada por `company_id` para o dono da empresa (capability nova), sem cross-tenant.
 2. Filtros por pessoa (alvo) e por ação; exportação CSV para atender pedido do titular ou fiscalização.
 
-### B-3203 — Reautenticação ao trocar o próprio e-mail
-1. Gestor não admin trocando o próprio e-mail: exigir senha/2FA de novo e avisar o endereço antigo.
-2. Evita que uma sessão roubada troque o e-mail e recupere a conta por "esqueci a senha".
+### B-3203 — Reautenticação ao trocar o próprio e-mail ✅ ENTREGUE
+Meu perfil: trocar o e-mail pede a senha atual (+ código TOTP com 2FA ativo); o endereço antigo recebe aviso com o novo mascarado; auditoria `user.email_change_self` (só nomes de campo). Salvar nome/idioma segue sem senha.
 
 ---
 

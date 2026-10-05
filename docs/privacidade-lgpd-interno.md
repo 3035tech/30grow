@@ -11,7 +11,7 @@ Documento operacional para equipe de produto e engenharia. **Não substitui pare
 
 - O job/script de retenção deve respeitar **`RETENTION_DAYS`** (ver `.env.example`): remoção de assessments antigos e candidatos órfãos (sem assessments / ae_attempts / 1:1) via `POST /api/admin/retention/purge`, em **lotes** (`RETENTION_BATCH_SIZE` / `RETENTION_MAX_BATCHES`).
 - **Currículos (B-2706):** PDFs ficam em object storage (`candidates.cv_key`, prefixo `companies/{id}/candidates/…`). Remover CV pelo painel ou excluir o candidato limpa metadados no Postgres; a rota de delete do CV tenta apagar o objeto S3. Purge de candidatos órfãos não apaga S3 automaticamente — operação pode usar lifecycle do bucket ou script ops se necessário.
-- Notificações in-app: cron `POST /api/cron/notification-retention` (prazos `NOTIFICATION_RETENTION_READ_DAYS` / `NOTIFICATION_RETENTION_UNREAD_DAYS`).
+- Notificações in-app (gestor e colaborador): cron `POST /api/cron/notification-retention` (prazos `NOTIFICATION_RETENTION_READ_DAYS` / `NOTIFICATION_RETENTION_UNREAD_DAYS`).
 - Ajustar o número conforme contrato com cliente e política corporativa; registrar mudanças em changelog interno.
 
 ## Bases legais (orientação típica — validar com jurídico)

@@ -39,6 +39,16 @@ DP → Ponto (`TimeClockWorkspace`) com as abas Controle de ponto, Solicitaçõe
 - Sobreposição rejeitada na mesma unidade ou quando um dos dois é da empresa inteira (serializado com `FOR UPDATE` na empresa).
 - Dia fechado bloqueia ajuste, justificativa, revisão de marcação e marcação manual (`TIME_CLOCK_PERIOD_CLOSED`, 409).
 
+## Resumo por fechamento e assinatura do espelho
+
+- Ao concluir um fechamento, na mesma transação, cada pessoa do escopo com ponto ativo e admitida até o fim do período ganha uma linha em `time_clock_closure_people` (migration 147): dias úteis, trabalhadas, previstas, extras, faltantes, faltas, dias abonados e dias com batida sem par, mais `snapshot_hash` (sha256 de fechamento + pessoa + período + totais). O saldo do banco não é duplicado: vem de `time_clock_closure_balances`. Cálculo em lotes de 100 (`HOUR_BANK_BATCH`), mesmas queries em lote do banco de horas (`loadTimeDayInputs`).
+- `ack_status` é domínio fixo (`pending` / `signed` / `disputed`, `TIME_CLOCK_ACK_STATUS`) com CHECKs: assinatura exige nome (3–120); contestação exige motivo (10–1000).
+- Gestor: na lista de Fechamento, coluna **Assinaturas** (`assinados de total` + contestados, uma query agrupada por página) e o ícone de lista abre o resumo (`TimeClockClosureSummaryDrawer`): contagem por situação (clique filtra), busca, tabela paginada (25) e **Baixar CSV** (até 5000 linhas, com hash). `GET /api/admin/time-clock/closures/[id]/people` (`?format=csv`) e `POST` (gerar). Fechamentos anteriores à migration ficam sem linhas: **Gerar resumo** calcula do período travado (idempotente) e avisa as pessoas.
+- Colaborador: `/employee/time-clock` → **Espelhos para assinar** (some se a pessoa não tem fechamento; últimos 12). `GET /api/employee/time-clock/closures` e `POST /api/employee/time-clock/closures/[id]/ack` com `{ action: 'signed', signerName, consent: true }` ou `{ action: 'disputed', note }` (20/hora por pessoa). Grava IP, user agent e `consent_version` (`v1-mirror-ack`). Contestado pode ser assinado depois; assinado não muda (`TIME_CLOCK_ACK_LOCKED`, 409). Fechamento cancelado recusa (`TIME_CLOCK_CLOSURE_NOT_ACTIVE`).
+- Corrigir depois de contestar: cancelar o fechamento, ajustar e fechar de novo. O fechamento cancelado mantém as linhas (histórico); o novo gera outras e um novo aviso.
+- Notificações: colaborador recebe `time_mirror_available` (dedupe por fechamento, lotes de 200, push no app); gestores recebem `time_mirror_disputed`. Auditoria: `time_clock.mirror_signed`, `time_clock.mirror_disputed`, `time_clock.closure_summary_generate`.
+- App mobile: ainda sem a seção (backlog B-2721 item 9).
+
 ## Ponto por colaborador
 
 - `candidates.time_clock_override BOOLEAN NULL` (migration 140): `NULL` segue o vínculo (`work_format`), `TRUE`/`FALSE` é exceção do RH. Sem ponto por padrão: `pj` e `cooperative`. CLT, estágio e vínculo vazio têm ponto (comportamento anterior preservado).
@@ -64,11 +74,11 @@ DP → Ponto (`TimeClockWorkspace`) com as abas Controle de ponto, Solicitaçõe
 - Colaborador em `/employee/time-clock` → **Meu histórico**: período (7 dias, 30 dias, mês atual, mês anterior), totais e lista de dias. Tocar num dia abre o detalhe com marcações, abono e pedidos do dia (sem nome de quem ajustou e sem coordenadas).
 - **Ajuste de ponto**: a pessoa edita a lista de marcações do dia (incluir, alterar horário/tipo, remover), com justificativa (3–1000 caracteres) e até 8 marcações novas por pedido. O pedido guarda as anulações e inclusões em `employee_time_request_punches`.
 - **Abono**: tipo (atestado, falta abonada, folga, outro), dia inteiro ou intervalo (início/fim), justificativa e comprovante opcional (PDF/JPG/PNG até 5 MB, S3 em `time-requests/{candidato}/{pedido}/`).
-- Um pedido pendente por pessoa, dia e tipo (`uq_employee_time_requests_pending`). Dias futuros, período fechado e horários depois de agora (hoje) são recusados. A pessoa pode cancelar enquanto está pendente.
+- Um pedido pendente por pessoa, dia e tipo (`uq_employee_time_requests_pending`). Dias futuros, período fechado e horários depois de agora (hoje) são recusados. A pessoa pode cancelar enquanto está pendente; ao cancelar, o comprovante anexado sai do armazenamento.
 - Gestor: DP → Ponto → **Solicitações** (card "Pedidos de ponto" no topo do DP e badge na sub-aba). Notificação in-app `time_request_submitted` a cada pedido.
 - **Aprovar** aplica na mesma transação o caminho do gestor: ajuste = anula a marcação original (nunca apaga) e insere as novas com origem `manager`; abono = justificativa do dia com `excused_start`/`excused_end` e `source_request_id`. Se as marcações mudaram depois do pedido, a aprovação falha com `TIME_REQUEST_STALE` (reprove e peça outro). Dia em período fechado só pode ser reprovado.
 - **Reprovar** aceita motivo opcional (≤ 500). O colaborador recebe `time_request_decided` nos dois casos.
-- **API mobile (Bearer do app, empresa e pessoa só do token):** `GET /api/mobile/v1/employee/time-clock/history?from=&to=` (datas ISO válidas), `POST …/time-clock/requests` (mesmo schema e auditoria da web; 20 pedidos/hora por pessoa), `DELETE …/time-clock/requests/:id` (cancelar pendente), `GET|POST|DELETE …/time-clock/requests/:id/file` (comprovante: um único campo `file`, limite lido em streaming; download pelo mesmo helper do DP, com limite por pessoa). No app, a aba Ponto ganhou **Meu histórico** (períodos, totais, detalhe do dia, pedir ajuste ou abono com comprovante, abrir o comprovante enviado, anexar/cancelar pedido pendente), usando essas rotas.
+- **API mobile (Bearer do app, empresa e pessoa só do token):** `GET /api/mobile/v1/employee/time-clock/history?from=&to=` (datas ISO válidas), `POST …/time-clock/requests` (mesmo schema e auditoria da web; 20 pedidos/hora por pessoa; header opcional `Idempotency-Key` faz o reenvio devolver o pedido original, migration 146), `DELETE …/time-clock/requests/:id` (cancelar pendente), `GET|POST|DELETE …/time-clock/requests/:id/file` (comprovante: um único campo `file`, limite lido em streaming; download pelo mesmo helper do DP, com limite por pessoa). No app, a aba Ponto ganhou **Meu histórico** (períodos, totais, detalhe do dia, pedir ajuste ou abono com comprovante, abrir o comprovante enviado, anexar/cancelar pedido pendente), usando essas rotas.
 - Abono por intervalo desconta só o intervalo das horas faltantes; abono de dia inteiro zera a falta (regra anterior). O banco de horas usa o espelho recalculado.
 
 ## Regras assumidas
@@ -85,6 +95,8 @@ Aplicar `migrations/137_time_clock_manager.sql` (aditiva; colunas novas nulas em
 `migrations/142_time_clock_requests.sql`: aditiva (2 tabelas novas + 3 colunas nulas em `employee_time_day_justifications`). Aplicar antes do deploy web. Rollback: as telas de pedidos param; ajustes já aprovados continuam como marcações normais.
 
 `migrations/143_time_clock_schedules_holidays_bank.sql`: aditiva (3 tabelas novas + `hour_bank_started_on`). Aplicar depois da 142 e antes do deploy web. **Muda o comportamento do banco:** a partir da data da migration o saldo passa a ser calculado do espelho (saldo anterior preservado como abertura) e "Gerar do ponto" some. Rollback: o código antigo ignora as tabelas novas e volta ao saldo por lançamentos.
+
+`migrations/147_time_clock_closure_people.sql`: aditiva (1 tabela nova, reaplicável). Aplicar antes do deploy web; sem ela, concluir um fechamento falha. Fechamentos já existentes ficam sem resumo até o RH usar Gerar resumo. Rollback: o código antigo ignora a tabela.
 
 ## Prova
 

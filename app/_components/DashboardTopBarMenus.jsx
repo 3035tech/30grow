@@ -152,23 +152,50 @@ export function DashboardTopBarMenus({
   const pollTimerRef = useRef(null);
 
   const lastLoadRef = useRef(0);
+  const notifOpenRef = useRef(false);
+  const listStaleRef = useRef(true);
+  const latestAtRef = useRef(undefined);
 
+  const loadList = useCallback(async () => {
+    try {
+      const res = await fetch('/api/me/notifications?limit=20');
+      if (redirectManagerIfUnauthorized(res.status)) return;
+      if (!res.ok) return;
+      const data = await res.json();
+      const next = Array.isArray(data.items) ? data.items : [];
+      setItems(next);
+      setUnreadCount(typeof data.unreadCount === 'number' ? data.unreadCount : 0);
+      listStaleRef.current = false;
+      latestAtRef.current = next[0]?.createdAt ?? null;
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Polling only reads the badge count; the list is fetched when the dropdown opens.
   const loadNotifs = useCallback(async () => {
     // focus + visibilitychange fire together when the user returns to the tab.
     const now = Date.now();
     if (now - lastLoadRef.current < 2000) return;
     lastLoadRef.current = now;
     try {
-      const res = await fetch('/api/me/notifications?limit=20');
+      const res = await fetch('/api/me/notifications?count=1');
       if (redirectManagerIfUnauthorized(res.status)) return;
       if (!res.ok) return;
       const data = await res.json();
-      setItems(Array.isArray(data.items) ? data.items : []);
       setUnreadCount(typeof data.unreadCount === 'number' ? data.unreadCount : 0);
+      const latestAt = data.latestAt ?? null;
+      if (latestAt !== latestAtRef.current) listStaleRef.current = true;
+      if (notifOpenRef.current && listStaleRef.current) await loadList();
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [loadList]);
+
+  useEffect(() => {
+    notifOpenRef.current = notifOpen;
+    if (notifOpen) loadList();
+  }, [notifOpen, loadList]);
 
   const clearPoll = useCallback(() => {
     if (pollTimerRef.current != null) {
@@ -288,7 +315,7 @@ export function DashboardTopBarMenus({
       <div className="relative">
         <button
           type="button"
-          onClick={() => { setNotifOpen((v) => !v); setProfileOpen(false); if (!notifOpen) loadNotifs(); }}
+          onClick={() => { setNotifOpen((v) => !v); setProfileOpen(false); }}
           aria-label={t(locale, 'dashboard.notificationsAria')}
           aria-expanded={notifOpen}
           aria-haspopup="true"

@@ -180,7 +180,7 @@ Todos exigem `Authorization: Bearer $CRON_SECRET` (ou `X-Cron-Secret`).
 |----------|--------|
 | `POST /api/cron/invite-reminders` | Lembretes de convite |
 | `POST /api/cron/vacancy-deadline-notifications` | Prazos de vaga |
-| `POST /api/cron/notification-retention` | Limpeza de notificações antigas |
+| `POST /api/cron/notification-retention` | Limpeza de notificações antigas (gestores e colaboradores; migration 146 cria o índice da tabela do colaborador) |
 | `POST /api/cron/manager-weekly-digest` | Digest semanal do gestor |
 | `POST /api/cron/analytics-report?frequency=weekly\|monthly` | Relatório agendado por e-mail |
 

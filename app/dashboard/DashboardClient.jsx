@@ -952,9 +952,10 @@ function DashboardClientContent({
           onCloseMobile={() => setSidebarOpen(false)}
           navRef={sidebarNavRef}
           groups={sidebarGroups}
-          brand={
+          brand={(iconOnly) => (
             <BrandMark
               size={26}
+              withWordmark={!iconOnly}
               onClick={() => {
                 navigateToTab('overview');
                 setSidebarOpen(false);
@@ -962,7 +963,7 @@ function DashboardClientContent({
               title={t(locale, 'dashboard.homeAria')}
               aria-label={t(locale, 'dashboard.homeAria')}
             />
-          }
+          )}
           footer={(iconOnly) => sidebarFooterItems.map((item) => (
             <SidebarNavItem key={item.id} item={item} collapsed={iconOnly} />
           ))}

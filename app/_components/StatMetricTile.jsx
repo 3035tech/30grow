@@ -14,15 +14,18 @@ export function StatMetricTile({
   className = '',
   hero = false,
   hint = null,
+  pressed = null,
 }) {
   const Tag = onClick ? 'button' : 'div';
   return (
     <Tag
       type={onClick ? 'button' : undefined}
       onClick={onClick || undefined}
+      aria-pressed={onClick && pressed != null ? Boolean(pressed) : undefined}
       className={cn(
         'rounded-control border border-ink/12 bg-ink/[0.02] px-3.5 py-3 text-left',
         onClick && 'min-h-touch cursor-pointer transition-colors hover:bg-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+        pressed && 'ring-2 ring-brand-500/40',
         className
       )}
     >

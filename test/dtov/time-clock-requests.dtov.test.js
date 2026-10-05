@@ -214,13 +214,34 @@ async function main() {
     excuseReason: 'medical_certificate', excuseStart: '18:00', excuseEnd: '15:00',
   });
   assert.equal(badInterval.errorCode, ERR.INVALID_DATA);
+  const idemKey = `dtov-${Date.now()}-idempotency`;
   const exc = await createTimeRequest({
     companyId, candidateId, kind: TIME_REQUEST_KIND.EXCUSE, day: excDay, justification: 'Consulta médica às 15h30',
-    excuseReason: 'medical_certificate', excuseStart: '15:00', excuseEnd: '17:00',
+    excuseReason: 'medical_certificate', excuseStart: '15:00', excuseEnd: '17:00', idempotencyKey: idemKey,
   });
   assert.equal(exc.ok, true, exc.errorCode);
+  assert.ok(!exc.replayed);
+  const replay = await createTimeRequest({
+    companyId, candidateId, kind: TIME_REQUEST_KIND.EXCUSE, day: excDay, justification: 'Consulta médica às 15h30',
+    excuseReason: 'medical_certificate', excuseStart: '15:00', excuseEnd: '17:00', idempotencyKey: idemKey,
+  });
+  assert.equal(replay.ok, true, replay.errorCode);
+  assert.equal(replay.replayed, true);
+  assert.equal(replay.item.id, exc.item.id, 'same Idempotency-Key returns the same request');
+  const idemRows = await query(
+    `SELECT COUNT(*)::int AS n FROM employee_time_requests WHERE company_id = $1 AND candidate_id = $2 AND idempotency_key = $3`,
+    [companyId, candidateId, idemKey]
+  );
+  assert.equal(idemRows.rows[0].n, 1);
+  await query(
+    `UPDATE employee_time_requests SET file_key = $2, file_name = 'atestado.pdf' WHERE id = $1`,
+    [exc.item.id, `companies/${companyId}/time-requests/${candidateId}/${exc.item.id}/dtov.pdf`]
+  );
   const cancelled = await cancelTimeRequest({ companyId, candidateId, id: exc.item.id });
   assert.equal(cancelled.ok, true, cancelled.errorCode);
+  const fileAfterCancel = await query(`SELECT file_key, file_name FROM employee_time_requests WHERE id = $1`, [exc.item.id]);
+  assert.equal(fileAfterCancel.rows[0].file_key, null, 'cancel drops the attachment key');
+  assert.equal(fileAfterCancel.rows[0].file_name, '');
   const cancelAgain = await cancelTimeRequest({ companyId, candidateId, id: exc.item.id });
   assert.equal(cancelAgain.errorCode, ERR.TIME_REQUEST_NOT_PENDING);
   const cancelOther = await cancelTimeRequest({ companyId, candidateId: candidateId + 999999, id: exc.item.id });

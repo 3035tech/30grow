@@ -16,6 +16,7 @@ import {
   createTimeClockClosure,
   listTimeClockClosures,
 } from '../../../../../lib/people/time-clock-manager.js';
+import { notifyClosureMirrorsReady } from '../../../../../lib/people/time-clock-closure-people.js';
 
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -86,7 +87,19 @@ export const POST = withAdminApi(
         orgUnitId: result.orgUnitId,
       },
     });
-    return NextResponse.json(result);
+    const { summaryCandidateIds, ...out } = result;
+    try {
+      await notifyClosureMirrorsReady(null, {
+        companyId,
+        closureId: result.id,
+        periodStart: result.periodStart,
+        periodEnd: result.periodEnd,
+        candidateIds: summaryCandidateIds,
+      });
+    } catch (e) {
+      console.error('[time-clock] mirror notif', e?.message || e);
+    }
+    return NextResponse.json(out);
   }
 );
 

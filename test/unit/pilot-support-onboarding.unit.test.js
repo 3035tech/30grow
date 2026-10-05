@@ -41,6 +41,22 @@ describe('addSupportBusinessDays', () => {
     assert.equal(due.toISOString(), '2026-10-05T13:00:00.000Z');
   });
 
+  it('skips a Monday national holiday (12/10/2026)', () => {
+    assert.equal(addSupportBusinessDays('2026-10-09T15:00:00Z').toISOString(), '2026-10-13T15:00:00.000Z');
+  });
+
+  it('skips a Friday national holiday (20/11/2026)', () => {
+    assert.equal(addSupportBusinessDays('2026-11-19T15:00:00Z').toISOString(), '2026-11-23T15:00:00.000Z');
+  });
+
+  it('skips Good Friday (03/04/2026)', () => {
+    assert.equal(addSupportBusinessDays('2026-04-02T15:00:00Z').toISOString(), '2026-04-06T15:00:00.000Z');
+  });
+
+  it('request on a holiday counts from the next business day', () => {
+    assert.equal(addSupportBusinessDays('2026-10-12T15:00:00Z').toISOString(), '2026-10-13T15:00:00.000Z');
+  });
+
   it('invalid date returns null', () => {
     assert.equal(addSupportBusinessDays('not a date'), null);
   });

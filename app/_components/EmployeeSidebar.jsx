@@ -202,14 +202,15 @@ export function EmployeeSidebar({
       onCloseMobile={onClose}
       groups={sidebarGroups}
       headerExtra={companyHeader}
-      brand={
+      brand={(iconOnly) => (
         <BrandMark
           size={26}
+          withWordmark={!iconOnly}
           href="/employee"
           title={t(locale, 'employeeHome.eyebrow')}
           aria-label={t(locale, 'employeeHome.eyebrow')}
         />
-      }
+      )}
       footer={(iconOnly) => (
         <>
           <SidebarNavItem

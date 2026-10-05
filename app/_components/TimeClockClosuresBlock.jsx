@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { t, localeHtmlLang } from '../../lib/i18n';
+import { t } from '../../lib/i18n';
+import { formatDisplayDate, formatDisplayDateTime } from '../../lib/format-display-date.js';
 import { cn } from '../../lib/cn';
 import { TIME_CLOCK_CLOSURE_STATUS, TIME_CLOCK_CLOSURE_STATUSES } from '../../lib/domain-status.js';
 import { orgUnitOptions } from '../../lib/org-unit-constants.js';
@@ -22,31 +23,13 @@ import { useAppFeedback } from './AppFeedback';
 import { EmptyState } from './EmptyState';
 import { useOrgUnits } from './OrgUnitField';
 import { StatusToneChip } from './StatusToneChip';
+import { TimeClockClosureSummaryDrawer } from './TimeClockClosureSummaryDrawer';
 
 const K = 'panel.timeClockMgr';
 const PAGE_SIZE = 20;
 
-function dateBr(iso, locale) {
-  if (!iso) return '';
-  return new Date(`${String(iso).slice(0, 10)}T12:00:00Z`).toLocaleDateString(localeHtmlLang(locale), {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
-
-function dateTimeBr(value, locale) {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString(localeHtmlLang(locale), {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+const dateBr = (v, locale) => formatDisplayDate(v, locale, { fallback: '' });
+const dateTimeBr = (v, locale) => formatDisplayDateTime(v, locale, { fallback: '' });
 
 async function sendJson(method, body) {
   const res = await fetch('/api/admin/time-clock/closures', {
@@ -68,6 +51,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [state, setState] = useState({ items: [], total: 0, loading: true });
+  const [summaryOf, setSummaryOf] = useState(null);
 
   useEffect(() => {
     const id = setTimeout(() => setQ(qDraft.trim()), 300);
@@ -239,7 +223,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
         <>
           <AdminTableShell
             locale={locale}
-            minWidth="760px"
+            minWidth="880px"
             animKey={`tc-closings|${page}|${q}|${status}|${state.total}`}
             ariaLabel={t(locale, `${K}.closingAria`)}
           >
@@ -249,6 +233,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
                 <AdminTh>{t(locale, `${K}.colPeriod`)}</AdminTh>
                 <AdminTh>{t(locale, `${K}.colFilter`)}</AdminTh>
                 <AdminTh>{t(locale, `${K}.colStatus`)}</AdminTh>
+                <AdminTh>{t(locale, `${K}.colSignatures`)}</AdminTh>
                 <AdminTh>{t(locale, `${K}.colDoneBy`)}</AdminTh>
                 <AdminActionsTh>{t(locale, `${K}.colActions`)}</AdminActionsTh>
               </tr>
@@ -281,20 +266,41 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
                       ) : null}
                     </td>
                     <td className="px-4 py-2.5">
+                      {row.acks?.total ? (
+                        <>
+                          <p className="m-0 font-mono text-sm tabular-nums text-ink">
+                            {t(locale, `${K}.signaturesOf`, { signed: row.acks.signed, total: row.acks.total })}
+                          </p>
+                          {row.acks.disputed ? (
+                            <p className="m-0 mt-0.5 font-mono text-2xs text-danger">
+                              {t(locale, `${K}.disputedCount`, { n: row.acks.disputed })}
+                            </p>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span className={S.faint}>·</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5">
                       <p className="m-0 font-ui text-sm text-ink">{row.closedByName || '·'}</p>
                       <p className={cn(S.faint, 'm-0')}>{dateTimeBr(row.closedAt, locale)}</p>
                     </td>
                     <td className="px-4 py-2.5 text-right">
-                      {closed ? (
-                        <AdminActionsCell>
+                      <AdminActionsCell>
+                        <AdminIconButton
+                          icon="list"
+                          label={t(locale, `${K}.summaryAction`, { n: row.id })}
+                          onClick={() => setSummaryOf(row)}
+                        />
+                        {closed ? (
                           <AdminIconButton
                             icon="x"
                             tint="danger"
                             label={t(locale, `${K}.cancelAction`, { n: row.id })}
                             onClick={() => void cancelClosing(row)}
                           />
-                        </AdminActionsCell>
-                      ) : null}
+                        ) : null}
+                      </AdminActionsCell>
                     </td>
                   </tr>
                 );
@@ -312,6 +318,16 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
           />
         </>
       )}
+
+      {summaryOf ? (
+        <TimeClockClosureSummaryDrawer
+          locale={locale}
+          companyId={companyId}
+          closure={summaryOf}
+          onClose={() => setSummaryOf(null)}
+          onChanged={() => void load()}
+        />
+      ) : null}
     </div>
   );
 }

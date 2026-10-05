@@ -151,7 +151,7 @@ Aplicar lista antes de formulário, ação principal clara, loading/erro/empty s
 
 ### MVP-11 — Suporte e feedback do piloto
 
-**Evidência (05/10/2026):** canal = formulário **Suporte** no painel + e-mail contact@3035tech.com; prazo de primeira resposta = **até 1 dia útil** (fins de semana ignorados; feriados ainda não). Cada registro tem tipo (bug, dúvida, comercial, ideia, UX), severidade, módulo derivado da aba, responsável, primeira resposta, prazo e vínculo de duplicata para agrupar recorrência; a caixa do super admin filtra por esses campos e destaca atrasados. Provas: `test/dtov/product-feedback.dtov.test.js` + HTTP de triagem.
+**Evidência (05/10/2026):** canal = formulário **Suporte** no painel + e-mail contact@3035tech.com; prazo de primeira resposta = **até 1 dia útil** (fins de semana e feriados nacionais não contam; feriados estaduais/municipais sim). Cada registro tem tipo (bug, dúvida, comercial, ideia, UX), severidade, módulo derivado da aba, responsável, primeira resposta, prazo e vínculo de duplicata para agrupar recorrência; a caixa do super admin filtra por esses campos e destaca atrasados. Provas: `test/dtov/product-feedback.dtov.test.js` + HTTP de triagem.
 
 **Objetivo:** transformar problemas dos primeiros clientes em decisões rastreáveis.
 

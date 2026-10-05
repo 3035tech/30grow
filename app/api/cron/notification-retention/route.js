@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db';
 import { apiError, ERR } from '../../../../lib/api-error';
 import { purgeOldManagerNotifications } from '../../../../lib/manager-notifications';
+import { NOTIFICATION_TABLE, purgeOldNotifications } from '../../../../lib/notification-retention';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ function verifyCron(request) {
 
 /**
  * POST /api/cron/notification-retention
- * Apaga notificações in-app antigas (lidas / não lidas com prazos distintos).
+ * Apaga notificações in-app antigas de gestores e colaboradores (lidas / não lidas com prazos distintos).
  * Requer CRON_SECRET (Bearer ou X-Cron-Secret).
  */
 export async function POST(request) {
@@ -37,7 +38,8 @@ export async function POST(request) {
     );
 
     const result = await purgeOldManagerNotifications(query, { readDays, unreadDays });
-    return NextResponse.json({ ok: true, ...result });
+    const candidate = await purgeOldNotifications(query, NOTIFICATION_TABLE.CANDIDATE, { readDays, unreadDays });
+    return NextResponse.json({ ok: true, ...result, candidate });
   } catch (err) {
     console.error('POST /api/cron/notification-retention', err);
     return apiError(request, ERR.INTERNAL, 500);

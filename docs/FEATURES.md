@@ -120,7 +120,7 @@ Convenções que valem para todos os módulos:
 ### Departamento pessoal (DP leve)
 
 - Hub DP: pendências, férias e afastamentos (saldo por período aquisitivo), documentos com anexo privado, assinatura interna, admissão.
-- **Ponto digital** e **banco de horas** (saldo calculado do espelho + lançamentos, teto por empresa, congelado no fechamento, CSV mensal; migrations `099` e `143`), jornada por colaborador e feriados.
+- **Ponto digital** e **banco de horas** (saldo calculado do espelho + lançamentos, teto por empresa, congelado no fechamento, CSV mensal; migrations `099` e `143`), jornada por colaborador e feriados. Resumo por fechamento (totais congelados por pessoa + CSV) e assinatura/contestação do espelho pelo colaborador (migration `147`).
 - Fora de escopo: eSocial, holerite, folha. Detalhe: [`DP-PRIVATE-ATTACHMENTS.md`](DP-PRIVATE-ATTACHMENTS.md), [`dp-address-and-clock-timeline.md`](dp-address-and-clock-timeline.md).
 
 ---
@@ -156,7 +156,7 @@ Todos exigem `Authorization: Bearer <CRON_SECRET>` (ou `X-Cron-Secret`):
 |------|--------|
 | `POST /api/cron/invite-reminders` | Lembretes de convite |
 | `POST /api/cron/vacancy-deadline-notifications` | Prazos de vaga |
-| `POST /api/cron/notification-retention` | Limpeza de notificações antigas |
+| `POST /api/cron/notification-retention` | Limpeza de notificações antigas (gestores e colaboradores) |
 | `POST /api/cron/manager-weekly-digest` | Digest semanal do gestor |
 | `POST /api/cron/analytics-report?frequency=weekly\|monthly` | Relatório agendado |
 

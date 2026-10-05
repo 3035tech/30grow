@@ -194,7 +194,8 @@ function NavGroup({ group, open, onToggle, locale, collapsed, isActiveGroup }) {
  * icon-only mode on desktop. Mobile renders the same column inside the drawer.
  *
  * @param {{
- *   id: string, locale: string, ariaLabel: string, brand: import('react').ReactNode,
+ *   id: string, locale: string, ariaLabel: string,
+ *   brand: import('react').ReactNode | ((collapsed: boolean) => import('react').ReactNode),
  *   groups: SidebarNavGroupDef[], storageKey: string, collapsed?: boolean,
  *   onToggleCollapsed?: Function, open?: boolean, onCloseMobile?: Function,
  *   headerExtra?: import('react').ReactNode, footer?: (collapsed: boolean) => import('react').ReactNode,
@@ -231,7 +232,7 @@ export function SidebarNav({
       )}
     >
       <div className={cn('db-sidebar-head flex flex-shrink-0 items-center gap-2 pb-2 pt-4', iconOnly ? 'flex-col px-2' : 'justify-between pl-4 pr-2')}>
-        <div className="flex h-10 min-w-0 items-center">{brand}</div>
+        <div className="flex h-10 min-w-0 items-center">{typeof brand === 'function' ? brand(iconOnly) : brand}</div>
         <div className={cn('flex items-center gap-1', iconOnly && 'flex-col')}>
           {onToggleCollapsed ? (
             <SidebarRailButton
