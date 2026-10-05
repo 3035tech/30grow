@@ -63,6 +63,21 @@ BEGIN
         AND (signer_user_agent IS NULL OR char_length(signer_user_agent) <= 300)
       );
   END IF;
+  -- Assinatura sem versão do termo aceito não serve como prova.
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'time_clock_closure_people_signed_consent_chk'
+  ) THEN
+    ALTER TABLE time_clock_closure_people
+      ADD CONSTRAINT time_clock_closure_people_signed_consent_chk
+      CHECK (ack_status <> 'signed' OR btrim(consent_version) <> '');
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'time_clock_closure_people_snapshot_hash_chk'
+  ) THEN
+    ALTER TABLE time_clock_closure_people
+      ADD CONSTRAINT time_clock_closure_people_snapshot_hash_chk
+      CHECK (snapshot_hash ~ '^[0-9a-f]{64}$');
+  END IF;
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_time_clock_closure_people_person
