@@ -20,11 +20,10 @@ preservação de rascunhos e cancelamento da saída sem encerrar a sessão.
 
 Na validação de 2026-10-06, os 13 casos de `employee.spec.js`,
 `employee-ux.spec.js` e `brand.spec.js` passaram na execução final conjunta.
-Segurança: 68 casos; consistência: 30 casos. A suíte ampliada mantém três falhas
-reproduzidas também no HEAD anterior às alterações: botão Aplicar do calendário
-fora da área visível, expectativa de foco no diálogo com formulário e overflow
-horizontal das listas administrativas no celular. Esses casos não pertencem
-à navegação do colaborador e continuam pendentes.
+Segurança: 68 casos; consistência: 30 casos. Naquele momento, a suíte ampliada
+apontou calendário e overflow das listas como pendências. Ambos foram corrigidos
+na rodada de RH/admin abaixo. A expectativa de foco do formulário foi corrigida
+no teste, preservando a ordem acessível real e simulando uma submissão assíncrona.
 
 O polish posterior dos cabeçalhos, perfil e cursos também passou no build e nos
 30 testes de consistência. Dos 13 casos de navegador, 12 passaram juntos;
@@ -32,69 +31,103 @@ a identidade em 768 px passou na repetição após o build, depois de um erro
 transitório de leitura de JSON no servidor de desenvolvimento. Revisão visual
 no Chrome em desktop e celular, nos modos claro e escuro, com dados sintéticos.
 
-## Validação de RH e admin — 2026-10-06
+## Correções e validação de RH/admin — 2026-10-06
 
-Resultado: **ainda não aprovado nos mesmos critérios do colaborador**.
-Nenhum arquivo de produto em `app/` ou `lib/` foi alterado nesta avaliação.
-Os novos fixtures renderizam o `DashboardClient` real em `/dashboard` somente
-neste aplicativo isolado. `persona=hr` e `persona=admin` selecionam identidades
-sintéticas; isso não representa autenticação real nem prova autorização da API
-de produção. As APIs locais de administração e perfil só possuem handlers GET.
-A produção redirecionou para login com sessão expirada e não foi validada com
-RH/admin autenticados.
+Todas as falhas confirmadas na avaliação inicial foram corrigidas. Os critérios
+locais passaram: **37 testes de navegador**, **68 de segurança** e **48 de
+navegação, escopo, permissões, paginação e consistência**. `npm run build`
+concluiu com sucesso; `git diff --check` também passou. Nenhum caso ignorado.
 
-### Provas que passaram
+### Correções entregues
 
-- 68 testes de segurança: `npm run test:security`.
-- 48 testes de navegação, escopo de empresa, permissões, paginação e consistência:
-  `node --test test/unit/dashboard-navigation.unit.test.js test/unit/dashboard-company-scope.unit.test.js test/unit/company-owner-permissions.unit.test.js test/unit/admin-list-pager.unit.test.js test/unit/p3-ui-consistency.test.js`.
-- Matriz com Equipe, PDI, Perfil, Empresas e Usuários em 390/768/1440 px:
-  um único h1 e ausência de overflow horizontal nas cinco páginas com os dados
-  sintéticos. Menu de RH oculta Empresas/Usuários; admin expõe esses destinos.
-- Cancelar criação de empresa não faz requisição de escrita e devolve o foco.
-- Seletores, OKR, organograma e anexos privados: sete casos existentes passaram.
-- Diálogo de formulário: foco inicial, navegação de teclado, calendário,
-  cancelamento e bloqueio de submissão concorrente passaram após corrigir o
-  fixture/teste. Ao circular a partir de Salvar, o primeiro controle é Fechar,
-  seguido por Nome. A operação simulada agora aguarda uma resposta assíncrona;
-  duas operações síncronas já concluídas não testavam concorrência.
-- Revisão manual no Chrome: desktop/celular e modos claro/escuro; dados sintéticos.
-  O build aprovado no polish permanece aplicável ao produto, que não mudou.
+- `DateField`: preserva hora, minuto e segundo ao abrir, cancelar ou aplicar.
+  O popup mede sua altura depois de montar e acompanha alterações de tamanho,
+  mantendo o botão Aplicar dentro da janela e rolagem em janelas menores.
+- Menu móvel de gestão: diálogo modal, isolamento com inert, foco inicial,
+  contenção de Tab/Shift+Tab, Escape, retorno ao gatilho e limpeza de scroll.
+  O gatilho não cobre o logo. A navegação fecha antes da confirmação de saída;
+  cancelar não encerra a sessão nem envia escrita.
+- Perfil: 2FA distingue status carregando, erro e confirmado. Falhas HTTP,
+  respostas inválidas e falhas de rede permitem tentar novamente. Trocar e-mail
+  fica bloqueado enquanto o status é desconhecido. Recuperar o status preserva
+  o rascunho e mantém as exigências de senha/código. Autorizações da API intactas.
+- Layout do perfil alinhado ao cabeçalho, sem card externo duplicado; painéis
+  usam os tokens compartilhados. Botões principais ocupam a largura no celular.
+- Cadastro de empresas usa `S.input`: 16 px e toque mínimo de 44 px no celular,
+  consistente com o calendário. Mensagens em Usuários e Perfil usam callouts
+  acessíveis. Textos de cadastro mais claros nos quatro idiomas; página pública
+  continua exigindo ativação explícita. Biblioteca distingue recursos de Cursos.
+- Overflow de listas: a bisseção identificou o `sr-only` de `DisclosureToggle`
+  dentro da tabela de modelos. O texto absoluto não tinha ancestral posicionado
+  e ampliava o documento para 555 px em 375 px. `relative` no próprio componente
+  contém o texto sem retirar o nome acessível. As tabelas continuam roláveis;
+  nenhuma regra global foi usada para esconder overflow.
 
-### Falhas confirmadas e prioridade de correção
+### Evidências
 
-| Prioridade | Falha | Evidência | Correção recomendada |
-| --- | --- | --- | --- |
-| Alta | Data/hora perde o horário salvo ao abrir | `management-calendar.spec.js`: valor 10:30, seletores exibem 00:00. `DateField.jsx`, função `show`, usa `validDateKey(value)`, que remove a parte do horário. | Preservar hora/minuto do valor válido ao inicializar o rascunho; abrir/cancelar não pode alterar o valor. |
-| Alta | Menu móvel não contém foco nem isola o conteúdo | Dois casos de `management-ux.spec.js`: sidebar sem papel de diálogo/aria-modal, main sem inert, Tab sai do menu e Escape não retorna ao gatilho. No Chrome, o botão Abrir menu continua sobre o logo e os destinos do menu fechado permanecem na árvore acessível. | Aplicar ao DashboardClient o comportamento móvel já validado no EmployeeShell, com foco inicial, contenção, isolamento, retorno e limpeza ao redimensionar. |
-| Alta | Falha de 2FA fica silenciosa | GET `/api/me/2fa` simulado com 503: a seção de 2FA desaparece da aba Segurança. `ProfileTab.jsx` inicia canUse/enabled em false e ignora a falha. | Separar carregando/erro/confirmado e permitir tentar novamente; ausência de resposta não comprova que a função está indisponível. |
-| Média | Aplicar do calendário fica fora da janela | Janela 1280×720: limite inferior do botão medido em 798 px, além dos 720 px disponíveis. Caso existente também não consegue clicar. | Recalcular posição pela altura renderizada e limitar a área rolável, mantendo ações acessíveis após mudanças de conteúdo. |
-| Média | Campos de empresas estão abaixo do padrão móvel | Texto de 12 px e altura de 38 px em `management-ux.spec.js`; `CompaniesAdminTab.jsx` usa FIELD_INPUT próprio, sem ui-field. | Reutilizar S.input/FormField, fonte móvel de 16 px e alvo mínimo de 44 px, alinhados ao campo de data. |
+A suíte inclui Equipe, PDI, Perfil, Empresas e Usuários em 390/768/1440 px,
+um único h1, sem overflow do documento, cancelamento de criação sem escrita,
+navegação RH/admin, recuperação do 2FA e preservação de rascunhos. Os testes
+existentes cobrem colaborador, calendário, seletores, OKR, organograma e anexos.
 
-### Pendência de layout e recomendações visuais
+Revisão manual no Chrome em desktop e celular, claro e escuro, com os componentes
+reais e dados sintéticos locais. Capturas da rodada: `/private/tmp/rh-admin-final-ui`.
+Capturas manuais: `/private/tmp/30grow-admin-mobile-final.png` e
+`/private/tmp/30grow-rh-profile-final.png`. O Chrome com Grammarly emite um aviso
+por atributos injetados pela extensão no body; não houve esse aviso no navegador
+isolado dos testes. O tamanho temporário do Chrome foi restaurado ao concluir.
 
-O caso agrupado `lists.spec.js` continua falhando: documento com 555 px numa
-janela de 375 px. As tabelas ficam dentro de regiões de rolagem; a inspeção de
-caixas não identificou um elemento sem contenção responsável pela largura.
-Logo, a falha **não foi atribuída genericamente às tabelas de produção**.
-As cinco páginas canônicas da matriz passaram. O teste salva screenshot antes
-da asserção e anexa dimensões para aprofundar a reprodução em contexto real.
+### Reexecutar
 
-No perfil de gestão, o card fica centralizado em relação ao título do shell e
-mantém caixas aninhadas. Recomenda-se usar o alinhamento e a hierarquia já
-refinados no colaborador. Textos como “roster”, “opt-in”, “slug (URL-friendly)”
-e caminhos internos no cadastro de empresas aumentam a carga de leitura;
-priorizar termos de uso e deixar detalhes de URL em ajuda secundária.
-“Academy” e “Cursos” também precisam explicitar biblioteca versus cursos/trilhas.
+```sh
+npx playwright test --config test/ui-controls/playwright.config.js
+npm run test:security
+node --test test/unit/dashboard-navigation.unit.test.js test/unit/dashboard-company-scope.unit.test.js test/unit/company-owner-permissions.unit.test.js test/unit/admin-list-pager.unit.test.js test/unit/p3-ui-consistency.test.js
+npm run build
+```
 
-### Reexecutar os critérios
+O teste de organização visual em `module-hardening` foi atualizado para reconhecer
+o mesmo botão primário com classes responsivas; suas verificações de segurança
+não foram removidas.
 
-`npx playwright test --config test/ui-controls/playwright.config.js management-ux.spec.js management-calendar.spec.js calendar.spec.js lists.spec.js select.spec.js okr.spec.js org-chart.spec.js private-attachment.spec.js`
+### Limites
 
-Os casos novos são critérios de aceitação e permanecem vermelhos enquanto as
-falhas acima existirem; não foram ignorados nem alterados para aceitar os bugs.
-Resultados consolidados por caso, incluindo reexecuções: 13 casos de navegador
-passaram e 8 falharam (há mais de um caso cobrindo menu e calendário).
-Os cenários não cobrem todos os módulos, combinações de permissões, registros
-longos, leitor de tela ou gravações reais de RH/admin. Nenhum teste de produção
-com criação, exclusão, pagamento ou alteração de permissões foi realizado.
+Os fixtures `/dashboard` renderizam o `DashboardClient` real apenas neste app
+isolado. `persona=hr/admin` escolhe identidades sintéticas; não autentica nem
+comprova autorização em produção. APIs administrativas locais são GET; escritas
+de testes específicos são interceptadas. Não há banco ou dados reais.
+
+A sessão de produção estava expirada na avaliação inicial. Esta entrega não
+inclui publicação ou E2E autenticado em produção, nem valida todos os módulos,
+combinações de permissões, leitor de tela, cadastros reais e volume de dados.
+
+
+## Cobertura da landing — 2026-10-06
+
+A seção de funcionalidades apresenta 46 recursos em seis grupos. Os seis
+principais de cada grupo ficam visíveis; os demais podem ser expandidos e
+recolhidos por teclado ou toque. A lista completa também alimenta o JSON-LD.
+
+Carreiras, sucessão e ouvidoria ganharam destaque. O novo grupo Organização
+inclui organograma, áreas, assistente de ajuda, guia, permissões e 2FA da gestão.
+Os textos foram atualizados em português, inglês, espanhol, francês e alemão;
+variantes regionais mantêm o mecanismo existente de seleção de idioma.
+O inventário de llms.txt passou a mencionar organização e biblioteca.
+
+Validação: `landing.spec.js` e `brand.spec.js`, **10 casos aprovados** em
+390/768/1440 px, incluindo expansão com Enter/Space, preservação do foco,
+conteúdo completo, tradução e ausência de overflow horizontal. O teste unitário
+`product-landing-seo.unit.test.js` verifica os 46 itens e sua presença no JSON-LD
+para todas as cópias e variantes verificadas, sem fallback de texto inglês.
+
+Revisão visual no Chrome desktop/mobile; tamanho temporário restaurado.
+Capturas automatizadas: `/private/tmp/30grow-landing-final-tests`.
+Captura manual: `/private/tmp/30grow-landing-desktop-final.png`.
+O build de produção e `git diff --check` passaram.
+As rotas de preview não expõem dados reais nem publicam a alteração.
+
+```sh
+npx playwright test --config test/ui-controls/playwright.config.js landing.spec.js brand.spec.js
+node test/unit/product-landing-seo.unit.test.js
+npm run build
+```

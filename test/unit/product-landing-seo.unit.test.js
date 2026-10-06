@@ -81,3 +81,22 @@ assert.ok(gptRule.disallow.includes('/v/'));
 assert.ok(!gptRule.disallow.includes('/jobs'));
 
 console.log('product landing SEO unit: ok');
+
+
+// Every locale carries the full module inventory, including the newly exposed capabilities.
+for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419', 'fr-FR', 'de-DE']) {
+  const copy = seo.getProductLandingCopy(locale);
+  assert.equal(copy.pillars.length, 6, `${locale}: six feature groups`);
+  assert.equal(new Set(copy.pillars.map(pillar => pillar.id)).size, 6);
+  assert.equal(copy.pillars.flatMap(pillar => pillar.items).length, 46);
+  assert.ok(copy.ui.showAllFeatures);
+  assert.ok(copy.ui.showFewerFeatures);
+  const structured = JSON.parse(seo.buildProductLandingJsonLd(locale))['@graph']
+    .find(entry => entry['@type'] === 'SoftwareApplication');
+  for (const item of copy.pillars.flatMap(pillar => pillar.items)) {
+    assert.ok(structured.featureList.includes(item), `${locale}: structured data includes ${item}`);
+  }
+}
+assert.match(pt.pillars[0].items[5], /página de carreiras/);
+assert.match(pt.pillars[5].items.join(' '), /Organograma.*Assistente de IA.*duas etapas/);
+assert.match(seo.buildProductLlmsTxt(), /Organização \/ organograma \/ áreas/);
