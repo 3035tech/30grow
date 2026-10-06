@@ -267,6 +267,7 @@ export function OverviewTab({
             <BirthdaysCard
               locale={locale}
               companyId={companyId}
+              initialData={data.upcomingAnniversaries}
               navigateDashboard={navigateDashboard}
             />
           </div>

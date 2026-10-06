@@ -29,6 +29,7 @@ import { buildOverviewMetrics } from '../../lib/overview-metrics';
 import { OVERVIEW_FUNNEL_STAGES } from '../../lib/overview-constants.js';
 import { buildCompatBundles, COMPAT_PEOPLE_CAP } from '../../lib/compat-bundles';
 import { getOnboardingProgress } from '../../lib/onboarding-progress';
+import { ANNIVERSARY_WINDOW_DAYS, getUpcomingAnniversaries } from '../../lib/people/upcoming-anniversaries.js';
 import { isSuperAdminPayload } from '../../lib/permissions';
 import { measureAsync } from '../../lib/monitoring.js';
 import { COHORT_TABS, needsAdminCompaniesList } from '../../lib/dashboard-company-scope.js';
@@ -409,6 +410,14 @@ LEFT JOIN vacancies v ON v.id = ass.vacancy_id
         })
         : null;
 
+      // Birthdays card: cheap, filter-independent; SSR it with the overview instead of a client fetch.
+      const anniversariesPromise = needOverview && companyId
+        ? getUpcomingAnniversaries(null, { companyId: Number(companyId), daysAhead: ANNIVERSARY_WINDOW_DAYS }).catch((err) => {
+          console.error('[dashboard/load] Upcoming anniversaries error:', err);
+          return null;
+        })
+        : null;
+
       const runTeamPage = (targetPage) => {
         const pageParams = [...extParams];
         pageParams.push(pageSize);
@@ -543,6 +552,10 @@ LEFT JOIN vacancies v ON v.id = ass.vacancy_id
         );
 
         if (onboardingPromise) onboardingProgress = await onboardingPromise;
+        if (anniversariesPromise) {
+          const anniversaries = await anniversariesPromise;
+          if (anniversaries?.ok) overviewMetrics = { ...overviewMetrics, upcomingAnniversaries: anniversaries };
+        }
       }
 
       if (needTeam) {

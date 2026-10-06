@@ -9,13 +9,19 @@ import { AppLoading } from '../../../_components/AppLoading';
 /**
  * Overview card — upcoming birthdays + work anniversaries (+ company anniversary).
  */
-export default function BirthdaysCard({ locale = 'pt-BR', companyId, navigateDashboard }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function BirthdaysCard({ locale = 'pt-BR', companyId, navigateDashboard, initialData = null }) {
+  const [data, setData] = useState(initialData);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!companyId) return;
+    if (initialData) {
+      setData(initialData);
+      setLoading(false);
+      setError(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setError(false);
@@ -36,7 +42,7 @@ export default function BirthdaysCard({ locale = 'pt-BR', companyId, navigateDas
     return () => {
       cancelled = true;
     };
-  }, [companyId]);
+  }, [companyId, initialData]);
 
   const dateLocale = localeHtmlLang(locale);
   const formatNext = (iso) => {

@@ -110,6 +110,13 @@ Navegação, carregamento e salvamento. Sem mudança de API nem de regra de neg�
 - Não aplicar a agregações sem `LIMIT`: o mix de tipos da cultura (`getCompanyTypeMixPercentages`) com `LATERAL` mediu 66 → 171 ms; uma ordenação única ganha de uma sonda por pessoa. 9-box e sucessão já leem por `candidate_id = ANY(ids)`.
 - Prova: `test/dtov/latest-assessment-lateral.dtov.test.js` (SQL antiga como oráculo: núcleo com 4 caps, 10 combinações de filtro incl. admin sem empresa, avaliações mais novas/antigas e de vaga, alumni).
 
+**OKR hierarquia + Visão geral (B-2804.5 / B-2804.7)**
+- `listOkrHierarchy` chama `listOkrCycles({ withActivityDetails: false })`: as atividades legadas aparecem só com título e %, então responsáveis e o `LATERAL` de check-ins por atividade saem dessa leitura (a tela de ciclos continua com eles).
+- Caps por pai em SQL (`ROW_NUMBER() OVER (PARTITION BY …)`): áreas 24/ciclo, atividades 40/área, responsáveis 20/atividade, objetivos 40/área, KRs 8/objetivo, responsáveis 20/KR. Os mesmos números das validações de escrita (`OKR_*_CAP*`), agora constantes compartilhadas. KRs e responsáveis filtrados por área (join com `okr_objectives`), sem depender da lista de ids anterior; árvore montada com `Map` (antes `filter` aninhado, O(n·m)). A resposta não repete mais `objectives` no nível de cima.
+- Medição DTOV (12 ciclos × 24 áreas, 2.880 atividades, 2.880 objetivos, 11.520 KRs; mediana de 15): hierarquia 2.062 → 202 ms; payload 13,8 → 7,0 MB; `listOkrCycles` completo 30 → 36 ms (ruído do custo da janela). Próximo passo: carregar só o ciclo selecionado (BACKLOG).
+- Visão geral: aniversários (`getUpcomingAnniversaries`, 3 leituras limitadas) entram no SSR em paralelo com `buildOverviewMetrics`; no primeiro carregamento sobram só notificações e progresso dos playbooks como chamadas do cliente.
+- Prova: `test/dtov/okr-hierarchy-read.dtov.test.js` (modo completo × enxuto, cada cap com linhas inseridas por fora da escrita, ordenação, rollups, isolamento de empresa) + `okr-hierarchy.test.js`; equivalência com a versão anterior conferida no seed e na base grande.
+
 Pendências maiores (escopo/risco) estão em `docs/BACKLOG.md` § Performance.
 
 ## EXPLAIN checklist (DTOV)
