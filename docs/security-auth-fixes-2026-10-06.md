@@ -21,3 +21,19 @@ A migration é aditiva e reaplicável, sem modificar contas existentes. O índic
 - `npm run build`: passou.
 - `npm run db:validate-schema:static`: passou com a migration 150 registrada nos artefatos.
 - PostgreSQL embarcado PGlite, instalado apenas em diretório temporário: migration aplicada duas vezes; domínio, FKs, preservação das contas, expiração, isolamento, revogação, consumo concorrente único e recriação da tabela verificados. Não houve conexão ou migration no banco da aplicação. O Docker/DTOV local estava indisponível.
+
+## Cloudflare — proteção de borda aplicada em 2026-10-06
+
+Regras publicadas e confirmadas como `Active` no painel da zona `30grow.com`, sem alterar o plano Free:
+
+| Regra | Configuração | Cota utilizada |
+| --- | --- | --- |
+| `30Grow API - normalize visitor IP headers` | Para `30grow.com` e `www.30grow.com`, caminhos `/api/`: remover `x-forwarded-for` e `x-real-ip` recebidos. O proxy do Cloudflare recria `X-Forwarded-For` com o IP do visitante antes de enviar à origem. | Transform Rules: 1/10 |
+| `30Grow - authentication burst protection` | Endpoints específicos de login, recuperação/definição de senha e 2FA (web/mobile): acima de 30 requisições por IP em 10 segundos, bloquear por 10 segundos. Não inclui polling de notificações nem self-fetch de `session-edge`. | Rate limiting: 1/1 |
+| `30Grow - block secret files and CMS probes` | Para os dois hosts: bloquear `/.env`, `/.env.*`, `/.git`, `/.git/*`, `/wp-login.php`, `/xmlrpc.php`, `/wp-admin` e `/wp-admin/*`, comparando caminho em minúsculas. | Custom rules: 1/5 |
+
+Validação HTTP após publicação: homepage `200`, `/api/auth/captcha-config` `200`, `/.git/config` `403`. Não foi provocado excesso de logins em produção para testar o limiar. O limite é agregado por IP: escritórios com NAT compartilham a cota. Monitorar eventos antes de reduzi-lo.
+
+A normalização cobre tráfego que passa pelo Cloudflare. Não foi verificado se o firewall/ingress da origem impede acesso direto nem se proxies posteriores preservam o IP recriado; portanto, a proteção completa contra bypass da origem continua dependente dessa configuração.
+
+Referência: [Request Header Transform Rules](https://developers.cloudflare.com/rules/transform/request-header-modification/).
