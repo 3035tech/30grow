@@ -95,7 +95,7 @@ describe('psychosocial-risks', () => {
       locale: 'pt-BR',
       data: {
         companyName: 'Acme <b>',
-        risks: [{ factor: 'workload', hazard: '<script>x</script>', probability: 3, severity: 2, riskScore: 6, level: 'high', status: 'identified' }],
+        risks: [{ factor: 'workload', hazard: '<script>x</script>', probability: 3, severity: 2, riskScore: 6, level: 'high', status: 'identified', dueDate: '2026-12-01' }],
         summary: { survey: null },
       },
       labels: { title: 'T', disclaimer: 'Não substitui o SESMT', noSurvey: 'sem pesquisa' },
@@ -109,5 +109,6 @@ describe('psychosocial-risks', () => {
     assert.match(html, /Acme &lt;b&gt;/);
     assert.match(html, /Não substitui o SESMT/);
     assert.match(html, /3×2 = 6/);
+    assert.match(html, /01\/12\/2026/);
   });
 });

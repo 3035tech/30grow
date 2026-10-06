@@ -866,8 +866,8 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
   return (
     <div className={S.stack}>
       <AdminPageHeader
-        title={t(locale, 'panel.climate.pageTitle')}
-        subtitle={t(locale, 'panel.climate.pageHint')}
+        title={t(locale, view === 'nr1' ? 'panel.nr1.viewRisks' : 'panel.climate.pageTitle')}
+        subtitle={t(locale, view === 'nr1' ? 'panel.nr1.pageHint' : 'panel.climate.pageHint')}
         actions={
           view === 'surveys' ? (
             <AdminCreateButton

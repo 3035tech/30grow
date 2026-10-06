@@ -20,10 +20,12 @@ import { InlineCallout } from '../_components/InlineCallout';
 import { MeterBar } from '../_components/MeterBar';
 import { StatusToneChip } from '../_components/StatusToneChip';
 import {
+  CLIMATE_SURVEY_STATUS,
   PSYCHOSOCIAL_FACTORS,
   PSYCHOSOCIAL_RISK_STATUS,
   PSYCHOSOCIAL_RISK_STATUSES,
 } from '../../lib/domain-status.js';
+import { formatDisplayDate, formatDisplayDateTime } from '../../lib/format-display-date';
 import { openPsychosocialReportWindow, printPsychosocialReport } from '../../lib/psychosocial-report-print';
 
 const LEVEL_TONE = { low: 'success', moderate: 'warning', high: 'danger' };
@@ -235,7 +237,7 @@ export function PsychosocialRisksBlock({ locale, companyId, onCreateSurvey, onOp
         labels: {
           product: '30Grow',
           title: t(locale, 'panel.nr1.reportTitle'),
-          generatedAt: t(locale, 'panel.nr1.reportGeneratedAt', { date: new Date().toLocaleString(locale) }),
+          generatedAt: t(locale, 'panel.nr1.reportGeneratedAt', { date: formatDisplayDateTime(new Date(), locale) }),
           disclaimer: t(locale, 'panel.nr1.disclaimer'),
           surveyTitle: t(locale, 'panel.nr1.surveyTitle'),
           inventoryTitle: t(locale, 'panel.nr1.inventoryTitle'),
@@ -307,7 +309,9 @@ export function PsychosocialRisksBlock({ locale, companyId, onCreateSurvey, onOp
           </div>
           {survey && summary.suppressed ? (
             <p className={cn(S.faint, 'm-0 mt-3')}>
-              {t(locale, 'panel.nr1.suppressed', { n: summary.minResponses || 0 })}
+              {survey.status === CLIMATE_SURVEY_STATUS.DRAFT
+                ? t(locale, 'panel.nr1.draftHint')
+                : t(locale, 'panel.nr1.suppressed', { n: summary.minResponses || 0 })}
             </p>
           ) : null}
           {survey && !summary.suppressed && (summary.factors || []).length > 0 ? (
@@ -343,12 +347,14 @@ export function PsychosocialRisksBlock({ locale, companyId, onCreateSurvey, onOp
               <button type="button" className={S.btnGhost} disabled={busy} onClick={exportReport}>
                 {t(locale, 'panel.nr1.exportPdf')}
               </button>
-              <AdminCreateButton
-                variant="secondary"
-                label={t(locale, 'panel.nr1.addRisk')}
-                onClick={() => saveRisk(null)}
-                disabled={busy}
-              />
+              {risks.length > 0 ? (
+                <AdminCreateButton
+                  variant="secondary"
+                  label={t(locale, 'panel.nr1.addRisk')}
+                  onClick={() => saveRisk(null)}
+                  disabled={busy}
+                />
+              ) : null}
             </div>
           </div>
           {risks.length === 0 ? (
@@ -386,9 +392,11 @@ export function PsychosocialRisksBlock({ locale, companyId, onCreateSurvey, onOp
                     </td>
                     <td className="px-4 py-3 text-ink-muted">
                       {r.ownerName || t(locale, 'panel.nr1.ownerNone')}
-                      {r.dueDate ? <div className="font-mono text-2xs text-ink-faint">{r.dueDate}</div> : null}
+                      {r.dueDate ? (
+                        <div className="font-mono text-2xs text-ink-faint">{formatDisplayDate(r.dueDate, locale)}</div>
+                      ) : null}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="whitespace-nowrap px-4 py-3">
                       <StatusToneChip tone={STATUS_TONE[r.status] || 'neutral'}>{statusLabel(r.status)}</StatusToneChip>
                     </td>
                     <td className="px-4 py-3 text-right">
