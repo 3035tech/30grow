@@ -61,7 +61,7 @@ const flatStrings = (node, path = '', out = []) => {
   return out;
 };
 const enStrings = new Map(flatStrings(en));
-const sameAsEnglishOk = /(\.id|\.icon|^footerBrand|^ui\.navModules|^ui\.types\[\d\]\.name|^ui\.pipelineStages\[0\]|metrics\[0\]\.label)$/;
+const sameAsEnglishOk = /(\.id|\.icon|^footerBrand|^ui\.navModules|^ui\.navBlog|^ui\.types\[\d\]\.name|^ui\.pipelineStages\[0\]|metrics\[0\]\.label)$/;
 for (const locale of ['es-419', 'es-ES', 'fr-FR', 'de-DE', 'pt-PT']) {
   const untranslated = flatStrings(seo.getProductLandingCopy(locale))
     .filter(([path, value]) => enStrings.get(path) === value && /[a-z]{3,}/i.test(value) && !sameAsEnglishOk.test(path))

@@ -15,6 +15,7 @@ Convenções que valem para todos os módulos:
 ### Landing page e SEO (`/`)
 
 - HTML rastreável, JSON-LD e `/llms.txt`; narrativa candidato → colaborador, T1–T9 e inventário real dos módulos.
+- Blog público `/blog` (10+ artigos em pt-BR: Eneagrama no trabalho, rubrica, entrevista estruturada, onboarding, 1:1, PDI, clima/eNPS, Motivadores, LGPD). Conteúdo estático em `lib/blog/articles/*.js`, registrado em `lib/blog/index.js`; metadata, canonical e JSON-LD (`BlogPosting`, `BreadcrumbList`, `FAQPage`). A landing mostra os 3 mais recentes (`#blog`) e o rodapé/header linkam o blog. Para publicar: criar o arquivo do artigo, importar em `ARTICLES` e rodar `test/unit/blog.unit.test.js` (slug único, descrição 70–170 caracteres, sem travessão com espaços).
 - CTA principal **30 dias grátis** → `/signup`. Acessos de gestor (`/login`) e colaborador (`/employee/login`) separados.
 - Copy por idioma em `lib/product-landing-seo.js` (pt-BR, pt-PT, en, es-419, es-ES; fr-FR/de-DE herdam do inglês até a tradução).
 - Analytics de conversão: tabela `landing_analytics` (pageview → cta_click → signup_start → signup_complete → login).
@@ -75,7 +76,7 @@ Convenções que valem para todos os módulos:
 - Índice `/jobs` com busca, filtro e paginação; **alerta de vagas** (`POST /api/public/job-alerts`, cancelamento em `/a/unsubscribe`).
 - Agregadores `/jobs/remote` e `/jobs/city/{slug}` só com ≥ `PUBLIC_JOB_AGGREGATOR_MIN_COUNT` vagas (default 3).
 - Perfil público da empresa `/companies/{slug}` (opt-in `public_profile_enabled`, logo em S3).
-- `robots.txt` e `sitemap.xml` só com superfícies públicas; Google Indexing API opcional (`GOOGLE_INDEXING_ENABLED`).
+- `robots.txt` e `sitemap.xml` só com superfícies públicas (landing, `/pricing`, `/blog` e artigos, `/jobs`, agregadores, vagas); as URLs absolutas vêm de `NEXT_PUBLIC_APP_URL` (sem ela o sitemap fica vazio); Google Indexing API opcional (`GOOGLE_INDEXING_ENABLED`).
 - Atribuição: `utm_*` e `?ref=` → cookie `team30_job_attr` (7 dias, sem PII) → `assessments.attr_*` e `job_funnel_events`.
 - Detalhe: [`job-seo-and-distribution.md`](job-seo-and-distribution.md). Migrations `030`–`039`.
 

@@ -185,6 +185,7 @@ Gap vs roteiro de demo concorrentes (cliente oculto): `docs/GAP-cliente-oculto-r
 - Vagas/pipeline: lib/pipeline.js, lib/hire.js, app/dashboard/vacancies/*, VacancyFitDecisionStrip, VacancyOfferBlock
 - Público SEO: docs/job-seo-and-distribution.md, app/jobs, lib/job-*
 - Landpage SEO: `app/page.jsx`, `lib/product-landing-seo.js`, `ProductLandingClient`, `/llms.txt`
+- Blog: `app/blog/*`, `lib/blog/*` (artigos estáticos pt-BR), `BlogPostCard`; entra em `app/sitemap.js` e `/llms.txt`
 - Guia / mapa / assistente: HelpTab, HelpSystemMap, HelpAssistantWidget + panel.help.* / panel.assistant.*
 - Auth reset: lib/user-password-invite.js, POST /api/auth/forgot-password
 ```

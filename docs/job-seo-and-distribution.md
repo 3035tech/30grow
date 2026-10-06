@@ -51,7 +51,7 @@ Score de completude (determinístico): `lib/job-seo-score.js` → `computeJobSeo
 - **JSON-LD JobPosting**: `buildJobPostingJsonLd` — só na página da vaga, se open + index + prazo ok; sem `TELECOMMUTE` inventado; sem dados de candidato. **Agregadores não emitem JobPosting.**
 - **Encerrada**: agradecimento + vagas relacionadas + link `/jobs`; sem apply / JSON-LD.
 - **Agregadores** (`lib/public-job-aggregators.js`): `/jobs/remote` e `/jobs/city/{slug}` só se count ≥ `PUBLIC_JOB_AGGREGATOR_MIN_COUNT` (default **3**); abaixo do limiar → **404** (nunca página vazia indexável). Filtros via `listOpenPublicVacancies` (`workplaceModality` / `workplaceCities`).
-- **Sitemap / robots**: `app/sitemap.js`, `app/robots.js` — `/jobs`, agregadores que passam o limiar (cap cidades), vagas indexáveis; empresa `/companies` quando opt-in. Tokens (`/t`, `/v`, assessment, etc.) ficam em `Disallow` + `X-Robots-Tag: noindex` via `lib/crawler-guard.js` (não afeta `/jobs`).
+- **Sitemap / robots**: `app/sitemap.js`, `app/robots.js` — `/`, `/pricing`, `/blog` + artigos, `/jobs`, agregadores que passam o limiar (cap cidades), vagas indexáveis; empresa `/companies` quando opt-in. Tokens (`/t`, `/v`, assessment, etc.) ficam em `Disallow` + `X-Robots-Tag: noindex` via `lib/crawler-guard.js` (não afeta `/jobs`).
 
 Validar JobPosting: [Google Rich Results Test](https://search.google.com/test/rich-results) com a URL `/jobs/…` em staging/produção.
 
