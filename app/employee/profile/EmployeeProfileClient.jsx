@@ -1,10 +1,9 @@
 'use client';
 
-import { EmployeePageLoading } from '../../_components/EmployeeDedicatedShell';
+import { EmployeeDedicatedShell, EmployeePageLoading } from '../../_components/EmployeeDedicatedShell';
 import { SelectField } from '../../_components/SelectField';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { errorMessage, t } from '../../../lib/i18n';
 import { cn } from '../../../lib/cn';
@@ -41,7 +40,8 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
     birthDate: '',
   });
   const [pwd, setPwd] = useState({ current: '', next: '', confirm: '' });
-  const [twoFaEnabled, setTwoFaEnabled] = useState(false);
+  const [twoFaEnabled, setTwoFaEnabled] = useState(null);
+  const [twoFaStatus, setTwoFaStatus] = useState('loading');
   const [twoFaSetupSecret, setTwoFaSetupSecret] = useState('');
   const [twoFaSetupUrl, setTwoFaSetupUrl] = useState('');
   const [twoFaCode, setTwoFaCode] = useState('');
@@ -50,15 +50,19 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
   const [loadFailed, setLoadFailed] = useState(false);
 
   const load2fa = useCallback(async () => {
+    setTwoFaStatus('loading');
+    setTwoFaEnabled(null);
     try {
       const res = await fetch('/api/employee/me/2fa');
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) return;
-      setTwoFaEnabled(Boolean(data.enabled));
+      if (redirectEmployeeIfUnauthorized(router, res.status)) return;
+      if (!res.ok || typeof data.enabled !== 'boolean') throw new Error('2fa status unavailable');
+      setTwoFaEnabled(data.enabled);
+      setTwoFaStatus('ready');
     } catch {
-      /* ignore */
+      setTwoFaStatus('error');
     }
-  }, []);
+  }, [router]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -254,13 +258,8 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
 
   return (
     <ContentEnter animKey="ready">
-      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-        <Link href="/employee" className={cn(S.cardLink, 'inline-flex')}>
-          ← {t(locale, 'employeeHome.backHome')}
-        </Link>
-        <h1 className={cn(S.pageTitle, 'mt-3 font-ui text-2xl font-semibold tracking-tight')}>{t(locale, 'employeeHome.profileTitle')}</h1>
-        <div className={cn(S.cardShell, 'mt-5 max-w-4xl p-5 sm:p-7')}>
-          <p className="m-0 max-w-2xl text-prose leading-[1.55] text-ink-muted">{t(locale, 'employeeHome.profileHint')}</p>
+      <EmployeeDedicatedShell locale={locale} title={t(locale, 'employeeHome.profileTitle')} hint={t(locale, 'employeeHome.profileHint')}>
+        <div className={cn(S.cardShell, 'max-w-4xl p-4 sm:p-6')}>
           <div className="mt-5">
             <PanelSubNav
               ariaLabel={t(locale, 'dashboard.profileSectionsAria')}
@@ -293,7 +292,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                 </FormField>
                 <FormField label={t(locale, 'employeeHome.emailLabel')} className={formFieldGrowClass}>
                   <input
-                    className={cn(S.input, 'w-full font-mono text-xs opacity-70')}
+                    className={cn(S.input, 'w-full')}
                     value={form.email}
                     disabled
                     readOnly
@@ -303,7 +302,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
               <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
                 <FormField label={t(locale, 'employeeHome.phoneLabel')} className={formFieldGrowClass}>
                   <input
-                    className={cn(S.input, 'w-full font-mono text-xs')}
+                    className={cn(S.input, 'w-full')}
                     value={form.phone}
                     onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                     disabled={busy}
@@ -314,7 +313,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                   className="min-w-0"
                 >
                   <input
-                    className={cn(S.input, 'w-full font-mono text-xs')}
+                    className={cn(S.input, 'w-full')}
                     value={form.linkedinUrl}
                     onChange={(e) => setForm((f) => ({ ...f, linkedinUrl: e.target.value }))}
                     disabled={busy}
@@ -426,9 +425,15 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
             <InlineCallout tone="info" className="mb-3">
               {t(locale, 'dashboard.profile2faIntro')}
             </InlineCallout>
-            {twoFaEnabled ? (
+            {twoFaStatus === 'loading' ? (
+              <p className={S.muted} role="status">{t(locale, 'employeeHome.twoFaLoading')}</p>
+            ) : twoFaStatus === 'error' ? (
+              <InlineCallout tone="warning" role="alert" action={
+                <button type="button" className={S.btnGhost} onClick={() => void load2fa()}>{t(locale, 'common.retry')}</button>
+              }>{t(locale, 'employeeHome.twoFaLoadError')}</InlineCallout>
+            ) : twoFaEnabled ? (
               <div className="flex flex-col gap-3">
-                <p className="m-0 font-mono text-xs text-success">{t(locale, 'dashboard.profile2faEnabled')}</p>
+                <p className="m-0 font-ui text-sm text-success" role="status">{t(locale, 'dashboard.profile2faEnabled')}</p>
                 <FormField label={t(locale, 'dashboard.profile2faCode')}>
                   <input
                     inputMode="numeric"
@@ -496,7 +501,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <p className={cn(S.muted, 'm-0 text-xs')}>{t(locale, 'dashboard.profile2faDisabled')}</p>
+                <p className={cn(S.muted, 'm-0')}>{t(locale, 'dashboard.profile2faDisabled')}</p>
                 <button
                   type="button"
                   disabled={twoFaBusy}
@@ -510,7 +515,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
           </section>
           </div>
         </div>
-      </div>
+      </EmployeeDedicatedShell>
     </ContentEnter>
   );
 }

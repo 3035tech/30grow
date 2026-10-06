@@ -212,6 +212,8 @@ export function SidebarNav({
   headerExtra = null,
   footer,
   navRef,
+  sidebarRef,
+  mobileModal = false,
 }) {
   const isDesktop = useIsDesktop();
   const iconOnly = collapsed && isDesktop;
@@ -220,6 +222,11 @@ export function SidebarNav({
 
   return (
     <aside
+      ref={sidebarRef}
+      role={mobileModal && !isDesktop && open ? 'dialog' : undefined}
+      aria-modal={mobileModal && !isDesktop && open ? true : undefined}
+      aria-label={mobileModal && !isDesktop && open ? ariaLabel : undefined}
+      inert={mobileModal && !isDesktop && !open || undefined}
       id={id}
       className={cn(
         'db-sidebar flex flex-shrink-0 flex-col border-r border-ink/12 bg-surface',

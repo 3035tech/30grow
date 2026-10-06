@@ -9,9 +9,10 @@ for (const width of [390,768,1440]) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   if(width>768) {
    await expect(page.locator('.db-sidebar')).toHaveCSS('background-color','rgb(255, 255, 255)');
-   await expect(page.locator('.db-sidebar .brand-mark svg').first()).toHaveAttribute('viewBox','0 0 140 110');
+   await expect(page.locator('.db-sidebar .brand-mark svg').first()).toHaveAttribute('viewBox','0 0 368 114');
    await page.getByRole('button',{name:'Recolher menu',exact:true}).click();
    await expect(page.locator('.db-sidebar')).toHaveCSS('width','64px');
+   await expect(page.locator('.db-sidebar .brand-mark svg').first()).toHaveAttribute('viewBox','0 0 140 110');
   }
   if(width<=768) {
    await expect(page.locator('.db-sidebar')).toHaveCSS('box-shadow','none');

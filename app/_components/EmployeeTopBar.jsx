@@ -257,7 +257,7 @@ export function EmployeeTopBar({
         <div className="flex min-w-0 items-center gap-2 md:hidden">
           <BrandMark size={22} withWordmark href="/employee" />
           {companyName ? (
-            <span className="truncate font-mono text-2xs text-ink-faint">{companyName}</span>
+            <span className="truncate font-ui text-prose text-ink-muted">{companyName}</span>
           ) : null}
         </div>
         <p className="m-0 hidden min-w-0 truncate font-ui text-prose text-ink-muted md:block">
@@ -300,7 +300,7 @@ export function EmployeeTopBar({
                   {unreadCount > 0 ? (
                     <button
                       type="button"
-                      className="border-none bg-transparent p-0 font-mono text-2xs text-brand-600"
+                      className={S.btnGhost}
                       onClick={markAll}
                     >
                       {t(locale, 'employeeHome.notificationsMarkAll')}

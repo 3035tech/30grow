@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { EMPLOYEE_PUBLIC_PATHS } from '../../lib/employee-paths';
 import { redirectEmployeeIfUnauthorized } from '../../lib/employee-client-session';
@@ -32,6 +32,8 @@ export function EmployeeShell({
   const [company, setCompany] = useState(companyName);
   const [companyLogoUrl, setCompanyLogoUrl] = useState(initialLogoUrl);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef(null);
+  const menuButtonRef = useRef(null);
   const hasServerPerson = Boolean(personName);
 
   useEffect(() => {
@@ -83,24 +85,42 @@ export function EmployeeShell({
   }, [router, setLocale]);
 
   useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
-    if (!sidebarOpen) {
-      document.body.classList.remove('sidebar-open');
-      return undefined;
-    }
+    if (isPublic || !sidebarOpen) return undefined;
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return undefined;
+    const desktop = window.matchMedia('(min-width: 769px)');
+    const closeOnDesktop = () => { if (desktop.matches) setSidebarOpen(false); };
+    closeOnDesktop();
+    desktop.addEventListener('change', closeOnDesktop);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     document.body.classList.add('sidebar-open');
-    const onKey = (e) => {
-      if (e.key === 'Escape') setSidebarOpen(false);
+    const focusable = () => Array.from(sidebar.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'))
+      .filter((element) => element.getClientRects().length > 0 && !element.closest('[inert]'));
+    const frame = window.requestAnimationFrame(() => focusable()[0]?.focus());
+    const onKey = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); setSidebarOpen(false); return; }
+      if (event.key !== 'Tab') return;
+      const elements = focusable();
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (!sidebar.contains(document.activeElement) || (event.shiftKey && document.activeElement === first)) {
+        event.preventDefault(); (event.shiftKey ? last : first).focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
     };
-    window.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey);
     return () => {
+      window.cancelAnimationFrame(frame);
+      desktop.removeEventListener('change', closeOnDesktop);
+      document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
       document.body.classList.remove('sidebar-open');
-      window.removeEventListener('keydown', onKey);
+      menuButtonRef.current?.focus({ preventScroll: true });
     };
-  }, [sidebarOpen]);
+  }, [sidebarOpen, isPublic]);
 
   if (isPublic) {
     return (
@@ -118,7 +138,9 @@ export function EmployeeShell({
         <div className="relative min-h-screen bg-canvas font-ui text-ink">
           <button
             type="button"
-            className="db-hamburger"
+            ref={menuButtonRef}
+            inert={sidebarOpen || undefined}
+            className={cn('db-hamburger', sidebarOpen && 'invisible')}
             onClick={() => setSidebarOpen(true)}
             aria-label={t(locale, 'common.openMenu')}
             aria-expanded={sidebarOpen}
@@ -129,7 +151,7 @@ export function EmployeeShell({
           <div
             className={cn('db-overlay', sidebarOpen && 'db-overlay-visible')}
             onClick={closeSidebar}
-            aria-hidden={!sidebarOpen}
+            aria-hidden="true"
           />
 
           <div className="relative flex min-h-screen">
@@ -139,9 +161,10 @@ export function EmployeeShell({
               companyLogoUrl={companyLogoUrl}
               open={sidebarOpen}
               onClose={closeSidebar}
+              sidebarRef={sidebarRef}
             />
 
-            <div className="flex min-w-0 flex-1 flex-col">
+            <div inert={sidebarOpen || undefined} className="flex min-w-0 flex-1 flex-col">
               <EmployeeTopBar
                 locale={locale}
                 displayName={displayName}

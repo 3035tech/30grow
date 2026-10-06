@@ -6,11 +6,18 @@ const home = {
     { id:1, title:'Planejar entregas do próximo trimestre', status:'todo', dueDate:'2099-12-10' },
     { id:2, title:'Consolidar rituais de feedback e documentar os combinados com a equipe', status:'doing', dueDate:'2020-01-10' },
     { id:3, title:'Concluir integração', status:'done', dueDate:'2020-01-01' },
-  ] }], courses:[], okrActivities:[], recentAgreements:[], oneOnOnePrompts:[], company:{name:'Empresa exemplo'},
+  ] }], courses:[], okrActivities:[], recentAgreements:[], oneOnOnePrompts:[], feed:{total:42,items:[]},kudos:{total:17,items:[]}, company:{name:'Empresa exemplo'},
 };
 export async function GET(request, context) {
   const {path} = await context.params;
   const endpoint = path.join('/');
+  if (endpoint === 'me/2fa') {
+    const scenario = new URL(request.headers.get('referer') || request.url).searchParams.get('twofa');
+    if (scenario === 'error') return Response.json({error:'Unavailable'}, {status:503});
+    if (scenario === 'loading') await new Promise(resolve => setTimeout(resolve, 1500));
+    if (scenario === 'enabled') return Response.json({enabled:true});
+  }
+
   const data = {
     home,
     me: {person:{fullName:'Pessoa de teste',email:'pessoa@example.test'}},

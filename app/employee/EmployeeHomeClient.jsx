@@ -26,6 +26,8 @@ import { EmployeeFeedPanel, EmployeeKudosPanel } from '../_components/EmployeeFe
 import { Icon } from '../_components/Icon';
 import { EmployeeFormalReviewsSection } from '../_components/EmployeeFormalReviewsSection';
 import { EmployeeWelcomeCard } from '../_components/EmployeeWelcomeCard';
+import { EmployeeDedicatedShell } from '../_components/EmployeeDedicatedShell';
+import { EMPLOYEE_NAV_ITEMS } from '../_components/EmployeeSidebar';
 import { redirectEmployeeIfUnauthorized } from '../../lib/employee-client-session';
 import { employeeSectionAllowedByCompanyModules, employeeSectionVisible } from '../../lib/company-modules';
 
@@ -112,7 +114,8 @@ function loadCollapsed() {
   }
 }
 
-function CollapsibleSection({ id, title, count, open, onToggle, children, locale = 'pt-BR', hidden = false }) {
+function CollapsibleSection({ id, title, count, open, onToggle, children, locale = 'pt-BR', hidden = false, standalone = false }) {
+  if (standalone) return <section id={id} hidden={hidden} aria-labelledby="employee-detail-title">{children}</section>;
   return (
     <section id={id} hidden={hidden} className="mt-6 scroll-mt-24">
       <CollapsibleBlock
@@ -231,11 +234,12 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
     const prev = document.title;
-    document.title = t(locale, 'employeeHome.documentTitle');
+    const section = EMPLOYEE_NAV_ITEMS.find((item) => item.id === detailView);
+    document.title = section ? `${t(locale, section.labelKey)} · 30Grow` : t(locale, 'employeeHome.documentTitle');
     return () => {
       document.title = prev;
     };
-  }, [locale]);
+  }, [locale, detailView]);
 
   // Legacy hashes → dedicated modules
   useEffect(() => {
@@ -418,9 +422,12 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
     window.requestAnimationFrame(() => {
       if (DETAIL_SECTION_KEYS.includes(id)) {
         window.scrollTo({ top: 0, behavior: 'auto' });
+        document.getElementById('employee-detail-title')?.focus({ preventScroll: true });
         return;
       }
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const section = document.getElementById(id);
+      section?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      section?.querySelector('button[aria-expanded]')?.focus({ preventScroll: true });
     });
   }, []);
 
@@ -456,8 +463,8 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         dp: dpBadge,
         timeClock: timeClockBadge,
         variablePay: variablePayBadge,
-        feed: feedTotal,
-        kudos: kudosTotal,
+        feed: 0,
+        kudos: 0,
         feedback: feedbackBadge,
       },
     });
@@ -541,19 +548,17 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
                   }
                 : null;
 
+  const containerProps = detailView ? {
+    locale,
+    title: t(locale, EMPLOYEE_NAV_ITEMS.find((item) => item.id === detailView)?.labelKey || 'employeeHome.sectionNavAria'),
+    headingId: 'employee-detail-title',
+    backLabel: t(locale, 'employeeHome.backToToday'),
+    onBack: () => { focusSection('tasks'); window.history.replaceState(null, '', '#tasks'); },
+  } : { locale };
+
   return (
     <ContentEnter animKey="ready">
-      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-        {detailView ? (
-          <a
-            href="#tasks"
-            onClick={(e) => { e.preventDefault(); focusSection('tasks'); window.history.replaceState(null, '', '#tasks'); }}
-            className={cn(S.btnGhost, 'min-h-touch no-underline')}
-          >
-            <Icon name="chevronRight" className="h-4 w-4 rotate-180" />
-            {t(locale, 'employeeHome.backToToday')}
-          </a>
-        ) : null}
+      <EmployeeDedicatedShell {...containerProps} showHeader={Boolean(detailView)}>
         {data.showWelcome && !welcomeDismissed && !detailView ? (
           <EmployeeWelcomeCard
             locale={locale}
@@ -629,6 +634,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('tasks') ? (
         <CollapsibleSection
           id="tasks"
+          standalone={DETAIL_SECTION_KEYS.includes('tasks')}
           hidden={Boolean(detailView)}
           title={t(locale, 'employeeHome.tasksTitle')}
           count={tasks.length}
@@ -712,6 +718,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('journey') ? (
         <CollapsibleSection
           id="journey"
+          standalone={DETAIL_SECTION_KEYS.includes('journey')}
           hidden={Boolean(detailView)}
           title={t(locale, 'employeeHome.journeyTitle')}
           open={openMap.journey !== false}
@@ -735,6 +742,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('surveys') ? (
         <CollapsibleSection
           id="surveys"
+          standalone={DETAIL_SECTION_KEYS.includes('surveys')}
           hidden={Boolean(detailView)}
           title={t(locale, 'employeeHome.surveysTitle')}
           count={surveyMeta.openCount || undefined}
@@ -749,6 +757,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('pdi') ? (
         <CollapsibleSection
           id="pdi"
+          standalone={DETAIL_SECTION_KEYS.includes('pdi')}
           hidden={detailView !== 'pdi'}
           title={t(locale, 'employeeHome.pdiPageTitle')}
           count={plans.length}
@@ -813,6 +822,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('formalReviews') ? (
         <CollapsibleSection
           id="formalReviews"
+          standalone={DETAIL_SECTION_KEYS.includes('formalReviews')}
           hidden={detailView !== 'formalReviews'}
           title={t(locale, 'performanceReviews.formal.employeeSection')}
           open={openMap.formalReviews !== false}
@@ -826,6 +836,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('okr') ? (
         <CollapsibleSection
           id="okr"
+          standalone={DETAIL_SECTION_KEYS.includes('okr')}
           hidden={detailView !== 'okr'}
           title={t(locale, 'employeeHome.okrTitle')}
           count={okrActivities.length || undefined}
@@ -921,6 +932,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('oneOnOne') ? (
         <CollapsibleSection
           id="oneOnOne"
+          standalone={DETAIL_SECTION_KEYS.includes('oneOnOne')}
           hidden={detailView !== 'oneOnOne'}
           title={t(locale, 'panel.employeePortal.agreementsTitle')}
           count={agreements.length + (prompts.length ? 1 : 0)}
@@ -1008,6 +1020,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('feedback') ? (
         <CollapsibleSection
           id="feedback"
+          standalone={DETAIL_SECTION_KEYS.includes('feedback')}
           hidden={detailView !== 'feedback'}
           title={t(locale, 'employeeHome.feedbackTitle')}
           count={feedbackBadge || null}
@@ -1023,6 +1036,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('variablePay') ? (
         <CollapsibleSection
           id="variablePay"
+          standalone={DETAIL_SECTION_KEYS.includes('variablePay')}
           hidden={detailView !== 'variablePay'}
           title={t(locale, 'employeeHome.variablePayTitle')}
           count={variablePayBadge || null}
@@ -1037,6 +1051,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('feed') ? (
         <CollapsibleSection
           id="feed"
+          standalone={DETAIL_SECTION_KEYS.includes('feed')}
           hidden={detailView !== 'feed'}
           title={t(locale, 'employeeHome.feedTitle')}
           count={feedTotal || null}
@@ -1056,6 +1071,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('kudos') ? (
         <CollapsibleSection
           id="kudos"
+          standalone={DETAIL_SECTION_KEYS.includes('kudos')}
           hidden={detailView !== 'kudos'}
           title={t(locale, 'employeeHome.kudosTitle')}
           count={kudosTotal || null}
@@ -1075,6 +1091,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
         {sectionOk('company') ? (
         <CollapsibleSection
           id="company"
+          standalone={DETAIL_SECTION_KEYS.includes('company')}
           hidden={detailView !== 'company'}
           title={t(locale, 'employeeHome.companyTitle')}
           open={openMap.company !== false}
@@ -1106,7 +1123,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
           )}
         </CollapsibleSection>
         ) : null}
-      </div>
+      </EmployeeDedicatedShell>
     </ContentEnter>
   );
 }

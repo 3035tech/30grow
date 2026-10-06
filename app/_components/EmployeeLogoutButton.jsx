@@ -11,7 +11,7 @@ import { useAppFeedback } from './AppFeedback';
 import { SidebarNavItem } from './SidebarNav';
 
 /** Both employee menus share the same logout and failure behavior. */
-export function EmployeeLogoutButton({ locale, compact = false, role, onLoggedOut, className, variant }) {
+export function EmployeeLogoutButton({ locale, compact = false, role, onLoggedOut, onBeforeLogout, className, variant }) {
   const router = useRouter();
   const { toast, confirm } = useAppFeedback();
   const pending = useRef(false);
@@ -20,6 +20,7 @@ export function EmployeeLogoutButton({ locale, compact = false, role, onLoggedOu
   const logout = async () => {
     if (pending.current) return;
     pending.current = true;
+    onBeforeLogout?.();
     try {
       const confirmed = await confirm({
         title: t(locale, 'employeeHome.logoutConfirmTitle'),

@@ -82,8 +82,6 @@ function badgeFor(itemId, badges) {
   if (itemId === 'dp') return badges.dp;
   if (itemId === 'timeClock') return badges.timeClock;
   if (itemId === 'variablePay') return badges.variablePay;
-  if (itemId === 'feed') return badges.feed;
-  if (itemId === 'kudos') return badges.kudos;
   if (itemId === 'feedback') return badges.feedback;
   return 0;
 }
@@ -98,6 +96,7 @@ export function EmployeeSidebar({
   companyLogoUrl = '',
   open = false,
   onClose,
+  sidebarRef,
 }) {
   const pathname = usePathname() || '';
   const router = useRouter();
@@ -193,6 +192,8 @@ export function EmployeeSidebar({
   return (
     <SidebarNav
       id="employee-sidebar"
+      sidebarRef={sidebarRef}
+      mobileModal
       locale={locale}
       ariaLabel={t(locale, 'employeeHome.sectionNavAria')}
       storageKey="30team_employee_nav_closed_groups"
@@ -207,6 +208,7 @@ export function EmployeeSidebar({
           size={26}
           withWordmark={!iconOnly}
           href="/employee"
+          onClick={onClose}
           title={t(locale, 'employeeHome.eyebrow')}
           aria-label={t(locale, 'employeeHome.eyebrow')}
         />
@@ -224,7 +226,7 @@ export function EmployeeSidebar({
               onClick: onClose,
             }}
           />
-          <EmployeeLogoutButton locale={locale} variant="nav" compact={iconOnly} onLoggedOut={onClose} />
+          <EmployeeLogoutButton locale={locale} variant="nav" compact={iconOnly} onBeforeLogout={onClose} onLoggedOut={onClose} />
         </>
       )}
     />

@@ -40,12 +40,12 @@ test('profile uses account/security pattern and preserves drafts across tabs', a
   page.on('request', request => { if (request.url().includes('/api/') && request.method() !== 'GET') writes.push(request.url()); });
   await page.goto('/employee-preview');
   await page.getByRole('button',{name:'profile',exact:true}).click();
-  await expect(page.getByRole('tab',{name:'Conta',exact:true})).toBeVisible({timeout:20000});
+  await expect(page.getByRole('tab',{name:'Minha conta',exact:true})).toBeVisible({timeout:20000});
   await page.getByLabel('Nome completo',{exact:true}).fill('Rascunho preservado');
   await page.getByRole('tab',{name:'Segurança',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Autenticação em duas etapas (2FA)'})).toBeVisible();
   await expect(page.getByLabel('Senha atual',{exact:true})).toBeVisible();
-  await page.getByRole('tab',{name:'Conta',exact:true}).click();
+  await page.getByRole('tab',{name:'Minha conta',exact:true}).click();
   await expect(page.getByLabel('Nome completo',{exact:true})).toHaveValue('Rascunho preservado');
   await expect(page.getByLabel('E-mail',{exact:true})).toBeDisabled();
   await expect(page.getByRole('tab',{name:'Módulos',exact:true})).toHaveCount(0);

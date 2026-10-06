@@ -17,19 +17,32 @@ export function EmployeeDedicatedShell({
   children,
   maxWidthClass = 'max-w-6xl',
   trailing = null,
+  backHref = '/employee',
+  backLabel = null,
+  onBack = null,
+  headingId = undefined,
+  headerContent = null,
+  showHeader = true,
 }) {
   return (
     <div className={cn('mx-auto w-full px-4 py-6 sm:px-6 sm:py-8', maxWidthClass)}>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      {showHeader ? <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link href="/employee" className={cn(S.cardLink, 'inline-flex')}>
-            ← {t(locale, 'employeeHome.backHome')}
-          </Link>
-          <h1 className={cn(S.pageTitle, 'mt-3 mb-1 font-ui text-2xl font-semibold tracking-tight')}>{title}</h1>
-          {hint ? <p className={cn(S.muted, 'mb-0 max-w-[70ch] text-prose')}>{hint}</p> : null}
+          {onBack ? (
+            <button type="button" onClick={onBack} className={cn(S.btnGhost, 'no-underline')}>
+              ← {backLabel || t(locale, 'employeeHome.backHome')}
+            </button>
+          ) : (
+            <Link href={backHref} className={cn(S.btnGhost, 'no-underline')}>
+              ← {backLabel || t(locale, 'employeeHome.backHome')}
+            </Link>
+          )}
+          <h1 id={headingId} tabIndex={-1} className={cn(S.pageTitle, 'mt-3 mb-1 focus-visible:outline-brand-500')}>{title}</h1>
+          {hint ? <p className={cn(S.muted, 'mb-0 max-w-[70ch]')}>{hint}</p> : null}
+          {headerContent}
         </div>
         {trailing ? <div className="shrink-0 pt-8 sm:pt-10">{trailing}</div> : null}
-      </div>
+      </div> : null}
       {children}
     </div>
   );

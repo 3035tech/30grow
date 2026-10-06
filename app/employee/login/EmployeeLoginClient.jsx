@@ -38,6 +38,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
   const [turnstileRequired, setTurnstileRequired] = useState(false);
   const [turnstileSiteKey, setTurnstileSiteKey] = useState('');
   const [formError, setFormError] = useState('');
+  const [attemptedLogin, setAttemptedLogin] = useState(false);
   const sessionReason = reasonProp || searchParams?.get('reason') || '';
 
   useEffect(() => {
@@ -134,6 +135,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
   };
 
   const login = async () => {
+    setAttemptedLogin(true);
     if (!ensureCaptcha()) return;
     setBusy(true);
     setFormError('');
@@ -151,9 +153,11 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(
-          json?.errorCode
-            ? errorMessage(locale, json.errorCode, json.error)
-            : json?.error || t(locale, 'employeeHome.loginError')
+          res.status === 401
+            ? t(locale, 'employeeHome.loginCredentialsHelp')
+            : json?.errorCode
+              ? errorMessage(locale, json.errorCode, json.error)
+              : t(locale, 'employeeHome.loginError')
         );
       }
       if (json.needsCompanyPick && json.pickToken && Array.isArray(json.companies)) {
@@ -284,7 +288,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
         : t(locale, 'employeeHome.loginTitle')}
       intro={modeHint}
     >
-      {sessionReason === 'expired' && !pickingCompany ? (
+      {sessionReason === 'expired' && !attemptedLogin && !formError && !pickingCompany ? (
         <InlineCallout tone="warning" emphasis className="mb-4">
           {t(locale, 'employeeHome.sessionExpired')}
         </InlineCallout>

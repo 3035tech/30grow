@@ -158,7 +158,7 @@ export function EmployeeSurveysSection({ locale = 'pt-BR', onMeta }) {
               <FormField key={q.id} label={q.prompt}>
                 {q.questionKind === CLIMATE_QUESTION_KIND.TEXT ? (
                   <textarea
-                    className={cn(S.input, 'min-h-[72px] w-full text-prose')}
+                    className={S.textarea}
                     maxLength={1500}
                     value={answers[active.key]?.[q.id] || ''}
                     onChange={(e) =>

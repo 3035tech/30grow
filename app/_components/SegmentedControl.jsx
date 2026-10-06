@@ -35,8 +35,8 @@ export function SegmentedControl({
             aria-pressed={on}
             onClick={() => onChange?.(opt.id)}
             className={cn(
-              'inline-flex min-h-touch cursor-pointer items-center gap-1.5 rounded-control border font-mono disabled:opacity-55',
-              size === 'sm' ? 'px-2.5 py-1.5 text-2xs' : 'px-3 py-2 text-xs',
+              'inline-flex min-h-touch cursor-pointer items-center gap-1.5 rounded-control border font-ui disabled:opacity-55',
+              size === 'sm' ? 'px-2.5 py-1.5 text-prose' : 'px-3 py-2 text-xs',
               on
                 ? 'border-brand-500/35 bg-brand-500/10 text-brand-600'
                 : 'border-transparent bg-transparent text-ink-muted hover:bg-ink/[0.04]'

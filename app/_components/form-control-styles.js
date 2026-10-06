@@ -21,7 +21,7 @@ export const fieldSelectCompactClass = `${fieldSelectClass} px-2.5 py-1.5`;
 export const fieldSelectBlockClass = `${fieldSelectClass} w-full`;
 
 /** Textarea. */
-export const fieldTextareaClass = `${fieldControlChromeClass} ui-field min-h-[88px] w-full resize-y font-ui leading-relaxed`;
+export const fieldTextareaClass = `${fieldControlChromeClass.replace('min-h-touch', 'min-h-[88px]')} ui-field w-full resize-y font-ui leading-relaxed`;
 
 /** Checkbox with custom checkmark (`.ui-checkbox`). */
 export const fieldCheckboxClass =

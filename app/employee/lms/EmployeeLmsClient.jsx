@@ -1,6 +1,6 @@
 'use client';
 
-import { EmployeePageLoading } from '../../_components/EmployeeDedicatedShell';
+import { EmployeeDedicatedShell, EmployeePageLoading } from '../../_components/EmployeeDedicatedShell';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -397,31 +397,18 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
 
   return (
     <ContentEnter animKey={`emp-lms|${courses.length}|${activeEnrollmentId || 0}`}>
-      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            {inCourseView ? (
-              <button
-                type="button"
-                className={cn(S.cardLink, 'inline-flex border-0 bg-transparent p-0')}
-                onClick={() => {
-                  setActiveEnrollmentId(null);
-                  setWatching(null);
-                  setQuiz(null);
-                  router.replace('/employee/lms', { scroll: false });
-                }}
-              >
-                ← {t(locale, 'employeeHome.lmsBackToCourses')}
-              </button>
-            ) : (
-              <Link href="/employee" className={cn(S.cardLink, 'inline-flex')}>
-                ← {t(locale, 'employeeHome.backHome')}
-              </Link>
-            )}
-            <h1 className={cn(S.pageTitle, 'mt-3 mb-1 font-ui text-2xl font-semibold tracking-tight')}>
-              {inCourseView ? activeCourse.title : t(locale, 'employeeHome.lmsPageTitle')}
-            </h1>
-            {inCourseView ? (
+      <EmployeeDedicatedShell
+        locale={locale}
+        title={inCourseView ? activeCourse.title : t(locale, 'employeeHome.lmsPageTitle')}
+        hint={t(locale, inCourseView ? 'employeeHome.lmsCourseHint' : 'employeeHome.lmsPageHint')}
+        backLabel={inCourseView ? t(locale, 'employeeHome.lmsBackToCourses') : null}
+        onBack={inCourseView ? () => {
+          setActiveEnrollmentId(null);
+          setWatching(null);
+          setQuiz(null);
+          router.replace('/employee/lms', { scroll: false });
+        } : null}
+        headerContent={inCourseView ? (
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {activeCourse.isComplete ? (
                   <StatusToneChip tone="success">
@@ -442,7 +429,7 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
                   <span
                     className={cn(
                       'text-prose',
-                      activeCourse.overdue ? 'text-red-800 dark:text-danger' : 'text-ink/75'
+                      activeCourse.overdue ? 'text-danger' : 'text-ink/75'
                     )}
                   >
                     {dueLabel(locale, activeCourse)}
@@ -452,16 +439,8 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
                   {activeCourse.progressPct}%
                 </span>
               </div>
-            ) : (
-              <p className={cn(S.muted, 'mb-0 text-prose')}>{t(locale, 'employeeHome.lmsPageHint')}</p>
-            )}
-            {inCourseView ? (
-              <p className={cn(S.muted, 'mt-2 mb-0 text-prose')}>
-                {t(locale, 'employeeHome.lmsCourseHint')}
-              </p>
             ) : null}
-          </div>
-        </div>
+      >
 
         {!inCourseView && continueInfo && courses.filter(course => !course.isComplete).length > 1 && courses.some(course => course.enrollmentId === continueInfo.enrollmentId && !course.isComplete) ? (
           <InlineCallout tone={continueInfo.overdue ? 'warning' : 'info'} className="mb-4">
@@ -765,7 +744,7 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
                         <p
                           className={cn(
                             'mb-0 mt-1 text-prose',
-                            course.overdue ? 'text-red-800 dark:text-danger' : 'text-ink/75'
+                            course.overdue ? 'text-danger' : 'text-ink/75'
                           )}
                         >
                           {due}
@@ -820,7 +799,7 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
             })}
           </ul>
         )}
-      </div>
+      </EmployeeDedicatedShell>
     </ContentEnter>
   );
 }
