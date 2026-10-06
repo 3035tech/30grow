@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { S } from '../dashboard/dashboard-shared';
+import { AdminCreateButton, S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
 import { CopyableLink } from './CopyableLink';
 import { AppLoading, ContentEnter } from './AppLoading';
@@ -142,14 +142,7 @@ export function TeamPulseBlock({ locale, companyId, teamGroupId }) {
           <h3 className={cn(S.cardSection, 'mb-0')}>{t(locale, 'panel.pulse.title')}</h3>
           <p className={cn(S.muted, 'm-0 mt-1 text-xs')}>{t(locale, 'panel.pulse.hint')}</p>
         </div>
-        <button
-          type="button"
-          disabled={busy}
-          className={cn(S.btnBrandSoft, 'min-h-touch')}
-          onClick={createPulse}
-        >
-          {t(locale, 'panel.pulse.createBtn')}
-        </button>
+        <AdminCreateButton variant="secondary" label={t(locale, 'panel.pulse.createBtn')} onClick={createPulse} disabled={busy} />
       </div>
 
       {items.length === 0 ? (

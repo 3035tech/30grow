@@ -599,7 +599,7 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
               </ul>
             )}
             {selectedReview.status === FORMAL_REVIEW_STATUS.DRAFT && !selectedReview.questionnaire?.length ? (
-              <AdminCreateButton label={tf(locale, 'addItem')} onClick={addItem} disabled={busy} />
+              <AdminCreateButton variant="secondary" label={tf(locale, 'addItem')} onClick={addItem} disabled={busy} />
             ) : null}
           </section>
 

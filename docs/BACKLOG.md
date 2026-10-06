@@ -415,7 +415,15 @@ _(entregue — B-1401: crop 1:1 + compressão cliente ≤512 KB / lado ≤768 px
 
 ## Aberto — Controles de formulário (primitivos)
 
-_(entregue — B-1402 tokens + B-1403 migração dos selects ad hoc: page-size, pipeline Equipe, reject reason, grupos, signup, recommendation relatório; `S.selectCompact`. B-1404 slider `RangeField` em faixas curtas (curso %, calibração, jornada, peso de KR, aumento % do mapa salarial). B-1405 disclosure só com seta, texto apenas para leitor de tela.)_
+_(entregue — B-1402 tokens + B-1403 migração dos selects ad hoc: page-size, pipeline Equipe, reject reason, grupos, signup, recommendation relatório; `S.selectCompact`. B-1404 slider `RangeField` em faixas curtas (curso %, calibração, jornada, peso de KR, aumento % do mapa salarial). B-1405 disclosure só com seta, texto apenas para leitor de tela. B-1406a: todo botão de criar via `AdminCreateButton` (verde cheio no topo da tela, verde suave em seção; nunca neutro).)_
+
+### B-1406b — Botões com estilo local (tamanho/fonte fora do padrão)
+
+Segunda etapa da auditoria de botões (out/2026). As cores já seguem o papel (verde cheio, verde suave, neutro, vermelho), mas 8 arquivos recriam os estilos à mão com `font-mono`, `text-2xs`/`text-xs`, `min-h-[32px]`/`[36px]` e `rounded-lg`, então o mesmo papel aparece em tamanhos diferentes entre telas.
+
+- **Onde:** `BTN_PRIMARY`/`BTN_GHOST` em `PipelineExtrasContext.jsx` e `PipelineStagesEditor.jsx` (+ `BTN_DANGER`); `BTN_GHOST` em `CompaniesAdminTab.jsx` (+ `DIALOG_BTN_*`), `UsersAdminTab.jsx`, `VacancyReferralBlock.jsx`; `BTN_GHOST`/`BTN_BRAND`/`BTN_BRAND_SOFT` em `VacanciesAdminTab.jsx`; `BTN_SM`/`BTN_PRIMARY` em `VacancyRubricEditor.jsx`; `btnGhostClass`/`btnPurpleClass` em `VacancyClientReportBlock.jsx`; `descAssistBtnClass` em `vacancy-admin-shared.js`.
+- **Como:** trocar por `S.btnPrimary` / `S.btnBrandSoft` / `S.btnGhost` (e `dialogBtn*Class` em diálogos); para barras densas, avaliar uma variante compacta única em `S` (ex.: `S.btnCompact*`) em vez de uma por arquivo. Conferir alvo de toque (`min-h-touch`) onde hoje há 32–36 px.
+- **Cuidado:** muda densidade visual de Vagas/relatório; validar com print antes/depois.
 
 ---
 

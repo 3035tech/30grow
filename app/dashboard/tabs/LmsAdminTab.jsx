@@ -1001,7 +1001,7 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
                     {(detail.lessons || []).length}
                   </span>
                 </h3>
-                <AdminCreateButton
+                <AdminCreateButton variant="secondary"
                   onClick={addLesson}
                   disabled={lessonBusy}
                   label={t(locale, 'panel.lms.addLesson')}

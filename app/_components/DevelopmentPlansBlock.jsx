@@ -5,7 +5,7 @@ import { SelectField } from './SelectField';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { S } from '../dashboard/dashboard-shared';
+import { AdminCreateButton, S } from '../dashboard/dashboard-shared';
 import { EmptyState } from './EmptyState';
 import { useAppFeedback } from './AppFeedback';
 import { AppLoading } from './AppLoading';
@@ -612,14 +612,7 @@ export function DevelopmentPlansBlock({
           >
             {showArchived ? t(locale, 'panel.pdi.hideArchived') : t(locale, 'panel.pdi.showArchived')}
           </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={createPlan}
-            className={cn(S.btnBrandSoft, 'min-h-touch')}
-          >
-            {t(locale, 'panel.pdi.createBtn')}
-          </button>
+          <AdminCreateButton variant="secondary" label={t(locale, 'panel.pdi.createBtn')} onClick={createPlan} disabled={busy} />
         </div>
       </div>
 
@@ -716,9 +709,7 @@ export function DevelopmentPlansBlock({
                           {t(locale, 'panel.pdi.archiveBtn')}
                         </button>
                       ) : null}
-                      <button type="button" disabled={busy} className={S.btnBrandSoft} onClick={addItem}>
-                        {t(locale, 'panel.pdi.addItemBtn')}
-                      </button>
+                      <AdminCreateButton variant="secondary" label={t(locale, 'panel.pdi.addItemBtn')} onClick={addItem} disabled={busy} />
                     </div>
                     {detail.objective ? (
                       <p className={cn(S.muted, 'mb-2 text-prose')}>{detail.objective}</p>

@@ -669,15 +669,7 @@ export function OkrBlock({ locale = 'pt-BR', companyId }) {
 
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className={cn(S.cardSection, 'mb-0')}>{t(locale, 'panel.okr.areasTitle')}</span>
-                <button
-                  type="button"
-                  className={cn(S.btnGhost, 'min-h-touch gap-1.5 text-sm')}
-                  disabled={busy || cycleClosed}
-                  onClick={() => void createArea()}
-                >
-                  <Icon name="plus" className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  {t(locale, 'panel.okr.createAreaBtn')}
-                </button>
+                <AdminCreateButton variant="secondary" label={t(locale, 'panel.okr.createAreaBtn')} onClick={() => void createArea()} disabled={busy || cycleClosed} />
               </div>
 
               {(cycle.areas || []).length === 0 ? (
@@ -708,15 +700,7 @@ export function OkrBlock({ locale = 'pt-BR', companyId }) {
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-1">
-                          <button
-                            type="button"
-                            className={cn(S.btnGhost, 'min-h-touch gap-1.5 text-sm')}
-                            disabled={busy || cycleClosed}
-                            onClick={() => void createActivity(area)}
-                          >
-                            <Icon name="plus" className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                            {t(locale, 'panel.okr.createActivityBtn')}
-                          </button>
+                          <AdminCreateButton variant="secondary" label={t(locale, 'panel.okr.createActivityBtn')} onClick={() => void createActivity(area)} disabled={busy || cycleClosed} />
                           <AdminDeleteButton
                             locale={locale}
                             onClick={() => void deleteArea(area)}

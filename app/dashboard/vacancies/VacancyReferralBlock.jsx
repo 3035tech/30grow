@@ -3,13 +3,11 @@
 import { useEffect, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t } from '../../../lib/i18n';
-import { S } from '../dashboard-shared';
+import { AdminCreateButton, S } from '../dashboard-shared';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { CopyableLink } from '../../_components/CopyableLink';
 import { Spinner } from '../../_components/AppLoading';
 
-const BTN_BRAND =
-  'min-h-touch rounded-control border border-brand-500/35 bg-brand-500/[0.09] px-3.5 py-2.5 font-mono text-xs text-brand-500 disabled:cursor-default disabled:opacity-60';
 const BTN_GHOST =
   'min-h-[36px] rounded-control border border-ink/12 bg-transparent px-2.5 py-2 font-mono text-2xs text-ink-muted disabled:cursor-default disabled:opacity-60';
 
@@ -165,14 +163,7 @@ export function VacancyReferralBlock({ vacancyId, locale, publicPagePath, appUrl
               </p>
             ) : null}
           </div>
-          <button
-            type="button"
-            onClick={createCode}
-            disabled={busy}
-            className={cn(BTN_BRAND, busy ? 'cursor-default' : 'cursor-pointer')}
-          >
-            {t(locale, 'recruiting.referralNewBtn')}
-          </button>
+          <AdminCreateButton variant="secondary" label={t(locale, 'recruiting.referralNewBtn')} onClick={createCode} disabled={busy} />
         </div>
 
         {err ? (

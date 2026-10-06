@@ -9,7 +9,7 @@ import { InlineCallout } from './InlineCallout';
 import { AppLoading } from './AppLoading';
 import { CollapsibleBlock } from './CollapsibleBlock';
 import { useAppFeedback } from './AppFeedback';
-import { S } from '../dashboard/dashboard-shared';
+import { AdminCreateButton, S } from '../dashboard/dashboard-shared';
 import { EntitySearchSelect } from './EntitySearchSelect';
 
 export async function orgUnitRequest(companyId, { signal, method = 'GET', body, candidateId } = {}) {
@@ -126,9 +126,7 @@ export function CandidateOrgUnit({ companyId, candidateId, locale, onSaved }) {
             <EntitySearchSelect key={version} locale={locale} options={options} minChars={0} value={value} onChange={(id) => setValue(id)} placeholder={t(locale, 'panel.orgUnits.search')} aria-label={t(locale, 'panel.orgUnits.unit')} disabled={busy || !loaded || Boolean(listError)} />
           </FormField>
         </div>
-        <button type="button" className={S.btnGhost} disabled={busy || !loaded || Boolean(listError)} onClick={() => void createAndAssign()}>
-          {t(locale, 'panel.orgUnits.create')}
-        </button>
+        <AdminCreateButton variant="secondary" label={t(locale, 'panel.orgUnits.create')} onClick={() => void createAndAssign()} disabled={busy || !loaded || Boolean(listError)} />
       </div>
       {value !== initial ? <p className={S.muted}>{t(locale, 'panel.orgUnits.pending', { name: units.find((unit) => String(unit.id) === value)?.name || t(locale, 'panel.orgUnits.none') })}</p> : null}
       <button type="button" className={S.btnPrimary} disabled={busy || !loaded || Boolean(listError) || value === initial} onClick={save}>{t(locale, busy ? 'panel.orgUnits.saving' : 'panel.orgUnits.save')}</button>

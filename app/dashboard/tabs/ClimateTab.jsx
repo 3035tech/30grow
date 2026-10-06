@@ -1051,9 +1051,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
                         </>
                       ) : null}
                       {detailSection === 'questionnaire' && questionsEditable ? (
-                        <button type="button" disabled={busy} className={S.btnGhost} onClick={addQuestion}>
-                          {t(locale, 'panel.climate.addQuestionBtn')}
-                        </button>
+                        <AdminCreateButton variant="secondary" label={t(locale, 'panel.climate.addQuestionBtn')} onClick={addQuestion} disabled={busy} />
                       ) : null}
                       {detailSection === 'overview' && canVersion && detail.status !== CLIMATE_SURVEY_STATUS.ARCHIVED ? (
                         <button

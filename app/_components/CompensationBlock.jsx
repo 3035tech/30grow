@@ -705,7 +705,7 @@ export function CompensationBlock({
 
       {!readOnly ? (
         <div className="mt-4 flex justify-end">
-          <AdminCreateButton
+          <AdminCreateButton variant="secondary"
             label={t(locale, 'panel.compensation.addBtn')}
             onClick={() => void addEvent()}
             disabled={busy}

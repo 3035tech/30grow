@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { t, localeHtmlLang } from '../../lib/i18n';
-import { S, AdminDeleteButton } from '../dashboard/dashboard-shared';
+import { S, AdminCreateButton, AdminDeleteButton } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
 import { AppLoading, ContentEnter } from './AppLoading';
 import { CopyableLink } from './CopyableLink';
@@ -209,9 +209,7 @@ export function VacancyInterviewSlotsBlock({
             →
           </button>
         </div>
-        <button type="button" onClick={createSlot} className={cn(S.btnPrimary, 'min-h-touch')}>
-          {t(locale, 'recruiting.interviewSlotsCreate')}
-        </button>
+        <AdminCreateButton variant="secondary" label={t(locale, 'recruiting.interviewSlotsCreate')} onClick={createSlot} />
       </div>
       <p className="mb-3 mt-0 text-xs leading-snug text-ink-muted">{t(locale, 'recruiting.interviewSlotsIntro')}</p>
 

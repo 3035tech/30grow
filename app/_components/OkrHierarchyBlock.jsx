@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AdminPageHeader, S } from '../dashboard/dashboard-shared';
+import { AdminCreateButton, AdminPageHeader, S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
 import { SelectField } from './SelectField';
 import { CollapsibleBlock } from './CollapsibleBlock';
@@ -147,7 +147,7 @@ function OkrHierarchyContent({ locale, companyId }) {
   if(error) return <div role="alert" className="flex flex-col items-start gap-3">{notice && <p className={muted}>{notice.message}</p>}<p className={muted}>{tr('loadError')}</p><button className={S.btnBrandSoft} onClick={load}>{tr('retry')}</button></div>;
   return <section className="flex min-w-0 flex-col gap-5" aria-label="OKRs" aria-busy={busy || loading}>
     {notice && <div role={notice.error?'alert':'status'} className={`flex items-center justify-between gap-3 rounded-control border p-3 text-sm ${notice.error?'border-danger/30 text-red-800 dark:text-danger':'border-success/30 text-ink'}`}><span>{notice.message}</span><button className="min-h-touch min-w-touch" aria-label={tr('dismissNotice')} onClick={()=>setNotice(null)}>×</button></div>}
-    <AdminPageHeader title="OKRs" subtitle={tr('subtitle')} actions={<button disabled={busy} className={S.btnBrandSoft} onClick={newCycle}>{tr('newCycle')}</button>} />
+    <AdminPageHeader title="OKRs" subtitle={tr('subtitle')} actions={<AdminCreateButton label={tr('newCycle')} onClick={newCycle} disabled={busy} />} />
     {!cycle ? <EmptyState title={tr('emptyTitle')} message={tr('emptyMessage')} actionLabel={tr('newCycle')} onAction={newCycle} actionDisabled={busy} /> : <ContentEnter animKey={cycle.id} className="flex min-w-0 flex-col gap-5">
       <div className="rounded-card border border-ink/12 bg-surface p-4">
         <div className="grid min-w-0 items-end gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto]">
@@ -157,7 +157,7 @@ function OkrHierarchyContent({ locale, companyId }) {
             {cycle.areas.map(area => <option key={area.id} value={area.id}>{area.title}</option>)}
           </SelectField></FormField>
           <div className="flex flex-wrap items-center justify-end gap-2 md:col-span-2 xl:col-span-1">
-            <button disabled={locked} className={S.btnBrandSoft} onClick={()=>editArea()}>{tr('newArea')}</button>
+            <AdminCreateButton variant="secondary" label={tr('newArea')} onClick={()=>editArea()} disabled={locked} />
             <RowActionsMenu label={moreLabel(cycle.title)} disabled={busy} items={[
               {id:'status',label:cycleClosed?tr('reopenCycle'):tr('closeCycle'),onSelect:()=>mutate({status:cycleClosed?OKR_CYCLE_STATUS.ACTIVE:OKR_CYCLE_STATUS.CLOSED},`/api/admin/okr/cycles/${cycle.id}`,'PATCH')},
               {id:'delete',label:tr('deleteCycle'),danger:true,disabled:locked,onSelect:()=>remove('cycle',cycle,`/api/admin/okr/cycles/${cycle.id}${qs}`)},
@@ -176,7 +176,7 @@ function OkrHierarchyContent({ locale, companyId }) {
           <h3 className={`${S.cardTitle} m-0 min-w-0 flex-1 break-words`}>{area.title}</h3>
           {progress(area.title,area.progressPct)}
           <div className="flex items-center gap-2">
-            <button disabled={locked} className={S.btnBrandSoft} onClick={()=>editObjective(area)}>{tr('newObjective')}</button>
+            <AdminCreateButton variant="secondary" label={tr('newObjective')} onClick={()=>editObjective(area)} disabled={locked} />
             <RowActionsMenu label={moreLabel(area.title)} disabled={locked} items={[
               {id:'edit',label:tr('editArea'),onSelect:()=>editArea(area)},
               {id:'delete',label:tr('deleteArea'),danger:true,onSelect:()=>remove('area',area,`/api/admin/okr/areas/${area.id}${qs}`)},
@@ -192,7 +192,7 @@ function OkrHierarchyContent({ locale, companyId }) {
               {objective.description && <RichTextView html={asRichHtml(objective.description)} className="mt-1 max-w-prose" />}
             </div>
             <div className="flex items-center gap-2">
-              <button disabled={locked} className={S.btnBrandSoft} onClick={()=>editKr(objective)}>{tr('newKeyResult')}</button>
+              <AdminCreateButton variant="secondary" label={tr('newKeyResult')} onClick={()=>editKr(objective)} disabled={locked} />
               <RowActionsMenu label={moreLabel(objective.title)} disabled={locked} items={[
                 {id:'edit',label:tr('editObjective'),onSelect:()=>editObjective(area,objective)},
                 {id:'delete',label:tr('deleteObjective'),danger:true,onSelect:()=>remove('objective',objective)},
@@ -232,7 +232,7 @@ function OkrHierarchyContent({ locale, companyId }) {
               </div>
               <div className="min-w-0">
                 <p className={cn(S.label,'mb-2')}>{tr('owners')}</p>
-                <div className="flex flex-wrap items-center gap-2">{k.assignees.map(p=><span key={p.candidateId} className={cn('inline-flex min-h-touch max-w-full items-center gap-1 break-words rounded-control border border-ink/12 bg-surface pl-3 text-sm text-ink',k.assignees.length<2 && 'pr-3')}>{p.fullName}{k.assignees.length>1 && <button className="min-h-touch min-w-touch text-ink-muted hover:text-ink" disabled={locked} aria-label={tr('removeOwnerName', { name: p.fullName })} onClick={()=>unassign(k,p)}>×</button>}</span>)}<button disabled={locked || k.assignees.length>=20} className={S.btnGhost} onClick={()=>assign(k)}>{tr('addOwner')}</button></div>
+                <div className="flex flex-wrap items-center gap-2">{k.assignees.map(p=><span key={p.candidateId} className={cn('inline-flex min-h-touch max-w-full items-center gap-1 break-words rounded-control border border-ink/12 bg-surface pl-3 text-sm text-ink',k.assignees.length<2 && 'pr-3')}>{p.fullName}{k.assignees.length>1 && <button className="min-h-touch min-w-touch text-ink-muted hover:text-ink" disabled={locked} aria-label={tr('removeOwnerName', { name: p.fullName })} onClick={()=>unassign(k,p)}>×</button>}</span>)}<AdminCreateButton variant="secondary" label={tr('addOwner')} onClick={()=>assign(k)} disabled={locked || k.assignees.length>=20} /></div>
               </div>
               {k.notes && <div className="min-w-0 lg:col-span-2">
                 <p className={cn(S.label,'mb-1')}>{tr('notes')}</p>

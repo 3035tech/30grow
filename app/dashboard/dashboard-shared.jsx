@@ -574,17 +574,17 @@ function createLabelText(label) {
 }
 
 /**
- * Primary create CTA for admin listagens — brand + plus icon.
- * Reference: Exit Analysis / Benefícios / Academy.
+ * Every "create / new / add" action uses this button (never a neutral ghost):
+ * - `primary` (solid brand): the screen or list create, usually in `AdminPageHeader` actions; one per screen.
+ * - `secondary` (soft brand): create inside a section, card, drawer or row (new question, new KR, add item).
  */
-/** `variant="secondary"` for create actions of a sub-section (one primary CTA per screen). */
 function AdminCreateButton({ label, onClick, disabled = false, className, variant = 'primary' }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={cn(variant === 'secondary' ? cn(S.btnGhost, 'text-ink') : S.btnPrimary, className)}
+      className={cn(variant === 'secondary' ? S.btnBrandSoft : S.btnPrimary, className)}
     >
       <Icon name="plus" className="h-3.5 w-3.5 shrink-0" aria-hidden />
       {createLabelText(label)}

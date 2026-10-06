@@ -30,7 +30,11 @@ alwaysApply: false
    - Lista **server-paginated** → filtro na API/SQL (não só na página atual). Lista já carregada → filtro no `useMemo` com a busca.
    - **Resultados após filtro** — passar `animKey` em `AdminTableShell` (ex. `` `${q}|${status}|${page}|${pageSize}` ``) **ou** envolver empty/tabela com `AdminListResults` (`AdminListFilters.jsx`) para re-rodar o fade `ContentEnter`.
    - Reusar labels compartilhados quando couber: `panel.admin.filterActive` / `filterAll` / `filterActiveYes` / `filterActiveNo` / `filterRole` / `filterCompany`.
-3. **Criar** — só `AdminCreateButton` (`S.btnPrimary` + ícone `plus`) em `AdminPageHeader` `actions`. Não inventar outro roxo / `+ ` solto; não colocar create na barra de filtros. Criar dentro de uma subseção (categorias em Benefícios, sucessor em um cargo): `AdminCreateButton variant="secondary"`; o primário verde fica só no header.
+3. **Criar** — **toda** ação de criar / novo / adicionar usa `AdminCreateButton` (ícone `plus`), nunca `<button>` com `S.btnGhost` / `S.btnBrandSoft` / classe local. Cor pela posição, não pela tela:
+   - **Primário** (`S.btnPrimary`, verde cheio): criar da tela ou listagem, em `AdminPageHeader` `actions` (ou na barra de topo da visão: Vagas, Equipe, templates de pipeline). Um por tela.
+   - **Seção** (`variant="secondary"` = `S.btnBrandSoft`, verde suave): criar dentro de seção, card, drawer, ficha da pessoa ou linha (nova pergunta, novo KR, nova aula, adicionar item, novo salário).
+   - **Nunca** neutro (`S.btnGhost`) para criar: neutro é cancelar, limpar filtro, paginação, atualizar, gerenciar.
+   Não colocar create na barra de filtros.
 4. **Editar** — só `AdminEditButton` (lápis + tint brand).
 5. **Excluir / desativar / arquivar** — só `AdminDeleteButton` (lixeira + tint danger).
 6. **Ver** — `AdminViewButton` (ícone olho + tint info). Ordem canônica na célula: **Ver → Editar → Excluir**. O tint fica no ícone; em repouso o botão é neutro (`ADMIN_ICON_TINT`) e o fundo colorido só aparece no hover. O clique abre `AdminRecordViewDrawer` (seções rótulo/valor, HTML via `RichTextView`, links copiáveis, Fechar + Editar); nunca despejar texto em `notice()`.7. Ações na linha — dentro de `AdminActionsCell` (`inline-flex` + `flex-nowrap` + `justify-end`): ícones **sempre lado a lado**, alinhados à direita sob `AdminActionsTh`. Não usar `flex-col` / `flex-wrap` ad hoc na coluna Ações (infla a altura da linha). `<td className="… text-right">`.

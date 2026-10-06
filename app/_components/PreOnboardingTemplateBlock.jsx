@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { t, contentLocale } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { S, AdminDeleteButton, AdminEditButton } from '../dashboard/dashboard-shared';
+import { S, AdminCreateButton, AdminDeleteButton, AdminEditButton } from '../dashboard/dashboard-shared';
 import { AppLoading, ContentEnter } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';
 import { CollapsibleBlock } from './CollapsibleBlock';
@@ -240,14 +240,7 @@ export function PreOnboardingTemplateBlock({ locale = 'pt-BR', companyId }) {
               ))}
             </ul>
           )}
-          <button
-            type="button"
-            className={cn(S.btnBrandSoft, 'min-h-touch')}
-            disabled={busy}
-            onClick={() => void addOrEdit(null)}
-          >
-            {t(locale, 'panel.preOnboardingTpl.addBtn')}
-          </button>
+          <AdminCreateButton variant="secondary" label={t(locale, 'panel.preOnboardingTpl.addBtn')} onClick={() => void addOrEdit(null)} disabled={busy} />
         </ContentEnter>
       )}
     </CollapsibleBlock>

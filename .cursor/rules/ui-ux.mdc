@@ -23,7 +23,7 @@ Detalhe canônico: `AGENTS.md` (seção UI/UX). Complemento por arquivo: `.curso
    - Não inventar segundo fade/skeleton/spinner
 6. **Alvos tocáveis / clicáveis** — área mínima confortável (~40px); labels e `aria-label` em ícones.
 7. **Consistência** — Tailwind (`tailwind.config.js` tokens) + `C`/`FONTS` onde ainda inline; padrões das tabs existentes; ver `.cursor/rules/tailwind-ui.mdc`. Formulários: **sempre** `FormField` (label acima); grades com `items-start` / `S.fieldRow`. Número em faixa curta e fechada (%, peso 0–10, minutos até ~240) → slider `RangeField` (`type: 'range'` no `promptForm`): arrasta e também aceita digitar o valor exato. Contagens, prazos em dias, saldos e valores de faixa larga continuam `type: 'number'`.
-8. **Hierarquia visual** — título → ação primária → conteúdo; evitar competição de CTAs roxos.
+8. **Hierarquia visual** — título → ação primária → conteúdo; evitar competição de CTAs roxos. Cor de botão por papel: verde cheio (`S.btnPrimary`) = ação principal da tela (1 por viewport); verde suave (`S.btnBrandSoft`) = ação secundária ou criar dentro de seção; neutro (`S.btnGhost`) = cancelar / filtros / navegação; vermelho só destrutivo. Criar sempre com `AdminCreateButton` (ver `admin-list-grid.mdc` §3).
 9. **Mobile e desktop** — drawer/overlay no mobile; collapse de sidebar só no desktop; não quebrar o fluxo público (`/t`, `/v`, assessment).
 10. **Acessibilidade básica** — contraste legível, foco visível, `title`/tooltip em modo ícone, não depender só de cor.
 11. **Copy hedged no domínio** (“tende a / há indícios”); nunca tom de diagnóstico clínico.

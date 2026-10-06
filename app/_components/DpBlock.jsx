@@ -1257,7 +1257,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
           <span className={cn(S.cardSection, 'block')}>{t(locale, 'panel.dp.leaveTitle')}</span>
           {!readOnly ? (
-            <AdminCreateButton
+            <AdminCreateButton variant="secondary"
               label={t(locale, 'panel.dp.leaveAdd')}
               onClick={() => void addLeave()}
               disabled={busy}

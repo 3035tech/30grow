@@ -214,7 +214,7 @@ export function BenefitAssignmentsBlock({ locale, candidateId, employmentStatus 
           <p className={cn(S.faint, 'm-0 mt-1')}>{t(locale, 'panel.benefitAssign.hint')}</p>
         </div>
         {!readOnly ? (
-          <AdminCreateButton
+          <AdminCreateButton variant="secondary"
             label={t(locale, 'panel.benefitAssign.assignBtn')}
             onClick={assign}
             disabled={busy || loading}

@@ -7,7 +7,7 @@ import { FormField } from './FormField';
 import { EntitySearchSelect } from './EntitySearchSelect';
 import { useAppFeedback } from './AppFeedback';
 import { CollapsibleBlock } from './CollapsibleBlock';
-import { S } from '../dashboard/dashboard-shared';
+import { AdminCreateButton, S } from '../dashboard/dashboard-shared';
 
 /**
  * B-3006: assign direct manager on Equipe person panel.
@@ -128,7 +128,7 @@ export function OrgManagerBlock({
             />
           </FormField>
           {managerId ? <button type="button" className={S.btnGhost} disabled={busy} onClick={() => void save(null)}>{t(locale, 'panel.orgChart.removeManager')}</button> : null}
-          {onCreateManager ? <button type="button" className={S.btnGhost} disabled={busy} onClick={onCreateManager}>{i18nT(locale, 'ui.orgManagerBlock.createManager')}</button> : null}
+          {onCreateManager ? <AdminCreateButton variant="secondary" label={i18nT(locale, 'ui.orgManagerBlock.createManager')} onClick={onCreateManager} disabled={busy} /> : null}
         </ContentEnter>
       )}
     </CollapsibleBlock>
