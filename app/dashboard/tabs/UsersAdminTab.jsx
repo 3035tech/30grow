@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { InlineCallout } from '../../_components/InlineCallout';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { parseUsersPagination, parseUsersSort } from '../../../lib/assessment-filters';
@@ -482,14 +483,10 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
   return (
     <div className="flex flex-col gap-4">
       {error ? (
-        <div className={cn(S.card, 'px-[18px] py-3.5')}>
-          <p className="m-0 font-mono text-xs text-danger">{error}</p>
-        </div>
+        <InlineCallout tone="danger" role="alert">{error}</InlineCallout>
       ) : null}
       {msg ? (
-        <div className={cn(S.card, 'px-[18px] py-3.5')}>
-          <p className="m-0 font-mono text-xs text-success">{msg}</p>
-        </div>
+        <InlineCallout tone="success" role="status">{msg}</InlineCallout>
       ) : null}
 
       <AdminPageHeader

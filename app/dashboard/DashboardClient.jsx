@@ -315,6 +315,8 @@ function DashboardClientContent({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const sidebarNavRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const menuButtonRef = useRef(null);
   /** Section picked on the rail; only valid while the tab it was picked on stays active. */
   const [filtersOpen, setFiltersOpen] = useState(null);
   const [isDesktop, setIsDesktop] = useState(true);
@@ -349,6 +351,7 @@ function DashboardClientContent({
   const logout = async () => {
     if (loggingOut || logoutConfirmPendingRef.current) return;
     logoutConfirmPendingRef.current = true;
+    setSidebarOpen(false);
     try {
       const confirmed = await feedback?.confirm?.({
         title: t(locale, 'dashboard.logoutConfirmTitle'),
@@ -481,11 +484,23 @@ function DashboardClientContent({
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     document.body.classList.add('sidebar-open');
+    const sidebar = sidebarRef.current;
+    const focusable = () => [...sidebar.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]')]
+      .filter(element => element.getClientRects().length > 0 && !element.closest('[inert]'));
+    const frame = requestAnimationFrame(() => focusable()[0]?.focus());
     const onKey = (e) => {
-      if (e.key === 'Escape') setSidebarOpen(false);
+      if (e.key === 'Escape') { e.preventDefault(); setSidebarOpen(false); return; }
+      if (e.key !== 'Tab') return;
+      const elements = focusable(), first = elements[0], last = elements.at(-1);
+      if (!first) { e.preventDefault(); return; }
+      if (!sidebar.contains(document.activeElement) || (e.shiftKey && document.activeElement === first)) {
+        e.preventDefault(); (e.shiftKey ? last : first).focus();
+      } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
     window.addEventListener('keydown', onKey);
     return () => {
+      cancelAnimationFrame(frame);
+      menuButtonRef.current?.focus({ preventScroll: true });
       document.body.style.overflow = prevOverflow;
       document.body.classList.remove('sidebar-open');
       window.removeEventListener('keydown', onKey);
@@ -928,7 +943,9 @@ function DashboardClientContent({
 
       <button
         type="button"
-        className="db-hamburger"
+        ref={menuButtonRef}
+        inert={sidebarOpen && !isDesktop || undefined}
+        className={cn('db-hamburger', sidebarOpen && !isDesktop && 'invisible')}
         onClick={() => setSidebarOpen(true)}
         aria-label={t(locale, 'common.openMenu')}
         aria-expanded={sidebarOpen}
@@ -952,6 +969,8 @@ function DashboardClientContent({
           open={sidebarOpen}
           onCloseMobile={() => setSidebarOpen(false)}
           navRef={sidebarNavRef}
+          sidebarRef={sidebarRef}
+          mobileModal
           groups={sidebarGroups}
           brand={(iconOnly) => (
             <BrandMark
@@ -970,7 +989,7 @@ function DashboardClientContent({
           ))}
         />
 
-        <main className="db-main relative mx-auto min-w-0 max-w-[1600px] flex-1 px-6 pb-24 pt-7">
+        <main inert={sidebarOpen && !isDesktop || undefined} className="db-main relative mx-auto min-w-0 max-w-[1600px] flex-1 px-6 pb-24 pt-7">
           <DashboardPageTitleContext.Provider value={isPersonFocus || isVacancyDetail ? null : t(locale, getDashboardTabNav(tab).labelKey)}>
           <NavLoadBar active={panelLoading || navPending} />
 
@@ -1582,6 +1601,7 @@ function DashboardClientContent({
         </main>
       </div>
     </div>
+    <div inert={sidebarOpen && !isDesktop || undefined}>
     {can(sessionAuth, CAP.HELP_VIEW) ? (
       <HelpAssistantWidget
         locale={locale}
@@ -1609,6 +1629,7 @@ function DashboardClientContent({
         }}
       />
     ) : null}
+    </div>
     </PipelineExtrasProvider>
   );
 }

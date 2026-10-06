@@ -47,8 +47,24 @@ test('management tables preserve PDI navigation, search, pagination, reminders a
   for (const width of [1440, 375]) {
     await page.setViewportSize({width, height: 900});
     await expect(pdi).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({path: test.info().outputPath(`lists-${width}.png`), fullPage: true});
+    const layout = await page.evaluate(() => ({
+      viewport: innerWidth,
+      document: document.documentElement.scrollWidth,
+      outside: [...document.querySelectorAll('main > *, [data-testid], table')].map(el => ({
+        tag: el.tagName, fixture: el.closest('[data-testid]')?.dataset.testid || '',
+        width: Math.round(el.getBoundingClientRect().width), right: Math.round(el.getBoundingClientRect().right),
+      })).filter(el => el.right > innerWidth),
+      uncontained: [...document.querySelectorAll('body *')].filter(el => {
+        if (el.getBoundingClientRect().right <= innerWidth + 1) return false;
+        for (let parent=el.parentElement; parent && parent!==document.body; parent=parent.parentElement) {
+          if (['auto','scroll','hidden','clip'].includes(getComputedStyle(parent).overflowX)) return false;
+        }
+        return true;
+      }).slice(0,12).map(el=>({tag:el.tagName,class:el.className,fixture:el.closest('[data-testid]')?.dataset.testid || '',right:Math.round(el.getBoundingClientRect().right)})),
+    }));
+    await test.info().attach(`layout-${width}`, {body: JSON.stringify(layout,null,2),contentType:'application/json'});
+    expect(layout.document, JSON.stringify(layout)).toBeLessThanOrEqual(width);
   }
   expect(errors).toEqual([]);
 });

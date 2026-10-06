@@ -27,7 +27,7 @@ export function DisclosureToggle({
 }) {
   return (
     <span
-      className={cn('inline-flex shrink-0 items-center text-ink-muted', className)}
+      className={cn('relative inline-flex shrink-0 items-center text-ink-muted', className)}
     >
       <span className="sr-only">{disclosureActionLabel(locale, open)}</span>
       <Icon

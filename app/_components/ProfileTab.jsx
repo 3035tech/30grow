@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { errorMessage, t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { profilePanelClass as panelClass, profilePanelHeaderClass as panelHeaderClass } from './ProfileUi';
+import { profilePanelHeaderClass as panelHeaderClass } from './ProfileUi';
 import { PanelSubNav, S as dashS } from '../dashboard/dashboard-shared';
 import LanguageSelect from './LanguageSelect';
 import { FormField } from './FormField';
@@ -21,6 +21,7 @@ import {
 } from '../../lib/company-modules';
 
 const inputClass = dashS.input;
+const panelClass = cn(dashS.cardShell, 'p-4 sm:p-6');
 
 /**
  * Tela de perfil do usuário logado (hr / direction / admin — dados próprios).
@@ -44,6 +45,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPassword2, setNewPassword2] = useState('');
+  const [twoFaStatus, setTwoFaStatus] = useState('loading');
   const [twoFaCanUse, setTwoFaCanUse] = useState(false);
   const [twoFaEnabled, setTwoFaEnabled] = useState(false);
   const [twoFaSetupSecret, setTwoFaSetupSecret] = useState('');
@@ -60,14 +62,16 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   const toast = feedback?.toast;
 
   const load2fa = async () => {
+    setTwoFaStatus('loading');
     try {
       const res = await fetch('/api/me/2fa');
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) return;
+      if (!res.ok || typeof data.canUse2Fa !== 'boolean' || typeof data.enabled !== 'boolean') throw new Error('2FA unavailable');
       setTwoFaCanUse(Boolean(data.canUse2Fa));
-      setTwoFaEnabled(Boolean(data.enabled));
+      setTwoFaEnabled(data.enabled);
+      setTwoFaStatus('ready');
     } catch {
-      /* ignore */
+      setTwoFaStatus('error');
     }
   };
 
@@ -242,6 +246,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   useEffect(() => { load(); }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = async (scope) => {
+    if (scope === 'account' && email.trim().toLowerCase() !== savedEmail.trim().toLowerCase() && twoFaStatus !== 'ready') return;
     setSaving(true);
     setError('');
     setMsg('');
@@ -289,13 +294,13 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   const hasBillingSection = ['admin', 'hr'].includes(role);
   const emailDirty = email.trim().toLowerCase() !== savedEmail.trim().toLowerCase();
   const emailReauthMissing =
-    emailDirty && (!emailReauthPassword || (twoFaEnabled && emailReauthTotp.length !== 6));
+    emailDirty && (twoFaStatus !== 'ready' || !emailReauthPassword || (twoFaEnabled && emailReauthTotp.length !== 6));
   const saveAccountDisabled = saving || !email.trim() || emailReauthMissing;
   const savePasswordDisabled = saving || !currentPassword || !newPassword || !newPassword2;
 
   return (
-    <div className="flex w-full items-start justify-center">
-      <div className={cn(dashS.card, 'box-border w-full max-w-4xl p-5 sm:p-7')}>
+    <div className="flex w-full items-start">
+      <div className="box-border w-full max-w-4xl">
         <p className="m-0 max-w-2xl text-prose leading-[1.55] text-ink-muted">
           {t(locale, 'dashboard.profileIntro')}
         </p>
@@ -372,10 +377,14 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                           ) : null}
                         </div>
                       </InlineCallout>
+                      {twoFaStatus !== 'ready' ? <InlineCallout tone={twoFaStatus === 'error' ? 'danger' : 'info'} role={twoFaStatus === 'error' ? 'alert' : 'status'} className="mt-3">
+                        <p className="m-0">{t(locale, twoFaStatus === 'error' ? 'employeeHome.twoFaLoadError' : 'employeeHome.twoFaLoading')}</p>
+                        {twoFaStatus === 'error' ? <button type="button" onClick={load2fa} className={cn(dashS.btnGhost, 'mt-3')}>{t(locale, 'common.retry')}</button> : null}
+                      </InlineCallout> : null}
                       </ContentEnter>
                     ) : null}
                     <div className="mt-6 flex justify-end border-t border-ink/10 pt-4">
-                      <button type="button" onClick={() => save('account')} disabled={saveAccountDisabled} className={dashS.btnPrimary}>
+                      <button type="button" onClick={() => save('account')} disabled={saveAccountDisabled} className={cn(dashS.btnPrimary, 'w-full sm:w-auto')}>
                         {saving ? t(locale, 'panel.common.loading') : t(locale, 'dashboard.profileSave')}
                       </button>
                     </div>
@@ -417,7 +426,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                           {t(locale, 'panel.common.cancel')}
                         </button>
                       ) : null}
-                      <button type="button" onClick={() => void saveCompanyModules()} disabled={modulesSaving || !modulesDirty} className={dashS.btnPrimary}>
+                      <button type="button" onClick={() => void saveCompanyModules()} disabled={modulesSaving || !modulesDirty} className={cn(dashS.btnPrimary, 'w-full sm:w-auto')}>
                         {modulesSaving ? t(locale, 'panel.common.loading') : t(locale, 'dashboard.profileModulesSave')}
                       </button>
                     </div>
@@ -457,13 +466,13 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                         </FormField>
                       </div>
                       <div className="mt-6 flex justify-end border-t border-ink/10 pt-4">
-                        <button type="button" onClick={() => save('password')} disabled={savePasswordDisabled} className={dashS.btnPrimary}>
+                        <button type="button" onClick={() => save('password')} disabled={savePasswordDisabled} className={cn(dashS.btnPrimary, 'w-full sm:w-auto')}>
                           {saving ? t(locale, 'panel.common.loading') : t(locale, 'dashboard.profilePasswordSave')}
                         </button>
                       </div>
                     </section>
 
-                    {twoFaCanUse ? (
+                    {twoFaStatus !== 'ready' || twoFaCanUse ? (
                       <section className={panelClass}>
                         <div className="mb-2 flex flex-wrap items-center gap-2">
                           <h2 className="m-0 font-ui text-base font-semibold text-ink">{t(locale, 'dashboard.profile2faSection')}</h2>
@@ -472,7 +481,11 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                           </span>
                         </div>
                         <p className="mb-4 mt-0 text-sm leading-relaxed text-ink-muted">{t(locale, 'dashboard.profile2faIntro')}</p>
-                        {twoFaEnabled ? (
+                        {twoFaStatus === 'loading' ? <p role="status" className="text-sm text-ink-muted">{t(locale, 'employeeHome.twoFaLoading')}</p>
+                          : twoFaStatus === 'error' ? <InlineCallout tone="danger" role="alert">
+                            <p className="m-0">{t(locale, 'employeeHome.twoFaLoadError')}</p>
+                            <button type="button" onClick={load2fa} className={cn(dashS.btnGhost, 'mt-3')}>{t(locale, 'common.retry')}</button>
+                          </InlineCallout> : twoFaEnabled ? (
                           <div className="flex flex-col gap-4">
                             <p className="m-0 font-ui text-sm font-medium text-success">{t(locale, 'dashboard.profile2faEnabled')}</p>
                             <div className="grid items-start gap-4 sm:grid-cols-2">
@@ -524,8 +537,8 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                   </div>
                 ) : null}
 
-                {error ? <p className="mb-0 mt-4 font-ui text-sm text-danger">{error}</p> : null}
-                {msg ? <p className="mb-0 mt-4 font-ui text-sm text-success">{msg}</p> : null}
+                {error ? <InlineCallout tone="danger" role="alert" className="mt-4">{error}</InlineCallout> : null}
+                {msg ? <InlineCallout tone="success" role="status" className="mt-4">{msg}</InlineCallout> : null}
               </ContentEnter>
             </div>
           </ContentEnter>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../lib/cn';
 import { t } from '../../lib/i18n';
@@ -53,7 +53,10 @@ export function DateField({
   function close() { setOpen(false); buttonRef.current?.focus(); }
   function show() {
     if (disabled) return;
-    let initial = validDateKey(value) || dayKey(new Date());
+    const date = validDateKey(value);
+    const time = String(value || '').slice(10);
+    let initial = date && withTime && /^T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,3})?)?$/.test(time)
+      ? `${date}${time}` : date || dayKey(new Date());
     if (min && initial.slice(0, 10) < min.slice(0, 10)) initial = min;
     if (max && initial.slice(0, 10) > max.slice(0, 10)) initial = max;
     setDraft(withTime ? (initial.includes('T') ? initial : `${initial}T00:00`) : initial);
@@ -81,35 +84,39 @@ export function DateField({
     close();
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return undefined;
     const reposition = () => {
       const rect = buttonRef.current?.getBoundingClientRect();
       if (!rect) return;
       const width = Math.min(CALENDAR_WIDTH, window.innerWidth - VIEWPORT_MARGIN * 2);
       const height = Math.min(popupRef.current?.offsetHeight || 440, window.innerHeight - VIEWPORT_MARGIN * 2);
-      setPosition({
+      const next = {
         position: 'fixed', width,
         left: Math.max(VIEWPORT_MARGIN, Math.min(rect.left, window.innerWidth - width - VIEWPORT_MARGIN)),
         top: Math.max(VIEWPORT_MARGIN, Math.min(rect.bottom + VIEWPORT_MARGIN, window.innerHeight - height - VIEWPORT_MARGIN)),
         maxHeight: window.innerHeight - VIEWPORT_MARGIN * 2,
-      });
+      };
+      setPosition(previous => previous && Object.keys(next).every(key => previous[key] === next[key]) ? previous : next);
     };
     const outside = (event) => {
       if (!buttonRef.current?.contains(event.target) && !popupRef.current?.contains(event.target)) setOpen(false);
     };
     reposition();
     const frame = requestAnimationFrame(reposition);
+    const observer = new ResizeObserver(reposition);
+    if (popupRef.current) observer.observe(popupRef.current);
     document.addEventListener('pointerdown', outside);
     window.addEventListener('resize', reposition);
     window.addEventListener('scroll', reposition, true);
     return () => {
       cancelAnimationFrame(frame);
+      observer.disconnect();
       document.removeEventListener('pointerdown', outside);
       window.removeEventListener('resize', reposition);
       window.removeEventListener('scroll', reposition, true);
     };
-  }, [open, withTime]);
+  }, [open, withTime, Boolean(position)]);
 
   useEffect(() => {
     if (open && position) popupRef.current?.querySelector(`[data-day="${active}"]`)?.focus();
@@ -160,7 +167,7 @@ export function DateField({
   const first = month ? localDay(`${month}-01`) : new Date();
   const start = new Date(first); start.setDate(1 - first.getDay());
   const timeParts = (draft.split('T')[1] || '00:00:00').split(':');
-  const timeValue = `${timeParts[0] || '00'}:${timeParts[1] || '00'}${includeSeconds ? `:${timeParts[2] || '00'}` : ''}`;
+  const timeValue = `${timeParts[0] || '00'}:${timeParts[1] || '00'}${includeSeconds ? `:${timeParts[2]?.split('.')[0] || '00'}` : ''}`;
   const popup = open && !disabled && position ? (
     <div ref={popupRef} id={popupId} role="dialog" aria-label={message('choose')}
       style={position} className="z-[10080] overflow-auto rounded-card border border-ink/15 bg-surface p-3 text-ink shadow-dialog"

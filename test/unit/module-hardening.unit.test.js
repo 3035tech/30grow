@@ -274,7 +274,7 @@ describe('module hardening', () => {
     assert.match(profile, /profileSection === 'account'/);
     assert.match(profile, /profileSection === 'security'/);
     assert.match(profile, /maxHeightClass="max-h-none"/);
-    assert.match(profile, /className=\{dashS\.btnPrimary\}/);
+    assert.match(profile, /className=\{cn\(dashS\.btnPrimary, 'w-full sm:w-auto'\)\}/);
   });
 
   it('keeps benefit management available to every manager with the module capability', () => {

@@ -47,8 +47,7 @@ import {
 } from '../../../lib/company-modules';
 import { dialogBtnGhostClass, dialogBtnPrimaryClass } from '../../_components/app-dialog-styles';
 
-const FIELD_INPUT =
-  'box-border w-full rounded-control border border-ink/12 bg-ink/[0.04] px-3 py-2.5 font-mono text-xs text-ink';
+const FIELD_INPUT = cn(S.input, 'w-full');
 
 /** Minimal logo upload/preview for company drawer (create = local file; edit = POST/DELETE). */
 function CompanyLogoField({

@@ -8,6 +8,7 @@ import { PrivateAttachment } from '../../../app/_components/PrivateAttachment.js
 export default function Preview() {
  const [date, setDate] = useState('2026-09-19');
  const [time, setTime] = useState('2026-09-19T10:30');
+ const [seconds, setSeconds] = useState('2026-09-19T10:30:45');
  const [dialog, setDialog] = useState(false);
  const [submits, setSubmits] = useState(0);
  const [area, setArea] = useState('product');
@@ -26,12 +27,14 @@ export default function Preview() {
   {key:'name',label:'Nome',required:true},
   {key:'area',label:'Área do formulário',type:'select',options:[{value:'a',label:'Área A'},{value:'b',label:'Área B'}]},
   {key:'date',label:'Data do formulário',type:'date',required:true,defaultValue:'2026-09-19',min:'2026-09-10',max:'2026-09-30'}
- ]} onCancel={()=>setDialog(false)} onSubmit={()=>setSubmits(n=>n+1)}/>
+ ]} onCancel={()=>setDialog(false)} onSubmit={async()=>{setSubmits(n=>n+1);await new Promise(resolve=>setTimeout(resolve,300));}}/>
  <output data-testid="submits">{submits}</output>
  <DateField aria-label="Data de teste" value={date} onChange={e=>setDate(e.target.value)} min="2026-09-10" max="2026-10-10" />
  <output data-testid="date">{date}</output>
  <DateField aria-label="Horário de teste" mode="datetime-local" value={time} min="2026-09-19T10:00" max="2026-09-19T12:00" onChange={e=>setTime(e.target.value)}/>
  <output data-testid="time">{time}</output>
+ <DateField aria-label="Horário com segundos" mode="datetime-local" step="1" value={seconds} onChange={e=>setSeconds(e.target.value)}/>
+ <output data-testid="seconds">{seconds}</output>
  <h1 className="font-display text-3xl">Controles do 30 Grow</h1>
  <p>Revisão isolada, sem dados ou conexão com produção.</p>
  <label className="flex flex-col gap-2">Área

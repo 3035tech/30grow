@@ -60,6 +60,8 @@ test('real prompt: focus, select above modal, calendar, cancel and one submissio
   const save = dialog.getByRole('button', { name: 'Salvar', exact: true });
   await save.focus();
   await page.keyboard.press('Tab');
+  await expect(dialog.getByRole('button', { name: 'Fechar', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
   await expect(input).toBeFocused();
   await save.dblclick();
   await expect(page.getByTestId('submits')).toHaveText('1');
