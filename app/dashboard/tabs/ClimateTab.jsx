@@ -704,6 +704,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
         {
           key: 'kind',
           type: 'select',
+          row: 'kind',
           label: t(locale, 'panel.climate.questionKindLabel'),
           defaultValue: CLIMATE_QUESTION_KIND.LIKERT,
           help: t(locale, 'panel.climate.questionKindHelp'),
@@ -714,14 +715,10 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
           ],
         },
         {
-          key: 'prompt',
-          label: t(locale, 'panel.climate.questionLabel'),
-          placeholder: t(locale, 'panel.climate.questionPh'),
-          required: true,
-        },
-        {
           key: 'factor',
           type: 'select',
+          row: 'kind',
+          showWhen: (v) => (v.kind || CLIMATE_QUESTION_KIND.LIKERT) === CLIMATE_QUESTION_KIND.LIKERT,
           label: t(locale, 'panel.nr1.questionFactorLabel'),
           help: t(locale, 'panel.nr1.questionFactorHelp'),
           defaultValue: '',
@@ -729,6 +726,14 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
             { value: '', label: t(locale, 'panel.nr1.questionFactorNone') },
             ...PSYCHOSOCIAL_FACTORS.map((f) => ({ value: f, label: t(locale, `panel.nr1.factor.${f}`) })),
           ],
+        },
+        {
+          key: 'prompt',
+          type: 'textarea',
+          rows: 2,
+          label: t(locale, 'panel.climate.questionLabel'),
+          placeholder: t(locale, 'panel.climate.questionPh'),
+          required: true,
         },
       ],
     });
@@ -739,7 +744,9 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
         addQuestion: {
           prompt: values.prompt,
           questionKind: values.kind || CLIMATE_QUESTION_KIND.LIKERT,
-          psychosocialFactor: values.factor || null,
+          psychosocialFactor: (values.kind || CLIMATE_QUESTION_KIND.LIKERT) === CLIMATE_QUESTION_KIND.LIKERT
+            ? values.factor || null
+            : null,
         },
       });
       setDetail(data.survey);
