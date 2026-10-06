@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { LOCALE_COOKIE, normalizeLocale, t } from '../../lib/i18n';
 import { buildBlogIndexJsonLd, buildBlogIndexMetadata, BLOG_CONTENT_LOCALE, listBlogPosts } from '../../lib/blog/index.js';
 import { BlogBreadcrumb, BlogShell } from './BlogShell';
@@ -9,11 +9,12 @@ export function generateMetadata() {
 }
 
 export default async function BlogIndexPage() {
+  const nonce = (await headers()).get('x-nonce') || undefined;
   const locale = normalizeLocale((await cookies()).get(LOCALE_COOKIE)?.value);
   const posts = listBlogPosts();
   return (
     <BlogShell locale={locale}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: buildBlogIndexJsonLd() }} />
+      <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: buildBlogIndexJsonLd() }} />
       <BlogBreadcrumb locale={locale} items={[{ label: t(locale, 'blog.navBlog') }]} />
       <header className="max-w-3xl">
         <h1 className="m-0 font-display text-3xl font-semibold leading-[1.1] tracking-[-0.025em] text-ink sm:text-5xl">{t(locale, 'blog.indexTitle')}</h1>

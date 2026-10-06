@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { cache } from 'react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { LOCALE_COOKIE, normalizeLocale, t, localeHtmlLang } from '../../../lib/i18n';
@@ -89,6 +89,7 @@ export async function generateMetadata(props) {
 }
 
 export default async function PublicJobPage(props) {
+  const nonce = (await headers()).get('x-nonce') || undefined;
   const params = await props.params;
   const jobKey = typeof params?.jobKey === 'string' ? params.jobKey : '';
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
@@ -116,6 +117,7 @@ export default async function PublicJobPage(props) {
     <>
       {jsonLd ? (
         <script
+          nonce={nonce}
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: serializeJsonLdForScript(jsonLd) }}
         />

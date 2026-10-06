@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+import {
+  accountRateLimitKey,
+  checkRateLimit,
+  clientIpFromRequest,
+} from '../../../../../lib/rate-limit.js';
 import { verifyTurnstileToken } from '../../../../../lib/turnstile.js';
 import {
   completeEmployeeCompanyPick,
@@ -79,7 +83,11 @@ export async function POST(request) {
     const password = String(body.password || '');
 
     if (email) {
-      const rlEmail = await checkRateLimit(`employee-login-email:${email}`, 12, 15 * 60 * 1000);
+      const rlEmail = await checkRateLimit(
+        accountRateLimitKey('employee-login', email),
+        12,
+        15 * 60 * 1000
+      );
       if (!rlEmail.ok) {
         return apiError(request, ERR.RATE_LIMIT, httpStatusForError(ERR.RATE_LIMIT), {}, {
           headers: { 'Retry-After': String(rlEmail.retryAfterSec) },

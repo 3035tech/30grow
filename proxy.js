@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { COOKIE_NAME, sessionCookieOptions } from './lib/session-cookie';
 import { shouldSlideSession, MANAGER_SESSION_MAX_AGE_SEC } from './lib/session-ttl';
@@ -27,7 +28,10 @@ import {
   parseAttributionFromSearchParams,
   searchHasAttribution,
 } from './lib/job-attribution';
-import { applyContentSecurityPolicyHeaders } from './lib/security-csp';
+import {
+  applyContentSecurityPolicyHeaders,
+  resolveContentSecurityPolicy,
+} from './lib/security-csp';
 import { isCrawlerNoIndexPath } from './lib/crawler-guard';
 import {
   LOCALE_COOKIE,
@@ -36,6 +40,7 @@ import {
 } from './lib/locale-negotiation';
 
 const detectedLocaleByRequest = new WeakMap();
+const nonceByRequest = new WeakMap();
 
 /** First visit without NEXT_LOCALE: picks the browser language (unsupported -> en). */
 function detectMissingLocale(request) {
@@ -92,7 +97,7 @@ async function applySessionSlide(response, kind, payload) {
 }
 
 /** Cabeçalhos de segurança (baseline + HSTS/CSP opcionais via env). */
-function withSecurityHeaders(response, { noindex = false, geolocation = false } = {}) {
+function withSecurityHeaders(response, { noindex = false, geolocation = false, nonce } = {}) {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -102,7 +107,7 @@ function withSecurityHeaders(response, { noindex = false, geolocation = false } 
     response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }
 
-  applyContentSecurityPolicyHeaders(response);
+  applyContentSecurityPolicyHeaders(response, nonce);
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim();
   const hstsOn =
@@ -125,7 +130,14 @@ function secureResponse(request, response) {
   const geolocation = pathname === '/employee' || pathname.startsWith('/employee/');
   return withDetectedLocaleCookie(
     request,
-    withJobAttributionCookie(request, withSecurityHeaders(response, { noindex, geolocation }))
+    withJobAttributionCookie(
+      request,
+      withSecurityHeaders(response, {
+        noindex,
+        geolocation,
+        nonce: nonceByRequest.get(request),
+      })
+    )
   );
 }
 
@@ -219,11 +231,16 @@ async function isEmployeeSessionLive(request, payload) {
 }
 
 export async function proxy(request) {
+  // Overwrite client-supplied values; Next extracts this nonce for its own scripts.
+  const nonce = randomBytes(16).toString('base64');
+  nonceByRequest.set(request, nonce);
+  request.headers.set('x-nonce', nonce);
+  request.headers.set('Content-Security-Policy', resolveContentSecurityPolicy(nonce));
   const { pathname } = request.nextUrl;
   detectMissingLocale(request);
 
   if (pathname === SESSION_EDGE_PATH || pathname === EMPLOYEE_SESSION_EDGE_PATH) {
-    return secureResponse(request, NextResponse.next());
+    return secureResponse(request, nextResponse(request));
   }
 
   if (pathname.startsWith('/dashboard') || pathname.startsWith('/api/admin')) {
@@ -232,7 +249,7 @@ export async function proxy(request) {
 
     if (!isManagerRole(payload)) {
       if (token && (await sessionEdgeSaysLive(request))) {
-        return secureResponse(request, NextResponse.next());
+        return secureResponse(request, nextResponse(request));
       }
       if (pathname.startsWith('/api/')) {
         return secureResponse(
@@ -260,7 +277,7 @@ export async function proxy(request) {
       return secureResponse(request, NextResponse.redirect(loginUrl));
     }
 
-    const response = NextResponse.next();
+    const response = nextResponse(request);
     await applySessionSlide(response, 'manager', payload);
     return secureResponse(request, response);
   }
@@ -296,7 +313,7 @@ export async function proxy(request) {
       return secureResponse(request, NextResponse.redirect(loginUrl));
     }
 
-    const response = NextResponse.next();
+    const response = nextResponse(request);
     await applySessionSlide(response, 'employee', emp);
     return secureResponse(request, response);
   }
@@ -306,13 +323,13 @@ export async function proxy(request) {
     const token = request.cookies.get(COOKIE_NAME)?.value;
     const payload = token ? await verifyTokenEdge(token) : null;
     if (isManagerRole(payload) && (await isManagerSessionLive(request, payload))) {
-      const response = NextResponse.next();
+      const response = nextResponse(request);
       await applySessionSlide(response, 'manager', payload);
       return secureResponse(request, response);
     }
   }
 
-  return secureResponse(request, NextResponse.next());
+  return secureResponse(request, nextResponse(request));
 }
 
 export const config = {

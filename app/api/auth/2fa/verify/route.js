@@ -33,6 +33,11 @@ export async function POST(request) {
     }
 
     const verified = await verify2faLogin(userId, body.code);
+    if (verified.code === 'RATE_LIMIT') {
+      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+        headers: { 'Cache-Control': 'no-store', 'Retry-After': String(verified.retryAfterSec) },
+      });
+    }
     if (!verified.ok) {
       if (verified.code === 'TOTP_INVALID') {
         return apiError(request, ERR.TOTP_INVALID, httpStatusForError(ERR.TOTP_INVALID));

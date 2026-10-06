@@ -2,7 +2,7 @@ import './brand-tokens.css';
 import './globals.css';
 import './mobile-fixes.css';
 import './dark-mode.css';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { DEFAULT_LOCALE, LOCALE_COOKIE, localeHtmlLang, normalizeLocale, t } from '../lib/i18n';
 import { I18nBoot } from './_components/I18nBoot';
 import { DarkModeProvider } from './_components/DarkModeProvider';
@@ -32,6 +32,7 @@ export async function generateMetadata() {
 export const viewport = { themeColor: '#111827' };
 
 export default async function RootLayout({ children }) {
+  const nonce = (await headers()).get('x-nonce') || undefined;
   const cookieStore = await cookies();
   const locale = normalizeLocale(cookieStore.get(LOCALE_COOKIE)?.value);
   return (
@@ -39,7 +40,7 @@ export default async function RootLayout({ children }) {
       <head>
         <meta charSet="utf-8"/>
         {/* Apply theme before paint (see lib/theme-mode.js) */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
       </head>
       <body className="m-0 bg-canvas p-0 font-ui text-prose text-ink antialiased">
         <DarkModeProvider>

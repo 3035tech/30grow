@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { LOCALE_COOKIE, LOCALES, normalizeLocale } from '../lib/i18n';
 import {
   buildProductLandingJsonLd,
@@ -16,6 +16,7 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage() {
+  const nonce = (await headers()).get('x-nonce') || undefined;
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
   const copyByLocale = Object.fromEntries(LOCALES.map((loc) => [loc, getProductLandingCopy(loc)]));
   const jsonLd = buildProductLandingJsonLd(locale);
@@ -25,7 +26,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <ProductLandingClient copyByLocale={copyByLocale} locale={locale} blogPosts={blogPosts} />
     </>
   );

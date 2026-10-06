@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Icon } from '../../_components/Icon';
 import { LOCALE_COOKIE, normalizeLocale, t } from '../../../lib/i18n';
@@ -29,6 +29,7 @@ export async function generateMetadata(props) {
 }
 
 export default async function BlogPostPage(props) {
+  const nonce = (await headers()).get('x-nonce') || undefined;
   const { slug } = await props.params;
   const post = getBlogPost(slug);
   if (!post) notFound();
@@ -43,7 +44,7 @@ export default async function BlogPostPage(props) {
 
   return (
     <BlogShell locale={locale}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: buildBlogPostJsonLd(post) }} />
+      <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: buildBlogPostJsonLd(post) }} />
       <BlogBreadcrumb locale={locale} items={[{ href: '/blog', label: t(locale, 'blog.navBlog') }, { label: post.categoryLabel }]} />
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px]">

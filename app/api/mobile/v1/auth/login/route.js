@@ -9,7 +9,11 @@ import {
   signMobileEmployeeSecondFactor,
 } from '../../../../../../lib/mobile-employee-session.js';
 import { query } from '../../../../../../lib/db.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import {
+  accountRateLimitKey,
+  checkRateLimit,
+  clientIpFromRequest,
+} from '../../../../../../lib/rate-limit.js';
 import { parseJsonBody } from '../../../../../../lib/validate.js';
 
 const loginSchema = z.object({
@@ -36,6 +40,17 @@ export async function POST(request) {
     }
     const parsed = await parseJsonBody(request, loginSchema);
     if (!parsed.ok) return parsed.response;
+    const accountRate = await checkRateLimit(
+      accountRateLimitKey('employee-login', parsed.data.email),
+      12,
+      15 * 60 * 1000
+    );
+    if (!accountRate.ok) {
+      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+        headers: { ...NO_STORE, 'Retry-After': String(accountRate.retryAfterSec) },
+      });
+    }
+
     const result = await loginEmployeeWithPassword(query, parsed.data);
     if (!result.ok) return invalidCredentials(request);
     if (result.needsCompanyPick) {

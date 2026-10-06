@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db.js';
 import { verifyPassword } from '../../../../lib/auth.js';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import {
+  accountRateLimitKey,
+  checkRateLimit,
+  clientIpFromRequest,
+} from '../../../../lib/rate-limit.js';
 import { verifyTurnstileToken } from '../../../../lib/turnstile.js';
 import { sign2faChallenge, roleMayUse2Fa } from '../../../../lib/manager-2fa.js';
 import { buildManagerLoginResponse } from '../../../../lib/manager-login-session.js';
@@ -73,8 +77,26 @@ export async function POST(request) {
 
     const { email, password } = body;
 
-    if (!email || !password) {
+    if (
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !email.trim() ||
+      !password ||
+      email.length > 254 ||
+      password.length > 1024
+    ) {
       return apiError(request, ERR.REQUIRED_LOGIN, 400);
+    }
+
+    const accountRate = await checkRateLimit(
+      accountRateLimitKey('manager-login', email),
+      12,
+      15 * 60 * 1000
+    );
+    if (!accountRate.ok) {
+      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+        headers: { 'Retry-After': String(accountRate.retryAfterSec) },
+      });
     }
 
     const res = await loadUserForLogin(email);

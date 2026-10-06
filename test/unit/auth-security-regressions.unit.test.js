@@ -165,3 +165,60 @@ for (const [path, manager] of [['app/api/auth/2fa/verify/route.js', true], ['app
     if (manager) assert.deepEqual(Array.from(queries[0]), [7, 2]);
   });
 }
+
+for (const [path, name, args] of [['lib/manager-2fa.js', 'verify2faLogin', [7, '000000']], ['lib/employee-2fa.js', 'verifyEmployee2faLogin', [8, 9, '000000']]]) {
+  test(`${name}: account cap rejects TOTP attempts before database access`, async () => {
+    let reads = 0;
+    const keys = [];
+    const api = await load(path, {
+      query: async () => { reads++; return { rows: [], rowCount: 0 }; },
+      checkRateLimit: async (key, limit, windowMs) => {
+        keys.push(key); assert.equal(limit, 10); assert.equal(windowMs, 300000);
+        return { ok: false, retryAfterSec: 300 };
+      },
+      verifyPassword: async () => false, isManagerRole: () => true, EMPLOYMENT_STATUS: { EMPLOYEE: 'employee' }, getJwtSecret: () => secret,
+      generateTotpSecret: () => '', verifyTotpCode: () => false, buildOtpAuthUrl: () => '',
+      issueSecondFactorChallenge: async () => ({}), secondFactorChallengeLive: async () => false,
+    });
+    const denied = await api[name](...args);
+    assert.equal(denied.code, 'RATE_LIMIT');
+    assert.equal(denied.retryAfterSec, 300);
+    assert.equal(reads, 0);
+    assert.equal(keys.length, 1);
+  });
+}
+
+test('employee TOTP state rejects a candidate id paired with another company', async () => {
+  const api = await load('lib/employee-2fa.js', {
+    query: async (sql, args) => {
+      assert.match(sql, /c.id = \$1 AND c.company_id = \$2/);
+      const own = args[0] === 8 && args[1] === 9;
+      return { rowCount: own ? 1 : 0, rows: own ? [{ employmentStatus: 'employee', totpEnabledAt: 'now', totpSecret: 'secret' }] : [] };
+    },
+    checkRateLimit: async () => ({ ok: true }), verifyPassword: async () => true,
+    EMPLOYMENT_STATUS: { EMPLOYEE: 'employee' }, getJwtSecret: () => secret,
+    generateTotpSecret: () => '', verifyTotpCode: () => true, buildOtpAuthUrl: () => '',
+    issueSecondFactorChallenge: async () => ({}), secondFactorChallengeLive: async () => false,
+  });
+  assert.equal((await api.verifyEmployee2faLogin(8, 9, '123456')).ok, true);
+  assert.equal((await api.verifyEmployee2faLogin(8, 10, '123456')).ok, false);
+  assert.equal((await api.verifyEmployee2faLogin(9, 9, '123456')).ok, false);
+});
+
+test('manager login account cap denies before SQL/hash work and returns Retry-After', async () => {
+  let reads = 0;
+  const api = await load('app/api/auth/login/route.js', {
+    NextResponse: { json: body => body }, ERR, httpStatusForError: () => 401,
+    apiError: (_request, code, status, _body, options) => ({ code, status, options }),
+    query: async () => { reads++; throw new Error('must not query'); }, verifyPassword: async () => { throw new Error('must not verify'); },
+    checkRateLimit: async key => key.startsWith('manager-login-account:') ? { ok: false, retryAfterSec: 900 } : { ok: true },
+    accountRateLimitKey: (_kind, email) => `manager-login-account:${email.toLowerCase()}`,
+    clientIpFromRequest: () => 'changing-ip', verifyTurnstileToken: async () => ({ ok: true }),
+    sign2faChallenge: async () => '', roleMayUse2Fa: () => true, buildManagerLoginResponse: () => ({}),
+  });
+  const response = await api.POST({ json: async () => ({ email: 'Alice@example.com', password: 'wrong' }) });
+  assert.equal(response.status, 429);
+  assert.equal(response.options.headers['Retry-After'], '900');
+  assert.equal(reads, 0);
+  assert.equal((await api.POST({ json: async () => ({ email: [], password: 'wrong' }) })).status, 400);
+});

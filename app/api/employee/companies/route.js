@@ -88,6 +88,11 @@ export async function POST(request) {
         challenge.companyId,
         body.code
       );
+      if (verified.code === 'RATE_LIMIT') {
+        return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+          headers: { 'Cache-Control': 'no-store', 'Retry-After': String(verified.retryAfterSec) },
+        });
+      }
       if (!verified.ok) {
         const code = verified.code === 'TOTP_INVALID' ? ERR.TOTP_INVALID : ERR.TWO_FA_NOT_ENABLED;
         return apiError(request, code, httpStatusForError(code));
