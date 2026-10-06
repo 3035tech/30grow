@@ -92,6 +92,12 @@ Navegação, carregamento e salvamento. Sem mudança de API nem de regra de neg�
 - Trocar questionário: 1 `INSERT … SELECT unnest … WITH ORDINALITY` por tabela (competências do ciclo, perguntas abertas, itens de todos os rascunhos).
 - Prova: `test/dtov/formal-cycle-publish-batch.dtov.test.js` (lote = caminho por avaliação em 90/180/360 com autoavaliação, contagem de queries, rollback, troca de questionário).
 
+**HR Score em lote (B-2804.4)**
+- `recalculateCompanyScores`: além das 8 leituras em lote dos sinais, tendência de risco em 5 queries (`detectTrendChanges`: riscos salvos + `loadTurnoverRadars`) e notas de 1:1 em 1 (`loadRecentOneOnOneNotes`), lidas antes de gravar; predições sem query (`predictionsFromSignals`; `profile_fit` não é persistido); 1 upsert `unnest` (`saveHrScores`). Antes: ~9 queries por pessoa. Notificação de piora só para quem piorou, depois do upsert.
+- Um único cálculo do radar (`loadTurnoverRadars`) serve o radar individual, a lista da empresa (`getCompanyTurnoverRisks`) e a tendência; `notifyTurnoverRiskChanges` também usa o lote.
+- Recálculo de uma pessoa (`GET /api/admin/hr-score/[id]` quando vencido, `POST …/recalculate` com `candidateId`): `recalculateCandidateHrScore`, mesma regra tendência → grava → notifica.
+- Prova: `test/dtov/hr-score-batch.dtov.test.js` (lote = caminho por pessoa em radar, tendência e predições; contagem de queries igual para 3 ou 40 pessoas; notificação de piora; `saveHrScore` individual).
+
 Pendências maiores (escopo/risco) estão em `docs/BACKLOG.md` § Performance.
 
 ## EXPLAIN checklist (DTOV)
@@ -124,4 +130,4 @@ Aceite manual: planos sem Seq Scan óbvio nas tabelas quentes (`assessments`, `c
 | LMS lessons / course (employee list) | 60 |
 | Employee notify batch | 200 |
 | Cron notify chunk | 4 (`DB_FANOUT_CONCURRENCY`, `lib/concurrency.js`) |
-| Fan-out por item com várias queries (HR Score lote, resultados de avaliação formal) | 4 em paralelo (`mapWithConcurrency`) |
+| Fan-out por item com várias queries (notificação de piora no HR Score lote, resultados de avaliação formal) | 4 em paralelo (`mapWithConcurrency`) |

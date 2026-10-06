@@ -5,14 +5,8 @@ import {
   CAP,
   requireCapability,
 } from '../../../../../lib/ae/require-admin.js';
-import { queryRead, query } from '../../../../../lib/db.js';
-import {
-  calculateHrScore,
-  recalculateCompanyScores,
-  saveHrScore,
-} from '../../../../../lib/hr-score.js';
-import { calculateAllPredictions } from '../../../../../lib/hr-predictions.js';
-import { detectTrendChange, emitTurnoverRiskChangeNotification } from '../../../../../lib/turnover-radar.js';
+import { queryRead } from '../../../../../lib/db.js';
+import { recalculateCandidateHrScore, recalculateCompanyScores } from '../../../../../lib/hr-score.js';
 
 /**
  * POST /api/admin/hr-score/recalculate
@@ -50,15 +44,10 @@ export async function POST(request) {
         return apiError(request, ERR.UNAUTHORIZED, 401);
       }
 
-      const change = await detectTrendChange(candidate.id);
-      const scoreData = await calculateHrScore(candidate.id, candidate.companyId);
-      const predictions = await calculateAllPredictions(candidate.id, scoreData.signals);
-      await saveHrScore(candidate.id, candidate.companyId, scoreData, predictions);
-      await emitTurnoverRiskChangeNotification(query, {
+      const { scoreData, predictions } = await recalculateCandidateHrScore({
         candidateId: candidate.id,
         companyId: candidate.companyId,
         candidateName: candidate.fullName,
-        change,
       });
 
       return Response.json({

@@ -104,7 +104,7 @@ i18n por chunk de locale (`I18nBoot`), lazy de tour/wizard/radar/Sentry Replay, 
 1. ~~**Banco de horas calculado em escala**~~ ✅ base = fechamento ou checkpoint diário (migration 148, cron `hour-bank-checkpoints`, invalidação por trigger) + janela por pessoa nas queries em lote.
 2. ~~**Publicar ciclo de avaliação formal**~~ ✅ `publishFormalReviewCycle`: 6 queries para qualquer nº de pessoas (validação em 1 leitura, respondentes em 1 upsert `unnest`) + `GET …/formal-review-cycles/[id]/respondents` (matriz do ciclo inteiro, cap 200) no lugar de N GETs.
 3. ~~**Trocar questionário do ciclo**~~ ✅ competências, perguntas abertas e itens de todos os rascunhos em `INSERT … SELECT unnest … WITH ORDINALITY` (1 insert cada).
-4. **HR Score em lote**: `detectTrendChange` recalcula o radar por pessoa (reusa sinais já carregados em batch); `saveHrScore` em upsert `unnest`.
+4. ~~**HR Score em lote**~~ ✅ `recalculateCompanyScores` com tendência (`detectTrendChanges` + `loadTurnoverRadars`), notas de 1:1 e predições em lote, um único upsert `unnest` (`saveHrScores`) e notificação só para quem piorou: número fixo de queries para qualquer nº de pessoas.
 5. **OKR hierarquia**: carrega áreas/atividades/assignees só para derivar ids; caps aplicados em JS; joins O(n·m) com `filter`.
 6. **Navegação client-only** para abas que buscam os próprios dados (Vagas, Usuários, LMS, OKR, Clima, PDI): hoje cada troca passa pelo loader SSR antes do fetch da aba.
 7. **Overview**: 8+ cards com fetch próprio após o SSR; avaliar dobrar resumos baratos em `buildOverviewMetrics`.

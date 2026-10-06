@@ -1,4 +1,4 @@
-import { query, queryRead } from '../../../../../lib/db.js';
+import { queryRead } from '../../../../../lib/db.js';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import {
   getSessionPayload,
@@ -6,12 +6,8 @@ import {
   CAP,
   requireAnyCapability,
 } from '../../../../../lib/ae/require-admin.js';
-import { calculateHrScore, getHrScore, saveHrScore } from '../../../../../lib/hr-score.js';
-import { calculateAllPredictions } from '../../../../../lib/hr-predictions.js';
-import {
-  detectTrendChange,
-  emitTurnoverRiskChangeNotification,
-} from '../../../../../lib/turnover-radar.js';
+import { getHrScore, recalculateCandidateHrScore } from '../../../../../lib/hr-score.js';
+import { EMPLOYMENT_STATUS } from '../../../../../lib/domain-status.js';
 
 /**
  * GET /api/admin/hr-score/[candidateId]
@@ -34,11 +30,12 @@ export async function GET(request, props) {
 
     // Verificar tenant e existência do candidato
     const candidateRes = await queryRead(
-      `SELECT id, company_id AS "companyId", full_name AS "fullName", employee
+      `SELECT id, company_id AS "companyId", full_name AS "fullName",
+              employment_status = $2 AS employee
        FROM candidates
-       WHERE id = $1 AND deleted = FALSE
+       WHERE id = $1
        LIMIT 1`,
-      [candidateId]
+      [candidateId, EMPLOYMENT_STATUS.EMPLOYEE]
     );
 
     if (candidateRes.rowCount === 0) {
@@ -61,18 +58,10 @@ export async function GET(request, props) {
       (Date.now() - new Date(score.calculatedAt).getTime()) > 7 * 24 * 60 * 60 * 1000;
 
     if (needsRecalc) {
-      // Antes do save — lê turnover_risk anterior
-      const change = await detectTrendChange(candidateId);
-
-      const scoreData = await calculateHrScore(candidateId, candidate.companyId);
-      const predictions = await calculateAllPredictions(candidateId, scoreData.signals);
-
-      await saveHrScore(candidateId, candidate.companyId, scoreData, predictions);
-      await emitTurnoverRiskChangeNotification(query, {
+      await recalculateCandidateHrScore({
         candidateId,
         companyId: candidate.companyId,
         candidateName: candidate.fullName,
-        change,
       });
       score = await getHrScore(candidateId);
     }

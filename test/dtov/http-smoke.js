@@ -533,6 +533,14 @@ export async function runHttpSmoke(baseUrl) {
       const n = Array.isArray(data?.items) ? data.items.length : -1;
       ok('talent-bank', 'has-shape', `n=${n} total=${data?.total ?? '?'}`);
     }
+    const personId = data?.items?.[0]?.id;
+    if (personId) {
+      const { res: hs, data: hsData } = await req(base, `/api/admin/hr-score/${personId}`, { cookie: hrCookie });
+      if (await expectStatus('hr-score', 'person', hs.status, 200)) {
+        if (typeof hsData?.score === 'number' && typeof hsData?.employee === 'boolean') ok('hr-score', 'person-shape', `score=${hsData.score}`);
+        else fail('hr-score', 'person-shape', JSON.stringify(hsData).slice(0, 160));
+      }
+    }
   }
   if (vacancyId) {
     const { res } = await req(base, `/api/admin/vacancies/${vacancyId}`, { cookie: hrCookie });
