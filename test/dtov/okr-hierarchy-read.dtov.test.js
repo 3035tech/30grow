@@ -104,11 +104,22 @@ try {
     assert.equal('lastCheckinAt' in act, false);
   }
 
-  // KR hierarchy.
+  // KR hierarchy: every cycle as a header, full tree only for the selected one.
   const tree = await listOkrHierarchy(db, { companyId });
   assert.equal(tree.ok, true);
   assert.equal('objectives' in tree, false, 'no duplicated top-level objectives list');
-  const [treeA, treeB] = tree.cycles;
+  assert.deepEqual(tree.cycles.map((c) => c.id), [cycleA, cycleB]);
+  for (const header of tree.cycles) assert.deepEqual(Object.keys(header).sort(), ['endsOn', 'id', 'startsOn', 'status', 'title']);
+  assert.equal(tree.cycle.id, cycleA, 'defaults to the latest cycle');
+  const treeA = tree.cycle;
+  const treeB = (await listOkrHierarchy(db, { companyId, cycleId: cycleB })).cycle;
+  assert.equal(treeB.id, cycleB);
+  assert.equal((await listOkrHierarchy(db, { companyId, cycleId: 999999999 })).cycle.id, cycleA, 'unknown id falls back to the latest');
+  const foreignCycle = Number((await one('SELECT id FROM okr_cycles WHERE company_id=$1', [otherCompanyId])).id);
+  assert.equal((await listOkrHierarchy(db, { companyId, cycleId: foreignCycle })).cycle.id, cycleA, 'another tenant cycle id is ignored');
+  const lonely = await listOkrCycles(db, { companyId, onlyCycleId: cycleB, withActivityDetails: false });
+  assert.equal(lonely.selectedCycleId, cycleB);
+  assert.equal('areas' in lonely.cycles.find((c) => c.id === cycleA), false, 'non-selected cycles are headers only');
   const [tArea2, tArea1] = treeA.areas;
   assert.deepEqual(ids(tArea1.objectives), [o1, o2]);
   assert.deepEqual(ids(tArea2.objectives), [o3]);
@@ -131,7 +142,9 @@ try {
   assert.equal(tBig.objectives[0].keyResults[0].assignees.length, OKR_KR_ASSIGNEE_CAP);
 
   assert.deepEqual((await listOkrHierarchy(db, { companyId: otherCompanyId })).cycles.map((c) => c.title), ['Foreign']);
-  console.log('[dtov] okr-hierarchy-read ok: lean/full cycles, SQL caps (areas, activities, owners, objectives, KRs), ordering, rollups, tenant isolation');
+  const emptyCompany = Number((await one("INSERT INTO companies(name,slug) VALUES('OKR none',$1) RETURNING id", [`okr-none-${crypto.randomUUID()}`])).id);
+  assert.deepEqual(await listOkrHierarchy(db, { companyId: emptyCompany }), { ok: true, cap: 12, cycles: [], cycle: null });
+  console.log('[dtov] okr-hierarchy-read ok: single-cycle tree + headers, lean/full cycles, SQL caps (areas, activities, owners, objectives, KRs), ordering, rollups, tenant isolation');
 } finally {
   await db.query('ROLLBACK');
   await db.end();

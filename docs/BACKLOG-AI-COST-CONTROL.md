@@ -1,6 +1,6 @@
 # Backlog — Controle de custo de IA (B-2700)
 
-Registro da análise de out/2026. **B-2701–B-2704 e B-2706 entregues** (ver abaixo); B-2705 (cache) em aberto. Ao entregar um sub-item, remover daqui e do resumo em `docs/BACKLOG.md`.
+Registro da análise de out/2026. **B-2701–B-2706 entregues** (ver abaixo); só resta a ação de ops no painel do fornecedor. Ao entregar um sub-item, remover daqui e do resumo em `docs/BACKLOG.md`.
 
 ## Estado atual (out/2026)
 
@@ -17,7 +17,7 @@ Registro da análise de out/2026. **B-2701–B-2704 e B-2706 entregues** (ver ab
 | Tradução de catálogo (offline, dev) | `scripts/i18n-translate-catalog.mjs` | — | script local |
 
 - **Sem LLM (custo zero):** leitura de currículo (`candidate-cv`), temas de clima (`climate-themes`). `lib/health-status.js` só faz ping em `/v1/models`.
-- **Lacunas (antes de B-2701–B-2703):** sem teto por empresa, sem registro de tokens/custo, sem kill switch, URL do fornecedor fixa. Ainda sem cache e sem modelo por funcionalidade.
+- **Lacunas (antes de B-2701–B-2703):** sem teto por empresa, sem registro de tokens/custo, sem kill switch, URL do fornecedor fixa. Cache e modelo por funcionalidade entraram depois (B-2704, B-2705).
 
 ## Ordem de grandeza de custo (estimativa; validar preços atuais)
 
@@ -39,7 +39,9 @@ Todo uso é geração de texto/JSON em português (sem imagem, áudio ou embeddi
 
 ## Itens de implementação
 
-### Entregue (out/2026): B-2701 + B-2702 + B-2703 + B-2704 + B-2706
+### Entregue (out/2026): B-2701 a B-2706
+
+- **Cache de respostas repetidas (B-2705):** `lib/ai-response-cache.js`, ligado por chamada com a opção `cache` de `openAiChatCompletion`. Chave = hash de feature + modelo + parâmetros + mensagens normalizadas (espaços colapsados), TTL 24h. Redis quando há `REDIS_URL` (`getSharedRedisClient`); sem Redis, LRU em memória do processo (500 entradas). Escopo: Ajuda é global (prompt sem dado da empresa); rubrica só com `companyId` (prompt tem texto da vaga/cargo). Acerto não consome cota nem grava `ai_usage_events`. JSON mode só entra no cache quando a resposta é JSON válido. Assistentes da vaga e interpretação de pessoas **não** usam cache (dados individuais, resposta pouco repetível). `AI_RESPONSE_CACHE=0` desliga. Métrica em memória `aiCache.hit/miss`.
 
 - **Modelo por funcionalidade (B-2704):** env `AI_MODEL_<FEATURE>` (ex.: `AI_MODEL_HELP_ASSISTANT=gpt-4.1-nano`); vazio = `OPENAI_RUBRIC_MODEL`. O evento grava o modelo usado, então a tela de consumo mostra o efeito da troca.
 - **Tela de consumo (B-2706):** Empresas → Consumo de IA (só admin; `GET /api/admin/ai-usage`). Filtros mês (12 últimos) / empresa / funcionalidade; totais de chamadas, tokens e custo estimado; chips por funcionalidade; tabela paginada por empresa com chamadas / teto (vermelho quando atingido).
@@ -49,9 +51,3 @@ Todo uso é geração de texto/JSON em português (sem imagem, áudio ou embeddi
 - **Kill switch / fornecedor:** `AI_ENABLED=0` → "IA indisponível" (503 `RUBRIC_AI_NOT_CONFIGURED`); `AI_GLOBAL_MONTHLY_CALL_LIMIT` opcional; `OPENAI_BASE_URL` (só https). Health marca `skipped/disabled`.
 - **Limites conhecidos:** mês fechado em `date_trunc('month', NOW())` do Postgres (UTC: no Brasil vira às 21h do último dia); checagem e gravação não são atômicas, então chamadas simultâneas podem passar o teto em poucas unidades (o rate limit por usuário segura); preços em `PRICE_PER_MTOK` precisam de revisão ao trocar de modelo.
 - **Ação de ops ainda recomendada:** limite mensal + alertas no painel da OpenAI (rede de segurança fora do código).
-
-### B-2705 — Cache de respostas repetidas
-- Redis (Upstash, já opcional no projeto) por hash de `feature + modelo + entrada normalizada`, TTL 24h, escopo por `company_id` quando houver dado da empresa no prompt.
-- Alvos: perguntas de Ajuda, rubrica do mesmo cargo.
-
-**Próximo corte:** B-2705 (cache), só se o consumo real justificar. Medir antes na tela de consumo.

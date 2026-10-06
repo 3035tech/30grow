@@ -53,9 +53,9 @@ try {
   const checked=await recordKeyResultCheckin(db,{companyId,keyResultId,candidateId,currentValue:7.5,note:'Faster'});
   assert.equal(checked.keyResult.progressPct,50);
   const hierarchy=await listOkrHierarchy(db,{companyId});
-  assert.equal(hierarchy.cycles[0].areas[0].title,'Commercial');
-  assert.equal(hierarchy.cycles[0].areas[0].objectives[0].keyResults[0].currentValue,7.5);
-  assert.equal(hierarchy.cycles[0].progressPct,50);
+  assert.equal(hierarchy.cycle.areas[0].title,'Commercial');
+  assert.equal(hierarchy.cycle.areas[0].objectives[0].keyResults[0].currentValue,7.5);
+  assert.equal(hierarchy.cycle.progressPct,50);
   assert.equal((await listAssignedKeyResults(db,{companyId,candidateId}))[0].objectiveTitle,'Grow sales');
   assert.equal((await listAssignedKeyResults(db,{companyId,candidateId:unassignedId})).length,0);
   assert.equal((await saveAreaObjective(db,{companyId,objectiveId,title:'Grow sales',periodEnd:'2026-10-01',userId})).ok,false);

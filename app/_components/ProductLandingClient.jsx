@@ -9,6 +9,7 @@ import { useLocale } from '../../lib/useLocale';
 import { localeHtmlLang, normalizeLocale } from '../../lib/i18n';
 import LandingAnalytics from './LandingAnalytics';
 import { ContentEnter } from './AppLoading';
+import { BlogPostCard } from './BlogPostCard';
 
 const PILLAR_ICONS = ['vacancies', 'compatibility', 'team', 'academy', 'dp'];
 const TYPE_BARS = [54, 72, 45, 61, 84, 57, 68, 42, 76];
@@ -97,7 +98,7 @@ function HrReportsPreview({ copy }) {
   );
 }
 
-export default function ProductLandingClient({ copyByLocale, locale: initialLocale }) {
+export default function ProductLandingClient({ copyByLocale, locale: initialLocale, blogPosts = [] }) {
   const [locale, setLocale] = useLocale(initialLocale);
   const copy = copyByLocale[normalizeLocale(locale)] || copyByLocale['pt-BR'];
   const u = copy.ui;
@@ -123,11 +124,27 @@ export default function ProductLandingClient({ copyByLocale, locale: initialLoca
           <section id="app-colaborador" className="overflow-hidden border-y border-ink/8 bg-navy py-16 text-white sm:py-20" aria-labelledby="employee-app-title"><div className="mx-auto grid max-w-6xl gap-14 px-5 sm:px-8 lg:grid-cols-[1fr_.72fr] lg:items-center"><div className="max-w-2xl"><p className="mb-3 font-ui text-2xs font-medium text-brand-300">{copy.employeeApp.eyebrow}</p><h2 id="employee-app-title" className="m-0 font-display text-3xl font-semibold leading-[1.1] tracking-[-0.025em] text-white sm:text-4xl">{copy.employeeApp.title}</h2><p className="mb-0 mt-6 text-base leading-7 text-white/65 sm:text-lg">{copy.employeeApp.body}</p><p className="mb-0 mt-6 inline-flex items-center gap-2 rounded-full border border-brand-300/35 bg-brand-500/10 px-3 py-1.5 font-ui text-[10px] uppercase tracking-[0.08em] text-brand-200"><span className="h-1.5 w-1.5 rounded-full bg-brand-300" />{copy.employeeApp.status}</p><ul className="mb-0 mt-8 grid list-none gap-4 p-0 sm:grid-cols-2">{copy.employeeApp.features.map((item) => <li key={item} className="flex gap-3 text-sm leading-6 text-white/80"><span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-500/20 text-brand-200"><Icon name="check" className="h-3.5 w-3.5" /></span>{item}</li>)}</ul><p className="mb-0 mt-8 max-w-xl border-t border-white/10 pt-5 text-xs leading-5 text-white/45">{copy.employeeApp.note}</p></div><EmployeeAppPreview copy={copy} /></div></section>
           <section className="border-y border-ink/8 bg-surface py-16 sm:py-20" aria-labelledby="outcomes-title"><div className="mx-auto grid max-w-6xl gap-12 px-5 sm:px-8 lg:grid-cols-[.7fr_1.3fr]"><SectionHeading label={copy.outcomesLabel} title={copy.outcomesTitle} id="outcomes-title" /><div className="grid gap-px overflow-hidden rounded-card border border-ink/10 bg-ink/10 sm:grid-cols-2">{copy.outcomes.map((outcome, index) => <article key={outcome.title} className="bg-canvas p-5 sm:p-6"><span className="font-ui text-xs text-brand-600">0{index + 1}</span><h3 className="mb-0 mt-5 text-base font-semibold text-ink">{outcome.title}</h3><p className="mb-0 mt-2 text-sm leading-6 text-ink-muted">{outcome.body}</p></article>)}</div></div></section>
           <section id="confianca" className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20" aria-labelledby="trust-title"><div className="rounded-card border border-brand-300/50 bg-brand-50 p-6 sm:p-8 lg:flex lg:items-center lg:justify-between lg:gap-12"><SectionHeading label={copy.trustLabel} title={copy.trustTitle} id="trust-title" /><ul className="mb-0 mt-8 grid max-w-2xl list-none gap-3 p-0 lg:mt-0">{copy.trustItems.map((item) => <li key={item} className="flex gap-3 text-sm leading-6 text-ink-muted"><Icon name="check" className="mt-1 h-4 w-4 shrink-0 text-brand-600" />{item}</li>)}</ul></div></section>
+          {blogPosts.length ? (
+            <section id="blog" className="border-t border-ink/8 bg-surface py-16 sm:py-20" aria-labelledby="blog-title">
+              <div className="mx-auto max-w-6xl px-5 sm:px-8">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                  <SectionHeading label={copy.blog.label} title={copy.blog.title} body={copy.blog.body} id="blog-title" />
+                  <Link href="/blog" className="inline-flex min-h-touch items-center gap-2 text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">{copy.blog.allPosts}<Icon name="chevronRight" className="h-4 w-4" /></Link>
+                </div>
+                <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-3" lang="pt-BR">
+                  {blogPosts.map((post) => (
+                    <li key={post.slug}><BlogPostCard post={post} headingLevel="h3" readMinutesLabel={copy.blog.readMinutes.replace('{n}', String(post.readingMinutes))} /></li>
+                  ))}
+                </ul>
+                {normalizeLocale(locale) !== 'pt-BR' ? <p className="mb-0 mt-4 text-xs text-ink-faint">{copy.blog.contentLanguageNote}</p> : null}
+              </div>
+            </section>
+          ) : null}
           <section id="faq" className="mx-auto max-w-4xl px-5 pb-16 sm:px-8 sm:pb-20" aria-labelledby="faq-title"><SectionHeading label={copy.faqLabel} title={copy.faqTitle} id="faq-title" /><div className="mt-8 divide-y divide-ink/10 border-y border-ink/10">{copy.faqs.map((faq) => <details key={faq.q} className="group py-1"><summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-4 py-4 text-base font-semibold text-ink marker:content-none [&::-webkit-details-marker]:hidden">{faq.q}<Icon name="chevronDown" className="h-4 w-4 shrink-0 text-ink-faint transition-transform group-open:rotate-180" /></summary><p className="mb-5 mt-0 max-w-2xl text-sm leading-6 text-ink-muted">{faq.a}</p></details>)}</div></section>
           <section id="oferta" className="bg-navy py-14 text-white sm:py-16"><div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between"><div className="max-w-2xl"><p className="mb-3 font-ui text-2xs font-medium text-brand-300">{copy.earlyLabel}</p><h2 className="m-0 font-display text-3xl font-semibold leading-tight text-white sm:text-4xl">{copy.earlyTitle}</h2><p className="mb-0 mt-4 text-base leading-7 text-white/65">{copy.earlyBody}</p></div><div className="shrink-0"><Link href="/signup" className="inline-flex min-h-touch items-center justify-center rounded-control bg-white px-6 py-3.5 font-semibold text-brand-800 no-underline hover:bg-brand-50">{copy.ctaEarly}</Link><p className="mb-0 mt-3 text-xs text-white/70">{copy.earlyContact} <a className="text-white underline-offset-2 hover:underline" href={`mailto:${PRODUCT_LANDING_CONTACT_EMAIL}`}>{PRODUCT_LANDING_CONTACT_EMAIL}</a></p></div></div></section>
         </main>
       </ContentEnter>
-      <footer className="border-t border-ink/8 bg-surface py-8"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"><div><BrandMark size={26} withWordmark /><p className="mb-0 mt-2 max-w-xl text-xs leading-5 text-ink-faint">{copy.footerLegal}</p></div><div className="flex flex-wrap gap-5 text-sm"><Link href="/pricing" className="text-ink-muted no-underline hover:text-ink">{copy.footerPricing}</Link><Link href="/privacy" className="text-ink-muted no-underline hover:text-ink">{copy.footerPrivacy}</Link><Link href="/terms" className="text-ink-muted no-underline hover:text-ink">{copy.footerTerms}</Link><Link href="/login" className="text-ink-muted no-underline hover:text-ink">{copy.navLogin}</Link><Link href="/employee/login" className="text-ink-muted no-underline hover:text-ink">{copy.navEmployee}</Link></div></div></footer>
+      <footer className="border-t border-ink/8 bg-surface py-8"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"><div><BrandMark size={26} withWordmark /><p className="mb-0 mt-2 max-w-xl text-xs leading-5 text-ink-faint">{copy.footerLegal}</p></div><div className="flex flex-wrap gap-5 text-sm"><Link href="/pricing" className="text-ink-muted no-underline hover:text-ink">{copy.footerPricing}</Link><Link href="/blog" className="text-ink-muted no-underline hover:text-ink">{u.navBlog}</Link><Link href="/privacy" className="text-ink-muted no-underline hover:text-ink">{copy.footerPrivacy}</Link><Link href="/terms" className="text-ink-muted no-underline hover:text-ink">{copy.footerTerms}</Link><Link href="/login" className="text-ink-muted no-underline hover:text-ink">{copy.navLogin}</Link><Link href="/employee/login" className="text-ink-muted no-underline hover:text-ink">{copy.navEmployee}</Link></div></div></footer>
     </div>
   );
 }

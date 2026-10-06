@@ -33,7 +33,9 @@ function OkrHierarchyContent({ locale, companyId }) {
   const { promptForm, confirm } = useAppFeedback();
   const [notice, setNotice] = useState(null);
   const [cycles, setCycles] = useState([]);
+  const [cycle, setCycle] = useState(null);
   const [activeId, setActiveId] = useState(null);
+  const activeIdRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,26 +43,31 @@ function OkrHierarchyContent({ locale, companyId }) {
   const [areaId, setAreaId] = useState('all');
   const [detailId, setDetailId] = useState(null);
   const qs = companyId ? `?companyId=${encodeURIComponent(companyId)}` : '';
-  const load = useCallback(async () => {
+  const load = useCallback(async (cycleId = activeIdRef.current) => {
     const version = ++requestVersion.current;
     setLoading(true); setError(false);
     try {
-      const response = await fetch(`/api/admin/okr/hierarchy${companyId ? `?companyId=${encodeURIComponent(companyId)}` : ''}`);
+      const params = new URLSearchParams();
+      if (companyId) params.set('companyId', String(companyId));
+      if (cycleId) params.set('cycleId', String(cycleId));
+      const response = await fetch(`/api/admin/okr/hierarchy${params.size ? `?${params}` : ''}`);
       if (!response.ok) throw new Error('load');
       const data = await response.json();
       if (!active.current || version !== requestVersion.current) return false;
       setCycles(data.cycles || []);
-      setActiveId(id => data.cycles?.some(c => c.id === id) ? id : data.cycles?.[0]?.id ?? null);
+      setCycle(data.cycle || null);
+      activeIdRef.current = data.cycle?.id ?? null;
+      setActiveId(activeIdRef.current);
       return true;
     } catch { if (active.current && version === requestVersion.current) setError(true); return false; }
     finally { if (active.current && version === requestVersion.current) setLoading(false); }
   }, [companyId]);
   useEffect(() => { void load(); }, [load]);
-  const cycle = cycles.find(c => c.id === activeId);
+  const switchingCycle = loading && cycle != null && cycle.id !== activeId;
   useEffect(() => { if (areaId !== 'all' && !cycle?.areas.some(area => String(area.id) === areaId)) setAreaId('all'); }, [cycle, areaId]);
   const visibleAreas = cycle?.areas.filter(area => areaId === 'all' || String(area.id) === areaId) || [];
   const cycleClosed = cycle?.status === OKR_CYCLE_STATUS.CLOSED;
-  const locked = busy || cycleClosed;
+  const locked = busy || switchingCycle || cycleClosed;
   const date = value => formatDisplayDate(value, locale);
   const number = value => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value);
   const pct = value => value == null ? tr('noMeasurement') : `${number(value)}%`;
@@ -79,9 +86,8 @@ function OkrHierarchyContent({ locale, companyId }) {
       if (!response.ok) throw new Error(data.error || tr('saveError'));
       if (!active.current) return data;
       setHistory(null);
-      const refreshed = await load();
+      const refreshed = await load(data.cycle?.id ?? activeIdRef.current);
       if (!active.current) return data;
-      if (data.cycle?.id) setActiveId(data.cycle.id);
       setNotice({message:refreshed ? tr('saved') : tr('savedRefreshFailed'),error:!refreshed});
       return data;
     } catch (e) {
@@ -144,32 +150,33 @@ function OkrHierarchyContent({ locale, companyId }) {
   const progress = (name,value,className='sm:w-36') => <div className={cn('w-full shrink-0',className)}><span className="text-sm font-medium tabular-nums text-ink">{pct(value)}</span><MeterBar percent={value ?? 0} height={6} aria-label={`${name}: ${pct(value)}`} /></div>;
   const moreLabel = name => tr('moreActions', { name });
   if(loading && !cycles.length) return <AppLoading locale={locale} variant="panel" label={tr('loading')} />;
-  if(error) return <div role="alert" className="flex flex-col items-start gap-3">{notice && <p className={muted}>{notice.message}</p>}<p className={muted}>{tr('loadError')}</p><button className={S.btnBrandSoft} onClick={load}>{tr('retry')}</button></div>;
+  if(error) return <div role="alert" className="flex flex-col items-start gap-3">{notice && <p className={muted}>{notice.message}</p>}<p className={muted}>{tr('loadError')}</p><button className={S.btnBrandSoft} onClick={()=>void load()}>{tr('retry')}</button></div>;
   return <section className="flex min-w-0 flex-col gap-5" aria-label="OKRs" aria-busy={busy || loading}>
     {notice && <div role={notice.error?'alert':'status'} className={`flex items-center justify-between gap-3 rounded-control border p-3 text-sm ${notice.error?'border-danger/30 text-red-800 dark:text-danger':'border-success/30 text-ink'}`}><span>{notice.message}</span><button className="min-h-touch min-w-touch" aria-label={tr('dismissNotice')} onClick={()=>setNotice(null)}>×</button></div>}
     <AdminPageHeader title="OKRs" subtitle={tr('subtitle')} actions={<AdminCreateButton label={tr('newCycle')} onClick={newCycle} disabled={busy} />} />
     {!cycle ? <EmptyState title={tr('emptyTitle')} message={tr('emptyMessage')} actionLabel={tr('newCycle')} onAction={newCycle} actionDisabled={busy} /> : <ContentEnter animKey={cycle.id} className="flex min-w-0 flex-col gap-5">
       <div className="rounded-card border border-ink/12 bg-surface p-4">
         <div className="grid min-w-0 items-end gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto]">
-          <FormField label={tr('activeCycle')} htmlFor="okr-cycle"><SelectField className="w-full" disabled={busy || loading} id="okr-cycle" aria-label={tr('activeCycle')} value={activeId} onChange={e=>{setActiveId(Number(e.target.value));setAreaId('all');setDetailId(null);setHistory(null);setNotice(null);}}>{cycles.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</SelectField></FormField>
+          <FormField label={tr('activeCycle')} htmlFor="okr-cycle"><SelectField className="w-full" disabled={busy || loading} id="okr-cycle" aria-label={tr('activeCycle')} value={activeId} onChange={e=>{const id=Number(e.target.value);activeIdRef.current=id;setActiveId(id);setAreaId('all');setDetailId(null);setHistory(null);setNotice(null);void load(id);}}>{cycles.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</SelectField></FormField>
           <FormField label={tr('area')} htmlFor="okr-area"><SelectField className="w-full" id="okr-area" aria-label={tr('area')} disabled={busy || loading} value={areaId} onChange={event => { setAreaId(event.target.value); setDetailId(null); setHistory(null); }}>
             <option value="all">{tr('allAreas')}</option>
             {cycle.areas.map(area => <option key={area.id} value={area.id}>{area.title}</option>)}
           </SelectField></FormField>
           <div className="flex flex-wrap items-center justify-end gap-2 md:col-span-2 xl:col-span-1">
             <AdminCreateButton variant="secondary" label={tr('newArea')} onClick={()=>editArea()} disabled={locked} />
-            <RowActionsMenu label={moreLabel(cycle.title)} disabled={busy} items={[
+            <RowActionsMenu label={moreLabel(cycle.title)} disabled={busy || switchingCycle} items={[
               {id:'status',label:cycleClosed?tr('reopenCycle'):tr('closeCycle'),onSelect:()=>mutate({status:cycleClosed?OKR_CYCLE_STATUS.ACTIVE:OKR_CYCLE_STATUS.CLOSED},`/api/admin/okr/cycles/${cycle.id}`,'PATCH')},
               {id:'delete',label:tr('deleteCycle'),danger:true,disabled:locked,onSelect:()=>remove('cycle',cycle,`/api/admin/okr/cycles/${cycle.id}${qs}`)},
             ]} />
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/12 pt-3">
+        {!switchingCycle && <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/12 pt-3">
           <p className={cn(muted,'m-0')}>{tr('period', { start: date(cycle.startsOn), end: date(cycle.endsOn) })} · {cycleClosed?tr('statusClosed'):tr('statusActive')}</p>
           {progress(cycle.title,cycle.progressPct,'sm:w-48')}
-        </div>
+        </div>}
         <CollapsibleBlock locale={locale} className="mt-2" bordered={false} title={tr('progressHowTitle')} titleClassName="font-ui text-prose text-ink-muted"><p className={cn(muted,'m-0 pb-1')}>{tr('progressHowBody')}</p></CollapsibleBlock>
       </div>
+      {switchingCycle ? <AppLoading locale={locale} variant="panel" label={tr('loading')} /> : <>
       {!cycle.areas.length && <p className={muted}>{cycleClosed ? tr('closedNoAreas') : tr('noAreas')}</p>}
       {visibleAreas.map(area=><section key={area.id} className="min-w-0 rounded-card border border-ink/12 bg-surface p-4" aria-label={`${tr('area')}: ${area.title}`}>
         <div className="flex flex-wrap items-center gap-3">
@@ -247,6 +254,7 @@ function OkrHierarchyContent({ locale, companyId }) {
         </CollapsibleBlock></article>)}</div>}
         {!!area.activities?.length && <CollapsibleBlock locale={locale} className="mt-3" bordered={false} count={area.activities.length} title={tr('previousActivities')} titleClassName="font-ui text-prose text-ink-muted"><ul className="m-0 list-none space-y-1 p-0 pb-1">{area.activities.map(a=><li className={`${muted} break-words`} key={a.id}>{a.title} · {a.progressPct}%</li>)}</ul></CollapsibleBlock>}
       </section>)}
+      </>}
     </ContentEnter>}
   </section>;
 }

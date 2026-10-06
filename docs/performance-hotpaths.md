@@ -113,9 +113,14 @@ Navegação, carregamento e salvamento. Sem mudança de API nem de regra de neg�
 **OKR hierarquia + Visão geral (B-2804.5 / B-2804.7)**
 - `listOkrHierarchy` chama `listOkrCycles({ withActivityDetails: false })`: as atividades legadas aparecem só com título e %, então responsáveis e o `LATERAL` de check-ins por atividade saem dessa leitura (a tela de ciclos continua com eles).
 - Caps por pai em SQL (`ROW_NUMBER() OVER (PARTITION BY …)`): áreas 24/ciclo, atividades 40/área, responsáveis 20/atividade, objetivos 40/área, KRs 8/objetivo, responsáveis 20/KR. Os mesmos números das validações de escrita (`OKR_*_CAP*`), agora constantes compartilhadas. KRs e responsáveis filtrados por área (join com `okr_objectives`), sem depender da lista de ids anterior; árvore montada com `Map` (antes `filter` aninhado, O(n·m)). A resposta não repete mais `objectives` no nível de cima.
-- Medição DTOV (12 ciclos × 24 áreas, 2.880 atividades, 2.880 objetivos, 11.520 KRs; mediana de 15): hierarquia 2.062 → 202 ms; payload 13,8 → 7,0 MB; `listOkrCycles` completo 30 → 36 ms (ruído do custo da janela). Próximo passo: carregar só o ciclo selecionado (BACKLOG).
+- Medição DTOV (12 ciclos × 24 áreas, 2.880 atividades, 2.880 objetivos, 11.520 KRs; mediana de 15): hierarquia 2.062 → 202 ms; payload 13,8 → 7,0 MB; `listOkrCycles` completo 30 → 36 ms (ruído do custo da janela). Depois: só o ciclo selecionado vem completo (`?cycleId=`, padrão = mais recente; os outros só como cabeçalho do seletor), cerca de 1/12 do payload; trocar de ciclo busca de novo com skeleton.
 - Visão geral: aniversários (`getUpcomingAnniversaries`, 3 leituras limitadas) entram no SSR em paralelo com `buildOverviewMetrics`; no primeiro carregamento sobram só notificações e progresso dos playbooks como chamadas do cliente.
 - Prova: `test/dtov/okr-hierarchy-read.dtov.test.js` (modo completo × enxuto, cada cap com linhas inseridas por fora da escrita, ordenação, rollups, isolamento de empresa) + `okr-hierarchy.test.js`; equivalência com a versão anterior conferida no seed e na base grande.
+
+**Troca de aba, cache de IA e diagnóstico de lista (B-2804.6 / B-2705 / B-2601)**
+- Menu do dashboard: aba fora de `COHORT_TABS` troca por `history.pushState`, sem o loader SSR (`canSwitchTabClientOnly`); a aba já busca os próprios dados, então sai uma ida ao servidor por clique. Admin só pula o SSR se a lista de empresas que a aba usa já estiver em memória.
+- IA: `openAiChatCompletion({ cache })` guarda a resposta por 24h (Redis ou LRU de 500 em memória), chave = hash de feature + modelo + parâmetros + mensagens normalizadas. Só Ajuda (global) e rubrica (por empresa). Acerto não toca no banco (sem cota, sem `ai_usage_events`).
+- "Por que não aparece?" no Banco de talentos e no pipeline da vaga: 1 query por clique, teto 12 pessoas, `EXISTS` por pessoa e títulos de outras vagas com `LIMIT 3`.
 
 Pendências maiores (escopo/risco) estão em `docs/BACKLOG.md` § Performance.
 

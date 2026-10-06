@@ -15,6 +15,7 @@ import {
   parseVacanciesSort,
 } from '../../../lib/assessment-filters';
 import { VACANCY_LIST_FILTER, normalizeVacancyListFilter } from '../../../lib/domain-status.js';
+import { canSwitchTabClientOnly } from '../../../lib/dashboard-company-scope.js';
 
 // Must match the defaults of the parsers in lib/assessment-filters.js so omitting them is lossless.
 const LIST_PREFIXES = ['team', 'vacancies', 'compare', 'compat', 'users', 'leads', 'fb', 'companies'];
@@ -40,6 +41,7 @@ export function useDashboardNavigation({
   dateTo,
   search,
   isAdmin,
+  companiesLoaded = false,
   teamPagination,
 }) {
   const [navPending, startNavTransition] = useTransition();
@@ -315,7 +317,10 @@ export function useDashboardNavigation({
   };
 
   const navigateToTab = (id) => {
-    navigateWithOpts({ tab: id, vacancyDetail: '' });
+    const currentTab = urlParams.get('tab') || 'overview';
+    const clientOnly = id !== currentTab && canSwitchTabClientOnly(id, { isAdmin, companiesLoaded });
+    navigateWithOpts({ tab: id, vacancyDetail: '', ...(clientOnly ? { clientOnly: true } : {}) });
+    if (clientOnly) window.scrollTo(0, 0);
   };
 
   const pushFilters = (nextFilter) => {

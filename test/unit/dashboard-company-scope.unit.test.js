@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   COHORT_TABS,
   COMPANY_SCOPE_TABS,
+  canSwitchTabClientOnly,
   companyInList,
   needsAdminCompaniesList,
   resolveStickyCompanyPreference,
@@ -72,3 +73,20 @@ test('resolveStickyCompanyPreference prefers URL then sticky', () => {
     else globalThis.window = prevWindow;
   }
 });
+
+test('B-2804.6: menu switch skips SSR only for self-fetching tabs', () => {
+  for (const tab of COHORT_TABS) {
+    assert.equal(canSwitchTabClientOnly(tab, { isAdmin: false }), false, `${tab} needs SSR data`);
+    assert.equal(canSwitchTabClientOnly(tab, { isAdmin: true, companiesLoaded: true }), false);
+  }
+  for (const tab of ['vacancies', 'users', 'lms', 'okr', 'climate', 'pdi', 'help', 'profile']) {
+    assert.equal(canSwitchTabClientOnly(tab, { isAdmin: false }), true, `${tab} for managers`);
+  }
+  // Admin: tabs that read the companies list only once it is in memory.
+  assert.equal(canSwitchTabClientOnly('climate', { isAdmin: true, companiesLoaded: false }), false);
+  assert.equal(canSwitchTabClientOnly('okr', { isAdmin: true, companiesLoaded: false }), false);
+  assert.equal(canSwitchTabClientOnly('okr', { isAdmin: true, companiesLoaded: true }), true);
+  assert.equal(canSwitchTabClientOnly('users', { isAdmin: true, companiesLoaded: false }), true);
+  assert.equal(canSwitchTabClientOnly('', { isAdmin: false }), false);
+});
+

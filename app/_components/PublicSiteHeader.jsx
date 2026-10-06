@@ -4,13 +4,15 @@ import Link from 'next/link';
 import { BrandMark } from './BrandMark';
 import LanguageSelect from './LanguageSelect';
 import { cn } from '../../lib/cn';
+import { normalizeLocale } from '../../lib/i18n';
+import { useLocale } from '../../lib/useLocale';
 
 export function PrimaryCta({ copy, compact = false }) {
   return <Link href="/signup" className={`inline-flex min-h-touch items-center justify-center rounded-control bg-action font-ui font-semibold text-action-ink no-underline transition-colors hover:bg-action-hover ${compact ? 'px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm' : 'px-6 py-3.5 text-base'}`}>{compact ? copy.navEarly : copy.ctaEarly}</Link>;
 }
 
 /**
- * Public marketing header shared by `/` and `/pricing`.
+ * Public marketing header shared by `/`, `/pricing` and `/blog`.
  * `sectionBase` prefixes landing anchors ('' on the landing, '/' elsewhere).
  */
 export function PublicSiteHeader({ copy, locale, onLocaleChange, sectionBase = '', active = null }) {
@@ -27,6 +29,7 @@ export function PublicSiteHeader({ copy, locale, onLocaleChange, sectionBase = '
           <a href={`${sectionBase}#modulos`} className={linkClass(false)}>{u.navModules}</a>
           <a href={`${sectionBase}#app-colaborador`} className={linkClass(false)}>{copy.employeeApp.label}</a>
           <Link href="/pricing" className={linkClass(active === 'pricing')} aria-current={active === 'pricing' ? 'page' : undefined}>{u.navPricing}</Link>
+          <Link href="/blog" className={linkClass(active === 'blog')} aria-current={active === 'blog' ? 'page' : undefined}>{u.navBlog || 'Blog'}</Link>
           <a href={`${sectionBase}#faq`} className={linkClass(false)}>FAQ</a>
         </nav>
         <div className="flex items-center gap-2 [&>label>span]:hidden">
@@ -38,3 +41,11 @@ export function PublicSiteHeader({ copy, locale, onLocaleChange, sectionBase = '
     </header>
   );
 }
+
+/** Header for server-rendered public pages: owns the locale switch (cookie + catalog). */
+export function PublicSiteHeaderWithLocale({ initialLocale, copyByLocale, active = null }) {
+  const [locale, setLocale] = useLocale(initialLocale);
+  const copy = copyByLocale[normalizeLocale(locale)] || copyByLocale['pt-BR'];
+  return <PublicSiteHeader copy={copy} locale={locale} onLocaleChange={setLocale} sectionBase="/" active={active} />;
+}
+

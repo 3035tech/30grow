@@ -105,8 +105,8 @@ i18n por chunk de locale (`I18nBoot`), lazy de tour/wizard/radar/Sentry Replay, 
 2. ~~**Publicar ciclo de avaliação formal**~~ ✅ `publishFormalReviewCycle`: 6 queries para qualquer nº de pessoas (validação em 1 leitura, respondentes em 1 upsert `unnest`) + `GET …/formal-review-cycles/[id]/respondents` (matriz do ciclo inteiro, cap 200) no lugar de N GETs.
 3. ~~**Trocar questionário do ciclo**~~ ✅ competências, perguntas abertas e itens de todos os rascunhos em `INSERT … SELECT unnest … WITH ORDINALITY` (1 insert cada).
 4. ~~**HR Score em lote**~~ ✅ `recalculateCompanyScores` com tendência (`detectTrendChanges` + `loadTurnoverRadars`), notas de 1:1 e predições em lote, um único upsert `unnest` (`saveHrScores`) e notificação só para quem piorou: número fixo de queries para qualquer nº de pessoas.
-5. ~~**OKR hierarquia**~~ ✅ `listOkrCycles({ withActivityDetails: false })` (sem responsáveis nem check-ins das atividades legadas), caps em SQL (`ROW_NUMBER`) para áreas, atividades, objetivos, KRs e responsáveis, montagem com `Map`, sem a lista `objectives` duplicada na resposta: empresa grande (12 ciclos, 2.880 objetivos, 11.520 KRs) 2,06 s → 0,20 s e 13,8 MB → 7 MB. **Follow-up:** carregar só o ciclo selecionado (hoje vêm os 12) para cortar o payload de vez; exige `?cycleId=` na rota e no `OkrHierarchyBlock`.
-6. **Navegação client-only** para abas que buscam os próprios dados (Vagas, Usuários, LMS, OKR, Clima, PDI): hoje cada troca passa pelo loader SSR antes do fetch da aba.
+5. ~~**OKR hierarquia**~~ ✅ `listOkrCycles({ withActivityDetails: false })` (sem responsáveis nem check-ins das atividades legadas), caps em SQL (`ROW_NUMBER`) para áreas, atividades, objetivos, KRs e responsáveis, montagem com `Map`, sem a lista `objectives` duplicada na resposta: empresa grande (12 ciclos, 2.880 objetivos, 11.520 KRs) 2,06 s → 0,20 s e 13,8 MB → 7 MB. Depois: só o ciclo selecionado vem completo (`GET /api/admin/okr/hierarchy?cycleId=`; padrão = mais recente; os demais só como cabeçalho para o seletor), payload ≈ 1/12.
+6. ~~**Navegação client-only**~~ ✅ troca de aba pelo menu sem o loader SSR quando o destino busca os próprios dados (`canSwitchTabClientOnly` em `lib/dashboard-company-scope.js`: tudo fora de `COHORT_TABS`; admin só se a lista de empresas que a aba usa já estiver em memória). URL atualizada por `history.pushState` (deep link e voltar continuam); abas de coorte seguem pelo SSR.
 7. ~~**Overview**~~ ✅ no primeiro carregamento só o card de aniversários buscava sozinho; agora vem no SSR (`upcomingAnniversaries`, em paralelo com `buildOverviewMetrics`), com fetch do card só como fallback. Os 5 cards de "Sinais operacionais" (radar, HR Score, workbench, saídas, cultura) seguem sob demanda (B-2202): são caros e só carregam se o gestor abrir.
 8. ~~**Notificações**: endpoint só de contagem para o polling (lista só ao abrir o dropdown), leitura em `queryRead`.~~ ✅ `GET /api/me/notifications?count=1` (réplica) + lista ao abrir o dropdown.
 9. ~~**`DISTINCT ON` por empresa**~~ ✅ inteligência comportamental e núcleo interno dirigidos por `candidates` + `LATERAL … LIMIT 1` (migration 149, índice `candidates (company_id, id)`): 10–150× mais rápido em empresa pequena numa base grande. Mix de tipos da cultura mantido em `DISTINCT ON` (agrega a empresa inteira; `LATERAL` mediu 2–3× pior). Liderança (9-box, sucessão) já lê por lista de ids.
@@ -399,13 +399,15 @@ Copiloto no painel para perguntas do tipo **“por que o João não aparece na m
 ### B-2601 — Diagnóstico “por que não vejo X?” (MVP Equipe) ✅ ENTREGUE
 **Entregue (UX+API MVP):** `lib/people/list-absence-diagnostics.js` (razões: no_match / homonyms / wrong_roster / alumni / soft_filters / no_assessment) + `POST /api/admin/help-diagnose` (`withAdminApi`, CAP `team.view`, rate limit, audit) + CTA “Por que não aparece?” na Equipe (EmptyState quando busca vazia) via `useAppFeedback` notice/confirm. Guia `panel.help.teamStep7`. Sem SQL gerado por LLM.
 
-**Depois do MVP (não bloquear):** mesmo padrão para Vagas/pipeline e Banco de talentos; redação IA hedged sobre o JSON (epic B-2600).
+**Extensão entregue (out/2026):** mesmo endpoint com `list` = `talentBank` | `vacancyPipeline` (CAP `vacancies.view`; Equipe segue `team.view`). Banco de talentos: razões `not_in_talent_bank` / `soft_filters` (vaga, etapa, perfil avaliados no SQL) / `in_list`. Pipeline da vaga: `not_in_vacancy` + `other_vacancies` (até 3 títulos) / `soft_filters` (filtros do quadro, cliente) / `in_list` com etapa; regra de pertencimento espelha `lib/vacancy-ranking.js`. CTA no EmptyState "nenhum candidato corresponde" do quadro; oferta de limpar filtros mantendo a busca. Uma query por diagnóstico, teto 12 pessoas, escopo `company_id`. Guia `talentBankStep4` / `pipelineStep10`. Prova: `test/dtov/help-diagnose-lists.dtov.test.js`.
+
+**Ainda aberto (não bloquear):** redação IA hedged sobre o JSON (epic B-2600).
 
 ---
 
 ## Aberto — Epic B-2700 (controle de custo de IA)
 
-Entregue (out/2026): registro de consumo (B-2701), teto mensal por empresa ajustável no admin (B-2702), kill switch + `OPENAI_BASE_URL` (B-2703), modelo por funcionalidade (B-2704), tela de consumo no admin (B-2706). **Aberto:** cache de respostas repetidas (B-2705). Detalhe: [`docs/BACKLOG-AI-COST-CONTROL.md`](./BACKLOG-AI-COST-CONTROL.md).
+Entregue (out/2026): registro de consumo (B-2701), teto mensal por empresa ajustável no admin (B-2702), kill switch + `OPENAI_BASE_URL` (B-2703), modelo por funcionalidade (B-2704), tela de consumo no admin (B-2706), cache de respostas repetidas da Ajuda e da rubrica (B-2705). **Aberto:** só a ação de ops (limite + alertas no painel do fornecedor). Detalhe: [`docs/BACKLOG-AI-COST-CONTROL.md`](./BACKLOG-AI-COST-CONTROL.md).
 
 ---
 

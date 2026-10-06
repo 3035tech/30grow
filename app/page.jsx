@@ -5,6 +5,7 @@ import {
   buildProductLandingMetadata,
   getProductLandingCopy,
 } from '../lib/product-landing-seo';
+import { BLOG_LANDING_CAP, listBlogPosts } from '../lib/blog/index.js';
 import ProductLandingClient from './_components/ProductLandingClient';
 
 export const dynamic = 'force-dynamic';
@@ -18,11 +19,14 @@ export default async function HomePage() {
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
   const copyByLocale = Object.fromEntries(LOCALES.map((loc) => [loc, getProductLandingCopy(loc)]));
   const jsonLd = buildProductLandingJsonLd(locale);
+  const blogPosts = listBlogPosts({ limit: BLOG_LANDING_CAP }).map(({ slug, path, title, description, categoryLabel, publishedAt, publishedLabel, readingMinutes }) => ({
+    slug, path, title, description, categoryLabel, publishedAt, publishedLabel, readingMinutes,
+  }));
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <ProductLandingClient copyByLocale={copyByLocale} locale={locale} />
+      <ProductLandingClient copyByLocale={copyByLocale} locale={locale} blogPosts={blogPosts} />
     </>
   );
 }

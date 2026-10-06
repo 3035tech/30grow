@@ -1,12 +1,13 @@
 import { listSitemapPublicEntries } from '../lib/public-vacancy-posting';
 import { listSitemapAggregatorEntries } from '../lib/public-job-aggregators';
+import { BLOG_PATH, listBlogPosts } from '../lib/blog/index.js';
 
 function appBaseUrl() {
   return String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
 }
 
 /**
- * Sitemap: / + /jobs + aggregators (remote/city with enough volume) + vagas públicas indexáveis.
+ * Sitemap: / + /pricing + /blog (+ posts) + /jobs + aggregators (remote/city with enough volume) + vagas públicas indexáveis.
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
  */
 export default async function sitemap() {
@@ -14,6 +15,7 @@ export default async function sitemap() {
   if (!base) return [];
 
   const now = new Date();
+  const blogPosts = listBlogPosts();
   const entries = [
     {
       url: `${base}/`,
@@ -27,6 +29,24 @@ export default async function sitemap() {
       changeFrequency: 'weekly',
       priority: 0.4,
     },
+    {
+      url: `${base}/pricing`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${base}${BLOG_PATH}`,
+      lastModified: blogPosts[0] ? new Date(blogPosts[0].updatedAt || blogPosts[0].publishedAt) : now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    ...blogPosts.map((post) => ({
+      url: `${base}${post.path}`,
+      lastModified: new Date(post.updatedAt || post.publishedAt),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    })),
     {
       url: `${base}/jobs`,
       lastModified: now,

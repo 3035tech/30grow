@@ -82,8 +82,9 @@ test('OKR: area → objective → measured KR, history, employee check-in and cl
     await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
     await kr.scrollIntoViewIfNeeded();
     await page.screenshot({path:'/private/tmp/okr-hierarchy-mobile.png'});
-    const pack=await (await page.request.get('/api/admin/okr/hierarchy')).json();
-    const saved=pack.cycles.find(c=>c.id===cycle.id).areas[0].objectives[0];
+    const pack=await (await page.request.get(`/api/admin/okr/hierarchy?cycleId=${cycle.id}`)).json();
+    expect(pack.cycle.id).toBe(cycle.id);
+    const saved=pack.cycle.areas[0].objectives[0];
     const keyResultId=saved.keyResults[0].id;
     // An old endpoint must not bypass the numeric-history contract.
     expect((await page.request.patch(`/api/admin/okr/key-results/${keyResultId}`,{data:{currentValue:100}})).ok()).toBeFalsy();

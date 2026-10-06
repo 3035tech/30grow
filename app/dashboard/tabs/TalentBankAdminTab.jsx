@@ -9,6 +9,11 @@ import { t, localeHtmlLang } from '../../../lib/i18n';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
 import { PIPELINE_STAGES } from '../../../lib/pipeline';
 import {
+  ABSENCE_LIST,
+  ABSENCE_SUGGESTION,
+  formatAbsenceReasonLines,
+} from '../../../lib/people/list-absence-diagnostics-core.js';
+import {
   S,
   SortableTh,
   AdminListPager,
@@ -44,7 +49,7 @@ function stageLabel(locale, stage) {
  * Talent bank — reuse people who already applied / linked to a vacancy.
  */
 export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
-  const { promptForm, toast, notice } = useAppFeedback();
+  const { promptForm, toast, notice, confirm } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(() => Boolean(companyId));
@@ -135,12 +140,6 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
     setPage(1);
   };
 
-  const reasonLabel = (code) => {
-    const key = `panel.team.diagnoseReason.${code}`;
-    const label = t(locale, key);
-    return label === key ? code : label;
-  };
-
   const runAbsenceDiagnose = async () => {
     const query = String(q || qDraft || '').trim();
     if (!query || diagnoseBusy) return;
@@ -151,9 +150,10 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           q: query,
-          roster: 'all',
-          listFilter: null,
+          list: ABSENCE_LIST.TALENT_BANK,
           pipeline: stage || null,
+          vacancyId: vacancyId ? Number(vacancyId) : null,
+          topType: topType ? Number(topType) : null,
           ...(companyId ? { companyId: Number(companyId) } : {}),
         }),
       });
@@ -161,9 +161,9 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
       if (!res.ok) {
         throw new Error(data?.error || t(locale, 'panel.talentBank.diagnoseError'));
       }
-      const reasonLines = (data.reasons || [])
-        .map((r) => `· ${reasonLabel(r.code)}`)
-        .join('\n');
+      const reasonLines = formatAbsenceReasonLines(locale, data.reasons, {
+        stageLabel: (s) => stageLabel(locale, s),
+      }).join('\n');
       const candidateLines = (data.candidates || [])
         .slice(0, 4)
         .map((c) => `· ${c.name || ''}`)
@@ -179,6 +179,20 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
           .filter(Boolean)
           .join('\n'),
       });
+      const canClear = vacancyId || stage || topType;
+      if (canClear && (data.suggestions || []).some((s) => s.action === ABSENCE_SUGGESTION.CLEAR_FILTERS)) {
+        const accepted = await confirm({
+          title: t(locale, 'panel.team.diagnoseClearFiltersTitle'),
+          message: t(locale, 'panel.team.diagnoseClearFiltersBody'),
+          confirmLabel: t(locale, 'panel.team.diagnoseClearFilters'),
+        });
+        if (accepted) {
+          setVacancyId('');
+          setStage('');
+          setTopType('');
+          setPage(1);
+        }
+      }
     } catch (e) {
       toast(e?.message || t(locale, 'panel.talentBank.diagnoseError'), 'error');
     } finally {

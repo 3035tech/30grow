@@ -29,6 +29,7 @@ const ENV_KEYS = [
   'OPENAI_BASE_URL',
   'OPENAI_RUBRIC_MODEL',
   'AI_MODEL_HELP_ASSISTANT',
+  'AI_RESPONSE_CACHE',
 ];
 
 function fakeDb({ limit = null, used = 0, globalUsed = 0, fail = false } = {}) {
@@ -62,6 +63,7 @@ describe('ai-usage', () => {
     saved = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
     for (const k of ENV_KEYS) delete process.env[k];
     process.env.OPENAI_MOCK = '1';
+    process.env.AI_RESPONSE_CACHE = '0';
   });
   afterEach(() => {
     for (const k of ENV_KEYS) {

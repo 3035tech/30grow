@@ -18,6 +18,11 @@ import { VacancyOfferBlock } from './VacancyOfferBlock';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading } from '../../_components/AppLoading';
 import { useAppFeedback } from '../../_components/AppFeedback';
+import {
+  ABSENCE_LIST,
+  ABSENCE_SUGGESTION,
+  formatAbsenceReasonLines,
+} from '../../../lib/people/list-absence-diagnostics-core.js';
 
 const EMPTY_FILTERS = Object.freeze({ q: '', owner: 'all', aging: 'all', fit: 'all', notes: false });
 
@@ -35,7 +40,8 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
   const [workspace, setWorkspace] = useState({ recruiters: [], views: [], currentUserId: null, vacancyOwnerUserId: null });
   const [workspaceLoading, setWorkspaceLoading] = useState(true);
   const [collapsedStages, setCollapsedStages] = useState([]);
-  const { promptForm, toast, confirm } = useAppFeedback();
+  const { promptForm, toast, confirm, notice } = useAppFeedback();
+  const [diagnoseBusy, setDiagnoseBusy] = useState(false);
   const { isDark } = useDarkMode();
   const effectiveCompanyStages = companyStages ?? fetchedStages;
   const stages = useMemo(
@@ -186,6 +192,52 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
 
   const hasAny = rows.length > 0;
   const hasFiltered = filteredRows.length > 0;
+  const searchQuery = filters.q.trim();
+  const boardFiltersActive =
+    filters.owner !== 'all' || filters.aging !== 'all' || filters.fit !== 'all' || filters.notes;
+
+  const runAbsenceDiagnose = async () => {
+    if (!searchQuery || diagnoseBusy) return;
+    setDiagnoseBusy(true);
+    try {
+      const res = await fetch('/api/admin/help-diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: searchQuery,
+          list: ABSENCE_LIST.VACANCY_PIPELINE,
+          vacancyId: Number(vacancyId),
+          filtersActive: boardFiltersActive,
+          ...(companyId ? { companyId: Number(companyId) } : {}),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || t(locale, 'panel.talentBank.diagnoseError'));
+      const reasonLines = formatAbsenceReasonLines(locale, data.reasons, {
+        stageLabel: (stage) => stageById[stage]?.label || stage,
+      }).join('\n');
+      const people = (data.candidates || []).slice(0, 4).map((c) => `· ${c.name || c.email || ''}`).join('\n');
+      await notice({
+        title: t(locale, 'panel.talentBank.diagnoseTitle'),
+        message: [
+          reasonLines || t(locale, 'panel.talentBank.diagnoseNoReasons'),
+          people ? `\n${t(locale, 'panel.talentBank.diagnoseFoundPeople')}\n${people}` : '',
+        ].filter(Boolean).join('\n'),
+      });
+      if (boardFiltersActive && (data.suggestions || []).some((x) => x.action === ABSENCE_SUGGESTION.CLEAR_FILTERS)) {
+        const accepted = await confirm({
+          title: t(locale, 'panel.team.diagnoseClearFiltersTitle'),
+          message: t(locale, 'panel.team.diagnoseClearFiltersBody'),
+          confirmLabel: t(locale, 'panel.team.diagnoseClearFilters'),
+        });
+        if (accepted) setFilters((current) => ({ ...EMPTY_FILTERS, q: current.q }));
+      }
+    } catch (e) {
+      toast(e?.message || t(locale, 'panel.talentBank.diagnoseError'), 'error');
+    } finally {
+      setDiagnoseBusy(false);
+    }
+  };
   const visibleStages = hideEmpty && !draggingId
     ? stages.filter((stage) => (grouped[stage.id] || []).length > 0)
     : stages;
@@ -373,7 +425,13 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
       ) : null}
 
       {!loading && hasAny && !hasFiltered ? (
-        <EmptyState title={t(locale, 'recruiting.pipelineNoFilterResults')} className="py-4" />
+        <EmptyState
+          title={t(locale, 'recruiting.pipelineNoFilterResults')}
+          className="py-4"
+          actionLabel={searchQuery ? t(locale, 'panel.talentBank.diagnoseCta') : undefined}
+          onAction={searchQuery ? runAbsenceDiagnose : undefined}
+          actionDisabled={diagnoseBusy}
+        />
       ) : null}
 
       {hasAny && hasFiltered && (

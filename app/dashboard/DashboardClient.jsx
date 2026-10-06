@@ -612,6 +612,7 @@ function DashboardClientContent({
     dateTo,
     search,
     isAdmin,
+    companiesLoaded: companies.length > 0,
     teamPagination: pagination,
   });
   const navTab = pendingTab || tab;
