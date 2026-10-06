@@ -1026,6 +1026,19 @@ export async function runHttpSmoke(baseUrl) {
       fail('job-roles', 'list', `status ${rolesRes.status}`);
     }
 
+    for (const roster of ['internal', 'all']) {
+      const { res: bciRes, data: bciData } = await req(
+        base,
+        `/api/admin/behavioral-intel?${qs}&roster=${roster}`,
+        { cookie: hrCookie }
+      );
+      if (await expectStatus('behavioral-intel', roster, bciRes.status, [200])) {
+        const n = bciData?.intel?.meta?.nEneagram;
+        if (typeof n === 'number' && n > 0) ok('behavioral-intel', `${roster}-cohort`, `n=${n}`);
+        else fail('behavioral-intel', `${roster}-cohort`, JSON.stringify(bciData?.intel?.meta || null));
+      }
+    }
+
     const { res: workRes } = await req(base, `/api/admin/multi-signal-workbench?${qs}`, {
       cookie: hrCookie,
     });
@@ -1078,6 +1091,16 @@ export async function runHttpSmoke(baseUrl) {
       });
       if (await expectStatus('climate', 'invite-batch', batchRes.status, 200)) {
         ok('climate', 'invite-batch-n', String(batchData?.invites?.length || 0));
+      }
+
+      const { res: mailRes, data: mailData } = await req(base, `/api/admin/climate-surveys/${surveyId}`, {
+        method: 'PATCH',
+        cookie: hrCookie,
+        body: { emailInvites: true, emails: ['smoke.a@example.com', 'smoke.b@example.com', 'SMOKE.A@example.com'] },
+      });
+      if (await expectStatus('climate', 'invite-email', mailRes.status, 200)) {
+        if (mailData?.sent === 2 && mailData?.invites?.length === 2) ok('climate', 'invite-email-sent', 'sent=2 deduped');
+        else fail('climate', 'invite-email-sent', JSON.stringify({ sent: mailData?.sent, skipped: mailData?.skipped }));
       }
 
       const { res: invRes, data: invData } = await req(base, `/api/admin/climate-surveys/${surveyId}`, {

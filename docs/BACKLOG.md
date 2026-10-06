@@ -109,8 +109,8 @@ i18n por chunk de locale (`I18nBoot`), lazy de tour/wizard/radar/Sentry Replay, 
 6. **Navegação client-only** para abas que buscam os próprios dados (Vagas, Usuários, LMS, OKR, Clima, PDI): hoje cada troca passa pelo loader SSR antes do fetch da aba.
 7. **Overview**: 8+ cards com fetch próprio após o SSR; avaliar dobrar resumos baratos em `buildOverviewMetrics`.
 8. ~~**Notificações**: endpoint só de contagem para o polling (lista só ao abrir o dropdown), leitura em `queryRead`.~~ ✅ `GET /api/me/notifications?count=1` (réplica) + lista ao abrir o dropdown.
-9. **`DISTINCT ON` por empresa** (behavioral intel, liderança, cultura): dirigir por `candidates` + `LATERAL … LIMIT 1`.
-10. **Convites em lote de clima/pulso**: validação por convite + SMTP síncrono no request.
+9. ~~**`DISTINCT ON` por empresa**~~ ✅ inteligência comportamental e núcleo interno dirigidos por `candidates` + `LATERAL … LIMIT 1` (migration 149, índice `candidates (company_id, id)`): 10–150× mais rápido em empresa pequena numa base grande. Mix de tipos da cultura mantido em `DISTINCT ON` (agrega a empresa inteira; `LATERAL` mediu 2–3× pior). Liderança (9-box, sucessão) já lê por lista de ids.
+10. ~~**Convites em lote de clima/pulso**~~ ✅ pesquisa/pulso validado 1 vez + 1 `INSERT … unnest` para todos os tokens (nada gravado se não puder receber convite); e-mails em paralelo limitado (`MAIL_SEND_CONCURRENCY` = 4) reaproveitando a pesquisa já carregada.
 11. ~~**Purge de `candidate_notifications`**~~ ✅ mesmo cron `notification-retention` (`lib/notification-retention.js`, índice na migration 146).
 
 ### B-202 — (opcional) caps/API restantes do audit
@@ -416,6 +416,24 @@ _(entregue — B-1401: crop 1:1 + compressão cliente ≤512 KB / lado ≤768 px
 ## Aberto — Controles de formulário (primitivos)
 
 _(entregue — B-1402 tokens + B-1403 migração dos selects ad hoc: page-size, pipeline Equipe, reject reason, grupos, signup, recommendation relatório; `S.selectCompact`.)_
+
+### B-1404 — Slider no lugar de input numérico em faixas fechadas
+
+Pedido do usuário (out/2026): campos com faixa curta e conhecida viram slider arrastável (o valor sobe da esquerda para a direita conforme arrasta), em vez de digitar o número.
+
+- **Reusar:** `PromptFormDialog` já tem `type: 'range'` (`ui-range`, valor ao lado, rótulos mín/máx, `suffix`); OKR e a home do colaborador usam. Basta trocar `type: 'number'` por `type: 'range'` + `suffix` nos campos abaixo. Não criar segundo componente.
+- **Candidatos:** `% de aulas para concluir` do curso (LMS, 1–100, `suffix: '%'`, criar e editar em `LmsAdminTab.jsx`); nota da calibração (0–100, `CalibrationBlock.jsx`); tolerância de atraso (0–120 min) e intervalo (0–240 min, `step` 5 ou 15) da jornada em `TimeClockAdminBlock.jsx`.
+- **Fica como número:** contagens, dias de prazo, minutos de banco de horas, saldos de férias, ids. Faixa larga ou valor exato digitado.
+- **Critérios:** teclado continua funcionando (setas no range); valor sempre visível; mesmo payload enviado à API (string numérica); mobile com alvo de toque confortável. Avaliar um clique no número para digitar valor exato quando a faixa passar de ~100 passos.
+- **De quebra:** o editor rico da descrição do curso mostra o placeholder "Anotações da entrevista..." (padrão do `RichTextEditor`); passar placeholder próprio no campo de descrição do LMS.
+
+### B-1405 — Grupos do menu lateral sem o texto "Expandir/Recolher"
+
+Pedido do usuário (out/2026): o texto "Expandir" / "Recolher" que aparece ao passar o mouse no cabeçalho de cada grupo do menu é redundante; a seta já mostra o que acontece.
+
+- **Onde:** `SidebarNav.jsx`, cabeçalho de grupo com `DisclosureToggle` (`labelClassName="sr-only group-hover:not-sr-only …"`). Manter o texto só para leitor de tela (`sr-only` fixo) e `aria-expanded` no botão; a seta continua girando.
+- **Regra a ajustar junto:** `.cursor/rules/ui-ux.mdc`, `reuse-before-create.mdc`, `tailwind-ui.mdc` e `AGENTS.md` exigem rótulo visível Expandir/Recolher em todo disclosure. Abrir exceção explícita para navegação (menu lateral; onde a seta acompanha um título clicável), sem liberar `+/−`/`▾` ad hoc no conteúdo.
+- **Avaliar depois** se o mesmo vale para kanban (colunas recolhidas), OKR e `CollapsibleBlock` em cards; decidir com o usuário caso a caso.
 
 ---
 

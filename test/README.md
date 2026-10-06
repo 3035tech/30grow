@@ -57,8 +57,9 @@ Sem serviços externos: envios de e-mail e assistentes de IA usam stub in-proces
 |-----|----------------|
 | `SMTP_MOCK=1` | `sendTransactionalMail` grava em memória (`__getMailMockLog`); `isMailConfigured()` = true |
 | `DTOV=1` sem `SMTP_HOST`+`MAIL_FROM` | mesmo mock SMTP automático |
+| `dtovEnv()` (harness) | sempre `SMTP_MOCK=1` (sobrescrever via `extra`): `next start` carrega o `.env` e, com SMTP real, o servidor DTOV enviaria e-mail de verdade |
 | `OPENAI_MOCK=1` ou `DTOV=1` | `openAiChatCompletion` devolve stub (JSON pesos / HTML); health marca `mocked` |
-| SMTP real opcional | apontar `SMTP_*` para Mailhog (`1025`) se quiser captura via UI — **não** está no compose DTOV |
+| SMTP real opcional | apontar `SMTP_*` para Mailhog (`1025`) e passar `SMTP_MOCK: ''` no `extra` do `dtovEnv` se quiser captura via UI — **não** está no compose DTOV |
 
 Prova: `npm run test:full:offline` (checks `smtp-mock-capture` e `openai-mock-assistants`).
 

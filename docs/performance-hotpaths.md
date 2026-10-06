@@ -98,6 +98,18 @@ Navegação, carregamento e salvamento. Sem mudança de API nem de regra de neg�
 - Recálculo de uma pessoa (`GET /api/admin/hr-score/[id]` quando vencido, `POST …/recalculate` com `candidateId`): `recalculateCandidateHrScore`, mesma regra tendência → grava → notifica.
 - Prova: `test/dtov/hr-score-batch.dtov.test.js` (lote = caminho por pessoa em radar, tendência e predições; contagem de queries igual para 3 ou 40 pessoas; notificação de piora; `saveHrScore` individual).
 
+**Convites de clima e pulso em lote (B-2804.10)**
+- `createClimateSurveyInviteBatch` / `createTeamPulseInviteBatch`: pesquisa ou pulso carregado e validado uma vez (`climateSurveyInviteError`) + 1 insert `unnest` com todos os tokens. Antes: leitura completa da pesquisa (3 queries) + 1 insert por convite (até 50 clima / 40 pulso). Convite único usa o mesmo caminho com `count: 1`.
+- `emailClimateSurveyInvites`: sem segunda leitura da pesquisa; envio com `mapWithConcurrency(MAIL_SEND_CONCURRENCY)` (4 conexões SMTP no máximo), mesma resposta `sent`/`skipped`.
+- Prova: `test/dtov/survey-invites-batch.dtov.test.js` (mesma contagem de queries para 1 e 50/40 convites, teto, TTL, nada gravado com pesquisa fechada / pulso não aberto / outra empresa, um link único por e-mail).
+
+**Última avaliação por pessoa: `LATERAL` só onde há `LIMIT` (B-2804.9)**
+- `loadPeopleByFilters` (inteligência comportamental, cap 200) e `loadCompanyInternalNucleus` (cap 24–40): `FROM candidates c CROSS JOIN LATERAL (… ORDER BY created_at DESC, id DESC LIMIT 1)`. Filtros da pessoa (empresa, nome) ficam fora; filtros da avaliação (área, vaga, roster, período) dentro do `LATERAL`. Tenant em `c.company_id`: o trigger `assessments_company_matches_candidate` garante empresa igual à da avaliação.
+- Antes: `DISTINCT ON` fazia merge com `candidates_pkey`, percorrendo a tabela de todas as empresas até o `LIMIT`. Agora: `idx_candidates_company_id (company_id, id)` (migration 149) + `idx_assessments_candidate_created` por pessoa; para no teto sem tocar outras empresas.
+- Medição DTOV (base com 80 mil pessoas, melhor de 3): recorte comportamental 30 → 2,2 ms (empresa de 60 mil) e 41 → 0,7 ms (empresa de 300); núcleo 7,7 → 2,2 ms e 14,7 → 0,09 ms.
+- Não aplicar a agregações sem `LIMIT`: o mix de tipos da cultura (`getCompanyTypeMixPercentages`) com `LATERAL` mediu 66 → 171 ms; uma ordenação única ganha de uma sonda por pessoa. 9-box e sucessão já leem por `candidate_id = ANY(ids)`.
+- Prova: `test/dtov/latest-assessment-lateral.dtov.test.js` (SQL antiga como oráculo: núcleo com 4 caps, 10 combinações de filtro incl. admin sem empresa, avaliações mais novas/antigas e de vaga, alumni).
+
 Pendências maiores (escopo/risco) estão em `docs/BACKLOG.md` § Performance.
 
 ## EXPLAIN checklist (DTOV)

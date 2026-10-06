@@ -81,6 +81,8 @@ export function dtovEnv(extra = {}) {
     NEXT_PUBLIC_APP_URL: 'http://127.0.0.1:3010',
     ...process.env,
     ...DTOV_DEFAULTS,
+    // next start loads .env (real SMTP_HOST/MAIL_FROM); DTOV must never send real mail.
+    SMTP_MOCK: '1',
     ...extra,
     DTOV: '1',
     POSTGRES_SSL: 'false',
