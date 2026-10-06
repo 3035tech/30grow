@@ -1,8 +1,5 @@
 import { buildRobotsRules } from '../lib/crawler-guard.js';
-
-function appBaseUrl() {
-  return String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
-}
+import { publicSiteBaseUrl } from '../lib/public-site-url.js';
 
 /**
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots
@@ -11,7 +8,7 @@ function appBaseUrl() {
  * Busca e assistentes de IA descobrem superfícies públicas; áreas privadas ficam bloqueadas.
  */
 export default function robots() {
-  const base = appBaseUrl();
+  const base = publicSiteBaseUrl();
   return {
     rules: buildRobotsRules(),
     sitemap: base ? `${base}/sitemap.xml` : '/sitemap.xml',

@@ -8,6 +8,7 @@ import {
 import { defaultPublicOgImageUrl } from '../../../../lib/public-vacancy-posting';
 import { publicCityAggregatorPath } from '../../../../lib/public-job-url';
 import { PublicVacanciesIndexView } from '../../../_components/PublicVacancyPosting';
+import { publicSiteBaseUrl } from '../../../../lib/public-site-url.js';
 
 export async function generateMetadata({ params, searchParams } = {}) {
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
@@ -21,7 +22,7 @@ export async function generateMetadata({ params, searchParams } = {}) {
   const city = resolved.city;
   const title = t(locale, 'publicVacancy.aggregatorCityTitle', { city });
   const description = t(locale, 'publicVacancy.aggregatorCityDescription', { city });
-  const base = String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
+  const base = publicSiteBaseUrl();
   const path = publicCityAggregatorPath(resolved.slug);
   const url = base ? `${base}${path}` : path;
   const ogImage = defaultPublicOgImageUrl();

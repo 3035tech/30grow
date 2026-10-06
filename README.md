@@ -159,6 +159,7 @@ Lista completa e comentada em [`.env.example`](.env.example). As essenciais:
 | `POSTGRES_*` / `POSTGRES_READ_HOST` | Banco primário e réplica opcional; `PG_POOL_MAX` por instância |
 | `JWT_SECRET` | Obrigatório em produção (≥ 32 caracteres, não placeholder) |
 | `NEXT_PUBLIC_APP_URL` | URL pública; obrigatória em produção para links de e-mail (sem fallback de Host) |
+| `NEXT_PUBLIC_SITE_URL` | Opcional. Endereço indexável da landing, `/pricing`, `/blog`, `/jobs` e `/companies` (canonical, sitemap, robots, og:image, JSON-LD), ex. `https://30grow.com`. Sem ela, usa `NEXT_PUBLIC_APP_URL`. Lida no build |
 | `BOOTSTRAP_ADMIN_EMAIL` / `_PASSWORD` | Admin criado na primeira subida |
 | `SMTP_*` + `MAIL_FROM` | E-mail (convites, senha, alertas de vagas). `SMTP_MOCK=1` captura em memória |
 | `REDIS_URL` | Rate limit compartilhado entre réplicas (sem ele, limite por processo) |

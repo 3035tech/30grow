@@ -8,6 +8,7 @@ import {
 import { defaultPublicOgImageUrl } from '../../../lib/public-vacancy-posting';
 import { publicRemoteAggregatorPath } from '../../../lib/public-job-url';
 import { PublicVacanciesIndexView } from '../../_components/PublicVacancyPosting';
+import { publicSiteBaseUrl } from '../../../lib/public-site-url.js';
 
 export async function generateMetadata({ searchParams } = {}) {
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
@@ -20,7 +21,7 @@ export async function generateMetadata({ searchParams } = {}) {
   }
   const title = t(locale, 'publicVacancy.aggregatorRemoteTitle');
   const description = t(locale, 'publicVacancy.aggregatorRemoteDescription');
-  const base = String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
+  const base = publicSiteBaseUrl();
   const path = publicRemoteAggregatorPath();
   const url = base ? `${base}${path}` : path;
   const ogImage = defaultPublicOgImageUrl();

@@ -8,6 +8,7 @@ import {
 } from '../../../lib/public-vacancy-posting';
 import { publicCompanyPath } from '../../../lib/public-job-url';
 import { PublicCompanyPageView } from '../../_components/PublicVacancyPosting';
+import { publicSiteBaseUrl } from '../../../lib/public-site-url.js';
 
 export async function generateMetadata(props) {
   const params = await props.params;
@@ -19,7 +20,7 @@ export async function generateMetadata(props) {
   const name = resolved.company.name;
   const title = t(locale, 'publicVacancy.companyPageTitle', { name });
   const description = t(locale, 'publicVacancy.companyPageDescription', { name });
-  const base = String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
+  const base = publicSiteBaseUrl();
   const path = publicCompanyPath(resolved.company.slug);
   const url = base ? `${base}${path}` : path;
   const ogImage = resolved.company.logoUrl || defaultPublicOgImageUrl();

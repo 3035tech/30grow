@@ -1,17 +1,14 @@
 import { listSitemapPublicEntries } from '../lib/public-vacancy-posting';
 import { listSitemapAggregatorEntries } from '../lib/public-job-aggregators';
 import { BLOG_PATH, listBlogPosts } from '../lib/blog/index.js';
-
-function appBaseUrl() {
-  return String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
-}
+import { publicSiteBaseUrl } from '../lib/public-site-url.js';
 
 /**
  * Sitemap: / + /pricing + /blog (+ posts) + /jobs + aggregators (remote/city with enough volume) + vagas públicas indexáveis.
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
  */
 export default async function sitemap() {
-  const base = appBaseUrl();
+  const base = publicSiteBaseUrl();
   if (!base) return [];
 
   const now = new Date();

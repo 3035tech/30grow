@@ -13,6 +13,7 @@ import {
   resolveRemoteAggregator,
 } from '../../lib/public-job-aggregators';
 import { PublicVacanciesIndexView } from '../_components/PublicVacancyPosting';
+import { publicSiteBaseUrl } from '../../lib/public-site-url.js';
 
 export async function generateMetadata({ searchParams } = {}) {
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
@@ -22,7 +23,7 @@ export async function generateMetadata({ searchParams } = {}) {
     ? t(locale, 'publicVacancy.indexTitleFiltered', { q: q.slice(0, 40) })
     : t(locale, 'publicVacancy.indexTitle');
   const description = t(locale, 'publicVacancy.indexIntro');
-  const base = String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
+  const base = publicSiteBaseUrl();
   const url = base ? `${base}${PUBLIC_JOB_PATH_PREFIX}` : PUBLIC_JOB_PATH_PREFIX;
   const ogImage = defaultPublicOgImageUrl();
   return {

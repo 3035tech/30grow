@@ -76,7 +76,7 @@ Convenções que valem para todos os módulos:
 - Índice `/jobs` com busca, filtro e paginação; **alerta de vagas** (`POST /api/public/job-alerts`, cancelamento em `/a/unsubscribe`).
 - Agregadores `/jobs/remote` e `/jobs/city/{slug}` só com ≥ `PUBLIC_JOB_AGGREGATOR_MIN_COUNT` vagas (default 3).
 - Perfil público da empresa `/companies/{slug}` (opt-in `public_profile_enabled`, logo em S3).
-- `robots.txt` e `sitemap.xml` só com superfícies públicas (landing, `/pricing`, `/blog` e artigos, `/jobs`, agregadores, vagas); as URLs absolutas vêm de `NEXT_PUBLIC_APP_URL` (sem ela o sitemap fica vazio); Google Indexing API opcional (`GOOGLE_INDEXING_ENABLED`).
+- `robots.txt` e `sitemap.xml` só com superfícies públicas (landing, `/pricing`, `/blog` e artigos, `/jobs`, agregadores, vagas); as URLs absolutas vêm de `NEXT_PUBLIC_SITE_URL` (endereço indexável, ex. `https://30grow.com`), com fallback para `NEXT_PUBLIC_APP_URL`; sem nenhuma das duas o sitemap fica vazio. E-mails, tokens e login continuam em `NEXT_PUBLIC_APP_URL`; Google Indexing API opcional (`GOOGLE_INDEXING_ENABLED`).
 - Atribuição: `utm_*` e `?ref=` → cookie `team30_job_attr` (7 dias, sem PII) → `assessments.attr_*` e `job_funnel_events`.
 - Detalhe: [`job-seo-and-distribution.md`](job-seo-and-distribution.md). Migrations `030`–`039`.
 
