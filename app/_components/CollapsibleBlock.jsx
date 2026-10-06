@@ -17,21 +17,19 @@ export function disclosureActionLabel(locale, open) {
 }
 
 /**
- * Shared Expand/Collapse + chevron chrome (visible label in every locale).
+ * Shared disclosure chevron. The rotating chevron is the visual cue; the Expand/Collapse
+ * text stays for screen readers only (product decision: no visible label).
  */
 export function DisclosureToggle({
   locale = 'pt-BR',
   open = false,
   className = '',
-  labelClassName = '',
 }) {
   return (
     <span
-      className={cn('inline-flex shrink-0 items-center gap-1.5 text-ink-muted', className)}
+      className={cn('inline-flex shrink-0 items-center text-ink-muted', className)}
     >
-      <span className={cn(UI_TYPE.label, labelClassName)}>
-        {disclosureActionLabel(locale, open)}
-      </span>
+      <span className="sr-only">{disclosureActionLabel(locale, open)}</span>
       <Icon
         name="chevronDown"
         className={cn(

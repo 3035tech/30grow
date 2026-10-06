@@ -4,6 +4,7 @@ import { SelectField } from '../../_components/SelectField';
 
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from '../../../lib/cn';
+import { DisclosureToggle } from '../../_components/CollapsibleBlock';
 import { t } from '../../../lib/i18n';
 import { titleCasePersonName } from '../../../lib/person-name';
 import { PIPELINE_STAGE } from '../../../lib/pipeline';
@@ -444,9 +445,11 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
                         {stalled > 0 ? t(locale, 'recruiting.pipelineStalled', { n: stalled }) : null}
                       </span>
                     ) : null}
-                    <span className="ml-auto font-ui text-[11px] text-ink-muted md:hidden">
-                      {t(locale, collapsedStages.includes(stage.id) ? 'panel.common.expand' : 'panel.common.collapse')}
-                    </span>
+                    <DisclosureToggle
+                      locale={locale}
+                      open={!collapsedStages.includes(stage.id)}
+                      className="ml-auto md:hidden"
+                    />
                     </button>
                   </div>
                   <div

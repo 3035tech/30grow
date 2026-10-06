@@ -13,7 +13,7 @@ Detalhe canônico: `AGENTS.md` (seção UI/UX). Complemento por arquivo: `.curso
 
 1. **Uma tarefa principal por tela/viewport** — o que o usuário veio fazer deve dominar; o resto fica secundário ou atrás de ação explícita.
 2. **Lista antes de formulário** — cadastros ricos: listar/buscar primeiro; criar/editar atrás de botão, drawer ou página dedicada (não formulário permanente no topo).
-3. **Progressive disclosure** (esconder complexidade até ser necessária; filtros avançados, criar vaga, detalhes). Sempre `CollapsibleBlock` / `DisclosureToggle` com labels `panel.common.expand` / `panel.common.collapse` (pt-BR+en). Não inventar `+/−`, `▾`/`▸` ou só ícone sem label.
+3. **Progressive disclosure** (esconder complexidade até ser necessária; filtros avançados, criar vaga, detalhes). Sempre `CollapsibleBlock` / `DisclosureToggle`: seta que gira, **sem texto visível** "Expandir/Recolher" (decisão de produto; o texto `panel.common.expand` / `panel.common.collapse` fica só para leitor de tela, + `aria-expanded` no botão). Não inventar `+/−`, `▾`/`▸` nem chevron próprio.
 4. **Feedback imediato** (loading, sucesso, erro e estado vazio com copy útil (`t()`); nunca silêncio após clique).
 5. **Transição de tela / componente (obrigatório)** — UI nova ou bloco em edição:
    - Conteúdo pós-navegação / pós-fetch → `ContentEnter` (`AppLoading.jsx`)
@@ -22,7 +22,7 @@ Detalhe canônico: `AGENTS.md` (seção UI/UX). Complemento por arquivo: `.curso
    - Hint em ícone → `IconActionTip` (já nos Admin* / CopyableLink)
    - Não inventar segundo fade/skeleton/spinner
 6. **Alvos tocáveis / clicáveis** — área mínima confortável (~40px); labels e `aria-label` em ícones.
-7. **Consistência** — Tailwind (`tailwind.config.js` tokens) + `C`/`FONTS` onde ainda inline; padrões das tabs existentes; ver `.cursor/rules/tailwind-ui.mdc`. Formulários: **sempre** `FormField` (label acima); grades com `items-start` / `S.fieldRow`.
+7. **Consistência** — Tailwind (`tailwind.config.js` tokens) + `C`/`FONTS` onde ainda inline; padrões das tabs existentes; ver `.cursor/rules/tailwind-ui.mdc`. Formulários: **sempre** `FormField` (label acima); grades com `items-start` / `S.fieldRow`. Número em faixa curta e fechada (%, peso 0–10, minutos até ~240) → slider `RangeField` (`type: 'range'` no `promptForm`): arrasta e também aceita digitar o valor exato. Contagens, prazos em dias, saldos e valores de faixa larga continuam `type: 'number'`.
 8. **Hierarquia visual** — título → ação primária → conteúdo; evitar competição de CTAs roxos.
 9. **Mobile e desktop** — drawer/overlay no mobile; collapse de sidebar só no desktop; não quebrar o fluxo público (`/t`, `/v`, assessment).
 10. **Acessibilidade básica** — contraste legível, foco visível, `title`/tooltip em modo ícone, não depender só de cor.
@@ -40,7 +40,7 @@ Detalhe canônico: `AGENTS.md` (seção UI/UX). Complemento por arquivo: `.curso
 - Hex solto fora de `theme.js` / `tailwind.config.js`
 - Label de campo **ao lado** do input em grade (ou placeholder como único rótulo); usar `FormField`
 - Travessão tipográfico com espaços (` — `) em labels, títulos, hints, toasts ou i18n
-- Expand/collapse ad hoc (`+/−`, `▾`/`▸`, só ícone sem label) em vez de `CollapsibleBlock` / `DisclosureToggle`
+- Expand/collapse ad hoc (`+/−`, `▾`/`▸`, chevron próprio, texto visível "Expandir/Recolher") em vez de `CollapsibleBlock` / `DisclosureToggle`
 - Loading ad hoc (`…`, spinner solto) ou fade inventado fora de `ContentEnter` / `variant="panel"`
 
 ## Checklist rápido antes de entregar UI
@@ -48,7 +48,7 @@ Detalhe canônico: `AGENTS.md` (seção UI/UX). Complemento por arquivo: `.curso
 - [ ] A ação principal é óbvia em poucos segundos?
 - [ ] Estados vazio / loading / erro estão cobertos?
 - [ ] Transição: `ContentEnter` e/ou `AppLoading variant="panel"` / `NavLoadBar` / `CollapsibleBlock`?
-- [ ] Disclosure com `DisclosureToggle` / labels Expandir·Recolher (pt-BR+en)?
+- [ ] Disclosure com `DisclosureToggle` (seta; texto só para leitor de tela) e `aria-expanded`?
 - [ ] pt-BR **e** en em `lib/i18n.js`?
 - [ ] Nenhuma string de UI nova com ` — `?
 - [ ] Reusou componente existente (grep) antes de criar?

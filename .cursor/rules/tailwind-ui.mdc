@@ -21,7 +21,7 @@ alwaysApply: true
 3. **Reutilizar antes de inventar** (grep primeiro):
    - `S.*` em `app/dashboard/dashboard-shared.jsx` — `S.card`, `S.cardTight`, `S.cardShell` (sem padding: use quando precisar de padding próprio, pois `cn()` não faz merge e `p-0`/`p-3` sobre `S.card` não vencem), `S.label`, `S.btnPrimary`, `S.btnBrandSoft`, `S.btnGhost`, `S.input`, `S.select`, `S.filterChip`, `S.stack`, `S.row`, `S.muted`, `S.faint`, `S.pageTitle`
    - `dialog*Class` em `app/_components/app-dialog-styles.js`
-   - `EmptyState`, `Icon`, `PanelSubNav`, `TypeBadge`, `StatusToneChip`, `AdminRichFormDrawer`, `PromptFormDialog`, `AppLoading` (`ContentEnter`, `NavLoadBar`, `variant="panel"`), `CollapsibleBlock` / `DisclosureToggle`, `MeterBar` / `Bar`, `ScaleRatingButtons`, `StatMetricTile`, `SegmentedControl`, `InlineCallout`, `PublicNarrowShell`, `InsightListItem`, `IconActionTip`, `useAppFeedback`
+   - `EmptyState`, `Icon`, `PanelSubNav`, `TypeBadge`, `StatusToneChip`, `AdminRichFormDrawer`, `PromptFormDialog`, `AppLoading` (`ContentEnter`, `NavLoadBar`, `variant="panel"`), `CollapsibleBlock` / `DisclosureToggle` (só seta, sem texto visível), `RangeField` (slider + valor editável), `MeterBar` / `Bar`, `ScaleRatingButtons`, `StatMetricTile`, `SegmentedControl`, `InlineCallout`, `PublicNarrowShell`, `InsightListItem`, `IconActionTip`, `useAppFeedback`
    - Admin list: `AdminPageHeader`, `AdminTableShell`, `AdminListSearch`, `AdminTh`, `SortableTh`, `AdminListPager`, `Admin*Button`
    - `cn()` em `lib/cn.js` para condicionais
    - Só criar constante local se nada servir

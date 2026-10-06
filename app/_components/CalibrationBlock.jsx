@@ -78,7 +78,7 @@ export function CalibrationBlock({ locale = 'pt-BR', companyId, cycleId, cycleTi
       fields: [
         {
           key: 'overallScore',
-          type: 'number',
+          type: 'range',
           label: t(locale, 'panel.calibration.scoreLabel'),
           help: t(locale, 'panel.calibration.scoreHelp'),
           required: true,

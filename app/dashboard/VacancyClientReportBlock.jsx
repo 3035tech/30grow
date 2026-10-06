@@ -1280,6 +1280,7 @@ export function VacancyClientReportBlock({
                             value={editNoteDraft}
                             onChange={setEditNoteDraft}
                             minHeight={90}
+                            placeholder={t(locale, 'panel.report.notePlaceholder')}
                             locale={locale}
                           />
                           <div className="flex gap-2 mt-2">

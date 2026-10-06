@@ -102,7 +102,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
         },
         {
           key: 'breakMinutes',
-          type: 'number',
+          type: 'range',
           label: t(locale, 'panel.timeClock.breakLabel'),
           defaultValue: String(schedule?.breakMinutes ?? 60),
           min: 0,
@@ -110,7 +110,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
         },
         {
           key: 'lateGraceMinutes',
-          type: 'number',
+          type: 'range',
           label: t(locale, 'panel.timeClock.graceLabel'),
           defaultValue: String(schedule?.lateGraceMinutes ?? 10),
           min: 0,

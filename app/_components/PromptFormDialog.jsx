@@ -18,6 +18,7 @@ import {
 } from './app-dialog-styles';
 import { RichTextEditor } from './RichTextEditor';
 import { DateField } from './DateField';
+import { RangeField } from './RangeField';
 import { TagInput } from './TagInput';
 import { EntitySearchSelect } from './EntitySearchSelect';
 import { parseTagList } from '../../lib/tag-list';
@@ -675,39 +676,20 @@ export function PromptFormDialog({
     }
 
     if (f.type === 'range') {
-      const min = f.min != null ? Number(f.min) : 0;
-      const max = f.max != null ? Number(f.max) : 100;
-      const step = f.step != null ? Number(f.step) : 1;
-      const parsed = Number(values[fk]);
-      const val = Number.isFinite(parsed) ? parsed : min;
       return (
-        <div className="mt-1">
-          <div className="flex items-center gap-3">
-            <input
-              type="range"
-              min={min}
-              max={max}
-              step={Number.isFinite(step) && step > 0 ? step : 1}
-              value={val}
-              disabled={disabled}
-              onChange={(e) => setField(fk, e.target.value)}
-              className="ui-range"
-              aria-valuemin={min}
-              aria-valuemax={max}
-              aria-valuenow={val}
-              aria-label={f.label}
-            />
-            <span className="min-w-[3.5rem] shrink-0 rounded-control bg-canvas-alt px-2 py-1 text-right font-mono text-sm tabular-nums text-ink">
-              {val}
-              {f.suffix || ''}
-            </span>
-          </div>
-          <div className="mt-0.5 flex justify-between font-mono text-2xs text-ink-muted">
-            <span>{f.minLabel != null ? f.minLabel : String(min)}</span>
-            {f.midLabel ? <span>{f.midLabel}</span> : null}
-            <span>{f.maxLabel != null ? f.maxLabel : String(max)}</span>
-          </div>
-        </div>
+        <RangeField
+          value={values[fk]}
+          onChange={(v) => setField(fk, v)}
+          min={f.min != null ? Number(f.min) : 0}
+          max={f.max != null ? Number(f.max) : 100}
+          step={f.step != null ? Number(f.step) : 1}
+          suffix={f.suffix || ''}
+          minLabel={f.minLabel}
+          midLabel={f.midLabel}
+          maxLabel={f.maxLabel}
+          label={f.label}
+          disabled={disabled}
+        />
       );
     }
 

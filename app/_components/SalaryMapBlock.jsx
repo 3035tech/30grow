@@ -14,7 +14,7 @@ import { AppLoading, ContentEnter } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';
 import { FormField } from './FormField';
 import { InlineCallout } from './InlineCallout';
-import { fieldInputClass } from './form-control-styles';
+import { RangeField } from './RangeField';
 import { CollapsibleBlock } from './CollapsibleBlock';
 import { SegmentedControl } from './SegmentedControl';
 import { StackedSegmentBar } from './StackedSegmentBar';
@@ -265,16 +265,16 @@ export function SalaryMapBlock({ locale = 'pt-BR', companyId }) {
         ) : null}
 
         <div className="mb-4 flex flex-wrap items-end gap-3">
-          <FormField label={t(locale, 'panel.salaryMap.pctLabel')} className="max-w-[7rem] flex-none">
-            <input
-              type="number"
+          <FormField as="div" label={t(locale, 'panel.salaryMap.pctLabel')} className="min-w-[14rem] max-w-sm flex-1">
+            <RangeField
+              value={pct}
+              onChange={setPct}
               min={0}
               max={100}
               step={0.5}
-              className={cn(fieldInputClass, 'w-full')}
-              value={pct}
-              onChange={(e) => setPct(e.target.value)}
-              aria-label={t(locale, 'panel.salaryMap.pctLabel')}
+              suffix="%"
+              hideScale
+              label={t(locale, 'panel.salaryMap.pctLabel')}
             />
           </FormField>
           <button

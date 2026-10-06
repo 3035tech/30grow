@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { cn } from '../../../lib/cn';
+import { DisclosureToggle } from '../../_components/CollapsibleBlock';
 import { t, contentLocale } from '../../../lib/i18n';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { EmptyState } from '../../_components/EmptyState';
@@ -246,14 +247,13 @@ export function PipelineTemplatesManager({ locale, companyId, templates, loading
               <td className="px-4 py-3 text-right"><div className="inline-flex items-center gap-1.5 whitespace-nowrap">
                 <button
                   type="button"
-                  className="min-h-touch rounded-control px-2.5 font-ui text-xs text-ink-muted hover:bg-ink/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                  className="inline-flex min-h-touch items-center gap-1.5 rounded-control px-2.5 font-ui text-xs text-ink-muted hover:bg-ink/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
                   aria-expanded={expandedId === template.id}
                   aria-controls={expandedId === template.id ? `pipeline-preview-${template.id}` : undefined}
                   onClick={() => setExpandedId((current) => current === template.id ? null : template.id)}
                 >
-                  {expandedId === template.id
-                    ? t(locale, 'panel.common.collapse')
-                    : t(locale, 'panel.pipelineTemplates.preview')}
+                  {t(locale, 'panel.pipelineTemplates.preview')}
+                  <DisclosureToggle locale={locale} open={expandedId === template.id} />
                 </button>
                 <AdminEditButton label={t(locale, 'panel.pipelineTemplates.rename')} disabled={busy} onClick={() => mutate(template, 'rename')} />
                 <AdminIconButton icon="copy" label={t(locale, 'panel.pipelineTemplates.duplicate')} disabled={busy} onClick={() => mutate(template, 'duplicate')} />

@@ -169,11 +169,7 @@ function NavGroup({ group, open, onToggle, locale, collapsed, isActiveGroup }) {
           {!open ? <span className="font-normal normal-case tracking-normal text-ink-faint"> · {group.items.length}</span> : null}
         </span>
         <span aria-hidden className="flex-shrink-0">
-          <DisclosureToggle
-            locale={locale}
-            open={open}
-            labelClassName="sr-only group-hover:not-sr-only group-focus-visible:not-sr-only"
-          />
+          <DisclosureToggle locale={locale} open={open} />
         </span>
       </button>
       {open ? (

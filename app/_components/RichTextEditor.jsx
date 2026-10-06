@@ -64,7 +64,7 @@ export function RichTextEditor({
 }) {
   const ref = useRef(null);
   const lastHtml = useRef('');
-  const ph = placeholder || t(locale, 'recruiting.interviewNotesPh');
+  const ph = placeholder ?? t(locale, 'recruiting.interviewNotesPh');
 
   useEffect(() => {
     const el = ref.current;

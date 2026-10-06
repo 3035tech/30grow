@@ -14,7 +14,7 @@ import { RowActionsMenu } from './RowActionsMenu';
 import { RichTextView } from './RichTextView';
 import { EmptyState } from './EmptyState';
 import { htmlToPlainText, plainOrMarkdownToSimpleHtml } from '../../lib/sanitize-html';
-import { OKR_CYCLE_STATUS } from '../../lib/domain-status';
+import { OKR_CYCLE_STATUS, OKR_WEIGHT_MAX, OKR_WEIGHT_MIN } from '../../lib/domain-status';
 import { t, tCount } from '../../lib/i18n';
 
 const RICH_TEXT_MAX = 2000;
@@ -114,7 +114,7 @@ function OkrHierarchyContent({ locale, companyId }) {
       {key:'startValue',type:'number',row:'values',label:tr('baseline'),required:true,step:0.01,defaultValue:String(k?.startValue ?? 0)},
       {key:'targetValue',type:'number',row:'values',label:tr('target'),required:true,step:0.01,defaultValue:k ? String(k.targetValue) : '',validate:(value,values)=>Number(value)===Number(values.startValue) ? tr('targetEqualsBaseline') : null,help:tr('targetHelp')},
       {key:'unit',row:'unit',label:tr('unit'),placeholder:tr('unitPlaceholder'),required:true,maxLength:40,defaultValue:k?.unit || ''},
-      {key:'weight',type:'number',row:'unit',label:tr('weight'),required:true,min:0,max:10,step:1,defaultValue:String(k?.weight ?? 1),help:tr('weightHelp')},
+      {key:'weight',type:'range',row:'unit',label:tr('weight'),required:true,min:OKR_WEIGHT_MIN,max:OKR_WEIGHT_MAX,step:1,minLabel:t(locale,'panel.okr.weightMinLabel'),maxLabel:t(locale,'panel.okr.weightMaxLabel'),defaultValue:String(k?.weight ?? 1),help:tr('weightHelp')},
       {key:'deadline',type:'date',row:'deadline',width:'half',label:tr('deadline'),required:true,defaultValue:k?.deadline || objective.periodEnd,min:cycle.startsOn,max:objective.periodEnd,validate:validDeadline(cycle.startsOn,objective.periodEnd)},
       ...(!k ? [{...personField('candidateId',true),row:'deadline'}] : []),
       richField('notes',tr('notes'),k?.notes,tr('notesPlaceholder')),
