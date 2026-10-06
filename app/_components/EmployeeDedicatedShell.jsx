@@ -26,8 +26,8 @@ export function EmployeeDedicatedShell({
 }) {
   return (
     <div className={cn('mx-auto w-full px-4 py-6 sm:px-6 sm:py-8', maxWidthClass)}>
-      {showHeader ? <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
+      {showHeader ? <div className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
+        <div className="min-w-0 flex-1 basis-64">
           {onBack ? (
             <button type="button" onClick={onBack} className={cn(S.btnGhost, 'no-underline')}>
               ← {backLabel || t(locale, 'employeeHome.backHome')}
@@ -37,11 +37,11 @@ export function EmployeeDedicatedShell({
               ← {backLabel || t(locale, 'employeeHome.backHome')}
             </Link>
           )}
-          <h1 id={headingId} tabIndex={-1} className={cn(S.pageTitle, 'mt-3 mb-1 focus-visible:outline-brand-500')}>{title}</h1>
-          {hint ? <p className={cn(S.muted, 'mb-0 max-w-[70ch]')}>{hint}</p> : null}
+          <h1 id={headingId} tabIndex={-1} className={cn(S.pageTitle, 'mt-4 mb-2 break-words focus-visible:outline-brand-500 focus-visible:outline-offset-4')}>{title}</h1>
+          {hint ? <p className={cn(S.muted, 'mb-0 max-w-[65ch] leading-relaxed')}>{hint}</p> : null}
           {headerContent}
         </div>
-        {trailing ? <div className="shrink-0 pt-8 sm:pt-10">{trailing}</div> : null}
+        {trailing ? <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2">{trailing}</div> : null}
       </div> : null}
       {children}
     </div>

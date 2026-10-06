@@ -716,14 +716,14 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
                 <li
                   key={course.enrollmentId}
                   className={cn(
-                    'rounded-card border bg-surface p-3',
+                    'rounded-card border bg-surface p-4 sm:p-5',
                     course.overdue ? 'border-danger/30' : 'border-ink/12'
                   )}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-ui text-sm font-medium text-ink">{course.title}</span>
+                        <h2 className="m-0 min-w-0 break-words font-ui text-base font-semibold text-ink">{course.title}</h2>
                         {course.isComplete ? (
                           <StatusToneChip tone="success">
                             {t(locale, 'panel.employeePortal.courseDone')}
@@ -751,12 +751,12 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
                         </p>
                       ) : null}
                     </div>
-                    <span className="text-prose font-medium text-ink-muted">{course.progressPct}%</span>
+                    <span className="shrink-0 text-prose font-medium tabular-nums text-ink-muted">{course.progressPct}%</span>
                   </div>
                   <MeterBar
                     percent={course.progressPct}
                     height={6}
-                    className="mt-2"
+                    className="mt-3"
                     toneClass={
                       course.isComplete
                         ? 'bg-success'
@@ -765,7 +765,7 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
                           : 'bg-brand-500'
                     }
                   />
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"
                       className={cn(S.btnBrandSoft, 'min-h-touch text-sm')}

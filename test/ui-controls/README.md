@@ -25,3 +25,9 @@ reproduzidas também no HEAD anterior às alterações: botão Aplicar do calend
 fora da área visível, expectativa de foco no diálogo com formulário e overflow
 horizontal das listas administrativas no celular. Esses casos não pertencem
 à navegação do colaborador e continuam pendentes.
+
+O polish posterior dos cabeçalhos, perfil e cursos também passou no build e nos
+30 testes de consistência. Dos 13 casos de navegador, 12 passaram juntos;
+a identidade em 768 px passou na repetição após o build, depois de um erro
+transitório de leitura de JSON no servidor de desenvolvimento. Revisão visual
+no Chrome em desktop e celular, nos modos claro e escuro, com dados sintéticos.

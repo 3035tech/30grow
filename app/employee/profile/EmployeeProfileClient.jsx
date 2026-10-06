@@ -12,7 +12,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { ContentEnter } from '../../_components/AppLoading';
 import { DateField } from '../../_components/DateField';
 import { FormField, formFieldGrowClass } from '../../_components/FormField';
-import { profilePanelClass, profilePanelHeaderClass } from '../../_components/ProfileUi';
+import { profilePanelHeaderClass } from '../../_components/ProfileUi';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { InlineCallout } from '../../_components/InlineCallout';
 import { EmptyState } from '../../_components/EmptyState';
@@ -21,6 +21,8 @@ import LanguageSelect from '../../_components/LanguageSelect';
 import { useEmployeeNav } from '../../_components/EmployeeNavContext';
 import { BR_STATES } from '../../../lib/candidate-profile';
 import { redirectEmployeeIfUnauthorized } from '../../../lib/employee-client-session';
+
+const profilePanelClass = cn(S.cardShell, 'p-4 sm:p-6');
 
 export function EmployeeProfileClient({ locale = 'pt-BR' }) {
   const router = useRouter();
@@ -246,21 +248,21 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
 
   if (loadFailed) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+      <EmployeeDedicatedShell locale={locale} title={t(locale, 'employeeHome.profileTitle')} hint={t(locale, 'employeeHome.profileHint')}>
         <EmptyState
           message={t(locale, 'employeeHome.loadError')}
           actionLabel={t(locale, 'employeeHome.loadRetry')}
           onAction={() => void load()}
         />
-      </div>
+      </EmployeeDedicatedShell>
     );
   }
 
   return (
     <ContentEnter animKey="ready">
       <EmployeeDedicatedShell locale={locale} title={t(locale, 'employeeHome.profileTitle')} hint={t(locale, 'employeeHome.profileHint')}>
-        <div className={cn(S.cardShell, 'max-w-4xl p-4 sm:p-6')}>
-          <div className="mt-5">
+        <div className="max-w-4xl">
+          <div className="mb-5">
             <PanelSubNav
               ariaLabel={t(locale, 'dashboard.profileSectionsAria')}
               active={profileSection}
@@ -274,9 +276,8 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
           <section hidden={profileSection !== 'account'} role="tabpanel" id="employee-profile-panel-account" aria-labelledby="employee-profile-tab-account" className={profilePanelClass}>
             <div className={profilePanelHeaderClass}>
               <h2 className="m-0 font-ui text-base font-semibold text-ink">{t(locale, 'dashboard.profileAccountTitle')}</h2>
-              <p className="mb-0 mt-1 text-sm leading-relaxed text-ink-muted">{t(locale, 'employeeHome.profileSectionContact')}</p>
             </div>
-            <form className="flex flex-col gap-3" onSubmit={saveProfile}>
+            <form className="flex flex-col gap-4" onSubmit={saveProfile}>
               <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
                 <FormField
                   label={t(locale, 'employeeHome.fullNameLabel')}
@@ -285,6 +286,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                   <input
                     className={cn(S.input, 'w-full')}
                     value={form.fullName}
+                    autoComplete="name"
                     onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
                     required
                     disabled={busy}
@@ -294,6 +296,8 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                   <input
                     className={cn(S.input, 'w-full')}
                     value={form.email}
+                    type="email"
+                    autoComplete="email"
                     disabled
                     readOnly
                   />
@@ -304,6 +308,8 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                   <input
                     className={cn(S.input, 'w-full')}
                     value={form.phone}
+                    type="tel"
+                    autoComplete="tel"
                     onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                     disabled={busy}
                   />
@@ -325,6 +331,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                   <input
                     className={cn(S.input, 'w-full')}
                     value={form.city}
+                    autoComplete="address-level2"
                     onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
                     disabled={busy}
                   />
@@ -354,7 +361,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                 </FormField>
               </div>
               <div className="mt-3 flex justify-end border-t border-ink/10 pt-4">
-                <button type="submit" disabled={busy} className={S.btnPrimary}>{t(locale, 'employeeHome.saveProfile')}</button>
+                <button type="submit" disabled={busy} className={cn(S.btnPrimary, 'w-full sm:w-auto')}>{t(locale, 'employeeHome.saveProfile')}</button>
               </div>
             </form>
           </section>
@@ -412,7 +419,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                 />
               </FormField>
               <div className="mt-2 flex justify-end border-t border-ink/10 pt-4 lg:col-span-3">
-                <button type="submit" disabled={busy || !pwd.current || !pwd.next || !pwd.confirm} className={S.btnPrimary}>{t(locale, 'dashboard.profilePasswordSave')}</button>
+                <button type="submit" disabled={busy || !pwd.current || !pwd.next || !pwd.confirm} className={cn(S.btnPrimary, 'w-full sm:w-auto')}>{t(locale, 'dashboard.profilePasswordSave')}</button>
               </div>
             </form>
           </section>
