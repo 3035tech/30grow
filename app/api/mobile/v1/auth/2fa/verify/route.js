@@ -1,3 +1,4 @@
+import { consumeSecondFactorChallenge } from '../../../../../../../lib/second-factor-challenge.js';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
@@ -22,14 +23,16 @@ export async function POST(request) {
     if (!rate.ok) return apiError(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS, {}, { headers: NO_STORE });
     const parsed = await parseJsonBody(request, verifySchema);
     if (!parsed.ok) return parsed.response;
-    const challenge = verifyMobileEmployeeSecondFactor(parsed.data.challengeToken);
+    const challenge = await verifyMobileEmployeeSecondFactor(parsed.data.challengeToken);
     if (!challenge) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, HTTP_STATUS.UNAUTHORIZED, {}, { headers: NO_STORE });
     const verified = await verifyEmployee2faLogin(challenge.candidateId, challenge.companyId, parsed.data.code);
     if (!verified.ok) return apiError(request, ERR.TOTP_INVALID, HTTP_STATUS.UNAUTHORIZED, {}, { headers: NO_STORE });
+    const challengeVersion = await consumeSecondFactorChallenge(parsed.data.challengeToken);
+    if (!challengeVersion) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, 401);
     const completed = await completeMobileEmployeeAuthentication({
       candidateId: challenge.candidateId,
       companyId: challenge.companyId,
-    }, challenge.contexts);
+    }, challenge.contexts, challengeVersion);
     if (!completed.ok) return apiError(request, ERR.UNAUTHORIZED, HTTP_STATUS.UNAUTHORIZED, {}, { headers: NO_STORE });
     return NextResponse.json(completed, { headers: NO_STORE });
   } catch (error) {

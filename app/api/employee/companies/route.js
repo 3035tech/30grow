@@ -1,3 +1,4 @@
+import { consumeSecondFactorChallenge } from '../../../../lib/second-factor-challenge.js';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db.js';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
@@ -69,7 +70,7 @@ export async function POST(request) {
     const choices = await sessionCompanyChoices(session);
 
     if (body.challengeToken) {
-      const challenge = verifyEmployee2faChallenge(body.challengeToken);
+      const challenge = await verifyEmployee2faChallenge(body.challengeToken);
       const allowed = challenge && choices.some(
         (item) =>
           Number(item.candidateId) === Number(challenge.candidateId) &&
@@ -94,7 +95,10 @@ export async function POST(request) {
       if (String(verified.person.email || '').trim().toLowerCase() !== String(session.email).trim().toLowerCase()) {
         return apiError(request, ERR.UNAUTHORIZED, 401);
       }
+      const challengeVersion = await consumeSecondFactorChallenge(body.challengeToken);
+      if (!challengeVersion) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, 401);
       return buildEmployeeLoginResponse({
+        sv: challengeVersion,
         candidateId: challenge.candidateId,
         companyId: challenge.companyId,
         email: verified.person.email,
@@ -123,7 +127,7 @@ export async function POST(request) {
       return NextResponse.json({
         ok: true,
         requires2fa: true,
-        challengeToken: signEmployee2faChallenge({
+        challengeToken: await signEmployee2faChallenge({
           candidateId: result.candidateId,
           companyId: result.companyId,
         }),

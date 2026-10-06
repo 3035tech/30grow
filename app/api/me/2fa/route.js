@@ -84,6 +84,11 @@ export async function DELETE(request) {
   const body = await request.json().catch(() => ({}));
   const result = await disable2fa(userId, { code: body.code, password: body.password });
   if (!result.ok) {
+    if (result.code === 'RATE_LIMIT') {
+      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+        headers: { 'Retry-After': String(result.retryAfterSec) },
+      });
+    }
     if (result.code === 'TOTP_INVALID') return apiError(request, ERR.TOTP_INVALID, httpStatusForError(ERR.TOTP_INVALID));
     if (result.code === 'INVALID_CREDENTIALS') {
       return apiError(request, ERR.INVALID_CREDENTIALS, httpStatusForError(ERR.INVALID_CREDENTIALS));

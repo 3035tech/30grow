@@ -87,6 +87,11 @@ export async function DELETE(request) {
     password: body.password,
   });
   if (!result.ok) {
+    if (result.code === 'RATE_LIMIT') {
+      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+        headers: { 'Retry-After': String(result.retryAfterSec) },
+      });
+    }
     if (result.code === 'TOTP_INVALID') {
       return apiError(request, ERR.TOTP_INVALID, httpStatusForError(ERR.TOTP_INVALID));
     }

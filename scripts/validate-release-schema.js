@@ -20,6 +20,7 @@ const migrationsDir = path.join(root, 'migrations');
 const pendingBundlePath = path.join(root, 'scripts', 'scripts-banco-pendentes.sql');
 
 const REQUIRED_SCHEMA = Object.freeze({
+  second_factor_challenges: ['id', 'purpose', 'user_id', 'candidate_id', 'company_id', 'session_version', 'expires_at'],
   companies: ['id', 'enabled_modules', 'deleted'],
   users: ['id', 'company_id', 'role', 'active', 'deleted'],
   candidates: ['id', 'company_id', 'email', 'employment_status'],

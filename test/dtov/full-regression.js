@@ -553,17 +553,8 @@ async function runOfflineLibs() {
   await check('lib', 'totp-optional-2fa', async () => {
     const { generateTotpSecret, verifyTotpCode, buildOtpAuthUrl } = await import('../../lib/totp.js');
     const { roleMayUse2Fa } = await import('../../lib/manager-2fa.js');
-    const {
-      signEmployee2faChallenge,
-      verifyEmployee2faChallenge,
-    } = await import('../../lib/employee-2fa.js');
     if (!roleMayUse2Fa('admin') || !roleMayUse2Fa('hr') || !roleMayUse2Fa('direction')) {
       throw new Error('managers should use 2FA');
-    }
-    const empChallenge = signEmployee2faChallenge({ candidateId: 1, companyId: 2 });
-    const empParsed = verifyEmployee2faChallenge(empChallenge);
-    if (!empParsed || empParsed.candidateId !== 1 || empParsed.companyId !== 2) {
-      throw new Error('employee challenge roundtrip failed');
     }
     const secret = generateTotpSecret();
     if (secret.length < 16) throw new Error('short secret');

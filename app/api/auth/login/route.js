@@ -109,7 +109,7 @@ export async function POST(request) {
       return NextResponse.json({
         ok: true,
         requires2fa: true,
-        challengeToken: sign2faChallenge(u.id),
+        challengeToken: await sign2faChallenge(u.id),
       });
     }
 

@@ -1,3 +1,4 @@
+import { consumeSecondFactorChallenge } from '../../../../../lib/second-factor-challenge.js';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
@@ -26,7 +27,7 @@ export async function POST(request) {
       return apiError(request, ERR.TURNSTILE_FAILED, httpStatusForError(ERR.TURNSTILE_FAILED));
     }
 
-    const userId = verify2faChallenge(body.challengeToken);
+    const userId = await verify2faChallenge(body.challengeToken);
     if (!userId) {
       return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, httpStatusForError(ERR.TWO_FA_CHALLENGE_INVALID));
     }
@@ -39,6 +40,8 @@ export async function POST(request) {
       return apiError(request, ERR.TWO_FA_NOT_ENABLED, httpStatusForError(ERR.TWO_FA_NOT_ENABLED));
     }
 
+    const challengeVersion = await consumeSecondFactorChallenge(body.challengeToken);
+    if (!challengeVersion) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, 401);
     const res = await query(
       `SELECT
          u.id,
@@ -49,9 +52,9 @@ export async function POST(request) {
          u.company_id AS "companyId",
          COALESCE(u.session_version, 1) AS "sessionVersion"
        FROM users u
-       WHERE u.id = $1 AND u.deleted = FALSE AND u.active = TRUE
+       WHERE u.id = $1 AND u.deleted = FALSE AND u.active = TRUE AND u.session_version = $2
        LIMIT 1`,
-      [userId]
+      [userId, challengeVersion]
     );
     if (!res.rowCount) {
       return apiError(request, ERR.INVALID_CREDENTIALS, 401);

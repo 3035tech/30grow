@@ -41,7 +41,7 @@
     "dtov:full-app": "node test/dtov/run-full-app.js",
     "test:full": "node test/dtov/full-regression.js",
     "test:full:offline": "node test/dtov/full-regression.js --offline",
-    "test:security": "node --experimental-vm-modules --test test/unit/module-hardening.unit.test.js test/unit/dp-file-security.unit.test.js test/unit/employee-session-security.unit.test.js test/unit/storage-cache-security.unit.test.js test/unit/private-attachment-response.unit.test.js test/unit/session-slide.test.js",
+    "test:security": "node --experimental-vm-modules --test test/unit/module-hardening.unit.test.js test/unit/dp-file-security.unit.test.js test/unit/employee-session-security.unit.test.js test/unit/storage-cache-security.unit.test.js test/unit/private-attachment-response.unit.test.js test/unit/session-slide.test.js test/unit/auth-security-regressions.unit.test.js",
     "test:full:dtov": "DTOV=1 node test/dtov/full-regression.js",
     "test:http": "node test/dtov/http-smoke.js",
     "test:browser": "playwright test",

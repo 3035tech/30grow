@@ -85,7 +85,7 @@ export async function POST(request) {
       return NextResponse.json({
         ok: true,
         requires2fa: true,
-        challengeToken: signEmployee2faChallenge({
+        challengeToken: await signEmployee2faChallenge({
           candidateId: result.candidateId,
           companyId: result.companyId,
         }),

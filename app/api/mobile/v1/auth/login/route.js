@@ -48,7 +48,7 @@ export async function POST(request) {
     if (result.requires2fa) {
       return NextResponse.json({
         outcome: MOBILE_EMPLOYEE_AUTH_OUTCOME.REQUIRES_SECOND_FACTOR,
-        challengeToken: signMobileEmployeeSecondFactor(result, contexts),
+        challengeToken: await signMobileEmployeeSecondFactor(result, contexts),
       }, { headers: NO_STORE });
     }
     const completed = await completeMobileEmployeeAuthentication(result, contexts);

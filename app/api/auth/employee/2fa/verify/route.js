@@ -1,3 +1,4 @@
+import { consumeSecondFactorChallenge } from '../../../../../../lib/second-factor-challenge.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../../lib/api-error.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
 import { verifyTurnstileToken } from '../../../../../../lib/turnstile.js';
@@ -26,7 +27,7 @@ export async function POST(request) {
     }
 
     const locale = normalizeLocale(body.locale);
-    const challenge = verifyEmployee2faChallenge(body.challengeToken);
+    const challenge = await verifyEmployee2faChallenge(body.challengeToken);
     if (!challenge) {
       return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, httpStatusForError(ERR.TWO_FA_CHALLENGE_INVALID));
     }
@@ -39,7 +40,10 @@ export async function POST(request) {
       return apiError(request, ERR.TWO_FA_NOT_ENABLED, httpStatusForError(ERR.TWO_FA_NOT_ENABLED));
     }
 
+    const challengeVersion = await consumeSecondFactorChallenge(body.challengeToken);
+    if (!challengeVersion) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, 401);
     return await buildEmployeeLoginResponse({
+      sv: challengeVersion,
       candidateId: challenge.candidateId,
       companyId: challenge.companyId,
       email: verified.person.email,

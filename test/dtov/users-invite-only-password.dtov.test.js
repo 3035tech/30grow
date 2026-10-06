@@ -97,7 +97,8 @@ async function main() {
       isAdmin: false,
       scopeCompanyId: companyId,
     });
-    assert.equal(selfEdit.ok, true, selfEdit.errorCode);
+    assert.equal(selfEdit.ok, false);
+    assert.equal(selfEdit.errorCode, ERR.EMAIL_CHANGE_PASSWORD_REQUIRED);
 
     const adminEmail = `dtov-pw-support-${stamp}@example.com`;
     const supportEdit = await updateUser({

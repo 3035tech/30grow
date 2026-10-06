@@ -43,6 +43,11 @@ export async function DELETE(request) {
   const body = await request.json().catch(() => ({}));
   const result = await disableEmployee2fa(session.candidateId, session.companyId, { code: body.code, password: body.password });
   if (!result.ok) {
+    if (result.code === 'RATE_LIMIT') {
+      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+        headers: { 'Retry-After': String(result.retryAfterSec) },
+      });
+    }
     const code = result.code === 'TOTP_INVALID' ? ERR.TOTP_INVALID : result.code === 'INVALID_CREDENTIALS' ? ERR.INVALID_CREDENTIALS : ERR.TWO_FA_NOT_ENABLED;
     return apiError(request, code, HTTP_STATUS.BAD_REQUEST);
   }
