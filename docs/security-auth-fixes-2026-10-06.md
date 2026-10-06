@@ -111,3 +111,54 @@ Verificação final desta etapa: `npm run test:security` — 68 aprovados; sess�
 
 
 Polish: políticas CSP organizadas por fonte, nonce lido antes do JSX, respostas de bloqueio e imports padronizados, e script Redis documentado em formato legível. Preservados os limites, as permissões e o comportamento de implantação.
+
+
+## Revalidação após implantação da revisão ECS 71
+
+Em 6 de outubro de 2026, o serviço `30grow-web` estava na revisão 71, rollout COMPLETED, uma tarefa ativa e target healthy. O commit local observado era `19376770`.
+
+- `npm run test:security`: 68 testes aprovados. Sessões mobile e troca de empresa: 7 testes aprovados.
+- Login, preços e login de colaborador responderam 200, com nonce na política. Todos os scripts de login/colaborador tinham nonce correspondente. Na página de preços, o script adicional de decodificação de e-mail do Cloudflare não tinha nonce, mas usa a origem própria, permitida por script-src self.
+- Um x-nonce fornecido pelo cliente foi substituído por um nonce gerado pelo servidor.
+- A CSP de produção permanece em Report-Only. O novo código e a política sem unsafe-inline/unsafe-eval em script-src foram implantados, mas enforcement ainda não está ativo.
+- APIs de usuários e métricas rejeitaram acesso anônimo com 401; /.git/config retornou 403.
+- Login mobile com e-mail fictício em domínio reservado: 12 tentativas retornaram 401 e a 13ª retornou 429, errorCode RATE_LIMIT e Retry-After de aproximadamente 890 segundos.
+- A janela Redis virou às 21:00 UTC durante a primeira comparação de maiúsculas. A tentativa após essa virada retornou 401, como esperado para uma nova janela. A comparação foi repetida dentro da mesma janela, alternando maiúsculas e cabeçalhos X-Forwarded-For: total de 12 rejeições de credenciais e bloqueio na 13ª tentativa. Isso confirma a normalização da conta; variar o cabeçalho não evitou o bloqueio observado. Não representa teste com IPs reais distintos.
+- O evento security.rate_limit_blocked foi encontrado no CloudWatch, com backend redis, confirmando emissão e ingestão do monitoramento.
+- Um desafio mobile de 2FA inválido foi rejeitado com 401.
+- Login autenticado pelo acesso já salvo no Chrome funcionou. Dashboard, perfil e aba Segurança carregaram sem violações CSP nos logs capturados. Não foram alterados e-mail, senha ou configuração de 2FA.
+
+A conta disponível era Admin e tinha 2FA desativado. Essa sessão não comprova isolamento entre empresas para perfis restritos nem consumo único de TOTP real em produção. Esses cenários continuam dependendo de contas de teste autorizadas, com duas empresas e 2FA habilitado. A validação local cobre reautenticação, limite TOTP, replay, revogação e isolamento com fixtures.
+
+## Ativação da CSP em produção — revisão ECS 72
+
+Em 6 de outubro de 2026, foi registrada e aplicada a revisão `30grow-web:72` ao serviço `30grow-web`, cluster `30grow-prod`. A mesma imagem e demais configurações da revisão 71 foram preservadas; somente `CSP_REPORT_ONLY=true` foi removido e `ENABLE_CSP=true` foi adicionado ao container `app`.
+
+- Rollout `COMPLETED`, uma tarefa ativa e nenhuma pendente; a nova tarefa passou no health check do ALB.
+- `/login`, `/employee/login` e `/pricing` responderam HTTP 200 com `Content-Security-Policy`, sem `Content-Security-Policy-Report-Only`.
+- Conferidos 19, 22 e 21 scripts, respectivamente: todos autorizados pela política. O script de e-mail do Cloudflare usa a origem própria permitida; os demais scripts usam o nonce correspondente.
+- O nonce enviado pelo cliente foi substituído. `script-src` não contém `unsafe-inline` nem `unsafe-eval`; `style-src` mantém `unsafe-inline` para compatibilidade com os estilos existentes.
+- No Chrome, a sessão autenticada carregou dashboard, perfil e aba Segurança. A página de preços carregou e expandiu as faixas. Não foram observados erros ou avisos nos logs capturados dessas páginas.
+- Não foram alterados dados de conta, senha ou 2FA. A validação cobre esses fluxos observados, sem afirmar cobertura de todos os módulos e integrações.
+
+Nas próximas implantações, preservar `ENABLE_CSP=true` na definição de tarefa; não reintroduzir `CSP_REPORT_ONLY`.
+
+## Compatibilidade com serviços externos sob CSP ativa
+
+Validação em 6 de outubro de 2026, após a revisão 72. Não foram alterados código, regras CSP, cadastros ou arquivos de produção.
+
+| Integração | Evidência | Limite |
+| --- | --- | --- |
+| YouTube | SDK `iframe_api`, script dependente e player chegaram ao estado pronto em fixture local com a política HTTP copiada de produção; acionado Play. | Sem curso cadastrado na empresa acessível para testar o fluxo LMS completo ou persistência de progresso. |
+| Vimeo | SDK e player prontos na mesma fixture; reprodução iniciada e barra de progresso avançou, seguida de pausa. | Sem matrícula/aula real; não valida gravação de progresso no LMS. |
+| OpenStreetMap | Mapa público de Greenwich carregou dentro do iframe da fixture. | Coordenadas públicas de referência; não foram transmitidas localizações reais de colaboradores. |
+| Turnstile | SDK carregou com a mesma CSP, sem executar CAPTCHA. | Login atual não montou widget; desafio e validação de token não testados. |
+| Cloudflare Analytics | Script externo observado no DOM do login em produção, sem violações nos logs capturados. | Não comprova ingestão do beacon no painel de analytics. |
+| ViaCEP | Endpoint de produção `/api/public/br-cep?cep=01310100`: HTTP 200, `ok=true`. | A chamada ao provedor é server-side; CSP do navegador não controla essa conexão. |
+| S3/uploads | Revisão de código: logo é enviado à API de mesma origem; imagens HTTPS e previews blob/data são permitidos. | Nenhum upload de produção foi realizado; envio completo e download de arquivo privado continuam sem prova nesta etapa. |
+| PDF | Teste existente confirma embed de mesma origem e abertura externa para PDF de outra origem. | Visualização de PDF real em produção não exercitada. |
+| Sentry | Sem DSN no ambiente e sem referência de secret Sentry na definição ECS observada; `connect-src` não inclui coletor. | Ingestão de eventos não validada. Ao configurar Sentry, conferir DSN usado no build do cliente e origem permitida em runtime. |
+
+Nenhuma violação CSP foi observada nos recursos externos exercitados após corrigir uma quebra de linha na fixture temporária. A fixture não equivale ao fluxo autenticado completo da aplicação: usa localhost como origem, sem dados privados, e não executa callbacks de progresso do LMS.
+
+Verificação: `node --experimental-vm-modules --test test/unit/security-perimeter.unit.test.js test/unit/lms-basic.test.js` — 4 testes aprovados. A primeira execução sem `--experimental-vm-modules` falhou por indisponibilidade de `vm.SourceTextModule`; a execução com a opção exigida pela suíte passou. Nenhuma ampliação das origens CSP foi necessária para os recursos testados.

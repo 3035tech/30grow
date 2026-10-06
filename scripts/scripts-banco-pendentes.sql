@@ -3402,3 +3402,95 @@ CREATE TABLE IF NOT EXISTS second_factor_challenges (
 CREATE INDEX IF NOT EXISTS idx_second_factor_challenges_expiry ON second_factor_challenges(expires_at);
 
 INSERT INTO schema_migrations(name) VALUES ('150_second_factor_challenges.sql') ON CONFLICT (name) DO NOTHING;
+
+-- B-2600: IA redige o diagnóstico "Por que não aparece?" (151).
+
+ALTER TABLE ai_usage_events DROP CONSTRAINT IF EXISTS ai_usage_events_feature_chk;
+
+ALTER TABLE ai_usage_events
+  ADD CONSTRAINT ai_usage_events_feature_chk CHECK (feature IN (
+    'rubric_context',
+    'rubric_weights',
+    'job_role_rubric',
+    'vacancy_executive_note',
+    'vacancy_shortlist',
+    'vacancy_candidate_fields',
+    'interview_notes_summary',
+    'vacancy_description',
+    'people_interpret',
+    'help_assistant',
+    'help_diagnose'
+  ));
+
+INSERT INTO schema_migrations (name) VALUES ('151_ai_feature_help_diagnose.sql')
+ON CONFLICT (name) DO NOTHING;
+
+-- B-2714: NR-1 riscos psicossociais, versão leve (152).
+
+ALTER TABLE climate_survey_questions
+  ADD COLUMN IF NOT EXISTS psychosocial_factor TEXT;
+
+ALTER TABLE climate_survey_questions
+  DROP CONSTRAINT IF EXISTS climate_survey_questions_psychosocial_factor_chk;
+ALTER TABLE climate_survey_questions
+  ADD CONSTRAINT climate_survey_questions_psychosocial_factor_chk CHECK (
+    psychosocial_factor IS NULL OR psychosocial_factor IN (
+      'workload', 'autonomy', 'support', 'relationships',
+      'role_clarity', 'change', 'recognition', 'work_life'
+    )
+  );
+
+CREATE TABLE IF NOT EXISTS psychosocial_risks (
+  id                   BIGSERIAL PRIMARY KEY,
+  company_id           BIGINT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  factor               TEXT NOT NULL,
+  hazard               TEXT NOT NULL,
+  exposed_group        TEXT NOT NULL DEFAULT '',
+  probability          SMALLINT NOT NULL DEFAULT 2,
+  severity             SMALLINT NOT NULL DEFAULT 2,
+  risk_score           SMALLINT GENERATED ALWAYS AS (probability * severity) STORED,
+  measures             TEXT NOT NULL DEFAULT '',
+  owner_user_id        BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  due_date             DATE,
+  status               TEXT NOT NULL DEFAULT 'identified',
+  survey_id            BIGINT REFERENCES climate_surveys(id) ON DELETE SET NULL,
+  created_by_user_id   BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  deleted              BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE psychosocial_risks DROP CONSTRAINT IF EXISTS psychosocial_risks_factor_chk;
+ALTER TABLE psychosocial_risks
+  ADD CONSTRAINT psychosocial_risks_factor_chk CHECK (factor IN (
+    'workload', 'autonomy', 'support', 'relationships',
+    'role_clarity', 'change', 'recognition', 'work_life'
+  ));
+
+ALTER TABLE psychosocial_risks DROP CONSTRAINT IF EXISTS psychosocial_risks_status_chk;
+ALTER TABLE psychosocial_risks
+  ADD CONSTRAINT psychosocial_risks_status_chk CHECK (status IN ('identified', 'in_progress', 'controlled'));
+
+ALTER TABLE psychosocial_risks DROP CONSTRAINT IF EXISTS psychosocial_risks_scale_chk;
+ALTER TABLE psychosocial_risks
+  ADD CONSTRAINT psychosocial_risks_scale_chk CHECK (probability BETWEEN 1 AND 3 AND severity BETWEEN 1 AND 3);
+
+ALTER TABLE psychosocial_risks DROP CONSTRAINT IF EXISTS psychosocial_risks_text_len_chk;
+ALTER TABLE psychosocial_risks
+  ADD CONSTRAINT psychosocial_risks_text_len_chk CHECK (
+    char_length(btrim(hazard)) >= 1 AND char_length(hazard) <= 500
+    AND char_length(exposed_group) <= 200
+    AND char_length(measures) <= 2000
+  );
+
+CREATE INDEX IF NOT EXISTS idx_psychosocial_risks_company
+  ON psychosocial_risks (company_id, risk_score DESC, updated_at DESC)
+  WHERE deleted = FALSE;
+
+COMMENT ON TABLE psychosocial_risks IS
+  'NR-1 (leve): inventário de riscos psicossociais por empresa. Apoio ao PGR; não substitui SESMT.';
+COMMENT ON COLUMN climate_survey_questions.psychosocial_factor IS
+  'Fator psicossocial (NR-1) avaliado pela pergunta Likert; NULL = pergunta de clima comum.';
+
+INSERT INTO schema_migrations (name) VALUES ('152_psychosocial_risks.sql')
+ON CONFLICT (name) DO NOTHING;

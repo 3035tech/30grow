@@ -1194,7 +1194,7 @@ export function VacancyClientReportBlock({
               {reports.some((r) => r.isLive) ? (
                 <button
                   type="button"
-                  className={cn(S.btnGhost, 'px-2.5 py-1.5 text-sm')}
+                  className={S.btnGhost}
                   disabled={busy}
                   onClick={async () => {
                     const urls = reports
@@ -1288,7 +1288,7 @@ export function VacancyClientReportBlock({
                               type="button"
                               onClick={() => saveReportNote(r.id)}
                               disabled={editBusy}
-                              className={btnPurpleClass()}
+                              className={S.btnBrandSoft}
                             >
                               {editBusy ? t(locale, 'panel.common.loading') : t(locale, 'panel.report.saveNote')}
                             </button>
@@ -1315,13 +1315,5 @@ function fieldInputClass() {
 }
 
 function btnGhostClass({ busy = false, locked = false } = {}) {
-  const inactive = busy || locked;
-  return cn(
-    'inline-flex min-h-[32px] items-center rounded-lg border border-ink/12 bg-transparent px-2.5 py-1.5 font-mono text-2xs text-ink-muted',
-    inactive ? 'cursor-wait opacity-65' : 'cursor-pointer'
-  );
-}
-
-function btnPurpleClass() {
-  return 'inline-flex min-h-[32px] cursor-pointer items-center rounded-lg border border-brand-500/35 bg-brand-500/[0.09] px-2.5 py-1.5 font-mono text-2xs text-brand-500';
+  return busy || locked ? cn(S.btnGhost.replace('cursor-pointer', 'cursor-wait'), 'opacity-65') : S.btnGhost;
 }

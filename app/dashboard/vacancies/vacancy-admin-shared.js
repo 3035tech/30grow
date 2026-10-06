@@ -2,6 +2,7 @@ import { t, localeHtmlLang } from '../../../lib/i18n';
 import { cn } from '../../../lib/cn';
 import { formatSalaryBr, salaryAmountNumber } from '../../../lib/br-masks';
 import { PIPELINE_STAGE } from '../../../lib/pipeline.js';
+import { S } from '../dashboard-shared';
 
 function formatSalaryCompact(locale, value, bare = false) {
   const n = salaryAmountNumber(value);
@@ -26,13 +27,9 @@ export function formatVacancySalaryRange(locale, min, max, opts = {}) {
 
 /** Tailwind classes for description assist buttons (template / AI). */
 export function descAssistBtnClass(opts = {}) {
-  return cn(
-    'inline-flex min-h-[36px] items-center justify-center gap-2 rounded-lg px-3 py-1.5 font-mono text-2xs',
-    opts.primary
-      ? 'border border-brand-500/35 bg-brand-500/[0.09] text-brand-500'
-      : 'border border-ink/12 bg-surface text-ink',
-    opts.busy ? 'cursor-wait opacity-100' : opts.disabled ? 'cursor-default opacity-55' : 'cursor-pointer'
-  );
+  const base = opts.primary ? S.btnBrandSoft : S.btnGhost;
+  if (opts.busy) return base.replace('cursor-pointer', 'cursor-wait');
+  return opts.disabled ? cn(base.replace('cursor-pointer', 'cursor-default'), 'opacity-55') : base;
 }
 
 export function inviteStatusLabel(locale, status) {

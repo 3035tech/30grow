@@ -9,15 +9,12 @@ import { rejectionReasonLabel } from './pipeline-prompts';
 import { DateField } from '../_components/DateField';
 import { FormField } from '../_components/FormField';
 import { fieldInputClass, fieldSelectClass } from '../_components/form-control-styles';
+import { S } from './dashboard-shared';
 
 const PipelineExtrasContext = createContext(null);
 
 const FIELD = `${fieldInputClass} w-full font-ui text-sm`;
 const FIELD_SELECT = `${fieldSelectClass} w-full font-ui text-sm`;
-const BTN_PRIMARY =
-  'min-h-touch cursor-pointer rounded-control border-none bg-action px-4 py-2.5 font-mono text-prose text-action-ink';
-const BTN_GHOST =
-  'min-h-touch cursor-pointer rounded-control border border-ink/12 bg-transparent px-4 py-2.5 font-mono text-prose text-ink-muted';
 
 function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
   const today = new Date().toISOString().slice(0, 10);
@@ -122,10 +119,10 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
         ) : null}
 
         <div className="mt-[22px] flex justify-end gap-2.5">
-          <button type="button" onClick={onCancel} className={BTN_GHOST}>
+          <button type="button" onClick={onCancel} className={S.btnGhost}>
             {t(locale, 'recruiting.modalCancel')}
           </button>
-          <button type="button" onClick={submit} className={BTN_PRIMARY}>
+          <button type="button" onClick={submit} className={S.btnPrimary}>
             {t(locale, 'recruiting.modalConfirm')}
           </button>
         </div>

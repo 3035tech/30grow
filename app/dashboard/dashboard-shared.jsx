@@ -57,6 +57,9 @@ const S = {
   /** Neutral / ghost actions (pagination, refresh, cancel) */
   btnGhost:
     'inline-flex min-h-touch cursor-pointer items-center justify-center gap-2 rounded-control border border-ink/12 bg-transparent px-3.5 py-2.5 font-ui text-sm text-ink-muted transition-colors hover:border-ink/20 hover:bg-ink/[0.04] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35 disabled:cursor-default disabled:opacity-55',
+  /** Destructive secondary action (remove / delete inside a section); confirm first */
+  btnDanger:
+    'inline-flex min-h-touch cursor-pointer items-center justify-center gap-2 rounded-control border border-danger/35 bg-danger/[0.08] px-3.5 py-2.5 font-ui text-sm font-medium text-danger transition-colors hover:bg-danger/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/35 disabled:cursor-default disabled:opacity-55',
   /**
    * Icon-only row action (edit / delete) — pair with AdminEditButton / AdminDeleteButton.
    * ~40px hit target; border + tint by variant.

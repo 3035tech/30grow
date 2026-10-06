@@ -76,12 +76,6 @@ const VACANCY_LIST_FILTER_OPTIONS = [
 ];
 
 const FIELD = `${fieldInputClass} w-full font-mono text-prose`;
-const BTN_GHOST =
-  'inline-flex min-h-touch cursor-pointer items-center justify-center rounded-control border border-ink/12 bg-transparent px-3 py-2 font-ui text-sm text-ink-muted transition-colors hover:border-ink/20 hover:bg-ink/[0.035] hover:text-ink disabled:cursor-default disabled:opacity-60';
-const BTN_BRAND =
-  'inline-flex min-h-touch cursor-pointer items-center justify-center rounded-control border border-brand-500/35 bg-brand-500/[0.09] px-3.5 py-2 font-ui text-sm font-medium text-brand-500 transition-colors hover:bg-brand-500/[0.14] disabled:cursor-default disabled:opacity-60';
-const BTN_BRAND_SOFT =
-  'inline-flex min-h-touch cursor-pointer items-center justify-center rounded-control border border-brand-500/25 bg-brand-500/[0.07] px-3 py-2 font-ui text-sm font-medium text-brand-500 transition-colors hover:bg-brand-500/[0.12] disabled:cursor-default disabled:opacity-60';
 const META = S.cardMuted;
 const META_FAINT = S.faint;
 const VACANCY_DETAIL_SECTIONS = Object.freeze([
@@ -995,7 +989,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
             <button
               type="button"
               onClick={backToVacanciesList}
-              className={BTN_GHOST}
+              className={S.btnGhost}
             >
               {t(locale, 'recruiting.backToVacancies')}
             </button>
@@ -1023,7 +1017,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
             <button
               type="button"
               onClick={backToVacanciesList}
-              className={cn(BTN_BRAND, "mt-3.5")}
+              className={cn(S.btnBrandSoft, "mt-3.5")}
             >
               {t(locale, 'recruiting.backToList')}
             </button>
@@ -1116,12 +1110,12 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                     type="button"
                     onClick={() => editVacancy(v)}
                     disabled={loading}
-                    className={cn(BTN_BRAND_SOFT, loading && 'opacity-60')}
+                    className={cn(S.btnBrandSoft, loading && 'opacity-60')}
                   >
                     {t(locale, 'recruiting.editVacancy')}
                   </button>
                   <details className="group relative">
-                    <summary className={cn(BTN_GHOST, 'gap-2 list-none select-none [&::-webkit-details-marker]:hidden')}>
+                    <summary className={cn(S.btnGhost, 'gap-2 list-none select-none [&::-webkit-details-marker]:hidden')}>
                       {t(locale, 'recruiting.moreActions')}
                       <Icon
                         name="chevronDown"
@@ -1140,7 +1134,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                           )
                         }
                         disabled={loading}
-                        className={cn(BTN_GHOST, 'w-full justify-start border-transparent text-left', loading && 'opacity-60')}
+                        className={cn(S.btnGhost, 'w-full justify-start border-transparent text-left', loading && 'opacity-60')}
                       >
                         {v.status === VACANCY_STATUS.OPEN
                           ? t(locale, 'recruiting.closeVacancy')
@@ -1150,7 +1144,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                         type="button"
                         onClick={() => cloneVacancyAction(v)}
                         disabled={loading}
-                        className={cn(BTN_GHOST, 'w-full justify-start border-transparent text-left', loading && 'opacity-60')}
+                        className={cn(S.btnGhost, 'w-full justify-start border-transparent text-left', loading && 'opacity-60')}
                       >
                         {t(locale, 'recruiting.cloneVacancy')}
                       </button>
@@ -1220,7 +1214,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                           type="button"
                           onClick={() => rotateLink(v.id)}
                           disabled={loading}
-                          className={cn(BTN_GHOST, loading && 'opacity-60')}
+                          className={cn(S.btnGhost, loading && 'opacity-60')}
                             >
                               {linkState.expired
                                 ? (i18nT(locale, 'ui.vacanciesAdminTab.renewLink'))
@@ -1241,7 +1235,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                             )
                           }
                           disabled={loading}
-                          className={cn(BTN_GHOST, loading && 'opacity-60')}
+                          className={cn(S.btnGhost, loading && 'opacity-60')}
                         >
                           {t(locale, 'recruiting.editLinkExpiry')}
                         </button>
@@ -1282,10 +1276,10 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                         aria-label={t(locale, 'panel.admin.ariaLinkExpiry')}
                         className={cn(FIELD, 'min-w-[180px] flex-[1_1_200px] px-2.5 py-2 text-prose')}
                       />
-                      <button type="button" onClick={saveLinkExpiry} disabled={loading} className={cn(BTN_BRAND, loading && 'opacity-60')}>
+                      <button type="button" onClick={saveLinkExpiry} disabled={loading} className={cn(S.btnBrandSoft, loading && 'opacity-60')}>
                         {t(locale, 'panel.admin.save')}
                       </button>
-                      <button type="button" onClick={() => setLinkExpiryEdit(null)} disabled={loading} className={cn(BTN_GHOST, loading && 'opacity-60')}>
+                      <button type="button" onClick={() => setLinkExpiryEdit(null)} disabled={loading} className={cn(S.btnGhost, loading && 'opacity-60')}>
                         {t(locale, 'panel.admin.cancel')}
                       </button>
                     </div>
@@ -1316,7 +1310,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                   {!v.publicPageEnabled ? (
                     <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink/8 pt-3">
                       <span className={cn(META_FAINT, 'block flex-1')}>{t(locale, 'recruiting.publicPageLinkDisabledHint')}</span>
-                      <button type="button" onClick={() => editVacancy(v)} disabled={loading} className={BTN_BRAND_SOFT}>
+                      <button type="button" onClick={() => editVacancy(v)} disabled={loading} className={S.btnBrandSoft}>
                         {i18nT(locale, 'ui.vacanciesAdminTab.activatePage')}
                       </button>
                     </div>
@@ -1436,7 +1430,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                         {t(locale, 'recruiting.detailInformationHint')}
                       </p>
                     </div>
-                    <button type="button" onClick={() => editVacancy(v)} disabled={loading} className={BTN_BRAND_SOFT}>
+                    <button type="button" onClick={() => editVacancy(v)} disabled={loading} className={S.btnBrandSoft}>
                       {t(locale, 'recruiting.editVacancy')}
                     </button>
                   </div>
@@ -1491,7 +1485,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                         {t(locale, 'panel.pipelineEditor.subtitle')}
                       </p>
                     </div>
-                    <button type="button" className={BTN_GHOST} onClick={saveCurrentPipelineAsTemplate} disabled={loading}>
+                    <button type="button" className={S.btnGhost} onClick={saveCurrentPipelineAsTemplate} disabled={loading}>
                       {t(locale, 'panel.pipelineTemplates.saveAction')}
                     </button>
                   </div>
@@ -1517,7 +1511,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
       <ContentEnter animKey="pipeline-template-settings">
         <div className="flex flex-col gap-4">
           <div className={cn(S.card, 'px-7 py-[22px]')}>
-            <button type="button" className={cn(BTN_GHOST, 'mb-4')} onClick={() => setShowPipelineSettings(false)}>
+            <button type="button" className={cn(S.btnGhost, 'mb-4')} onClick={() => setShowPipelineSettings(false)}>
               {t(locale, 'panel.pipelineTemplates.backToVacancies')}
             </button>
             <span className={S.label}>{t(locale, 'panel.pipelineTemplates.manageTitle')}</span>
@@ -1552,7 +1546,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
             <button
               type="button"
               onClick={() => setShowPipelineSettings(true)}
-              className={cn(BTN_GHOST, 'px-3.5 py-2.5')}
+              className={S.btnGhost}
             >
               {t(locale, 'panel.pipelineTemplates.manageAction')}
             </button>
@@ -1560,7 +1554,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
               type="button"
               onClick={loadVacancies}
               disabled={loading}
-              className={cn(BTN_GHOST, "inline-flex items-center gap-2 px-3.5 py-2.5", loading && "opacity-60")}
+              className={cn(S.btnGhost, loading && "opacity-60")}
             >
               {loading ? <span className="spinner" /> : null}
               {t(locale, 'recruiting.refresh')}
@@ -1843,7 +1837,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                                     type="button"
                                     onClick={() => rotateLink(v.id)}
                                     disabled={loading}
-                                    className={cn(BTN_BRAND_SOFT, 'min-h-9 px-2.5 py-1 text-prose')}
+                                    className={S.btnBrandSoft}
                                   >
                                     {i18nT(locale, 'ui.vacanciesAdminTab.renewShort')}
                                   </button>
@@ -1878,7 +1872,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
                                 type="button"
                                 onClick={() => rotateLink(v.id)}
                                 disabled={loading}
-                                className={cn(BTN_BRAND_SOFT, 'min-h-9 px-2.5 py-1 text-prose')}
+                                className={S.btnBrandSoft}
                               >
                                 {i18nT(locale, 'ui.vacanciesAdminTab.generateLink')}
                               </button>

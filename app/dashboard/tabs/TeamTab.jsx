@@ -54,6 +54,7 @@ import { PIPELINE_STAGE, PIPELINE_STAGES } from '../../../lib/pipeline';
 import { DB_FANOUT_CONCURRENCY, mapWithConcurrency } from '../../../lib/concurrency';
 import {
   ABSENCE_SUGGESTION,
+  formatAbsenceExplanation,
 } from '../../../lib/people/list-absence-diagnostics-core.js';
 
 function nearbyCluster(scores) {
@@ -449,6 +450,8 @@ export function TeamTab({
           roster: roster || ROSTER_SCOPE.INTERNAL,
           listFilter: listFilter || null,
           pipeline: pipelineFilter || null,
+          explain: true,
+          locale,
           ...(companyId ? { companyId: Number(companyId) } : {}),
         }),
       });
@@ -469,6 +472,7 @@ export function TeamTab({
         })
         .join('\n');
       const bodyParts = [
+        formatAbsenceExplanation(locale, data.explanation),
         reasonLines || t(locale, 'panel.team.diagnoseNoReasons'),
         candidateLines
           ? `\n${t(locale, 'panel.team.diagnoseFoundPeople')}\n${candidateLines}`

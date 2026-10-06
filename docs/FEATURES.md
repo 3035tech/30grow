@@ -104,6 +104,8 @@ Convenções que valem para todos os módulos:
 ### Cultura, clima e retenção
 
 - **Pesquisa de clima** anônima (`/clima/<token>`), médias com k-anonimato (`CLIMATE_MIN_RESPONSES`), eNPS e temas.
+- **Riscos psicossociais (NR-1, versão leve)** em Clima: modelo de questionário anônimo por fator (8 fatores fixos), favorabilidade por fator respeitando o mínimo de respostas, inventário de riscos (probabilidade × severidade, medidas, responsável, prazo, status) com auditoria e relatório de apoio ao PGR para imprimir/salvar em PDF. Não substitui SESMT nem laudo técnico. Migration 152; `/api/admin/psychosocial-risks`.
+- **“Por que não aparece?” com IA**: com IA ligada, o aviso abre com um resumo hedged redigido a partir dos motivos (sem nomes/títulos no prompt, cache global, cota `help_diagnose`, migration 151).
 - **Pulso de grupo** com perguntas fixas (`TEAM_PULSE_MIN_RESPONSES`).
 - **Cultura organizacional**: leitura a partir de clima, mix T1–T9, pulsos e valores declarados (sem novo instrumento).
 - **HR Score** (0–100) com sete sinais e **Radar de rotatividade** multi-sinal. Migration `054`.

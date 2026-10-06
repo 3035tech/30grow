@@ -8,8 +8,6 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { CopyableLink } from '../../_components/CopyableLink';
 import { Spinner } from '../../_components/AppLoading';
 
-const BTN_GHOST =
-  'min-h-[36px] rounded-control border border-ink/12 bg-transparent px-2.5 py-2 font-mono text-2xs text-ink-muted disabled:cursor-default disabled:opacity-60';
 
 export function VacancyReferralBlock({ vacancyId, locale, publicPagePath, appUrl = '' }) {
   const { promptForm, confirm, toast } = useAppFeedback();
@@ -252,7 +250,7 @@ export function VacancyReferralBlock({ vacancyId, locale, publicPagePath, appUrl
                               type="button"
                               disabled={busy}
                               onClick={() => setActive(row, false)}
-                              className={cn(BTN_GHOST, busy ? 'cursor-default' : 'cursor-pointer')}
+                              className={cn(S.btnGhost, busy ? 'cursor-default' : 'cursor-pointer')}
                             >
                               {t(locale, 'recruiting.referralDeactivate')}
                             </button>
@@ -261,7 +259,7 @@ export function VacancyReferralBlock({ vacancyId, locale, publicPagePath, appUrl
                               type="button"
                               disabled={busy}
                               onClick={() => setActive(row, true)}
-                              className={cn(BTN_GHOST, busy ? 'cursor-default' : 'cursor-pointer')}
+                              className={cn(S.btnGhost, busy ? 'cursor-default' : 'cursor-pointer')}
                             >
                               {t(locale, 'recruiting.referralReactivate')}
                             </button>

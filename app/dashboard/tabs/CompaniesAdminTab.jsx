@@ -45,15 +45,10 @@ import {
   modulesSelectionForUi,
   SELECTABLE_COMPANY_MODULE_IDS,
 } from '../../../lib/company-modules';
+import { dialogBtnGhostClass, dialogBtnPrimaryClass } from '../../_components/app-dialog-styles';
 
 const FIELD_INPUT =
   'box-border w-full rounded-control border border-ink/12 bg-ink/[0.04] px-3 py-2.5 font-mono text-xs text-ink';
-const BTN_GHOST =
-  'min-h-touch rounded-control border border-ink/12 bg-transparent px-3.5 py-2.5 font-mono text-xs text-ink-muted disabled:cursor-default disabled:opacity-60';
-const DIALOG_BTN_GHOST =
-  'cursor-pointer rounded-control border border-ink/12 bg-transparent px-5 py-2.5 font-mono text-prose text-ink-muted disabled:cursor-default disabled:opacity-60';
-const DIALOG_BTN_PRIMARY =
-  'inline-flex cursor-pointer items-center gap-2 rounded-control border-none bg-action px-5 py-2.5 font-mono text-prose text-action-ink disabled:cursor-default disabled:opacity-60';
 
 /** Minimal logo upload/preview for company drawer (create = local file; edit = POST/DELETE). */
 function CompanyLogoField({
@@ -147,7 +142,7 @@ function CompanyLogoField({
         <div className="flex flex-col gap-2">
           <label
             className={cn(
-              DIALOG_BTN_GHOST,
+              dialogBtnGhostClass,
               'm-0 inline-flex min-h-touch items-center justify-center px-3 py-2',
               blocked ? 'cursor-not-allowed opacity-55' : 'cursor-pointer'
             )}
@@ -172,7 +167,7 @@ function CompanyLogoField({
               type="button"
               disabled={blocked}
               onClick={() => void onRemove()}
-              className={cn(DIALOG_BTN_GHOST, 'min-h-touch', blocked && 'opacity-55')}
+              className={cn(dialogBtnGhostClass, 'min-h-touch', blocked && 'opacity-55')}
             >
               {t(locale, 'panel.admin.companyLogoRemove')}
             </button>
@@ -710,7 +705,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
               type="button"
               onClick={loadCompanies}
               disabled={loading}
-              className={cn(BTN_GHOST, loading && 'opacity-60')}
+              className={cn(S.btnGhost, loading && 'opacity-60')}
             >
               {t(locale, 'panel.admin.refresh')}
             </button>
@@ -988,7 +983,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
               type="button"
               onClick={closeDrawer}
               disabled={formSaving || logoBusy}
-              className={DIALOG_BTN_GHOST}
+              className={dialogBtnGhostClass}
             >
               {t(locale, 'panel.admin.cancel')}
             </button>
@@ -1006,7 +1001,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
                 slugStatus === 'checking'
               }
               className={cn(
-                DIALOG_BTN_PRIMARY,
+                cn(dialogBtnPrimaryClass, 'inline-flex items-center gap-2'),
                 (formSaving ||
                   logoBusy ||
                   loading ||

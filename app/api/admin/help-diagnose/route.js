@@ -14,6 +14,8 @@ import {
   diagnoseTalentBankAbsence,
   diagnoseVacancyPipelineAbsence,
 } from '../../../../lib/people/list-absence-diagnostics.js';
+import { normalizeLocale } from '../../../../lib/i18n.js';
+import { explainAbsenceDiagnosisAi } from '../../../../lib/people/list-absence-explain-ai.js';
 
 const bodySchema = z.object({
   q: z.string().trim().min(1).max(ABSENCE_DIAG_Q_MAX),
@@ -25,6 +27,8 @@ const bodySchema = z.object({
   vacancyId: z.coerce.number().int().positive().nullable().optional(),
   topType: z.coerce.number().int().min(1).max(9).nullable().optional(),
   filtersActive: z.boolean().optional(),
+  explain: z.boolean().optional(),
+  locale: z.string().trim().max(10).optional(),
 });
 
 const LIST_CAP = {
@@ -113,6 +117,18 @@ export const POST = withAdminApi(
       ...auditRequestContext(request),
     });
 
+    let explanation = null;
+    if (body.explain === true && (result.reasons || []).length > 0) {
+      const ai = await explainAbsenceDiagnosisAi({
+        list,
+        reasons: result.reasons,
+        candidateCount: (result.candidates || []).length,
+        locale: normalizeLocale(body.locale || payload?.locale || 'pt-BR'),
+        usage: { companyId, userId: payload.userId ?? null },
+      });
+      explanation = ai.ok ? { summary: ai.summary, nextStep: ai.nextStep } : null;
+    }
+
     return NextResponse.json(
       {
         ok: true,
@@ -122,6 +138,7 @@ export const POST = withAdminApi(
         query: result.query,
         roster: result.roster ?? null,
         list,
+        explanation,
       },
       { status: 200 }
     );

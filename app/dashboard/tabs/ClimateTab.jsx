@@ -13,7 +13,13 @@ import { CopyableLink } from '../../_components/CopyableLink';
 import { DisclosureToggle } from '../../_components/CollapsibleBlock';
 import { climateMeanLevel, buildClimateTrendChart, climateSurveyAnchorDate } from '../../../lib/people/climate-viz';
 import { C } from '../../../lib/theme';
-import { CLIMATE_QUESTION_KIND, CLIMATE_SURVEY_STATUS } from '../../../lib/domain-status.js';
+import {
+  CLIMATE_QUESTION_KIND,
+  CLIMATE_SURVEY_STATUS,
+  CLIMATE_SURVEY_TEMPLATE,
+  PSYCHOSOCIAL_FACTORS,
+} from '../../../lib/domain-status.js';
+import { PsychosocialRisksBlock } from '../PsychosocialRisksBlock';
 import { MeterBar } from '../../_components/MeterBar';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { RichTextView } from '../../_components/RichTextView';
@@ -362,6 +368,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
   const [showQuestions, setShowQuestions] = useState(false);
   const [detailSection, setDetailSection] = useState('overview');
   const [listFilter, setListFilter] = useState('active'); // active | archived | all
+  const [view, setView] = useState('surveys'); // surveys | nr1
 
   const companyQs =
     isAdmin && companyId ? `?companyId=${encodeURIComponent(companyId)}` : '';
@@ -540,6 +547,34 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
     }
   };
 
+  const createNr1Survey = async () => {
+    setBusy(true);
+    try {
+      const res = await fetch('/api/admin/climate-surveys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: t(locale, 'panel.nr1.surveyDefaultTitle'),
+          description: t(locale, 'panel.nr1.surveyDefaultDesc'),
+          template: CLIMATE_SURVEY_TEMPLATE.NR1_PSYCHOSOCIAL,
+          locale,
+          companyId: companyId || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || data?.errorCode || 'create');
+      toast(t(locale, 'panel.nr1.surveyCreated'), 'ok');
+      setView('surveys');
+      setListFilter('active');
+      await load();
+      if (data.survey?.id) await loadDetail(data.survey.id);
+    } catch (e) {
+      toast(e?.message || t(locale, 'panel.climate.saveError'), 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const setStatus = async (status) => {
     if (!selectedId) return;
     setBusy(true);
@@ -684,13 +719,28 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
           placeholder: t(locale, 'panel.climate.questionPh'),
           required: true,
         },
+        {
+          key: 'factor',
+          type: 'select',
+          label: t(locale, 'panel.nr1.questionFactorLabel'),
+          help: t(locale, 'panel.nr1.questionFactorHelp'),
+          defaultValue: '',
+          options: [
+            { value: '', label: t(locale, 'panel.nr1.questionFactorNone') },
+            ...PSYCHOSOCIAL_FACTORS.map((f) => ({ value: f, label: t(locale, `panel.nr1.factor.${f}`) })),
+          ],
+        },
       ],
     });
     if (!values) return;
     setBusy(true);
     try {
       const data = await patch(selectedId, {
-        addQuestion: { prompt: values.prompt, questionKind: values.kind || CLIMATE_QUESTION_KIND.LIKERT },
+        addQuestion: {
+          prompt: values.prompt,
+          questionKind: values.kind || CLIMATE_QUESTION_KIND.LIKERT,
+          psychosocialFactor: values.factor || null,
+        },
       });
       setDetail(data.survey);
       setShowQuestions(true);
@@ -819,11 +869,13 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
         title={t(locale, 'panel.climate.pageTitle')}
         subtitle={t(locale, 'panel.climate.pageHint')}
         actions={
-          <AdminCreateButton
-            label={t(locale, 'panel.climate.createBtn')}
-            onClick={createSurvey}
-            disabled={busy}
-          />
+          view === 'surveys' ? (
+            <AdminCreateButton
+              label={t(locale, 'panel.climate.createBtn')}
+              onClick={createSurvey}
+              disabled={busy}
+            />
+          ) : null
         }
       />
 
@@ -850,6 +902,28 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
         </label>
       ) : null}
 
+      <PanelSubNav
+        ariaLabel={t(locale, 'panel.nr1.viewTabsAria')}
+        active={view}
+        onChange={setView}
+        tabs={[
+          { id: 'surveys', label: t(locale, 'panel.nr1.viewSurveys') },
+          { id: 'nr1', label: t(locale, 'panel.nr1.viewRisks') },
+        ]}
+      />
+
+      {view === 'nr1' ? (
+        <PsychosocialRisksBlock
+          locale={locale}
+          companyId={isAdmin ? companyId : ''}
+          onCreateSurvey={createNr1Survey}
+          onOpenSurvey={(id) => {
+            setView('surveys');
+            loadDetail(id);
+          }}
+        />
+      ) : (
+      <>
       <div className="mb-3">
         <SegmentedControl
           aria-label={t(locale, 'panel.climate.listFilterAria')}
@@ -1328,6 +1402,11 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
                                   }`
                                 )}
                               </span>
+                              {q.psychosocialFactor ? (
+                                <StatusToneChip tone="info" className="mr-2">
+                                  {t(locale, 'panel.nr1.chip', { factor: t(locale, `panel.nr1.factor.${q.psychosocialFactor}`) })}
+                                </StatusToneChip>
+                              ) : null}
                               {q.prompt}
                             </span>
                             {questionsEditable ? (
@@ -1385,6 +1464,8 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
             </div>
           ) : null}
         </>
+      )}
+      </>
       )}
     </div>
   );

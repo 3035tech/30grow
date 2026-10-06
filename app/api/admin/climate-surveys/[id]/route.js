@@ -189,6 +189,7 @@ export async function PATCH(request, props) {
         prompt: body.addQuestion.prompt,
         sortOrder: body.addQuestion.sortOrder,
         questionKind: body.addQuestion.questionKind || body.addQuestion.kind,
+        psychosocialFactor: body.addQuestion.psychosocialFactor,
       });
       if (!added.ok) return apiError(request, added.errorCode || 'INVALID_DATA', 400);
       const survey = await getClimateSurvey(query, { companyId, surveyId });

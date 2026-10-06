@@ -40,6 +40,8 @@ Após **Test pass** (pipeline Dev → Test → Validate), antes de dar a entrega
 | Fronteiras PDI/OKR/1:1 + inclusão fora do funil + check-ins D30/60/90 | Guia `team` passo 8 + FAQ `faqEmployeeJourney` + `docs/RH2-decisions.md` |
 | HR Score / sinais de retenção / Preparar conversa / DP→cadastrais | Guia `b1000HrScore` + `b1000TurnoverRadar` + `b1900Packaging` + FAQ `faqHrScore` / `faqTurnoverRadar` + `docs/RH2-decisions.md` |
 | Clima versionado (arquivar / nova versão / perguntas travadas) | Guia `climate` + `docs/RH2-decisions.md` (B-RH2-16) |
+| NR-1 riscos psicossociais (questionário por fator, inventário, relatório de apoio ao PGR; não substitui SESMT) | Seção `nr1Psychosocial` (passos 1–4) + `docs/BACKLOG.md` B-2714 |
+| “Por que não aparece?” com resumo redigido por IA | Seção `team` passo 7 (nota sobre a IA) + `docs/BACKLOG.md` B-2601 |
 | Benefícios por colaborador | Guia `b1000Benefits` + Equipe → Remuneração + `docs/RH2-decisions.md` (B-RH2-14) |
 | Avaliação formal por competências (90/180/360) | Guia `formalCompetency` + Avaliações → Competências + `/formal-review/[token]` + `docs/RH2-decisions.md` (B-RH2-15) |
 | Módulos da empresa (SKU / acesso) | Guia `companyModules` + Meu perfil + onboarding wizard + `companies.enabled_modules` + `lib/company-modules.js` |

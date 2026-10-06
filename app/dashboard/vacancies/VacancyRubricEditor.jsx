@@ -11,11 +11,8 @@ import { AppLoading } from '../../_components/AppLoading';
 import { DisclosureToggle } from '../../_components/CollapsibleBlock';
 import { buildRubricContextDraft, isRubricContextFilledEnough } from '../../../lib/rubric-prompt';
 import { typeHintTooltip, typeShortLabel } from '../../../lib/type-en';
+import { S } from '../dashboard-shared';
 
-const BTN_SM =
-  'inline-flex min-h-touch items-center justify-center gap-2 rounded-lg border border-brand-500/35 bg-brand-500/[0.09] px-3 py-2 font-mono text-2xs text-brand-500 disabled:cursor-default disabled:opacity-60';
-const BTN_PRIMARY =
-  'inline-flex min-h-touch items-center justify-center gap-2 rounded-lg border border-brand-500 bg-action px-3 py-2 font-mono text-2xs text-action-ink disabled:cursor-default disabled:opacity-60';
 
 export function VacancyRubricEditor({ vacancyId, locale, vacancyTitle = '', vacancyDescription = '', onSaved }) {
   const { notice, toast } = useAppFeedback();
@@ -265,7 +262,7 @@ export function VacancyRubricEditor({ vacancyId, locale, vacancyTitle = '', vaca
                 onClick={suggestContext}
                 disabled={Boolean(aiBusy)}
                 aria-busy={aiBusy === 'context' || undefined}
-                className={cn(BTN_SM, aiBusy && 'opacity-60')}
+                className={cn(S.btnBrandSoft, aiBusy && 'opacity-60')}
               >
                 {aiBusy === 'context' ? (
                   <AppLoading locale={locale} variant="button" label={t(locale, 'recruiting.rubricAiWorking')} />
@@ -278,7 +275,7 @@ export function VacancyRubricEditor({ vacancyId, locale, vacancyTitle = '', vaca
                 onClick={suggestWeights}
                 disabled={Boolean(aiBusy)}
                 aria-busy={aiBusy === 'weights' || undefined}
-                className={cn(BTN_PRIMARY, aiBusy && 'opacity-60')}
+                className={cn(S.btnPrimary, aiBusy && 'opacity-60')}
               >
                 {aiBusy === 'weights' ? (
                   <AppLoading locale={locale} variant="button" label={t(locale, 'recruiting.rubricAiWorking')} />
@@ -307,7 +304,7 @@ export function VacancyRubricEditor({ vacancyId, locale, vacancyTitle = '', vaca
         type="button"
         onClick={save}
         disabled={loading}
-        className={cn(BTN_SM, loading && 'opacity-60')}
+        className={cn(S.btnBrandSoft, loading && 'opacity-60')}
       >
         {t(locale, 'recruiting.rubricSave')}
       </button>

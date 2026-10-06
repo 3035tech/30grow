@@ -401,7 +401,7 @@ Copiloto no painel para perguntas do tipo **“por que o João não aparece na m
 
 **Extensão entregue (out/2026):** mesmo endpoint com `list` = `talentBank` | `vacancyPipeline` (CAP `vacancies.view`; Equipe segue `team.view`). Banco de talentos: razões `not_in_talent_bank` / `soft_filters` (vaga, etapa, perfil avaliados no SQL) / `in_list`. Pipeline da vaga: `not_in_vacancy` + `other_vacancies` (até 3 títulos) / `soft_filters` (filtros do quadro, cliente) / `in_list` com etapa; regra de pertencimento espelha `lib/vacancy-ranking.js`. CTA no EmptyState "nenhum candidato corresponde" do quadro; oferta de limpar filtros mantendo a busca. Uma query por diagnóstico, teto 12 pessoas, escopo `company_id`. Guia `talentBankStep4` / `pipelineStep10`. Prova: `test/dtov/help-diagnose-lists.dtov.test.js`.
 
-**Ainda aberto (não bloquear):** redação IA hedged sobre o JSON (epic B-2600).
+**Redação IA entregue (out/2026):** `explain: true` no mesmo endpoint devolve `explanation { summary, nextStep }` redigido por IA (`lib/people/list-absence-explain-ai.js`, feature `help_diagnose`, migration 151). O prompt leva só códigos, contagens e etapa genérica (sem nome, e-mail, busca ou título de vaga), então o cache é global; conta na cota da empresa. IA desligada, sem cota ou com falha: o diagnóstico volta igual, sem o parágrafo. Aviso mostra o texto no topo com a nota "redigido por IA" e os motivos determinísticos abaixo. Prova: `test/unit/list-absence-explain-ai.unit.test.js`.
 
 ---
 
@@ -419,7 +419,9 @@ _(entregue — B-1401: crop 1:1 + compressão cliente ≤512 KB / lado ≤768 px
 
 _(entregue — B-1402 tokens + B-1403 migração dos selects ad hoc: page-size, pipeline Equipe, reject reason, grupos, signup, recommendation relatório; `S.selectCompact`. B-1404 slider `RangeField` em faixas curtas (curso %, calibração, jornada, peso de KR, aumento % do mapa salarial). B-1405 disclosure só com seta, texto apenas para leitor de tela. B-1406a: todo botão de criar via `AdminCreateButton` (verde cheio no topo da tela, verde suave em seção; nunca neutro).)_
 
-### B-1406b — Botões com estilo local (tamanho/fonte fora do padrão)
+### B-1406b — Botões com estilo local (tamanho/fonte fora do padrão) ✅ ENTREGUE
+
+**Entregue (out/2026):** constantes locais trocadas por `S.btnPrimary` / `S.btnBrandSoft` / `S.btnGhost` e `dialogBtn*Class`; novo `S.btnDanger` (remoção dentro de seção). Overrides de tamanho removidos (`cn()` não faz merge), todos com `min-h-touch`. Histórico abaixo.
 
 Segunda etapa da auditoria de botões (out/2026). As cores já seguem o papel (verde cheio, verde suave, neutro, vermelho), mas 8 arquivos recriam os estilos à mão com `font-mono`, `text-2xs`/`text-xs`, `min-h-[32px]`/`[36px]` e `rounded-lg`, então o mesmo papel aparece em tamanhos diferentes entre telas.
 
@@ -442,9 +444,7 @@ Toggle + `.dark` + tokens Tailwind estão **usáveis no dashboard** (cards `S.ca
 
 **Fechado (set/2026):** impressão/PDF sempre claros (`dark-mode.css` só em `@media screen` + troca no `beforeprint`); fluxos públicos (`/t`, `/v`, `/jobs`, assessment, `/r`…) sem trava light: seguem a escolha salva ou, sem escolha, o `prefers-color-scheme` do aparelho (`lib/theme-mode.js`). Preferência só é gravada ao clicar no toggle.
 
-**Ainda aberto:**
-1. Atmosfera do `/login` (glow radial) no dark.
-2. Revalidar anti-flash após mudanças grandes de chrome.
+**Fechado (out/2026):** glow radial do `/login` ficou obsoleto com a identidade flat (sem glow em nenhum tema); anti-flash revalidado com CSP por nonce (`themeInitScript` recebe o mesmo nonce do header).
 
 **Fechado neste corte:** chips T1–T9 / Compare (`TypeBadge` + `typeChipSurfaceStyle` / `typeScoreCellStyle` + classes `ui-type-*` no dark).
 
@@ -591,7 +591,9 @@ _(entregue — `095` `lms_lesson_watch_progress`; layout curso lista+player em `
 ### B-2718 — Trilha LMS por cargo + experiência formal + D1 template ✅ ENTREGUE (P0 jornada)
 _(entregue — `102_journey_p0_trail_experience_onboarding.sql`: `lms_job_role_courses`; auto-enroll no hire; Cargos → Trilha LMS; decisão `terminate` + `extend_days` nos check-ins D30/60/90; `company_pre_onboarding_templates` no hub DP. **Fora:** MP4 próprio, offboarding checklist completo, SCORM.)_
 
-### B-2714 — NR-1 / riscos psicossociais (conformidade)
+### B-2714 — NR-1 / riscos psicossociais (conformidade) ✅ ENTREGUE (versão leve)
+**Entregue (out/2026), opção (b):** aba Clima → "Riscos psicossociais (NR-1)". Questionário = pesquisa de clima anônima com modelo NR-1 (16 Likert, 2 por fator, + 1 aberta); fator fixo por pergunta (`climate_survey_questions.psychosocial_factor`, CHECK). Inventário relacional `psychosocial_risks` (fator, perigo, grupo exposto, probabilidade × severidade 1–3, medidas, responsável, prazo, status), audit em criar/editar/remover/exportar. Laudo de apoio imprimível ("Salvar como PDF") com aviso "não substitui SESMT", sem promessa de validade jurídica. Migration 152; `lib/people/psychosocial-risks.js`; `/api/admin/psychosocial-risks`. **Aberto:** item 3 (eSocial S-2240) segue atrelado ao B-2726.
+
 Sólides 2026: PGR + eSocial S-2240. Urgência regulatória de venda.
 1. Decisão: (a) parceria/white-label, ou (b) módulo leve inventário + questionário + laudo export — **sem** prometer validade jurídica sozinhos.
 2. Se (b): reusar clima/Likert; export PDF; audit; Guia “não substitui SESMT”.

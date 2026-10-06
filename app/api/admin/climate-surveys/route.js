@@ -4,6 +4,9 @@ import { apiError, ERR } from '../../../../lib/api-error';
 import { audit } from '../../../../lib/audit';
 import { CAP, getManagerScope, resolveScopedCompanyId, getSessionPayload, requireCapability } from '../../../../lib/ae/require-admin';
 import { createClimateSurvey, getClimateCompanyBenchmark, listClimateSurveys, climateMinResponses } from '../../../../lib/people/climate-surveys';
+import { psychosocialSurveyPrompts } from '../../../../lib/people/psychosocial-risks';
+import { CLIMATE_SURVEY_TEMPLATE } from '../../../../lib/domain-status';
+import { normalizeLocale } from '../../../../lib/i18n';
 
 
 /** GET /api/admin/climate-surveys */
@@ -46,6 +49,7 @@ export async function POST(request) {
     const companyId = resolveScopedCompanyId(scope, body.companyId);
     if (!companyId) return apiError(request, ERR.COMPANY_REQUIRED, 400);
 
+    const isNr1 = body.template === CLIMATE_SURVEY_TEMPLATE.NR1_PSYCHOSOCIAL;
     const created = await createClimateSurvey(query, {
       companyId,
       title: body.title,
@@ -53,7 +57,9 @@ export async function POST(request) {
       status: body.status || 'draft',
       createdByUserId: payload.userId || null,
       seedDefaultQuestions: body.seedDefaultQuestions !== false,
-      prompts: body.prompts,
+      prompts: isNr1
+        ? psychosocialSurveyPrompts(normalizeLocale(body.locale || payload?.locale || 'pt-BR'))
+        : body.prompts,
     });
     if (!created.ok) return apiError(request, created.errorCode || 'INVALID_DATA', 400);
 
@@ -62,7 +68,7 @@ export async function POST(request) {
       action: 'climate_survey.create',
       targetType: 'company',
       targetId: companyId,
-      metadata: { surveyId: created.survey.id },
+      metadata: { surveyId: created.survey.id, template: isNr1 ? CLIMATE_SURVEY_TEMPLATE.NR1_PSYCHOSOCIAL : null },
     });
 
     return NextResponse.json({ ok: true, survey: created.survey }, { status: 201 });

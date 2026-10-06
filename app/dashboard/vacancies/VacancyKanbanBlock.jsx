@@ -21,6 +21,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import {
   ABSENCE_LIST,
   ABSENCE_SUGGESTION,
+  formatAbsenceExplanation,
   formatAbsenceReasonLines,
 } from '../../../lib/people/list-absence-diagnostics-core.js';
 
@@ -208,6 +209,8 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
           list: ABSENCE_LIST.VACANCY_PIPELINE,
           vacancyId: Number(vacancyId),
           filtersActive: boardFiltersActive,
+          explain: true,
+          locale,
           ...(companyId ? { companyId: Number(companyId) } : {}),
         }),
       });
@@ -220,6 +223,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
       await notice({
         title: t(locale, 'panel.talentBank.diagnoseTitle'),
         message: [
+          formatAbsenceExplanation(locale, data.explanation),
           reasonLines || t(locale, 'panel.talentBank.diagnoseNoReasons'),
           people ? `\n${t(locale, 'panel.talentBank.diagnoseFoundPeople')}\n${people}` : '',
         ].filter(Boolean).join('\n'),

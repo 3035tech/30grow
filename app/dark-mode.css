@@ -428,9 +428,4 @@ html.dark body,
 .dark .kanban-scroll [style*='border-top'] {
   border-color: rgb(var(--ink) / 0.22);
 }
-
-/*
- * Remaining gap (B-1501 follow-up):
- * - Marketing /login radial glow atmosphere
- */
 }

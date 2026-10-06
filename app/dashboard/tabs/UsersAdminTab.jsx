@@ -13,8 +13,6 @@ import { EmptyState } from '../../_components/EmptyState';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { AdminRecordViewDrawer } from '../../_components/AdminRecordViewDrawer';
 
-const BTN_GHOST =
-  'min-h-touch rounded-control border border-ink/12 bg-transparent px-3.5 py-2.5 font-mono text-xs text-ink-muted disabled:cursor-default disabled:opacity-60';
 
 function moduleOptions(locale) {
   return ASSIGNABLE_MODULE_CAPS.map((cap) => ({
@@ -521,7 +519,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
                 loadUsersOnly();
               }}
               disabled={loading}
-              className={cn(BTN_GHOST, loading && 'opacity-60')}
+              className={cn(S.btnGhost, loading && 'opacity-60')}
             >
               {t(locale, 'panel.admin.refresh')}
             </button>

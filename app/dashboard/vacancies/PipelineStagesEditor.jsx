@@ -9,6 +9,7 @@ import { PIPELINE_STAGE } from '../../../lib/pipeline';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { EmptyState } from '../../_components/EmptyState';
 import { useAppFeedback } from '../../_components/AppFeedback';
+import { S } from '../dashboard-shared';
 
 const CANONICAL_OPTIONS_CUSTOM = [
   PIPELINE_STAGE.NEW,
@@ -21,12 +22,6 @@ const CANONICAL_OPTIONS_CUSTOM = [
   PIPELINE_STAGE.ARCHIVED,
 ];
 
-const BTN_PRIMARY =
-  'min-h-touch cursor-pointer rounded-control border-none bg-action px-3.5 py-2 font-ui text-xs font-medium text-action-ink disabled:opacity-60';
-const BTN_GHOST =
-  'min-h-touch cursor-pointer rounded-control border border-ink/12 bg-transparent px-3 py-1.5 font-ui text-xs text-ink-muted disabled:opacity-60';
-const BTN_DANGER =
-  'min-h-touch cursor-pointer rounded-control border border-danger/35 bg-danger/[0.08] px-3 py-1.5 font-ui text-xs text-danger disabled:opacity-60';
 const INPUT =
   'w-full rounded-control border border-ink/12 bg-surface px-2 py-1.5 font-ui text-xs text-ink outline-none focus:border-brand-500';
 
@@ -326,10 +321,10 @@ export function PipelineStagesEditor({ locale, onChange, vacancyId = null, templ
                         </SelectField>
                       ) : null}
                       <div className="mt-auto flex gap-2 pt-1">
-                        <button type="button" className={cn(BTN_PRIMARY, 'flex-1')} onClick={() => saveEdit(s)} disabled={saving}>
+                        <button type="button" className={cn(S.btnPrimary, 'flex-1')} onClick={() => saveEdit(s)} disabled={saving}>
                           {t(locale, 'panel.pipelineEditor.save')}
                         </button>
-                        <button type="button" className={BTN_GHOST} onClick={cancelEdit} disabled={saving}>
+                        <button type="button" className={S.btnGhost} onClick={cancelEdit} disabled={saving}>
                           {t(locale, 'panel.pipelineEditor.cancel')}
                         </button>
                       </div>
@@ -365,7 +360,7 @@ export function PipelineStagesEditor({ locale, onChange, vacancyId = null, templ
                       <div className="mt-auto flex flex-wrap gap-1.5 pt-3">
                         <button
                           type="button"
-                          className={cn(BTN_GHOST, 'px-2')}
+                          className={cn(S.btnGhost, 'px-2')}
                           onClick={() => moveStageBy(s.id, -1)}
                           disabled={saving || stages[0]?.id === s.id}
                           aria-label={t(locale, 'panel.pipelineEditor.moveLeft', { name: s.labelPt })}
@@ -375,7 +370,7 @@ export function PipelineStagesEditor({ locale, onChange, vacancyId = null, templ
                         </button>
                         <button
                           type="button"
-                          className={cn(BTN_GHOST, 'px-2')}
+                          className={cn(S.btnGhost, 'px-2')}
                           onClick={() => moveStageBy(s.id, 1)}
                           disabled={saving || stages[stages.length - 1]?.id === s.id}
                           aria-label={t(locale, 'panel.pipelineEditor.moveRight', { name: s.labelPt })}
@@ -383,13 +378,13 @@ export function PipelineStagesEditor({ locale, onChange, vacancyId = null, templ
                         >
                           →
                         </button>
-                        <button type="button" className={cn(BTN_GHOST, 'flex-1')} onClick={() => beginEdit(s)} disabled={saving}>
+                        <button type="button" className={cn(S.btnGhost, 'flex-1')} onClick={() => beginEdit(s)} disabled={saving}>
                           {t(locale, 'panel.pipelineEditor.edit')}
                         </button>
                         {!s.required ? (
                           <button
                             type="button"
-                            className={BTN_DANGER}
+                            className={S.btnDanger}
                             onClick={() => removeStage(s)}
                             disabled={saving}
                             title={s.count > 0 ? t(locale, 'panel.pipelineEditor.deleteBlockedInUse', { n: s.count }) : undefined}
@@ -433,10 +428,10 @@ export function PipelineStagesEditor({ locale, onChange, vacancyId = null, templ
                 ))}
               </SelectField>
               <div className="mt-auto flex gap-2 pt-1">
-                <button type="button" className={cn(BTN_PRIMARY, 'flex-1')} onClick={addStage} disabled={saving || !addingLabelPt.trim()}>
+                <button type="button" className={cn(S.btnPrimary, 'flex-1')} onClick={addStage} disabled={saving || !addingLabelPt.trim()}>
                   {t(locale, 'panel.pipelineEditor.addSubmit')}
                 </button>
-                <button type="button" className={BTN_GHOST} onClick={() => { setShowAdd(false); setAddingLabelPt(''); setAddingLabelEn(''); }} disabled={saving}>
+                <button type="button" className={S.btnGhost} onClick={() => { setShowAdd(false); setAddingLabelPt(''); setAddingLabelEn(''); }} disabled={saving}>
                   {t(locale, 'panel.pipelineEditor.cancel')}
                 </button>
               </div>

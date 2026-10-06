@@ -11,6 +11,7 @@ import { PIPELINE_STAGES } from '../../../lib/pipeline';
 import {
   ABSENCE_LIST,
   ABSENCE_SUGGESTION,
+  formatAbsenceExplanation,
   formatAbsenceReasonLines,
 } from '../../../lib/people/list-absence-diagnostics-core.js';
 import {
@@ -154,6 +155,8 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
           pipeline: stage || null,
           vacancyId: vacancyId ? Number(vacancyId) : null,
           topType: topType ? Number(topType) : null,
+          explain: true,
+          locale,
           ...(companyId ? { companyId: Number(companyId) } : {}),
         }),
       });
@@ -171,6 +174,7 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
       await notice({
         title: t(locale, 'panel.talentBank.diagnoseTitle'),
         message: [
+          formatAbsenceExplanation(locale, data.explanation),
           reasonLines || t(locale, 'panel.talentBank.diagnoseNoReasons'),
           candidateLines
             ? `\n${t(locale, 'panel.talentBank.diagnoseFoundPeople')}\n${candidateLines}`
