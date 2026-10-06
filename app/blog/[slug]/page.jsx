@@ -12,7 +12,8 @@ import {
   listBlogPosts,
   relatedBlogPosts,
 } from '../../../lib/blog/index.js';
-import { BlogShell } from '../BlogShell';
+import { BlogBreadcrumb, BlogShell } from '../BlogShell';
+import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { BlogPostCard } from '../../_components/BlogPostCard';
 
 export const dynamicParams = false;
@@ -33,18 +34,17 @@ export default async function BlogPostPage(props) {
   if (!post) notFound();
   const locale = normalizeLocale((await cookies()).get(LOCALE_COOKIE)?.value);
   const related = relatedBlogPosts(post);
+  const toc = post.sections.map((section) => (
+    <li key={section.id}>
+      <a href={`#${section.id}`} className="text-sm leading-5 text-ink-muted no-underline hover:text-ink">{section.heading}</a>
+    </li>
+  ));
   const updated = post.updatedAt && post.updatedAt !== post.publishedAt ? post.updatedAt : null;
 
   return (
     <BlogShell locale={locale}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: buildBlogPostJsonLd(post) }} />
-      <nav aria-label={t(locale, 'blog.breadcrumbAria')} className="mb-6 font-ui text-xs text-ink-faint">
-        <Link href="/" className="text-ink-muted no-underline hover:text-ink">{t(locale, 'blog.home')}</Link>
-        <span className="mx-2" aria-hidden>/</span>
-        <Link href="/blog" className="text-ink-muted no-underline hover:text-ink">{t(locale, 'blog.navBlog')}</Link>
-        <span className="mx-2" aria-hidden>/</span>
-        <span aria-current="page">{post.categoryLabel}</span>
-      </nav>
+      <BlogBreadcrumb locale={locale} items={[{ href: '/blog', label: t(locale, 'blog.navBlog') }, { label: post.categoryLabel }]} />
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px]">
         <article className="min-w-0 max-w-3xl">
@@ -61,11 +61,19 @@ export default async function BlogPostPage(props) {
             <p className="mb-0 mt-6 text-lg leading-8 text-ink-muted">{post.intro}</p>
           </header>
 
+          <nav className="mt-8 lg:hidden" aria-label={t(locale, 'blog.inThisArticle')}>
+            <CollapsibleBlock locale={locale} variant="card" title={t(locale, 'blog.inThisArticle')} count={post.sections.length}>
+              <ol className="mb-0 mt-3 list-none space-y-2 px-3 pb-1">
+                {toc}
+              </ol>
+            </CollapsibleBlock>
+          </nav>
+
           {post.sections.map((section) => (
             <section key={section.id} aria-labelledby={section.id} className="mt-10">
               <h2 id={section.id} className="m-0 scroll-mt-24 font-display text-2xl font-semibold leading-snug text-ink">{section.heading}</h2>
-              {(section.paragraphs || []).map((paragraph) => (
-                <p key={paragraph.slice(0, 40)} className="mb-0 mt-4 text-base leading-7 text-ink-muted">{paragraph}</p>
+              {(section.paragraphs || []).map((paragraph, index) => (
+                <p key={index} className="mb-0 mt-4 text-base leading-7 text-ink-muted">{paragraph}</p>
               ))}
               {section.bullets?.length ? (
                 <ul className="mb-0 mt-4 list-none space-y-2.5 p-0">
@@ -124,11 +132,7 @@ export default async function BlogPostPage(props) {
           <nav className="sticky top-24 rounded-card border border-ink/10 bg-surface p-5">
             <p className="m-0 font-ui text-2xs font-medium text-ink-label">{t(locale, 'blog.inThisArticle')}</p>
             <ol className="mb-0 mt-3 list-none space-y-2 p-0">
-              {post.sections.map((section) => (
-                <li key={section.id}>
-                  <a href={`#${section.id}`} className="text-sm leading-5 text-ink-muted no-underline hover:text-ink">{section.heading}</a>
-                </li>
-              ))}
+              {toc}
             </ol>
           </nav>
         </aside>

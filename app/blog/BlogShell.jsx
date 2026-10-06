@@ -4,6 +4,7 @@ import { PublicSiteHeaderWithLocale } from '../_components/PublicSiteHeader';
 import { ContentEnter } from '../_components/AppLoading';
 import { LOCALES } from '../../lib/i18n';
 import { getProductLandingCopy, getPublicHeaderCopy } from '../../lib/product-landing-seo';
+import { t } from '../../lib/i18n';
 import { BLOG_CONTENT_LOCALE } from '../../lib/blog/index.js';
 
 /** Public chrome for `/blog` pages: landing header/footer, content in pt-BR. */
@@ -12,6 +13,7 @@ export function BlogShell({ locale, children }) {
   const copy = getProductLandingCopy(locale);
   return (
     <div className="min-h-screen bg-canvas font-ui text-ink">
+      <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-white focus:px-3 focus:py-2">{copy.skipToContent}</a>
       <PublicSiteHeaderWithLocale initialLocale={locale} copyByLocale={headerCopyByLocale} active="blog" />
       <ContentEnter>
         <main id="conteudo" lang={BLOG_CONTENT_LOCALE} className="mx-auto max-w-6xl px-5 pb-16 pt-10 sm:px-8 sm:pt-14">
@@ -34,5 +36,24 @@ export function BlogShell({ locale, children }) {
         </div>
       </footer>
     </div>
+  );
+}
+
+/** Breadcrumb trail; the last item is the current page. */
+export function BlogBreadcrumb({ locale, items }) {
+  const trail = [{ href: '/', label: t(locale, 'blog.home') }, ...items];
+  return (
+    <nav aria-label={t(locale, 'blog.breadcrumbAria')} className="mb-6 font-ui text-xs text-ink-faint">
+      <ol className="m-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1 p-0">
+        {trail.map((item, index) => (
+          <li key={item.label} className="inline-flex items-center gap-2">
+            {index > 0 ? <span aria-hidden>/</span> : null}
+            {index < trail.length - 1
+              ? <Link href={item.href} className="text-ink-muted no-underline hover:text-ink">{item.label}</Link>
+              : <span aria-current="page">{item.label}</span>}
+          </li>
+        ))}
+      </ol>
+    </nav>
   );
 }
