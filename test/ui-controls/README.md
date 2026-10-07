@@ -135,3 +135,9 @@ npm run build
 ## Auditoria da empresa — 2026-10-07
 
 `audit.spec.js`: 3 casos aprovados em 390/1440 px. Dono sem seletor cross-tenant; superadmin preserva filtro por empresa; RH comum sem menu de auditoria; filtro por colaborador persiste na URL; download CSV e aviso de limite funcionam. Dados sintéticos, sem sessão de produção. Capturas em `results/`.
+
+## Navegação do colaborador — 2026-10-07
+
+O fixture de colaborador mantém o shell no layout, como a aplicação, para preservar o contexto entre páginas.
+
+`employee-navigation.spec.js`: 6 casos aprovados para cliques rápidos, histórico voltar/avançar, home lenta e troca de módulos, seleção repetida sem duplicar histórico, hash desconhecido, Ctrl/Cmd+clique e foco após fechar o menu mobile. O conjunto com `employee-ux.spec.js`, `dp-attachment-layout.spec.js` e `formal-reviews.spec.js` passou em 24 casos. A largura dos anexos foi conferida em 390/1440 px, e as avaliações foram verificadas com falhas HTTP, rede, JSON e estrutura inválida, além da recuperação por nova tentativa. Dados sintéticos; capturas em `results/`.

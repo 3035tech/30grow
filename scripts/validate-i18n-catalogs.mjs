@@ -18,7 +18,12 @@ for (const [locale, catalog] of Object.entries({ 'pt-BR': pt, en, 'fr-FR': fr, '
   const missing = Object.keys(base).filter((key) => !(key in values));
   const extra = Object.keys(values).filter((key) => !(key in base));
   const placeholderMismatch = Object.keys(base).filter((key) => key in values && placeholders(values[key]) !== placeholders(base[key]));
-  results[locale] = { keys: Object.keys(values).length, missing, extra, placeholderMismatch };
+  const invalidValues = Object.keys(base).filter((key) => key in values && (
+    typeof values[key] !== typeof base[key]
+    || Array.isArray(values[key]) !== Array.isArray(base[key])
+    || (typeof values[key] === 'string' && !values[key].trim() && String(base[key]).trim())
+  ));
+  results[locale] = { keys: Object.keys(values).length, missing, extra, placeholderMismatch, invalidValues };
 }
 console.log(JSON.stringify({ technicalValidationOnly: true, catalogs: results }, null, 2));
-if (Object.values(results).some((r) => r.missing.length || r.extra.length || r.placeholderMismatch.length)) process.exitCode = 1;
+if (Object.values(results).some((r) => r.missing.length || r.extra.length || r.placeholderMismatch.length || r.invalidValues.length)) process.exitCode = 1;

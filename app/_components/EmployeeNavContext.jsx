@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const EmployeeNavContext = createContext(null);
 
@@ -41,6 +41,7 @@ export function EmployeeNavProvider({ children, changeLocale = null }) {
   const [navCollapsed, setNavCollapsedState] = useState(false);
   /** { id, nonce } — nonce bumps so re-clicking the same item still opens + scrolls. */
   const [sectionFocus, setSectionFocus] = useState(null);
+  const focusNonce = useRef(0);
   /** null = unrestricted (all modules). */
   const [companyModules, setCompanyModules] = useState(null);
   /** null = unknown (show); false = collaborator without time clock. */
@@ -82,8 +83,16 @@ export function EmployeeNavProvider({ children, changeLocale = null }) {
 
   const focusSection = useCallback((id) => {
     if (!id || !EMPLOYEE_SECTION_IDS.includes(id)) return;
+    if (typeof window !== 'undefined' && window.location.pathname === '/employee') {
+      const hash = `#${id}`;
+      if (window.location.hash !== hash) window.history.pushState(window.history.state, '', hash);
+    }
     setActiveSection(id);
-    setSectionFocus((prev) => ({ id, nonce: (prev?.nonce || 0) + 1 }));
+    setSectionFocus({ id, nonce: ++focusNonce.current });
+  }, []);
+
+  const consumeSectionFocus = useCallback((nonce) => {
+    setSectionFocus((current) => current?.nonce === nonce ? null : current);
   }, []);
 
   const value = useMemo(
@@ -96,6 +105,7 @@ export function EmployeeNavProvider({ children, changeLocale = null }) {
       setNavCollapsed,
       sectionFocus,
       focusSection,
+      consumeSectionFocus,
       companyModules,
       timeClockEnabled,
       changeLocale,
@@ -109,6 +119,7 @@ export function EmployeeNavProvider({ children, changeLocale = null }) {
       setNavCollapsed,
       sectionFocus,
       focusSection,
+      consumeSectionFocus,
       companyModules,
       timeClockEnabled,
     ]
@@ -129,6 +140,7 @@ export function useEmployeeNav() {
       setNavCollapsed: () => {},
       sectionFocus: null,
       focusSection: () => {},
+      consumeSectionFocus: () => {},
       companyModules: null,
       timeClockEnabled: null,
       changeLocale: null,

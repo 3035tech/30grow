@@ -138,9 +138,8 @@ export function EmployeeTopBar({
     const href = item.href || '/employee';
     const hash = href.includes('#') ? href.split('#')[1] : '';
     if (hash && (href.startsWith('/employee#') || href === `#${hash}`)) {
-      router.push('/employee');
-      // After navigation, focus expands + scrolls even if already on home
-      window.setTimeout(() => focusSection(hash), 0);
+      if (window.location.pathname === '/employee') focusSection(hash);
+      else router.push(`/employee#${hash}`);
     } else {
       router.push(href);
     }

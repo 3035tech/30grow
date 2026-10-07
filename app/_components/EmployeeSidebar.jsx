@@ -132,6 +132,8 @@ export function EmployeeSidebar({
   };
 
   const goItem = (item, e) => {
+    // Keep native link behavior for opening a section in another tab/window.
+    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)) return;
     onClose?.();
     if (isDedicatedRoute(item.id)) {
       if (!e) router.push(item.href);
@@ -140,12 +142,6 @@ export function EmployeeSidebar({
     e?.preventDefault();
     if (onHome) {
       focusSection(item.hash || item.id);
-      if (typeof window !== 'undefined') {
-        const next = `#${item.hash || item.id}`;
-        if (window.location.hash !== next) {
-          window.history.replaceState(null, '', next);
-        }
-      }
       return;
     }
     router.push(item.href);

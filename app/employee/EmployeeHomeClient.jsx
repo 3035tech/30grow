@@ -1,7 +1,7 @@
 'use client';
 
 import { EmployeePageLoading } from '../_components/EmployeeDedicatedShell';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -154,7 +154,8 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
   const { toast, promptForm } = useAppFeedback();
   const [okrNotice, setOkrNotice] = useState('');
   const okrNumber = value => new Intl.NumberFormat(locale, {maximumFractionDigits:2}).format(value);
-  const { activeSection, setNavMeta, setActiveSection, sectionFocus, focusSection } = useEmployeeNav();
+  const { activeSection, setNavMeta, setActiveSection, sectionFocus, focusSection, consumeSectionFocus } = useEmployeeNav();
+  const focusFrame = useRef(null);
   const detailView = DETAIL_SECTION_KEYS.includes(activeSection) ? activeSection : null;
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -419,7 +420,12 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
 
   const scrollToSection = useCallback((id) => {
     if (typeof window === 'undefined') return;
-    window.requestAnimationFrame(() => {
+    window.cancelAnimationFrame(focusFrame.current);
+    focusFrame.current = window.requestAnimationFrame(() => {
+      const hash = window.location.hash.slice(1);
+      const currentSection = SECTION_KEYS.includes(hash) ? hash : 'tasks';
+      // A newer click or browser navigation wins over pending focus work.
+      if (window.location.pathname !== '/employee' || currentSection !== id) return;
       if (DETAIL_SECTION_KEYS.includes(id)) {
         window.scrollTo({ top: 0, behavior: 'auto' });
         document.getElementById('employee-detail-title')?.focus({ preventScroll: true });
@@ -431,18 +437,18 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
     });
   }, []);
 
+  useEffect(() => () => window.cancelAnimationFrame(focusFrame.current), []);
+
   // Menu / deep-link focus: always expand + scroll (even if same section re-clicked)
   useEffect(() => {
     if (!sectionFocus?.id || loading) return;
     const id = sectionFocus.id;
-    setActiveSection(id);
-    openSection(id);
-    scrollToSection(id);
-    window.setTimeout(() => {
-      const empty = document.querySelector(`#${id} [data-emp-empty]`);
-      if (empty && typeof empty.focus === 'function') empty.focus({ preventScroll: true });
-    }, 280);
-  }, [sectionFocus, loading, openSection, scrollToSection, setActiveSection]);
+    if ((window.location.hash.slice(1) || 'tasks') === id) {
+      openSection(id);
+      scrollToSection(id);
+    }
+    consumeSectionFocus(sectionFocus.nonce);
+  }, [sectionFocus, loading, openSection, scrollToSection, consumeSectionFocus]);
 
   // Nav badges only (menu always lists all functionalities)
   useEffect(() => {
@@ -483,15 +489,19 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const onHash = () => {
-      const id = (window.location.hash || '').replace(/^#/, '');
-      if (!id || !SECTION_KEYS.includes(id)) return;
+      const hash = window.location.hash.slice(1);
+      const id = SECTION_KEYS.includes(hash) ? hash : 'tasks';
       setActiveSection(id);
       openSection(id);
       scrollToSection(id);
     };
     onHash();
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    window.addEventListener('popstate', onHash);
+    return () => {
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('popstate', onHash);
+    };
   }, [loading, openSection, scrollToSection, setActiveSection]);
 
   if (loading) return <EmployeePageLoading locale={locale} />;
@@ -553,7 +563,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
     title: t(locale, EMPLOYEE_NAV_ITEMS.find((item) => item.id === detailView)?.labelKey || 'employeeHome.sectionNavAria'),
     headingId: 'employee-detail-title',
     backLabel: t(locale, 'employeeHome.backToToday'),
-    onBack: () => { focusSection('tasks'); window.history.replaceState(null, '', '#tasks'); },
+    onBack: () => focusSection('tasks'),
   } : { locale };
 
   return (
@@ -569,7 +579,6 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
               dismissWelcome();
               if (href.startsWith('#')) {
                 focusSection(id);
-                window.history.replaceState(null, '', href);
               } else {
                 router.push(href);
               }

@@ -678,7 +678,7 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                       : 'border-ink/8'
                   )}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="grid grid-cols-1 items-center gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
                   <div className="min-w-0">
                     <div className={S.cardMuted}>{docKeyLabel(locale, doc.docKey)}</div>
                     <div className="mt-1 flex flex-wrap items-center gap-2">

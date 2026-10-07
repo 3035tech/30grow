@@ -1,8 +1,6 @@
 'use client';
 // Real product screens under their canonical paths, only in the isolated fixture app.
 import { usePathname } from 'next/navigation';
-import { EmployeeShell } from '../../../../../app/_components/EmployeeShell';
-import { DarkModeProvider } from '../../../../../app/_components/DarkModeProvider';
 import { EmployeeHomeClient } from '../../../../../app/employee/EmployeeHomeClient';
 import { EmployeeProfileClient } from '../../../../../app/employee/profile/EmployeeProfileClient';
 import { EmployeePdiClient } from '../../../../../app/employee/pdi/EmployeePdiClient';
@@ -21,5 +19,5 @@ export default function EmployeeFixture() {
     '/employee/time-clock': EmployeeTimeClockClient,
     '/employee/login': EmployeeLoginClient,
   }[path] || EmployeeHomeClient;
-  return <DarkModeProvider><EmployeeShell personName="Pessoa de teste" companyName="Empresa exemplo"><View /></EmployeeShell></DarkModeProvider>;
+  return <View />;
 }
