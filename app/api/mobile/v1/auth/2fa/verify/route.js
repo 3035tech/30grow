@@ -27,13 +27,13 @@ export async function POST(request) {
     if (!challenge) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, HTTP_STATUS.UNAUTHORIZED, {}, { headers: NO_STORE });
     const verified = await verifyEmployee2faLogin(challenge.candidateId, challenge.companyId, parsed.data.code);
     if (verified.code === 'RATE_LIMIT') {
-      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+      return apiError(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS, {}, {
         headers: { 'Cache-Control': 'no-store', 'Retry-After': String(verified.retryAfterSec) },
       });
     }
     if (!verified.ok) return apiError(request, ERR.TOTP_INVALID, HTTP_STATUS.UNAUTHORIZED, {}, { headers: NO_STORE });
     const challengeVersion = await consumeSecondFactorChallenge(parsed.data.challengeToken);
-    if (!challengeVersion) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, 401);
+    if (!challengeVersion) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, HTTP_STATUS.UNAUTHORIZED);
     const completed = await completeMobileEmployeeAuthentication({
       candidateId: challenge.candidateId,
       companyId: challenge.companyId,

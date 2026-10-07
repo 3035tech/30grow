@@ -44,7 +44,7 @@ export async function DELETE(request) {
   const result = await disableEmployee2fa(session.candidateId, session.companyId, { code: body.code, password: body.password });
   if (!result.ok) {
     if (result.code === 'RATE_LIMIT') {
-      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+      return apiError(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS, {}, {
         headers: { 'Retry-After': String(result.retryAfterSec) },
       });
     }

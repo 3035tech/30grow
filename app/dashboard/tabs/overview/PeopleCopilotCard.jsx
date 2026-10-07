@@ -177,8 +177,8 @@ export default function PeopleCopilotCard({ locale = 'pt-BR', companyId, navigat
                       {t(locale, topics ? 'panel.copilot.topicsAi' : 'panel.copilot.topicsSuggested')}
                     </p>
                     <ul className="mt-1 mb-0 list-disc pl-4 text-prose text-ink">
-                      {(topics || reasons.slice(0, 3).map((r) => t(locale, `panel.copilot.topic.${r.code}`))).map((line) => (
-                        <li key={line}>{line}</li>
+                      {(topics || reasons.slice(0, 3).map((r) => t(locale, `panel.copilot.topic.${r.code}`))).map((line, i) => (
+                        <li key={`${p.candidateId}-${i}`}>{line}</li>
                       ))}
                     </ul>
                   </li>

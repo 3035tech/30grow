@@ -18,7 +18,7 @@ Constantes em `lib/domain-status.js` (`FIELD_VISIT_STATUS`, `FIELD_EXPENSE_STATU
 **Regras (lib `lib/people/field-team.js`)**
 - Check-in exige coordenadas válidas (`parsePunchCoordinates`, mesmo do ponto); repetir o check-in devolve `replayed` sem alterar. Concluir só a partir de `checked_in`. Gestor cancela só visita `planned`.
 - Reembolso: data não futura (fuso da empresa), visita relacionada precisa ser da própria pessoa, `Idempotency-Key` no POST (app). Decisão é um `UPDATE … WHERE status='pending'` (sem lost update). Cancelar pendente apaga o comprovante do S3.
-- Arquivos: foto (JPEG/PNG) em `field-visits/<candidato>/<id>/`, comprovante (PDF/JPEG/PNG) em `field-expenses/<candidato>/<id>/`; download sempre pelo servidor com checagem de tenant.
+- Arquivos: foto (JPEG/PNG) em `field-visits/<candidato>/<id>/`, comprovante (PDF/JPEG/PNG) em `field-expenses/<candidato>/<id>/`; download sempre pelo servidor com checagem de tenant. Arquivo inválido devolve `FIELD_FILE_TYPE` / `FIELD_FILE_SIZE` (400, máx. 5 MB), não as mensagens de currículo do upload genérico.
 - Caps: rota do dia 50 visitas; últimas 30 despesas do colaborador; listas do gestor paginadas.
 - Notificações: `field_visits_assigned` (dedupe por pessoa/dia) e `field_expense_decided` ao colaborador; `field_expense_submitted` aos gestores (`notifyCompanyManagers`). Auditoria `field.*`. Rate limit 60/h escrita, 30/h arquivos por pessoa.
 

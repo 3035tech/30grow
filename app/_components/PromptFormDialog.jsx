@@ -712,7 +712,7 @@ export function PromptFormDialog({
 
     return (
       <input
-        type={f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text'}
+        type={f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : f.type === 'time' ? 'time' : 'text'}
         value={values[fk] ?? ''}
         onChange={(e) => setField(fk, e.target.value)}
         placeholder={f.placeholder || ''}

@@ -12,9 +12,9 @@ import { InlineCallout } from './InlineCallout';
 import { StatusToneChip } from './StatusToneChip';
 import { EmptyState } from './EmptyState';
 import { CollapsibleBlock } from './CollapsibleBlock';
-import { Icon } from './Icon';
-import { PunchLocationMap, osmLink } from './PunchLocationMap';
+import { PunchLocationMap } from './PunchLocationMap';
 import { useDeviceLocation } from './useDeviceLocation';
+import { DeviceLocationStatus } from './DeviceLocationStatus';
 
 function formatTime(value, locale, timeZone) {
   if (!value) return '—';
@@ -26,8 +26,6 @@ function formatTime(value, locale, timeZone) {
     return d.toLocaleTimeString(localeHtmlLang(locale), { hour: '2-digit', minute: '2-digit' });
   }
 }
-
-const GEO_TONE = { idle: 'neutral', locating: 'info', ok: 'success', error: 'warning' };
 
 /**
  * Collaborator web time clock: location status (get / refresh before punching), last
@@ -122,17 +120,6 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
       : t(locale, 'employeeHome.timeClock.punchOut');
   const locating = geo.state === 'locating';
   const last = data.lastLocation;
-  const geoText = {
-    idle: t(locale, 'employeeHome.timeClock.locIdle'),
-    locating: t(locale, 'employeeHome.timeClock.geoLocating'),
-    ok: geo.fix
-      ? t(locale, geo.fix.accuracy ? 'employeeHome.timeClock.locOk' : 'employeeHome.timeClock.locOkNoAccuracy', {
-          time: formatTime(new Date(geo.fix.at), locale),
-          accuracy: geo.fix.accuracy,
-        })
-      : '',
-    error: geo.error,
-  }[geo.state];
 
   return (
     <ContentEnter animKey={`emp-clock|${data.day}|${(data.punches || []).length}|${data.open ? 1 : 0}`}>
@@ -153,43 +140,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
           )}
         </div>
 
-        <section aria-labelledby="emp-tc-geo" className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-start gap-2">
-            <span className={cn('mt-0.5 inline-flex', geo.state === 'ok' ? 'text-success' : geo.state === 'error' ? 'text-warning' : 'text-ink-faint')}>
-              <Icon name="mapPin" className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span id="emp-tc-geo" className={S.label}>{t(locale, 'employeeHome.timeClock.locTitle')}</span>
-                <StatusToneChip tone={GEO_TONE[geo.state]}>{t(locale, `employeeHome.timeClock.locStatus.${geo.state}`)}</StatusToneChip>
-              </div>
-              <p className={cn('m-0 mt-1 text-prose', geo.state === 'error' ? 'text-ink' : 'text-ink-muted')} role={geo.state === 'error' ? 'alert' : undefined} aria-live="polite">
-                {geoText}
-                {geo.state === 'ok' && geo.fix ? (
-                  <>
-                    {' · '}
-                    <a
-                      href={osmLink(geo.fix.latitude, geo.fix.longitude)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-brand-600 underline-offset-2 hover:underline dark:text-brand-300"
-                    >
-                      {t(locale, 'employeeHome.timeClock.locOpenMap')}
-                    </a>
-                  </>
-                ) : null}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className={cn(S.btnGhost, 'min-h-touch shrink-0 text-sm')}
-            disabled={busy || locating}
-            onClick={() => void locate().catch(() => {})}
-          >
-            {t(locale, geo.state === 'idle' ? 'employeeHome.timeClock.locGet' : geo.state === 'error' ? 'employeeHome.timeClock.locRetry' : 'employeeHome.timeClock.locRefresh')}
-          </button>
-        </section>
+        <DeviceLocationStatus locale={locale} geo={geo} locate={locate} disabled={busy} id="emp-tc-geo" />
 
         <button
           type="button"

@@ -46,7 +46,7 @@ export async function POST(request) {
       15 * 60 * 1000
     );
     if (!accountRate.ok) {
-      return apiError(request, ERR.RATE_LIMIT, 429, {}, {
+      return apiError(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS, {}, {
         headers: { ...NO_STORE, 'Retry-After': String(accountRate.retryAfterSec) },
       });
     }

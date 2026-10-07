@@ -61,6 +61,6 @@ export async function uploadFieldFile(url, file) {
   fd.append('file', file);
   const res = await fetch(url, { method: 'POST', body: fd });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json?.error || 'upload');
+  if (!res.ok) throw new Error(json?.error || '');
   return json;
 }

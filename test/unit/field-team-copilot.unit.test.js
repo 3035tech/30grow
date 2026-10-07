@@ -35,6 +35,10 @@ test('B-2725: field statuses/categories have labels in 4 locales and no em dash'
 test('B-2725: conflict errors are 409 and notifications link to field screens', () => {
   assert.equal(httpStatusForError(ERR.FIELD_VISIT_NOT_OPEN), 409);
   assert.equal(httpStatusForError(ERR.FIELD_EXPENSE_NOT_PENDING), 409);
+  for (const code of [ERR.FIELD_FILE_TYPE, ERR.FIELD_FILE_SIZE]) {
+    assert.equal(httpStatusForError(code), 400);
+    for (const loc of LOCALES) assert.ok(!/curr[ií]culo|r[ée]sum[ée]|Lebenslauf|\bCV\b/i.test(t(loc, `errors.${code}`)), `${loc} ${code}`);
+  }
   assert.equal(employeeNotificationHref(EMPLOYEE_NOTIF.FIELD_VISITS_ASSIGNED), '/employee/field');
   assert.equal(employeeNotificationHref(EMPLOYEE_NOTIF.FIELD_EXPENSE_DECIDED), '/employee/field#expenses');
   assert.equal(notificationHref(NOTIF.FIELD_EXPENSE_SUBMITTED, {}), '/dashboard?tab=dp&dpSection=field');

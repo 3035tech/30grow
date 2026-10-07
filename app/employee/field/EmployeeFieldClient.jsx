@@ -11,7 +11,7 @@ import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmployeeDedicatedShell } from '../../_components/EmployeeDedicatedShell';
 import { EmptyState } from '../../_components/EmptyState';
-import { InlineCallout } from '../../_components/InlineCallout';
+import { DeviceLocationStatus } from '../../_components/DeviceLocationStatus';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { osmLink } from '../../_components/PunchLocationMap';
 import { useDeviceLocation } from '../../_components/useDeviceLocation';
@@ -38,7 +38,7 @@ const linkClass = 'text-brand-600 underline-offset-2 hover:underline dark:text-b
  */
 export function EmployeeFieldClient({ locale = 'pt-BR' }) {
   const { promptForm, confirm, toast } = useAppFeedback();
-  const { geo, freshFix } = useDeviceLocation(locale);
+  const { geo, locate, freshFix } = useDeviceLocation(locale);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState('');
@@ -50,7 +50,7 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
     try {
       const res = await fetch(API);
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || 'load');
+      if (!res.ok) throw new Error(json?.error || '');
       setData(json);
     } catch (e) {
       toast(e?.message || t(locale, 'panel.field.loadError'), 'error');
@@ -75,7 +75,7 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
   const send = async (url, init, okKey) => {
     const res = await fetch(url, init);
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json?.error || 'request');
+    if (!res.ok) throw new Error(json?.error || '');
     if (okKey) toast(t(locale, okKey), 'ok');
     return json;
   };
@@ -121,7 +121,7 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
       confirmLabel: t(locale, 'panel.field.save'),
       fields: [
         { key: 'title', label: t(locale, 'panel.field.visitTitleLabel'), required: true, maxLength: 200, row: 'who', rowWeight: 1.6 },
-        { key: 'plannedTime', type: 'text', label: t(locale, 'panel.field.visitTimeLabel'), placeholder: '14:30', row: 'who' },
+        { key: 'plannedTime', type: 'time', label: t(locale, 'panel.field.visitTimeLabel'), row: 'who' },
         { key: 'address', label: t(locale, 'panel.field.visitAddressLabel'), maxLength: 300 },
       ],
       submit: (v) => send(`${API}/visits`, {
@@ -218,8 +218,8 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
     if (values.receipt) {
       try {
         await uploadFieldFile(`${API}/expenses/${created.id}/receipt`, values.receipt);
-      } catch {
-        toast(t(locale, 'panel.field.receiptFailed'), 'warning');
+      } catch (e) {
+        toast([t(locale, 'panel.field.receiptFailed'), e?.message].filter(Boolean).join(' '), 'warning');
         void load();
         return;
       }
@@ -247,7 +247,9 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
     }
   };
 
-  const visits = data?.visits || [];
+  const visits = [...(data?.visits || [])].sort(
+    (a, b) => Number(a.status === FIELD_VISIT_STATUS.CANCELLED) - Number(b.status === FIELD_VISIT_STATUS.CANCELLED)
+  );
   const expenses = data?.expenses || [];
 
   return (
@@ -260,12 +262,12 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
       {loading && !data ? (
         <AppLoading variant="panel" locale={locale} />
       ) : !data ? (
-        <div>
-          <EmptyState title={t(locale, 'panel.field.loadError')} message={t(locale, 'panel.field.loadErrorHint')} />
-          <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void load()}>
-            {t(locale, 'common.retry')}
-          </button>
-        </div>
+        <EmptyState
+          title={t(locale, 'panel.field.loadError')}
+          message={t(locale, 'panel.field.loadErrorHint')}
+          actionLabel={t(locale, 'common.retry')}
+          onAction={() => void load()}
+        />
       ) : (
         <ContentEnter animKey={`emp-field|${data.day}|${visits.length}|${expenses.length}`}>
           <section className="rounded-card border border-ink/12 bg-surface p-4 sm:p-5" aria-labelledby="emp-field-route">
@@ -280,13 +282,22 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
                 {t(locale, 'panel.field.logVisit')}
               </button>
             </div>
-            {geo.state === 'error' ? <InlineCallout tone="warning" className="mb-3">{geo.error}</InlineCallout> : null}
+            {visits.some((v) => v.status === FIELD_VISIT_STATUS.PLANNED) ? (
+              <DeviceLocationStatus
+                locale={locale}
+                geo={geo}
+                locate={locate}
+                disabled={Boolean(busyId)}
+                id="emp-field-geo"
+                className="mb-3 rounded-control border border-ink/10 bg-canvas px-3 py-2.5"
+              />
+            ) : null}
             {visits.length === 0 ? (
               <EmptyState title={t(locale, 'panel.field.routeEmptyTitle')} message={t(locale, 'panel.field.routeEmptyHint')} />
             ) : (
               <ol className="m-0 flex list-none flex-col gap-3 p-0">
                 {visits.map((v) => (
-                  <li key={v.id} className="rounded-card border border-ink/10 bg-canvas p-3 sm:p-4">
+                  <li key={v.id} className={cn('rounded-card border border-ink/10 bg-canvas p-3 sm:p-4', v.status === FIELD_VISIT_STATUS.CANCELLED && 'opacity-60')}>
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="m-0 font-ui text-sm font-semibold text-ink">

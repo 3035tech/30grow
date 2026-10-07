@@ -39,11 +39,6 @@ import {
 const linkClass = 'text-brand-600 underline-offset-2 hover:underline dark:text-brand-300';
 const td = 'px-3 py-2.5 align-middle';
 
-function isoToday() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /** DP "Field" workspace: reimbursement queue (approve/reject) and the team's visits of a day. */
 export function FieldTeamWorkspace({ locale = 'pt-BR', companyId, onChanged = null }) {
   const { promptForm, toast } = useAppFeedback();
@@ -85,7 +80,7 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
       if (q) params.set('q', q);
       const res = await fetch(`/api/admin/field/expenses?${params}`);
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || 'load');
+      if (!res.ok) throw new Error(json?.error || '');
       setData({ items: json.items || [], total: Number(json.total) || 0, sumCents: Number(json.sumCents) || 0 });
     } catch (e) {
       toast(e?.message || t(locale, 'panel.field.loadError'), 'error');
@@ -125,7 +120,7 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
           body: JSON.stringify({ companyId, decision, note: v.note || '' }),
         });
         const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json?.error || 'decide');
+        if (!res.ok) throw new Error(json?.error || '');
       },
     });
     if (!values) return;
@@ -186,7 +181,9 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
       ) : (
         <ContentEnter animKey={animKey}>
           <p className={cn(S.muted, 'm-0 mb-2 text-prose')}>
-            {t(locale, 'panel.field.queueSummary', { count: data.total, amount: formatCents(locale, data.sumCents) })}
+            {status === 'all'
+              ? t(locale, 'panel.field.queueCount', { count: data.total })
+              : t(locale, 'panel.field.queueSummary', { count: data.total, amount: formatCents(locale, data.sumCents) })}
           </p>
           <AdminTableShell locale={locale} minWidth="760px">
             <thead>
@@ -224,8 +221,11 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
                       <span className="text-warning">{t(locale, 'panel.field.receiptMissing')}</span>
                     )}
                   </td>
-                  <td className={cn(td, 'whitespace-nowrap')}>
+                  <td className={cn(td, 'max-w-[200px]')}>
                     <StatusToneChip tone={fieldExpenseTone(row.status)}>{fieldExpenseStatusLabel(locale, row.status)}</StatusToneChip>
+                    {row.decisionNote ? (
+                      <div className="mt-1 truncate text-xs text-ink-muted" title={row.decisionNote}>{row.decisionNote}</div>
+                    ) : null}
                   </td>
                   <td className={cn(td, 'text-right')}>
                     <AdminActionsCell>
@@ -261,23 +261,25 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
 
 function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
   const { confirm } = useAppFeedback();
-  const [day, setDay] = useState(isoToday);
+  const [day, setDay] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [data, setData] = useState({ items: [], total: 0 });
+  const [data, setData] = useState({ items: [], total: 0, day: '' });
   const [loading, setLoading] = useState(true);
+  const shownDay = day || data.day;
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ companyId: String(companyId), day, page: String(page), pageSize: String(pageSize) });
+      const params = new URLSearchParams({ companyId: String(companyId), page: String(page), pageSize: String(pageSize) });
+      if (day) params.set('day', day);
       const res = await fetch(`/api/admin/field/visits?${params}`);
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || 'load');
-      setData({ items: json.items || [], total: Number(json.total) || 0 });
+      if (!res.ok) throw new Error(json?.error || '');
+      setData({ items: json.items || [], total: Number(json.total) || 0, day: json.day || day });
     } catch (e) {
       toast(e?.message || t(locale, 'panel.field.loadError'), 'error');
-      setData({ items: [], total: 0 });
+      setData({ items: [], total: 0, day });
     } finally {
       setLoading(false);
     }
@@ -303,8 +305,8 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
           placeholder: t(locale, 'panel.dp.personSearchPh'),
           minChars: 1,
         },
-        { key: 'day', type: 'date', label: t(locale, 'panel.field.visitDayLabel'), defaultValue: day, required: true, row: 'when' },
-        { key: 'plannedTime', label: t(locale, 'panel.field.visitTimeLabel'), placeholder: '14:30', row: 'when' },
+        { key: 'day', type: 'date', label: t(locale, 'panel.field.visitDayLabel'), defaultValue: shownDay, required: true, row: 'when' },
+        { key: 'plannedTime', type: 'time', label: t(locale, 'panel.field.visitTimeLabel'), row: 'when' },
         { key: 'title', label: t(locale, 'panel.field.visitTitleLabel'), required: true, maxLength: 200, row: 'where', rowWeight: 1 },
         { key: 'address', label: t(locale, 'panel.field.visitAddressLabel'), maxLength: 300, row: 'where', rowWeight: 1.4 },
         { key: 'notes', type: 'textarea', rows: 2, maxLength: 1000, label: t(locale, 'panel.field.visitNotesLabel') },
@@ -324,12 +326,12 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
           }),
         });
         const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json?.error || 'plan');
+        if (!res.ok) throw new Error(json?.error || '');
       },
     });
     if (!values) return;
     toast(t(locale, 'panel.field.plannedOk'), 'ok');
-    if (values.day !== day) setDay(values.day);
+    if (values.day !== shownDay) setDay(values.day);
     else void load();
   };
 
@@ -344,7 +346,7 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
     try {
       const res = await fetch(`/api/admin/field/visits/${row.id}?companyId=${companyId}`, { method: 'DELETE' });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || 'cancel');
+      if (!res.ok) throw new Error(json?.error || '');
       toast(t(locale, 'panel.field.visitCancelled'), 'ok');
       void load();
     } catch (e) {
@@ -352,16 +354,16 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
     }
   };
 
-  const animKey = `field-visits|${day}|${page}|${pageSize}`;
+  const animKey = `field-visits|${shownDay}|${page}|${pageSize}`;
 
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <FormField label={t(locale, 'panel.field.visitDayLabel')} className="w-full max-w-[14rem]">
           <DateField
-            value={day}
+            value={shownDay}
             onChange={(e) => {
-              setDay(e.target.value || isoToday());
+              setDay(e.target.value || '');
               setPage(1);
             }}
             locale={locale}
@@ -410,6 +412,7 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
                     {row.checkinAt ? (
                       <span className="font-mono text-2xs text-ink-muted">
                         {formatClock(row.checkinAt, locale)}
+                        {row.accuracy ? ` ±${row.accuracy} m` : ''}
                         {row.latitude != null ? (
                           <>
                             {' · '}
