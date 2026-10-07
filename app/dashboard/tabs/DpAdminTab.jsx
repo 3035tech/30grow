@@ -107,6 +107,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
   const [workspaceSection, setWorkspaceSection] = useState(() => (DP_SECTIONS.includes(initialSection) ? initialSection : 'pending'));
   const [timeView, setTimeView] = useState(initialTimeView || '');
   const [pendingTimeRequests, setPendingTimeRequests] = useState(0);
+  const [attentionStatus, setAttentionStatus] = useState('loading');
   const [pendingFieldExpenses, setPendingFieldExpenses] = useState(0);
 
   const load = useCallback(async () => {
@@ -147,6 +148,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
 
   const loadAttention = useCallback(async () => {
     if (!companyId) {
+      setAttentionStatus('ready');
       setRequestedCount(0);
       setPendingDocsPeople(0);
       setPendingDocsList([]);
@@ -156,11 +158,15 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
       setPendingFieldExpenses(0);
       return;
     }
+    setAttentionStatus('loading');
     try {
       const params = new URLSearchParams({ companyId: String(companyId) });
       const res = await fetch(`/api/admin/dp/attention?${params}`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) return;
+      const data = await res.json();
+      const counts = ['requestedLeaves', 'pendingDocsPeople', 'absenteeismPeople', 'pendingTimeRequests', 'pendingFieldExpenses'];
+      if (!res.ok || !counts.every(key => Number.isSafeInteger(data?.[key]) && data[key] >= 0)) {
+        throw new Error('Attention unavailable');
+      }
       setRequestedCount(Number(data.requestedLeaves) || 0);
       setPendingDocsPeople(Number(data.pendingDocsPeople) || 0);
       const docs = Array.isArray(data.pendingDocs) ? data.pendingDocs : [];
@@ -172,8 +178,9 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
       setFirstAbsenteeismCandidateId(
         firstAbs?.candidateId != null ? Number(firstAbs.candidateId) : null
       );
+      setAttentionStatus('ready');
     } catch {
-      /* non-blocking */
+      setAttentionStatus('error');
     }
   }, [companyId]);
 
@@ -474,7 +481,11 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
       />
 
       {workspaceSection === 'pending' ? (
-        requestedCount + pendingDocsPeople + absenteeismPeople + pendingTimeRequests + pendingFieldExpenses > 0 ? (
+        attentionStatus === 'loading' ? <AppLoading variant="panel" locale={locale} /> :
+        attentionStatus === 'error' ? (
+          <EmptyState message={t(locale, 'panel.dp.loadError')}
+            actionLabel={t(locale, 'panel.common.retry')} onAction={loadAttention} />
+        ) : requestedCount + pendingDocsPeople + absenteeismPeople + pendingTimeRequests + pendingFieldExpenses > 0 ? (
           <ContentEnter animKey={`dp-pending|${requestedCount}|${pendingDocsPeople}|${absenteeismPeople}|${pendingTimeRequests}|${pendingFieldExpenses}`}>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <StatMetricTile

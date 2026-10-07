@@ -80,10 +80,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
     setProfileLoaded(false);
     setError('');
     try {
-      const [res, modRes] = await Promise.all([
-        fetch('/api/me'),
-        fetch('/api/me/company-modules'),
-      ]);
+      const res = await fetch('/api/me');
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.loadFailed'));
       const u = data.user || {};
@@ -95,9 +92,13 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
       setCompanyId(u.companyId ?? null);
       setLicense(data.license || null);
       setProfileLoaded(true);
-      await load2fa();
+      const hasCompany = Number.isSafeInteger(Number(u.companyId)) && Number(u.companyId) > 0;
+      const [modRes] = await Promise.all([
+        hasCompany ? fetch('/api/me/company-modules') : Promise.resolve(null),
+        load2fa(),
+      ]);
 
-      if (modRes.ok) {
+      if (modRes?.ok) {
         const mod = await modRes.json().catch(() => ({}));
         const ids = modulesSelectionForUi(mod.enabledModules);
         setCanEditCompanyModules(Boolean(mod.canEdit));

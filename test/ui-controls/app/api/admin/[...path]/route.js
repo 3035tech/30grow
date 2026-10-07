@@ -16,6 +16,7 @@ export async function GET(request, context) {
   if (key === 'pdi') return Response.json({rows:[{candidateId:1,candidateName:'Pessoa de teste',planId:2,planTitle:'Desenvolver liderança',doneCount:2,itemCount:4,donePct:50}],total:1,summary:{activePlanCount:1}});
   if (key === 'whistleblowing') return Response.json({channels:[],reports:[]});
   if (key === 'pipeline-stages') return Response.json({stages:[]});
+  if (key === 'dp/attention') return Response.json({requestedLeaves:0,pendingDocsPeople:0,absenteeismPeople:0,pendingTimeRequests:0,pendingFieldExpenses:0,pendingDocs:[],leaves:[],absenteeism:[]});
   if (key.endsWith('/invites')) return Response.json({invites:[]});
   if (key === 'org-chart') return Response.json({roots:[],total:0,withManager:0});
   return Response.json({items:[],rows:[],total:0,totalPages:1,plans:[],courses:[],objectives:[],enrollments:[],resources:[],channels:[],reports:[]});
