@@ -41,19 +41,16 @@ export function EmployeeFormalReviewsSection({ locale = 'pt-BR' }) {
   const [detail, setDetail] = useState(null);
   const [busy, setBusy] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [detailFailedId, setDetailFailedId] = useState(null);
 
   const loadList = useCallback(async () => {
     setLoading(true);
     setLoadFailed(false);
     try {
       const res = await fetch('/api/employee/formal-reviews');
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setReviews([]);
-        setLoadFailed(true);
-        return;
-      }
-      setReviews(json.reviews || []);
+      const json = await res.json();
+      if (!res.ok || !Array.isArray(json?.reviews)) throw new Error('Invalid review list');
+      setReviews(json.reviews);
     } catch {
       setReviews([]);
       setLoadFailed(true);
@@ -68,11 +65,17 @@ export function EmployeeFormalReviewsSection({ locale = 'pt-BR' }) {
 
   const openDetail = async (id) => {
     setBusy(true);
+    setDetailFailedId(null);
     try {
       const res = await fetch(`/api/employee/formal-reviews?id=${encodeURIComponent(id)}`);
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) return;
+      const json = await res.json();
+      if (!res.ok || !json?.review || String(json.review.id) !== String(id)
+        || !['items', 'raters', 'scores'].every((key) => Array.isArray(json.review[key]))) {
+        throw new Error('Invalid review detail');
+      }
       setDetail(json.review);
+    } catch {
+      setDetailFailedId(id);
     } finally {
       setBusy(false);
     }
@@ -151,29 +154,40 @@ export function EmployeeFormalReviewsSection({ locale = 'pt-BR' }) {
   }
 
   return (
-    <ul className="m-0 list-none space-y-2 p-0">
-      {reviews.map((r) => (
-        <li
-          key={r.id}
-          className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-ink/10 px-3 py-2"
-        >
-          <div className="min-w-0">
-            <div className="text-sm text-ink">{r.cycleTitle}</div>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-prose text-ink-muted">
-              <span>{modelShort(locale, r.model)}</span>
-              {r.sentAt ? <span>· {formatDisplayDate(r.sentAt, locale)}</span> : null}
-            </div>
-          </div>
-          <button
-            type="button"
-            className={cn(S.btnBrandSoft, 'min-h-touch')}
-            disabled={busy}
-            onClick={() => openDetail(r.id)}
+    <div className={S.stack}>
+      {detailFailedId !== null ? (
+        <div role="alert">
+          <EmptyState
+            message={t(locale, 'performanceReviews.formal.loadError')}
+            actionLabel={t(locale, 'panel.common.retry')}
+            onAction={() => openDetail(detailFailedId)}
+          />
+        </div>
+      ) : null}
+      <ul className="m-0 list-none space-y-2 p-0">
+        {reviews.map((r) => (
+          <li
+            key={r.id}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-ink/10 px-3 py-2"
           >
-            {t(locale, 'performanceReviews.formal.employeeView')}
-          </button>
-        </li>
-      ))}
-    </ul>
+            <div className="min-w-0">
+              <div className="text-sm text-ink">{r.cycleTitle}</div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-prose text-ink-muted">
+                <span>{modelShort(locale, r.model)}</span>
+                {r.sentAt ? <span>· {formatDisplayDate(r.sentAt, locale)}</span> : null}
+              </div>
+            </div>
+            <button
+              type="button"
+              className={cn(S.btnBrandSoft, 'min-h-touch')}
+              disabled={busy}
+              onClick={() => openDetail(r.id)}
+            >
+              {t(locale, 'performanceReviews.formal.employeeView')}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
