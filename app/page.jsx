@@ -27,7 +27,7 @@ export default async function HomePage() {
   return (
     <>
       <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <ProductLandingClient copyByLocale={copyByLocale} locale={locale} blogPosts={blogPosts} />
+      <ProductLandingClient copyByLocale={copyByLocale} locale={locale} blogPosts={blogPosts} analyticsId={process.env.GOOGLE_ANALYTICS_MEASUREMENT_ID ?? 'G-3NCBE66VM9'} nonce={nonce} />
     </>
   );
 }

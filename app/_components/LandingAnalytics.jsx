@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
+import GoogleLandingAnalytics from './GoogleLandingAnalytics';
 
 /**
  * Client-side analytics para landpage.
  * Rastreia pageview e gera sessionId para funil de conversão.
  */
-export default function LandingAnalytics() {
+export default function LandingAnalytics(props) {
   useEffect(() => {
     // Gera ou recupera sessionId
     let sessionId = null;
@@ -31,13 +32,12 @@ export default function LandingAnalytics() {
       body: JSON.stringify({
         eventType: 'pageview',
         sessionId,
-        referrer: document.referrer || null,
+        referrer: document.referrer ? new URL(document.referrer).origin : null,
         utmSource,
         utmMedium,
         utmCampaign,
         metadata: {
           path: window.location.pathname,
-          search: window.location.search,
         },
       }),
     }).catch(() => {
@@ -45,5 +45,5 @@ export default function LandingAnalytics() {
     });
   }, []);
 
-  return null; // Componente invisible
+  return <GoogleLandingAnalytics {...props} />;
 }

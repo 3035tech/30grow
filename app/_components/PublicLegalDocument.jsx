@@ -41,6 +41,7 @@ export function PublicLegalDocument({ copy }) {
                         {section.bullets.map((item) => <li key={item}>{item}</li>)}
                       </ul>
                     ) : null}
+                    {section.links?.map(({ href, label }) => <a key={href} href={href} className="mt-4 inline-block text-sm font-semibold text-brand-700 underline underline-offset-4">{label}</a>)}
                   </section>
                 ))}
               </div>

@@ -127,14 +127,13 @@ function HrReportsPreview({ copy }) {
   );
 }
 
-export default function ProductLandingClient({ copyByLocale, locale: initialLocale, blogPosts = [] }) {
+export default function ProductLandingClient({ copyByLocale, locale: initialLocale, blogPosts = [], analyticsId = '', nonce }) {
   const [locale, setLocale] = useLocale(initialLocale);
   const copy = copyByLocale[normalizeLocale(locale)] || copyByLocale['pt-BR'];
   const u = copy.ui;
 
   return (
     <div className="min-h-screen bg-canvas font-ui text-ink" lang={localeHtmlLang(locale)}>
-      <LandingAnalytics />
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-white focus:px-3 focus:py-2">{copy.skipToContent}</a>
       <PublicSiteHeader copy={copy} locale={locale} onLocaleChange={setLocale} />
       <ContentEnter animKey={locale}>
@@ -174,6 +173,7 @@ export default function ProductLandingClient({ copyByLocale, locale: initialLoca
         </main>
       </ContentEnter>
       <footer className="border-t border-ink/8 bg-surface py-8"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"><div><BrandMark size={26} withWordmark /><p className="mb-0 mt-2 max-w-xl text-xs leading-5 text-ink-faint">{copy.footerLegal}</p></div><div className="flex flex-wrap gap-5 text-sm"><Link href="/pricing" className="text-ink-muted no-underline hover:text-ink">{copy.footerPricing}</Link><Link href="/blog" className="text-ink-muted no-underline hover:text-ink">{u.navBlog}</Link><Link href="/privacy" className="text-ink-muted no-underline hover:text-ink">{copy.footerPrivacy}</Link><Link href="/terms" className="text-ink-muted no-underline hover:text-ink">{copy.footerTerms}</Link><Link href="/login" className="text-ink-muted no-underline hover:text-ink">{copy.navLogin}</Link><Link href="/employee/login" className="text-ink-muted no-underline hover:text-ink">{copy.navEmployee}</Link></div></div></footer>
+      <LandingAnalytics measurementId={analyticsId} nonce={nonce} locale={locale} />
     </div>
   );
 }
