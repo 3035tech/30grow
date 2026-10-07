@@ -13,6 +13,7 @@ import HrScoreCard from './overview/HrScoreCard';
 import ExitInsightsCard from './overview/ExitInsightsCard';
 import CultureInsightsCard from './overview/CultureInsightsCard';
 import MultiSignalWorkbenchCard from './overview/MultiSignalWorkbenchCard';
+import PeopleCopilotCard from './overview/PeopleCopilotCard';
 import BirthdaysCard from './overview/BirthdaysCard';
 import { OnboardingChecklist } from '../../_components/OnboardingChecklist';
 import {
@@ -307,6 +308,7 @@ export function OverviewTab({
           {opsIntelOpen ? (
             <ContentEnter animKey="opsIntel">
             <div className="mt-3.5 flex flex-col gap-4">
+              <PeopleCopilotCard locale={locale} companyId={companyId} navigateDashboard={navigateDashboard} />
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <TurnoverRadarCard locale={locale} companyId={companyId} />
                 <HrScoreCard locale={locale} companyId={companyId} />

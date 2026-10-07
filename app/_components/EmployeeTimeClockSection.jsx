@@ -14,6 +14,7 @@ import { EmptyState } from './EmptyState';
 import { CollapsibleBlock } from './CollapsibleBlock';
 import { Icon } from './Icon';
 import { PunchLocationMap, osmLink } from './PunchLocationMap';
+import { useDeviceLocation } from './useDeviceLocation';
 
 function formatTime(value, locale, timeZone) {
   if (!value) return '—';
@@ -26,7 +27,6 @@ function formatTime(value, locale, timeZone) {
   }
 }
 
-const FRESH_FIX_MS = 60 * 1000;
 const GEO_TONE = { idle: 'neutral', locating: 'info', ok: 'success', error: 'warning' };
 
 /**
@@ -38,7 +38,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [geo, setGeo] = useState({ state: 'idle', fix: null, error: '' });
+  const { geo, locate, freshFix } = useDeviceLocation(locale);
   const onBadgeRef = useRef(onBadge);
   onBadgeRef.current = onBadge;
   const onPunchedRef = useRef(onPunched);
@@ -66,55 +66,12 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
     void load();
   }, [load]);
 
-  const locate = useCallback(() => {
-    setGeo((g) => ({ ...g, state: 'locating', error: '' }));
-    return new Promise((resolve, reject) => {
-      const fail = (key) => {
-        const error = t(locale, key);
-        setGeo((g) => ({ ...g, state: 'error', error }));
-        reject(Object.assign(new Error(error), { geo: true }));
-      };
-      if (typeof navigator === 'undefined' || !navigator.geolocation) {
-        fail('employeeHome.timeClock.geoUnsupported');
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const fix = {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: Math.round(Number(pos.coords.accuracy) || 0),
-            at: Date.now(),
-          };
-          setGeo({ state: 'ok', fix, error: '' });
-          resolve(fix);
-        },
-        (err) => fail(err?.code === (err?.PERMISSION_DENIED ?? 1) ? 'employeeHome.timeClock.geoDenied' : 'employeeHome.timeClock.geoUnavailable'),
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
-      );
-    });
-  }, [locale]);
-
-  useEffect(() => {
-    if (typeof navigator === 'undefined' || !navigator.permissions?.query) return undefined;
-    let alive = true;
-    navigator.permissions
-      .query({ name: 'geolocation' })
-      .then((status) => {
-        if (alive && status.state === 'granted') locate().catch(() => {});
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [locate]);
-
   const punch = async () => {
     if (!data?.nextKind) return;
     const kind = data.nextKind;
     setBusy(true);
     try {
-      const fix = geo.fix && Date.now() - geo.fix.at < FRESH_FIX_MS ? geo.fix : await locate();
+      const fix = await freshFix();
       const res = await fetch('/api/employee/time-clock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

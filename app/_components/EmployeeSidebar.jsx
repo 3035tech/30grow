@@ -39,6 +39,7 @@ export const EMPLOYEE_NAV_ITEMS = Object.freeze([
     icon: 'clock',
     labelKey: 'employeeHome.timeClockTitle',
   },
+  { id: 'field', href: '/employee/field', icon: 'mapPin', labelKey: 'panel.field.employeeNav' },
   {
     id: 'variablePay',
     href: '/employee#variablePay',
@@ -70,7 +71,7 @@ const NAV_GROUPS = Object.freeze([
     id: 'work',
     icon: 'briefcase',
     labelKey: 'employeeHome.navGroupWork',
-    ids: ['dp', 'timeClock', 'variablePay', 'feed', 'kudos', 'company'],
+    ids: ['dp', 'timeClock', 'field', 'variablePay', 'feed', 'kudos', 'company'],
   },
 ]);
 
@@ -106,6 +107,7 @@ export function EmployeeSidebar({
   const onPdi = pathname.startsWith('/employee/pdi');
   const onDp = pathname.startsWith('/employee/dp');
   const onTimeClock = pathname.startsWith('/employee/time-clock');
+  const onField = pathname.startsWith('/employee/field');
   const { activeSection, badges, navCollapsed, setNavCollapsed, focusSection, companyModules, timeClockEnabled } =
     useEmployeeNav();
 
@@ -116,7 +118,7 @@ export function EmployeeSidebar({
   })).filter((g) => g.ids.length > 0);
 
   const isDedicatedRoute = (itemId) =>
-    itemId === 'profile' || itemId === 'pdi' || itemId === 'lms' || itemId === 'dp' || itemId === 'timeClock';
+    itemId === 'profile' || itemId === 'pdi' || itemId === 'lms' || itemId === 'dp' || itemId === 'timeClock' || itemId === 'field';
 
   const isActive = (item) => {
     if (item.id === 'profile') return onProfile;
@@ -124,6 +126,7 @@ export function EmployeeSidebar({
     if (item.id === 'lms') return onLms;
     if (item.id === 'dp') return onDp;
     if (item.id === 'timeClock') return onTimeClock;
+    if (item.id === 'field') return onField;
     if (onHome) return activeSection === item.hash || activeSection === item.id;
     return false;
   };

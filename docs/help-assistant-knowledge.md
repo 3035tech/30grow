@@ -55,6 +55,9 @@ Após **Test pass** (pipeline Dev → Test → Validate), antes de dar a entrega
 | Ponto digital MVP + visão do gestor (Controle de ponto / espelho por período, ajuste com anulação, justificativa, Fechamento) + pedidos de ajuste/abono do colaborador com aprovação (Solicitações) + jornada por colaborador e Feriados + tela de batida com localização (web e app) | Seção `timeClock` (passos 5–14; passo 8 = ponto por colaborador / PJ e Cooperado; 10 = pedidos do colaborador; 11 = aprovação; 12 = jornada; 13 = feriados; 14 = tela de batida e localização) + FAQ `faqTimeClock` + `docs/time-clock-manager.md` |
 | Banco de horas calculado (extras − faltas do espelho + lançamentos, teto, congelado no fechamento) | Seção `hourBank` (passo 2) + FAQ `faqHourBank` |
 | Banco de horas | Seção `hourBank` + FAQ `faqHourBank` |
+| Equipe de campo: visitas planejadas, check-in geolocalizado, foto, reembolso com comprovante e aprovação (DP → Campo; colaborador em /employee/field) | Seção `fieldTeam` (passos 1–5) + FAQ `faqFieldTeam` + `docs/field-team.md` |
+| Push do Ponto/Campo no app abre a tela certa (apps que declaram `destinations`) | Seção `timeClock` (passo 16) |
+| Copiloto de pessoas (Visão geral → Sinais operacionais: radar + pauta de 1:1, IA opcional sem nomes) | Seção `peopleCopilot` (passos 1–4) + FAQ `faqPeopleCopilot` |
 | Reativar ex-colaborador / filtro Ex-colaboradores | Seção `b1000Exit` (passos 2 e 7) + FAQ `faqRehire` |
 | Mural / kudos | Seção `companyFeed` + FAQ `faqCompanyFeed` |
 | OKRs + bônus variável | Seção `b3000Pack` + FAQ `faqOkr` / `faqVariablePay` |

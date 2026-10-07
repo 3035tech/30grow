@@ -39,7 +39,10 @@ async function setup(session) {
     authenticateMobileEmployee: async () => session, mobileEmployeeBearerToken: () => 'test',
     listCandidateNotifications: async (_db, options) => { calls.push(options); return { ok: true, total: 81, unreadCount: 1, items: [{ id: 8, type: EMPLOYEE_NOTIF.MOTIVATORS_INVITE, entityType: 'ae_invite', entityId: '22', createdAt: '2026-09-19T00:00:00Z', readAt: null, copy: { titleKey: 'title', bodyKey: 'body', values: {} } }] }; },
     markCandidateNotificationRead: async (_db, options) => { calls.push(options); return { ok: true }; },
-    mobilePushDestinationFor: () => 'today', mobileNotificationTarget: target.mobileNotificationTarget, t: (_locale, key) => key,
+    mobilePushDestinationFor: () => 'today',
+    normalizeMobilePushDestinations: (list) => (Array.isArray(list) ? list : []),
+    resolveMobilePushDestination: (preferred) => preferred,
+    mobileNotificationTarget: target.mobileNotificationTarget, t: (_locale, key) => key,
   }); return { route, calls };
 }
 test('legacy destination remains compatible; opt-in page/targets are tenant-scoped and no-store', async () => {

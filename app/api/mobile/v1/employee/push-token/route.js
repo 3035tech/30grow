@@ -5,7 +5,12 @@ import { MOBILE_PUSH_PLATFORM, registerMobileEmployeePushToken, unregisterMobile
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
 import { parseJsonBody } from '../../../../../../lib/validate.js';
 
-const tokenSchema = z.object({ pushToken: z.string().trim().min(20).max(256), platform: z.enum(MOBILE_PUSH_PLATFORM).optional() });
+const tokenSchema = z.object({
+  pushToken: z.string().trim().min(20).max(256),
+  platform: z.enum(MOBILE_PUSH_PLATFORM).optional(),
+  appVersion: z.string().trim().max(32).optional(),
+  destinations: z.array(z.string().trim().max(32)).max(16).optional(),
+});
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store' });
 async function auth(request) { return authenticateMobileEmployee(mobileEmployeeBearerToken(request)); }
 
@@ -17,7 +22,7 @@ export async function POST(request) {
     if (!parsed.ok) return parsed.response;
     const result = await registerMobileEmployeePushToken(null, { candidateId: session.candidateId, companyId: session.companyId, ...parsed.data });
     if (!result.ok) return apiError(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST, {}, { headers: NO_STORE });
-    return NextResponse.json({ ok: true }, { headers: NO_STORE });
+    return NextResponse.json({ ok: true, destinations: result.destinations }, { headers: NO_STORE });
   } catch (error) {
     console.error('[mobile-employee-push-token-register]', error);
     return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR, {}, { headers: NO_STORE });

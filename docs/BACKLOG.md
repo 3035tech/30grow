@@ -66,9 +66,9 @@ _(entregue — B-601–B-605 + polish: revisão retenção na UI, leitura hedged
 
 ## Aberto — qualidade / testes
 
-- **B-I18N-01 · Revisão nativa fr-FR / de-DE.** Catálogos e landing gerados por `npm run i18n:translate`. Revisar termos de RH, tom formal (vous/Sie) e textos longos do Guia; corrigir direto em `lib/i18n/catalogs/fr-FR.js`, `de-DE.js` e `lib/i18n/landing/*`.
-- **B-I18N-02 · Conteúdo por idioma além de pt/en.** Perguntas/tipos/escala do Eneagrama (`lib/i18n-data.js`, `lib/data.js`, `lib/type-en.js`), banco e templates de Motivadores (`lib/ae/*`), prompts de IA e PDFs usam `contentLocale` (fr/de/es caem em inglês). Traduzir exige validação psicométrica das perguntas antes de trocar o texto.
-- **B-I18N-03 · Documentos legais em fr/de/es.** `lib/public-legal.js` só tem pt/en; tradução precisa de revisão jurídica.
+- **B-I18N-01 · Revisão nativa fr-FR / de-DE.** Catálogos e landing gerados por `npm run i18n:translate`. **Revisão automatizada feita (out/2026):** 0 chaves faltando vs en, 0 placeholders divergentes, 0 textos iguais ao en ou ao pt, 0 ` — `, tom formal (vous/Sie) sem ocorrências de tu/du, termos alinhados (manager no fr, HR-Verantwortliche/Führungskräfte no de). **Ainda exige revisor nativo humano:** naturalidade e terminologia de RH local, textos longos do Guia e landing.
+- **B-I18N-02 · Conteúdo por idioma além de pt/en.** Perguntas/tipos/escala do Eneagrama (`lib/i18n-data.js`, `lib/data.js`, `lib/type-en.js`), banco e templates de Motivadores (`lib/ae/*`), prompts de IA e PDFs usam `contentLocale` (fr/de/es caem em inglês). Traduzir exige validação psicométrica das perguntas antes de trocar o texto. **Bloqueado para agente:** sem validação humana especializada não se troca o texto (fr/de continuam caindo em inglês de propósito).
+- **B-I18N-03 · Documentos legais em fr/de/es.** `lib/public-legal.js` só tem pt/en; tradução precisa de revisão jurídica. **Bloqueado para agente:** exige advogado/revisor jurídico por país; não publicar tradução automática.
 
 ---
 
@@ -623,7 +623,7 @@ Princípios: mesmo tenant `company_id` + hub `candidates`; CAP novas (`dp.ponto`
 6. **Pedidos do colaborador (pedido do RH, fase 1) ✅ ENTREGUE:** histórico por período em `/employee/time-clock`; pedido de Ajuste de ponto (incluir/alterar/remover marcações, justificativa) e de Abono (tipo, dia inteiro ou intervalo, comprovante); status por dia; fila DP → Ponto → Solicitações com aprovar/reprovar (motivo opcional) e notificações nos dois sentidos. Schema `142_time_clock_requests.sql`; ver `docs/time-clock-manager.md`.
 7. **Fase 2 (pedido do RH) ✅ ENTREGUE:** jornada por colaborador com vigência (início, fim, intervalo e dias da semana, ou voltar à escala da empresa); aba Feriados (empresa ou unidade, anual, busca/ano, importar nacionais do ano); banco de horas calculado (extras − faltas desde o início do banco + lançamentos aprovados, teto da empresa, congelado por pessoa no fechamento). Schema `143_time_clock_schedules_holidays_bank.sql`.
 8. **Fase 3 (pedido do RH) ✅ ENTREGUE:** tela de batida com indicador de localização, botão Obter/Atualizar localização e local da última batida (mapa sob demanda); mesmo fluxo no app mobile. Sem migration.
-9. **Resumo por fechamento + assinatura do espelho ✅ ENTREGUE (web + app):** totais por pessoa congelados ao fechar (`time_clock_closure_people`, migration 147) com hash de integridade; resumo no Fechamento (contagem por situação, filtro, CSV, "Gerar resumo" para fechamentos antigos); colaborador assina (nome digitado + confirmação, IP/UA) ou contesta com motivo em `/employee/time-clock`; notificações `time_mirror_available` / `time_mirror_disputed`. App mobile: aba Ponto → Espelhos para assinar (`/api/mobile/v1/employee/time-clock/closures`). **Pendente (opcional):** destino de push próprio para Ponto no app (hoje abre Hoje; exige versão mínima do app antes de o servidor enviar destino novo).
+9. **Resumo por fechamento + assinatura do espelho ✅ ENTREGUE (web + app):** totais por pessoa congelados ao fechar (`time_clock_closure_people`, migration 147) com hash de integridade; resumo no Fechamento (contagem por situação, filtro, CSV, "Gerar resumo" para fechamentos antigos); colaborador assina (nome digitado + confirmação, IP/UA) ou contesta com motivo em `/employee/time-clock`; notificações `time_mirror_available` / `time_mirror_disputed`. App mobile: aba Ponto → Espelhos para assinar (`/api/mobile/v1/employee/time-clock/closures`). **Destino de push próprio ✅ ENTREGUE:** o app declara as telas que sabe abrir (`destinations` no registro do token, migration 153); push de ponto vai para `time_clock` só nesses aparelhos, apps antigos seguem em Hoje. Ver `docs/field-team.md` § Push.
 10. **Polish ✅ ENTREGUE:** cancelar o pedido apaga o comprovante do armazenamento; POST de pedidos aceita `Idempotency-Key` (migration 146; o app envia); no app, "permissão negada" (atalho Abrir Ajustes) separada de "localização indisponível".
 
 ### B-2722 — Banco de horas / horas extras ✅ ENTREGUE
@@ -643,10 +643,11 @@ Princípios: mesmo tenant `company_id` + hub `candidates`; CAP novas (`dp.ponto`
 3. Liga funil `hired` → pasta do colaborador no mesmo `candidate_id`.
 4. Schema `083` + `100` + `101_dp_signature_stroke.sql`; Guia → DP leve.
 
-### B-2725 — Equipe de campo (rota / check-in / reembolso)
-1. Check-in geolocalizado em visitas; rota do dia; fotos opcionais.
-2. Reembolsos com comprovante + aprovação.
-3. Reusar ponto (**B-2721**) onde fizer sentido.
+### B-2725 — Equipe de campo (rota / check-in / reembolso) ✅ ENTREGUE
+1. Rota do dia (visitas planejadas pelo gestor ou registradas pelo colaborador), check-in geolocalizado, conclusão com nota e foto opcional.
+2. Reembolsos com categoria fechada, comprovante, cancelamento enquanto pendente e aprovação/reprovação (motivo obrigatório) em DP → Campo; notificações nos dois sentidos.
+3. Reusa o gate do módulo DP, a captura de localização e o padrão de arquivos/idempotência do ponto. Web + API mobile. Schema `154_field_team.sql`; ver `docs/field-team.md`.
+4. **Fora:** roteirização/otimização de rota, km automático por GPS contínuo, pagamento/folha (**B-2726**), tela no app mobile (API pronta; push `field` já disponível).
 
 ### B-2726 — Folha de pagamento + eSocial + holerite
 1. Eventos de folha (proventos/descontos) a partir de ponto/férias/banco; fechamento mensal.
@@ -768,7 +769,8 @@ Além de kudos B-2716. Job do Qulture; nós já temos 1:1 + kudos.
 2. Não virar rede social; cap por pessoa/mês; reusar notif.
 3. Só depois de B-3001 se o ciclo de review já cobrir o job.
 
-### B-3011 — Copiloto de pessoas (não misturar com Ajuda)
+### B-3011 — Copiloto de pessoas (não misturar com Ajuda) ✅ ENTREGUE
+**Entregue:** card na Visão geral → Sinais operacionais; ferramentas tipadas fixas (radar de rotatividade, cadência de 1:1, PDI atrasado, retenção) com ranking determinístico; "Preparar 1:1" e pautas por IA opcional com refs pseudônimas (sem nomes); rate limit, auditoria só com contagens, feature de IA própria (migration 155). Ver `docs/field-team.md` § Copiloto. **Próximo (opcional):** sinais de clima agregado/HR Score como ferramentas extras; atalho na ficha da pessoa.
 Sólides Copilot, TeamCulture Axel, Alina-IA, ImpulseUp IAP. Hoje: Help (só Guia) + B-2601 diagnóstico de lista + IA interpretativa hedged (B-1904).
 1. Superfície **Equipe/Overview**: “o que olhar no próximo 1:1 / quem está no radar”; tool calling só em `lib/` (HR Score, radar, PDI, clima agregado).
 2. Mesmas regras B-2600: sem SQL gerado; tenant da sessão; hedged; rate limit; audit.

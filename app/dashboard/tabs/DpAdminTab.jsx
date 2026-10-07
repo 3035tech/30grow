@@ -33,6 +33,7 @@ import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { TimeClockWorkspace } from '../../_components/TimeClockWorkspace';
+import { FieldTeamWorkspace } from '../../_components/FieldTeamWorkspace';
 import { VacationPoolBlock } from '../../_components/VacationPoolBlock';
 import { PreOnboardingTemplateBlock } from '../../_components/PreOnboardingTemplateBlock';
 import { StatMetricTile } from '../../_components/StatMetricTile';
@@ -79,7 +80,7 @@ function isoPlusDays(days) {
 /**
  * Company leave inbox + simple 60-day calendar list (DP leve).
  */
-const DP_SECTIONS = ['pending', 'leaves', 'documents', 'time', 'onboarding'];
+const DP_SECTIONS = ['pending', 'leaves', 'documents', 'time', 'field', 'onboarding'];
 
 export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, initialSection = '', initialTimeView = '' }) {
   const { promptForm, toast } = useAppFeedback();
@@ -106,6 +107,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
   const [workspaceSection, setWorkspaceSection] = useState(() => (DP_SECTIONS.includes(initialSection) ? initialSection : 'pending'));
   const [timeView, setTimeView] = useState(initialTimeView || '');
   const [pendingTimeRequests, setPendingTimeRequests] = useState(0);
+  const [pendingFieldExpenses, setPendingFieldExpenses] = useState(0);
 
   const load = useCallback(async () => {
     if (!companyId) {
@@ -151,6 +153,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
       setAbsenteeismPeople(0);
       setFirstAbsenteeismCandidateId(null);
       setPendingTimeRequests(0);
+      setPendingFieldExpenses(0);
       return;
     }
     try {
@@ -164,6 +167,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
       setPendingDocsList(docs);
       setAbsenteeismPeople(Number(data.absenteeismPeople) || 0);
       setPendingTimeRequests(Number(data.pendingTimeRequests) || 0);
+      setPendingFieldExpenses(Number(data.pendingFieldExpenses) || 0);
       const firstAbs = Array.isArray(data.absenteeism) ? data.absenteeism[0] : null;
       setFirstAbsenteeismCandidateId(
         firstAbs?.candidateId != null ? Number(firstAbs.candidateId) : null
@@ -425,6 +429,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
     leaves: ['panel.dp.inboxTitle', 'panel.dp.inboxSubtitle'],
     documents: ['panel.dp.workspaceDocuments', 'panel.dp.workspaceDocumentsHint'],
     time: ['panel.dp.workspaceTime', 'panel.dp.workspaceTimeHint'],
+    field: ['panel.field.workspaceTitle', 'panel.field.workspaceHint'],
     onboarding: ['panel.dp.workspaceOnboarding', 'panel.dp.workspaceOnboardingHint'],
   }[workspaceSection] || ['panel.dp.inboxTitle', 'panel.dp.inboxSubtitle'];
 
@@ -440,6 +445,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
           { id: 'leaves', label: t(locale, 'panel.dp.workspaceLeaves') },
           { id: 'documents', label: t(locale, 'panel.dp.workspaceDocuments'), badge: pendingDocsPeople || undefined },
           { id: 'time', label: t(locale, 'panel.dp.workspaceTime'), badge: pendingTimeRequests || undefined },
+          { id: 'field', label: t(locale, 'panel.field.workspaceTab'), badge: pendingFieldExpenses || undefined },
           { id: 'onboarding', label: t(locale, 'panel.dp.workspaceOnboarding') },
         ]}
       />
@@ -468,9 +474,9 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
       />
 
       {workspaceSection === 'pending' ? (
-        requestedCount + pendingDocsPeople + absenteeismPeople + pendingTimeRequests > 0 ? (
-          <ContentEnter animKey={`dp-pending|${requestedCount}|${pendingDocsPeople}|${absenteeismPeople}|${pendingTimeRequests}`}>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        requestedCount + pendingDocsPeople + absenteeismPeople + pendingTimeRequests + pendingFieldExpenses > 0 ? (
+          <ContentEnter animKey={`dp-pending|${requestedCount}|${pendingDocsPeople}|${absenteeismPeople}|${pendingTimeRequests}|${pendingFieldExpenses}`}>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <StatMetricTile
                 value={requestedCount}
                 label={t(locale, 'panel.dp.pendingLeaveTitle')}
@@ -489,6 +495,12 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
                   setTimeView('requests');
                   setWorkspaceSection('time');
                 }}
+              />
+              <StatMetricTile
+                value={pendingFieldExpenses}
+                label={t(locale, 'panel.field.pendingTileTitle')}
+                hint={t(locale, 'panel.field.pendingTileHint')}
+                onClick={() => setWorkspaceSection('field')}
               />
               <StatMetricTile
                 value={pendingDocsPeople}
@@ -533,6 +545,10 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
         onViewChange={setTimeView}
         onRequestsChanged={() => void loadAttention()}
       /> : null}
+
+      {workspaceSection === 'field' ? (
+        <FieldTeamWorkspace locale={locale} companyId={companyId} onChanged={() => void loadAttention()} />
+      ) : null}
 
       {workspaceSection === 'leaves' ? <VacationPoolBlock locale={locale} companyId={companyId} reloadKey={reloadKey} /> : null}
 

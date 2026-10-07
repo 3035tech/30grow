@@ -67,7 +67,7 @@ test('mirror notifications: copy, links and push destination', () => {
   assert.equal(emp.titleKey, 'employeeHome.notifTimeMirrorTitle');
   assert.deepEqual(emp.values, { from: '2026-09-01', to: '2026-09-30' });
   assert.equal(employeeNotificationHref(EMPLOYEE_NOTIF.TIME_MIRROR_AVAILABLE), '/employee/time-clock#mirrors');
-  assert.equal(mobilePushDestinationFor(EMPLOYEE_NOTIF.TIME_MIRROR_AVAILABLE), MOBILE_PUSH_DESTINATION.TODAY);
+  assert.equal(mobilePushDestinationFor(EMPLOYEE_NOTIF.TIME_MIRROR_AVAILABLE), MOBILE_PUSH_DESTINATION.TIME_CLOCK);
   assert.equal(notificationHref(NOTIF.TIME_MIRROR_DISPUTED, { candidateId: 3 }), '/dashboard?tab=dp&dpSection=time&timeView=closing');
   const mgr = notificationCopySpec(NOTIF.TIME_MIRROR_DISPUTED, { candidateName: 'Ana', from: 'a', to: 'b' });
   assert.equal(mgr.titleKey, 'dashboard.notifTimeMirrorDisputedTitle');

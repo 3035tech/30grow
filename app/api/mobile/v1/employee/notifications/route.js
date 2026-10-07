@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
 import { listCandidateNotifications, markCandidateNotificationRead } from '../../../../../../lib/employee-notifications.js';
-import { mobilePushDestinationFor } from '../../../../../../lib/mobile-employee-push.js';
+import { mobilePushDestinationFor, normalizeMobilePushDestinations, resolveMobilePushDestination } from '../../../../../../lib/mobile-employee-push.js';
 import { mobileNotificationTarget } from '../../../../../../lib/mobile-notification-target.js';
 import { t } from '../../../../../../lib/i18n.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
@@ -12,7 +12,12 @@ const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store' });
 const PAGE_SIZE = 40;
 const MAX_PAGE = 10000;
 const page = z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().max(MAX_PAGE));
-const querySchema = z.object({ page: page.default(1), context: z.literal('1').optional(), notificationId: z.string().regex(/^[1-9]\d{0,17}$/).optional() }).strict();
+const querySchema = z.object({
+  page: page.default(1),
+  context: z.literal('1').optional(),
+  notificationId: z.string().regex(/^[1-9]\d{0,17}$/).optional(),
+  destinations: z.string().max(120).optional(),
+}).strict();
 const mutationSchema = z.union([
   z.object({ id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) }).strict(),
   z.object({ markAll: z.literal(true) }).strict(),
@@ -23,11 +28,12 @@ function options(request) {
   const parsed = querySchema.safeParse(Object.fromEntries(params));
   return parsed.success ? parsed.data : null;
 }
-async function responseFor(request, session, { page, context, notificationId }) {
+async function responseFor(request, session, { page, context, notificationId, destinations }) {
+  const supported = normalizeMobilePushDestinations(String(destinations || '').split(','));
   const result = await listCandidateNotifications(null, { companyId: session.companyId, candidateId: session.candidateId, limit: PAGE_SIZE, offset: notificationId ? 0 : (page - 1) * PAGE_SIZE, ...(notificationId ? { id: notificationId } : {}) });
   if (!result.ok) return apiErrorFromResult(request, result);
   return NextResponse.json({
-    items: result.items.map((item) => ({ id: Number(item.id), title: t('pt-BR', item.copy.titleKey, item.copy.values), body: t('pt-BR', item.copy.bodyKey, item.copy.values), createdAt: new Date(item.createdAt).toISOString(), readAt: item.readAt ? new Date(item.readAt).toISOString() : null, destination: mobilePushDestinationFor(item.type), ...(context ? { target: mobileNotificationTarget(item) } : {}) })),
+    items: result.items.map((item) => ({ id: Number(item.id), title: t('pt-BR', item.copy.titleKey, item.copy.values), body: t('pt-BR', item.copy.bodyKey, item.copy.values), createdAt: new Date(item.createdAt).toISOString(), readAt: item.readAt ? new Date(item.readAt).toISOString() : null, destination: resolveMobilePushDestination(mobilePushDestinationFor(item.type), supported), ...(context ? { target: mobileNotificationTarget(item) } : {}) })),
     unreadCount: Number(result.unreadCount) || 0,
     pagination: { page, totalPages: Math.min(MAX_PAGE, Math.max(1, Math.ceil((result.total || 0) / PAGE_SIZE))) },
   }, { headers: NO_STORE });

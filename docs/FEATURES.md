@@ -124,6 +124,8 @@ Convenções que valem para todos os módulos:
 
 - Hub DP: pendências, férias e afastamentos (saldo por período aquisitivo), documentos com anexo privado, assinatura interna, admissão.
 - **Ponto digital** e **banco de horas** (saldo calculado do espelho + lançamentos, teto por empresa, congelado no fechamento, CSV mensal; migrations `099` e `143`), jornada por colaborador e feriados. Resumo por fechamento (totais congelados por pessoa + CSV) e assinatura/contestação do espelho pelo colaborador (migration `147`).
+- **Equipe de campo**: rota do dia com check-in geolocalizado, foto opcional e reembolsos com comprovante e aprovação (DP → Campo; colaborador em `/employee/field`; migration `154`). Push do Ponto/Campo no app abre a tela certa só em apps que declaram o destino (migration `153`). Ver `docs/field-team.md`.
+- **Copiloto de pessoas** (Visão geral → Sinais operacionais): quem está no radar e o que olhar no próximo 1:1 a partir de ferramentas tipadas no servidor; pauta por IA opcional sem nomes, rate limit e auditoria (migration `155`).
 - Fora de escopo: eSocial, holerite, folha. Detalhe: [`DP-PRIVATE-ATTACHMENTS.md`](DP-PRIVATE-ATTACHMENTS.md), [`dp-address-and-clock-timeline.md`](dp-address-and-clock-timeline.md).
 
 ---
