@@ -379,7 +379,7 @@ function DashboardClientContent({
       : (sessionAuth?.companyId ?? null);
   const showLeads = isSuperAdminPayload(sessionAuth);
   const showProductFeedback = isSuperAdminPayload(sessionAuth);
-  const showAudit = isSuperAdminPayload(sessionAuth);
+  const showAudit = canAccessDashboardTab(sessionAuth, 'audit');
   const tab = parseDashboardTab(urlParams, sessionAuth);
   const contextualHelpSection = helpMetaForTab(tab)?.guideSections?.[0] || null;
   const isPersonFocus = tab === 'team' && Boolean(urlParams.get('candidate'));
@@ -389,7 +389,7 @@ function DashboardClientContent({
   const showsCompanyPicker =
     isAdmin &&
     companies.length > 0 &&
-    (showsCohortChrome || COMPANY_SCOPE_TABS.has(tab) || tab === 'audit');
+    (showsCohortChrome || COMPANY_SCOPE_TABS.has(tab));
   /** Global search duplicates TeamTab; Leadership is chart-first — hide there. */
   const showGlobalSearch = showsCohortChrome && tab !== 'team' && tab !== 'leadership';
   const showVacancies = can(sessionAuth, CAP.VACANCIES_VIEW);
@@ -1549,6 +1549,7 @@ function DashboardClientContent({
               )}
               {tab === 'audit' && showAudit && (
                 <AuditAdminTab
+                  tenantOnly={!isSuperAdminPayload(sessionAuth)}
                   navigateDashboard={navigateWithOpts}
                   locale={locale}
                   companies={companies}

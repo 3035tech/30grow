@@ -255,6 +255,8 @@ export function useDashboardNavigation({
     const auditCompanyId =
       opts.auditCompanyId !== undefined ? opts.auditCompanyId : urlParams.get('auditCompanyId') || '';
     if (auditCompanyId && auditCompanyId !== 'all') p.set('auditCompanyId', String(auditCompanyId));
+    const auditTargetId = opts.auditTargetId !== undefined ? opts.auditTargetId : urlParams.get('auditTargetId') || '';
+    if (auditTargetId) p.set('auditTargetId', String(auditTargetId));
     const auditAction =
       opts.auditAction !== undefined ? opts.auditAction : urlParams.get('auditAction') || '';
     if (auditAction) p.set('auditAction', String(auditAction));

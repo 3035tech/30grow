@@ -62,7 +62,7 @@ export async function POST(request, props) {
     return NextResponse.json(home, { headers: NO_STORE });
   } catch (error) {
     console.error('POST mobile employee dp document', error);
-    if (error?.code === ERR.INVALID_CV_FILE_SIZE || error?.code === ERR.INVALID_CV_FILE_TYPE) return apiError(request, error.code, HTTP_STATUS.BAD_REQUEST);
+    if ([ERR.INVALID_CV_FILE_SIZE, ERR.INVALID_CV_FILE_TYPE, ERR.DP_FILE_SIZE, ERR.DP_FILE_TYPE].includes(error?.code)) return apiError(request, error.code === ERR.INVALID_CV_FILE_SIZE ? ERR.DP_FILE_SIZE : error.code === ERR.INVALID_CV_FILE_TYPE ? ERR.DP_FILE_TYPE : error.code, HTTP_STATUS.BAD_REQUEST);
     return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }

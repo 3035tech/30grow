@@ -110,8 +110,8 @@ export async function POST(request, { params }) {
   } catch (err) {
     console.error('POST dp document file', err);
     const code = err?.code;
-    if (code === ERR.INVALID_CV_FILE_SIZE || code === ERR.INVALID_CV_FILE_TYPE) {
-      return apiError(request, code, 400);
+    if ([ERR.INVALID_CV_FILE_SIZE, ERR.INVALID_CV_FILE_TYPE, ERR.DP_FILE_SIZE, ERR.DP_FILE_TYPE].includes(code)) {
+      return apiError(request, code === ERR.INVALID_CV_FILE_SIZE ? ERR.DP_FILE_SIZE : code === ERR.INVALID_CV_FILE_TYPE ? ERR.DP_FILE_TYPE : code, 400);
     }
     return apiError(request, ERR.INTERNAL, 500);
   }

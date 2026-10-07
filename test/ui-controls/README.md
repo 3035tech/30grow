@@ -131,3 +131,7 @@ npx playwright test --config test/ui-controls/playwright.config.js landing.spec.
 node test/unit/product-landing-seo.unit.test.js
 npm run build
 ```
+
+## Auditoria da empresa — 2026-10-07
+
+`audit.spec.js`: 3 casos aprovados em 390/1440 px. Dono sem seletor cross-tenant; superadmin preserva filtro por empresa; RH comum sem menu de auditoria; filtro por colaborador persiste na URL; download CSV e aviso de limite funcionam. Dados sintéticos, sem sessão de produção. Capturas em `results/`.

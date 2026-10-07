@@ -23,7 +23,7 @@ Documento interno do 30Grow para o piloto. A versão pública está em `/privacy
 | DP, ponto, férias e documentos | conforme natureza do documento e obrigação aplicável | preservar ou eliminar por classe documental aprovada | capability dedicada; S3 exige lifecycle aprovado |
 | Clima e pulso | campanha + período analítico aprovado | preservar agregado; remover vínculo quando aplicável | sem purge genérico |
 | Ouvidoria | prazo da investigação e preservação jurídica | acesso restrito; anonimato preservado; descarte aprovado por caso/classe | sem purge automático; texto fora de analytics |
-| Auditoria e segurança | janela operacional/contratual aprovada | minimizar e expurgar conforme política do ambiente | logs estruturados; prazo depende do provedor |
+| Auditoria e segurança | janela operacional/contratual aprovada | minimizar e expurgar conforme política do ambiente | políticas por empresa + cron audit-retention (simulação padrão); legal hold; execução desativada sem prazo aprovado |
 | Backups | ciclo técnico do provedor | dado desaparece quando a cópia é sobrescrita | confirmar janela e restore no provedor |
 
 ## Rotina disponível
@@ -51,3 +51,7 @@ A tabela legada `results` não tem vínculo confiável de candidato/empresa. A e
 - Confirmar lifecycle de S3 e janela de backups com o provedor.
 - Ensaiar exportação, correção e exclusão com dados fictícios.
 - Registrar aprovação no `docs/pilot-go-live-signoff.md`.
+
+## Retenção de auditoria no banco
+
+A infraestrutura técnica está em `docs/audit-company-retention.md`. Sem política aprovada, todos os eventos permanecem preservados. Não há prazo jurídico padrão nem agendamento de exclusão habilitado por esta entrega. Logs do provedor e backups continuam sujeitos a políticas separadas.

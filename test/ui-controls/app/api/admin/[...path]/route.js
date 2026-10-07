@@ -6,6 +6,10 @@ export async function GET(request, context) {
   const referer = request.headers.get('referer') || '';
   if (referer.includes('scenario=error')) return Response.json({error:'Falha simulada de carregamento'}, {status:503});
   if (referer.includes('scenario=loading')) await new Promise(resolve => setTimeout(resolve, 1500));
+  if (key === 'audit-log') {
+    if (url.searchParams.get('format') === 'csv') return new Response('id,action\r\n1,dp.profile.updated', { headers: { 'Content-Type': 'text/csv', 'X-Export-Truncated': 'true' } });
+    return Response.json({ items: [{ id: 1, createdAt: '2026-10-07T10:00:00Z', actorKind: 'employee', actorCandidateId: 123, actorCandidateName: 'Pessoa de teste', action: 'dp.profile.updated', targetType: 'candidate', targetId: '123', companyId: 1, companyName: 'Empresa exemplo', metadata: { changes: [{ field: 'cpf' }] } }], total: 1, totalPages: 1 });
+  }
   const companies = [{id:1,name:'Empresa exemplo',slug:'empresa-exemplo',active:true,licenseActive:true,userCount:2,createdAt:'2026-01-01'}];
   if (key === 'companies') return Response.json(url.searchParams.has('forSelect') ? companies : {items:companies,total:1,totalPages:1,logoStorageConfigured:false});
   if (key === 'users') return Response.json({items:[{id:90002,email:'rh@example.test',displayName:'Pessoa de RH',role:'hr',companyId:1,companyName:'Empresa exemplo',active:true,createdAt:'2026-01-01'}],total:1,totalPages:1});

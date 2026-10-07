@@ -84,6 +84,7 @@ export function AuditAdminTab({
   locale,
   companies = [],
   panelCompanyId = null,
+  tenantOnly = false,
 }) {
   const urlParams = useSearchParams();
   const spKey = urlParams.toString();
@@ -100,6 +101,7 @@ export function AuditAdminTab({
     } else {
       companyId = String(rawCompanyParam).trim();
     }
+    const targetId = (urlParams.get('auditTargetId') || '').trim();
     const action = (urlParams.get('auditAction') || '').trim();
     const q = (urlParams.get('auditQ') || '').trim();
     const pageRaw = parseInt(urlParams.get('auditPage') || '1', 10);
@@ -107,16 +109,17 @@ export function AuditAdminTab({
     const sizeRaw = parseInt(urlParams.get('auditPageSize') || '30', 10);
     const pageSize = [20, 30, 50, 100].includes(sizeRaw) ? sizeRaw : 30;
     return {
+      targetId,
       actorKind: ['all', 'manager', 'employee', 'system', 'public'].includes(actorKind)
         ? actorKind
         : 'all',
-      companyId,
+      companyId: tenantOnly ? String(panelCompanyId || '') : companyId,
       action,
       q,
       page,
       pageSize,
     };
-  }, [spKey, panelCompanyId]);
+  }, [spKey, panelCompanyId, tenantOnly]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -126,11 +129,15 @@ export function AuditAdminTab({
   const [expandedId, setExpandedId] = useState(null);
   const [qDraft, setQDraft] = useState(filters.q);
   const [actionDraft, setActionDraft] = useState(filters.action);
+  const [targetDraft, setTargetDraft] = useState(filters.targetId);
+  const [exporting, setExporting] = useState(false);
+  const [exportNotice, setExportNotice] = useState('');
 
   useEffect(() => {
     setQDraft(filters.q);
     setActionDraft(filters.action);
-  }, [filters.q, filters.action]);
+    setTargetDraft(filters.targetId);
+  }, [filters.q, filters.action, filters.targetId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -146,6 +153,7 @@ export function AuditAdminTab({
         if (filters.companyId && filters.companyId !== 'all') qs.set('companyId', filters.companyId);
         if (filters.action) qs.set('action', filters.action);
         if (filters.q) qs.set('q', filters.q);
+        if (filters.targetId) { qs.set('targetId', filters.targetId); qs.set('targetType', 'candidate'); }
         const res = await fetch(`/api/admin/audit-log?${qs.toString()}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.audit.loadFailed'));
@@ -173,6 +181,7 @@ export function AuditAdminTab({
       tab: 'audit',
       auditActorKind: patch.actorKind !== undefined ? patch.actorKind : filters.actorKind,
       auditCompanyId: patch.companyId !== undefined ? patch.companyId || null : filters.companyId || null,
+      auditTargetId: patch.targetId !== undefined ? patch.targetId || null : filters.targetId || null,
       auditAction: patch.action !== undefined ? patch.action || null : filters.action || null,
       auditQ: patch.q !== undefined ? patch.q || null : filters.q || null,
       auditPage: patch.page !== undefined ? patch.page : filters.page,
@@ -180,11 +189,33 @@ export function AuditAdminTab({
     });
   };
 
+  const exportCsv = async () => {
+    setExporting(true);
+    setError('');
+    setExportNotice('');
+    let objectUrl;
+    try {
+      const qs = new URLSearchParams({ format: 'csv', actorKind: filters.actorKind });
+      if (filters.companyId !== 'all') qs.set('companyId', filters.companyId);
+      if (filters.action) qs.set('action', filters.action);
+      if (filters.q) qs.set('q', filters.q);
+      if (filters.targetId) { qs.set('targetId', filters.targetId); qs.set('targetType', 'candidate'); }
+      const response = await fetch(`/api/admin/audit-log?${qs}`);
+      if (!response.ok) { const data = await response.json(); throw new Error(data.error || t(locale, 'panel.audit.loadFailed')); }
+      objectUrl = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl; anchor.download = 'audit.csv'; anchor.click();
+      if (response.headers.get('X-Export-Truncated') === 'true') setExportNotice(t(locale, 'panel.audit.exportTruncated'));
+    } catch (error) { setError(error.message || t(locale, 'panel.common.error')); }
+    finally { if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 1000); setExporting(false); }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <AdminPageHeader
         title={t(locale, 'panel.audit.title')}
-        subtitle={t(locale, 'panel.audit.intro')}
+        subtitle={t(locale, tenantOnly ? 'panel.audit.tenantIntro' : 'panel.audit.intro')}
+        actions={<button type="button" className={S.btnGhost} disabled={exporting || loading} onClick={exportCsv}>{t(locale, exporting ? 'panel.common.loading' : 'panel.audit.exportCsv')}</button>}
       />
 
       <AdminListFilters
@@ -193,12 +224,13 @@ export function AuditAdminTab({
         onClear={() => {
           setQDraft('');
           setActionDraft('');
-          pushFilters({ actorKind: 'all', companyId: 'all', action: '', q: '', page: 1 });
+          setTargetDraft('');
+          pushFilters({ actorKind: 'all', companyId: 'all', action: '', q: '', targetId: '', page: 1 });
         }}
         clearEnabled={Boolean(
           filters.actorKind !== 'all' ||
             (filters.companyId && filters.companyId !== 'all') ||
-            filters.action ||
+            filters.action || filters.targetId || targetDraft ||
             filters.q ||
             String(qDraft || '').trim() ||
             String(actionDraft || '').trim()
@@ -215,6 +247,7 @@ export function AuditAdminTab({
           <option value="system">{t(locale, 'panel.audit.actorKindSystem')}</option>
           <option value="public">{t(locale, 'panel.audit.actorKindPublic')}</option>
         </AdminListFilterSelect>
+        {!tenantOnly && (
         <AdminListFilterSelect
           label={t(locale, 'panel.audit.filterCompany')}
           value={filters.companyId === 'all' ? 'all' : String(filters.companyId)}
@@ -227,6 +260,15 @@ export function AuditAdminTab({
             </option>
           ))}
         </AdminListFilterSelect>
+        )}
+        <AdminListSearch
+          locale={locale}
+          label={t(locale, 'panel.audit.filterPersonId')}
+          value={targetDraft}
+          onChange={setTargetDraft}
+          onSubmit={(v) => pushFilters({ targetId: String(v ?? targetDraft).trim(), page: 1 })}
+          className="min-w-[10rem] max-w-xs shrink-0 grow-0"
+        />
         <AdminListSearch
           locale={locale}
           label={t(locale, 'panel.audit.filterAction')}
@@ -247,6 +289,7 @@ export function AuditAdminTab({
         />
       </AdminListFilters>
 
+      {exportNotice ? <p role="status" className={S.muted}>{exportNotice}</p> : null}
       {error ? <p className="m-0 font-mono text-xs text-danger">{error}</p> : null}
       {loading ? <AppLoading locale={locale} variant="panel" /> : null}
 

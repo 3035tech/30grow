@@ -80,7 +80,7 @@ test('attachment route: bearer, owned row lock before storage, no cross-tenant w
     assert.equal((await route.POST(uploadRequest(), props)).code, ERR.NOT_FOUND); assert.equal(uploads, 1);
     assert.equal((await route.POST(uploadRequest({ extra: true }), props)).status, 400);
     const oversized = new Request('https://example.test/file', { method: 'POST', body: new Uint8Array(6 * 1024 * 1024), headers: { 'Content-Type': 'multipart/form-data; boundary=test' } });
-    assert.equal((await route.POST(oversized, props)).code, ERR.INVALID_CV_FILE_SIZE);
+    assert.equal((await route.POST(oversized, props)).code, ERR.DP_FILE_SIZE);
     assert.equal((await route.POST(uploadRequest(), { params: Promise.resolve({ id: '../22' }) })).status, 400);
     const opened = await route.GET({}, props);
     assert.equal(opened.headers.get('cache-control'), 'private, no-store'); assert.equal(opened.headers.get('content-disposition'), 'attachment; filename="a__.pdf"');

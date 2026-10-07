@@ -10,6 +10,7 @@ export default function ManagementFixture() {
   const [auth] = useState(() => ({
     userId: 90001,
     role: params.get('persona') === 'admin' ? 'admin' : 'hr',
+    companyOwner: params.get('persona') === 'owner',
     companyId: params.get('persona') === 'admin' ? null : 1,
     displayName: 'Gestão de teste',
     email: 'gestao@example.test',

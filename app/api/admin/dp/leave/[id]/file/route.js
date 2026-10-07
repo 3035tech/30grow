@@ -71,8 +71,8 @@ export const POST = withAdminApi(
       return NextResponse.json({ ok: true, item: result.item });
     } catch (err) {
       const code = err?.code;
-      if (code === ERR.INVALID_CV_FILE_SIZE || code === ERR.INVALID_CV_FILE_TYPE) {
-        return apiError(request, code, 400);
+      if ([ERR.INVALID_CV_FILE_SIZE, ERR.INVALID_CV_FILE_TYPE, ERR.DP_FILE_SIZE, ERR.DP_FILE_TYPE].includes(code)) {
+        return apiError(request, code === ERR.INVALID_CV_FILE_SIZE ? ERR.DP_FILE_SIZE : code === ERR.INVALID_CV_FILE_TYPE ? ERR.DP_FILE_TYPE : code, 400);
       }
       throw err;
     }

@@ -34,7 +34,7 @@ export async function POST(request, props) {
     if (!limit.ok) return apiError(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS);
     const file = singleFormFile(await readBoundedFormData(request, DP_DOC_MAX_BYTES));
     if (!file) return apiError(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST);
-    if (!file.size || file.size > DP_DOC_MAX_BYTES) return apiError(request, ERR.INVALID_CV_FILE_SIZE, HTTP_STATUS.BAD_REQUEST);
+    if (!file.size || file.size > DP_DOC_MAX_BYTES) return apiError(request, ERR.DP_FILE_SIZE, HTTP_STATUS.BAD_REQUEST);
     const buffer = Buffer.from(await file.arrayBuffer());
     const result = await withTransaction(async (client) => {
       const own = await client.query('SELECT id FROM employee_leave_requests WHERE id = $1 AND company_id = $2 AND candidate_id = $3 FOR UPDATE', [ctx.id, ctx.session.companyId, ctx.session.candidateId]);
@@ -50,7 +50,7 @@ export async function POST(request, props) {
     if (!home.ok) return apiErrorFromResult(request, home);
     return NextResponse.json(home, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    if (error?.code === ERR.INVALID_CV_FILE_SIZE || error?.code === ERR.INVALID_CV_FILE_TYPE) return apiError(request, error.code, HTTP_STATUS.BAD_REQUEST);
+    if ([ERR.INVALID_CV_FILE_SIZE, ERR.INVALID_CV_FILE_TYPE, ERR.DP_FILE_SIZE, ERR.DP_FILE_TYPE].includes(error?.code)) return apiError(request, error.code === ERR.INVALID_CV_FILE_SIZE ? ERR.DP_FILE_SIZE : error.code === ERR.INVALID_CV_FILE_TYPE ? ERR.DP_FILE_TYPE : error.code, HTTP_STATUS.BAD_REQUEST);
     return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }

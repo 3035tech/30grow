@@ -1,12 +1,13 @@
 # Audit log (operacional)
 
-Trilha **append-only** de ações sensíveis no painel e autenticação.
+Trilha de ações sensíveis no painel e autenticação. Escritas operacionais são append-only; descarte controlado por política aprovada é separado e desativado por padrão.
 
 ## Quem vê
 
-- Aba **Auditoria** no menu Conta — **somente super admin** (`role = admin` sem `company_id` fixa), mesmo critério da aba Leads.
+- Aba **Auditoria** no grupo Administração: superadmin vê todos os tenants; dono da empresa vê apenas seu tenant com dados minimizados. `audit.view` não é delegável ao RH comum.
 - Filtro **Empresa** por nome (lista das empresas; alinha ao filtro do painel / sticky). Não digite id numérico.
-- API: `GET /api/admin/audit-log` (paginada, filtros).
+- API: `GET /api/admin/audit-log` (paginada, filtros e CSV limitado). A empresa do dono sempre vem da sessão.
+- Retenção, legal hold, aprovações e deploy: ver `docs/audit-company-retention.md`.
 
 ## Schema
 

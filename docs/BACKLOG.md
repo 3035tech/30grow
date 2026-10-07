@@ -66,9 +66,8 @@ _(entregue — B-601–B-605 + polish: revisão retenção na UI, leitura hedged
 
 ## Aberto — qualidade / testes
 
-- **B-I18N-01 · Revisão nativa fr-FR / de-DE.** Catálogos e landing gerados por `npm run i18n:translate`. **Revisão automatizada feita (out/2026):** 0 chaves faltando vs en, 0 placeholders divergentes, 0 textos iguais ao en ou ao pt, 0 ` — `, tom formal (vous/Sie) sem ocorrências de tu/du, termos alinhados (manager no fr, HR-Verantwortliche/Führungskräfte no de). **Ainda exige revisor nativo humano:** naturalidade e terminologia de RH local, textos longos do Guia e landing.
+- **B-I18N-01 · Revisão nativa fr-FR / de-DE.** Catálogos e landing gerados por `npm run i18n:translate`. **Revisão automatizada feita (out/2026):** 0 chaves faltando vs en, 0 placeholders divergentes, 0 textos iguais ao en ou ao pt, 0 ` — `, tom formal (vous/Sie) sem ocorrências de tu/du, termos alinhados (manager no fr, HR-Verantwortliche/Führungskräfte no de). **Validação técnica adicional (07/10/2026):** 7.973 chaves por catálogo, sem diferenças de chave/placeholder; comando `node scripts/validate-i18n-catalogs.mjs`. Ver `docs/i18n-review-2026-10-07.md`. **Ainda exige revisor nativo humano:** naturalidade e terminologia de RH local, textos longos do Guia e landing.
 - **B-I18N-02 · Conteúdo por idioma além de pt/en.** Perguntas/tipos/escala do Eneagrama (`lib/i18n-data.js`, `lib/data.js`, `lib/type-en.js`), banco e templates de Motivadores (`lib/ae/*`), prompts de IA e PDFs usam `contentLocale` (fr/de/es caem em inglês). Traduzir exige validação psicométrica das perguntas antes de trocar o texto. **Bloqueado para agente:** sem validação humana especializada não se troca o texto (fr/de continuam caindo em inglês de propósito).
-- **B-DP-UPLOAD-MSG · Mensagem de arquivo inválido no DP fala em currículo.** Upload de documento/atestado no DP (`/api/employee/dp/documents/:docKey/file`, `/api/employee/dp/leave/:id/file` e equivalentes mobile) devolve `INVALID_CV_FILE_TYPE/SIZE` ("Envie um currículo PDF válido") mesmo aceitando PDF/JPEG/PNG. Campo já usa `FIELD_FILE_TYPE/SIZE`. Corrigir com códigos próprios do DP, mantendo compatibilidade do app (aceitar os dois códigos por uma versão).
 - **B-I18N-03 · Documentos legais em fr/de/es.** `lib/public-legal.js` só tem pt/en; tradução precisa de revisão jurídica. **Bloqueado para agente:** exige advogado/revisor jurídico por país; não publicar tradução automática.
 
 ---
@@ -883,13 +882,8 @@ Cenário: recrutador ou consultoria independente cria a conta via signup e atend
 
 Já entregue: diferença por campo em ficha, DP (gestor e colaborador) e Usuários, com dado pessoal só como “alterado” (`docs/audit-log.md`).
 
-### B-3201 — Retenção da auditoria
-1. Definir prazo com o jurídico (ex. 24 meses para eventos comuns; mais longo para segurança/acesso) e registrar em `docs/privacy-retention-policy.md`.
-2. Cron com `LIMIT` por lote apagando `audit_log` vencido (índice em `created_at`); nunca apagar o que estiver sob investigação/litígio.
-
-### B-3202 — Auditoria da própria empresa (controladora)
-1. Visão de auditoria filtrada por `company_id` para o dono da empresa (capability nova), sem cross-tenant.
-2. Filtros por pessoa (alvo) e por ação; exportação CSV para atender pedido do titular ou fiscalização.
+### B-3201 — Aprovar e ativar retenção da auditoria
+Código entregue: políticas por empresa, dry-run, legal hold, janelas comum/segurança, limites e cursor; ver `docs/audit-company-retention.md`. Falta prazo aprovado pelo jurídico/controlador e prova operacional antes de cadastrar políticas e ativar execução. Nenhuma exclusão de produção foi habilitada.
 
 ### B-3203 — Reautenticação ao trocar o próprio e-mail ✅ ENTREGUE
 Meu perfil: trocar o e-mail pede a senha atual (+ código TOTP com 2FA ativo); o endereço antigo recebe aviso com o novo mascarado; auditoria `user.email_change_self` (só nomes de campo). Salvar nome/idioma segue sem senha.

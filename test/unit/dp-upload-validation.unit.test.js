@@ -14,6 +14,8 @@ test('DP preflight rejects empty, oversized and unsupported files before sending
 });
 test('DP API errors are described as documents, not CVs, with session guidance', () => {
   assert.equal(dpUploadResponseKey(401), 'fileSessionError');
+  assert.equal(dpUploadResponseKey(400, 'DP_FILE_TYPE'), 'fileTypeError');
+  assert.equal(dpUploadResponseKey(400, 'DP_FILE_SIZE'), 'fileSizeError');
   assert.equal(dpUploadResponseKey(400, 'INVALID_CV_FILE_TYPE'), 'fileTypeError');
   assert.equal(dpUploadResponseKey(413), 'fileSizeError');
   assert.equal(dpUploadResponseKey(400, 'INVALID_CV_FILE_SIZE'), 'fileSizeError');

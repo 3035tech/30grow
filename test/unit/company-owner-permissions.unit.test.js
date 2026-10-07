@@ -27,7 +27,7 @@ describe('company owner permissions', () => {
 
   it('keeps platform-only tabs and companies management away from the owner', () => {
     assert.equal(can(owner, CAP.COMPANIES_MANAGE), false);
-    for (const tab of ['leads', 'audit', 'product-feedback', 'companies']) {
+    for (const tab of ['leads', 'product-feedback', 'companies']) {
       assert.equal(canAccessDashboardTab(owner, tab), false, tab);
     }
   });
