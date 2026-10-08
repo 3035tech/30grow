@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import { BrandMark } from './BrandMark';
 import { PrimaryCta, PublicSiteHeader } from './PublicSiteHeader';
 import { Icon } from './Icon';
@@ -75,7 +77,19 @@ function ProductPreview({ copy }) {
 }
 
 function JourneyVisual({ copy }) {
-  return <div className="relative mt-10"><div className="absolute left-6 right-6 top-6 hidden h-px bg-ink/10 lg:block" aria-hidden /><ol className="relative m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-4">{copy.journeyStages.map((stage, index) => <li key={stage.title} className="flex flex-col rounded-card border border-ink/10 bg-surface p-5 shadow-card"><span className="mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-brand-300 bg-brand-50 font-ui text-xs font-semibold text-brand-700">0{index + 1}</span><h3 className="m-0 font-ui text-base font-semibold text-ink">{stage.title}</h3><p className="mb-0 mt-2 flex-1 font-ui text-sm leading-6 text-ink-muted">{stage.body}</p><p className="mb-0 mt-4 min-h-11 border-t border-ink/8 pt-3 font-ui text-[9px] uppercase leading-4 tracking-[0.08em] text-brand-600">{stage.detail}</p></li>)}</ol></div>;
+  const container = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, { threshold: 0.2 });
+    if (container.current) observer.observe(container.current);
+    return () => observer.disconnect();
+  }, []);
+  return <div ref={container} data-visible={visible} className="grow-journey relative mt-10"><div className="absolute left-6 right-6 top-6 hidden h-px overflow-hidden bg-ink/10 lg:block" aria-hidden><span className="grow-journey-progress block h-full w-full bg-brand-500" /></div><ol className="relative m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-4">{copy.journeyStages.map((stage, index) => <li key={stage.title} className="grow-journey-stage flex flex-col rounded-card border border-ink/10 bg-surface p-5 shadow-card" style={{ animationDelay: `${index * 0.8}s` }}><span className="mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-brand-300 bg-brand-50 font-ui text-xs font-semibold text-brand-700">0{index + 1}</span><h3 className="m-0 font-ui text-base font-semibold text-ink">{stage.title}</h3><p className="mb-0 mt-2 flex-1 font-ui text-sm leading-6 text-ink-muted">{stage.body}</p><p className="mb-0 mt-4 min-h-11 border-t border-ink/8 pt-3 font-ui text-xs leading-5 text-brand-700">{stage.detail}</p></li>)}</ol></div>;
 }
 
 function EmployeeAppPreview({ copy }) {
@@ -140,10 +154,11 @@ export default function ProductLandingClient({ copyByLocale, locale: initialLoca
         <main id="conteudo">
           <section id="produto-hero" className="relative overflow-hidden border-b border-ink/8 bg-surface"><div className="relative mx-auto grid max-w-6xl gap-10 px-5 pb-14 pt-12 sm:px-8 sm:pb-16 sm:pt-16 lg:grid-cols-[.95fr_1.05fr] lg:items-center lg:gap-12 lg:py-20"><div className="max-w-2xl"><p className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-300/70 bg-brand-50 px-3 py-1.5 font-ui text-2xs font-medium text-brand-700"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />{copy.earlyBadge}</p><h1 className="m-0 font-display text-[clamp(2.25rem,4vw,3.5rem)] font-bold leading-[1.08] tracking-[-0.035em] text-ink">{copy.heroTitle}</h1><p className="mb-0 mt-6 max-w-xl text-lg leading-8 text-ink-muted">{copy.heroLead}</p><p className="mb-0 mt-4 max-w-xl text-sm leading-6 text-ink-muted">{copy.heroBody}</p><div className="mt-7 flex flex-wrap items-center gap-4"><PrimaryCta copy={copy} /><a href="#modulos" className="inline-flex min-h-touch items-center gap-2 px-2 text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">{u.exploreProduct}<Icon name="chevronRight" className="h-4 w-4" /></a></div><p className="mb-0 mt-5 max-w-xl text-sm leading-6 text-ink-muted"><span className="font-semibold text-ink">{copy.pricingSnapshotTitle}.</span> {copy.pricingSnapshotBody} <Link href="/pricing" className="whitespace-nowrap font-semibold text-brand-700 no-underline hover:text-brand-800">{copy.pricingSnapshotCta}</Link></p><div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-ink/10 pt-4">{u.heroProof.map((item) => <span key={item} className="inline-flex items-center gap-2 text-xs text-ink-muted"><Icon name="check" className="h-4 w-4 text-success" />{item}</span>)}</div></div><ProductPreview copy={copy} /></div></section>
           <section className="border-b border-ink/8 bg-canvas-alt/45" aria-label={u.coverageLabel}><div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-7 gap-y-3 px-5 py-5 sm:px-8"><span className="mr-2 font-ui text-2xs font-medium text-ink-faint">{u.coverageLabel}</span>{u.coverageItems.map((item) => <span key={item} className="text-sm font-medium text-ink-muted">{item}</span>)}</div></section>
-          <section className="mx-auto max-w-3xl px-5 py-14 text-center sm:px-8 sm:py-16" aria-labelledby="human-context-title">
+          <section className="mx-auto max-w-5xl px-5 py-14 sm:px-8 sm:py-16" aria-labelledby="human-context-title">
+            <div className="grid items-center gap-8 md:grid-cols-2"><figure className="m-0 overflow-hidden rounded-card"><Image src="/brand/landing-people-context-v1.png" alt={u.humanContextAlt} width={1536} height={1024} sizes="(max-width: 767px) calc(100vw - 40px), 480px" className="aspect-[3/2] w-full object-cover" /></figure><div>
             <p className="mb-3 font-ui text-2xs font-medium text-brand-600">{u.humanContextEyebrow}</p>
             <h2 id="human-context-title" className="m-0 font-display text-3xl font-semibold leading-[1.1] tracking-[-0.025em] text-ink sm:text-4xl">{u.humanContextTitle}</h2>
-            <p className="mx-auto mb-0 mt-4 max-w-2xl text-base leading-7 text-ink-muted">{u.humanContextBody}</p>
+            <p className="mb-0 mt-4 text-base leading-7 text-ink-muted">{u.humanContextBody}</p></div></div>
           </section>
           <section id="como-funciona" className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20" aria-labelledby="journey-title"><SectionHeading label={copy.journeyLabel} title={copy.journeyTitle} body={copy.journeyLead} id="journey-title" /><JourneyVisual copy={copy} /></section>
           <section id="eneagrama" className="border-y border-ink/8 bg-navy py-16 text-white sm:py-20" aria-labelledby="enneagram-title"><div className="mx-auto grid max-w-6xl gap-12 px-5 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center"><div><p className="mb-3 font-ui text-2xs font-medium text-brand-300">{u.enneagramLabel}</p><h2 id="enneagram-title" className="m-0 font-display text-3xl font-semibold leading-[1.1] tracking-[-0.025em] text-white sm:text-4xl">{u.enneagramTitle}</h2><p className="mb-0 mt-5 max-w-xl text-base leading-7 text-white/65 sm:text-lg">{u.enneagramBody}</p><ul className="mb-0 mt-8 grid list-none gap-3 p-0 sm:grid-cols-2">{u.enneagramPoints.map((item) => <li key={item} className="flex gap-3 text-sm leading-6 text-white/80"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-300" />{item}</li>)}</ul></div><div className="grid grid-cols-3 gap-2 sm:gap-3" aria-label={u.typesAria}>{u.types.map((type, index) => <article key={type.name} className={`min-h-28 rounded-card border p-3 sm:min-h-32 sm:p-4 ${index === 4 ? 'border-brand-300 bg-brand-500/20' : 'border-white/10 bg-white/[.04]'}`}><span className="font-ui text-xs text-brand-300">T{index + 1}</span><h3 className="mb-0 mt-5 text-sm font-semibold text-white sm:text-base">{type.name}</h3><p className="mb-0 mt-1 text-[10px] leading-4 text-white/70 sm:text-xs">{type.signal}</p></article>)}</div></div></section>

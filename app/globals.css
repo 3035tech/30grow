@@ -605,3 +605,16 @@ textarea:focus-visible {
 .rich-text-view h2 { font-size: 1.15em; margin: 0.5em 0 0.25em; font-weight: 600; }
 .rich-text-view p { margin: 0.35em 0; }
 .rich-text-view blockquote { margin: 0.4em 0; padding-left: 0.8em; @apply border-l-[3px] border-line text-ink-muted; }
+
+/* A single short pass connects recruiting to development; no looping motion. */
+@keyframes grow-journey-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes grow-journey-stage { 40% { border-color: rgb(var(--brand-500) / .6); } }
+.grow-journey-progress { transform-origin: left; }
+@media (prefers-reduced-motion: no-preference) {
+  .grow-journey[data-visible="false"] .grow-journey-progress { transform: scaleX(0); }
+}
+.grow-journey[data-visible="true"] .grow-journey-progress { animation: grow-journey-progress 3.2s ease-out both; }
+.grow-journey[data-visible="true"] .grow-journey-stage { animation: grow-journey-stage .8s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .grow-journey-progress, .grow-journey[data-visible="true"] .grow-journey-stage { animation: none; }
+}
