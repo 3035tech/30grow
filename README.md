@@ -158,7 +158,8 @@ Lista completa e comentada em [`.env.example`](.env.example). As essenciais:
 |----------|-----------|
 | `POSTGRES_*` / `POSTGRES_READ_HOST` | Banco primário e réplica opcional; `PG_POOL_MAX` por instância |
 | `JWT_SECRET` | Obrigatório em produção (≥ 32 caracteres, não placeholder) |
-| `NEXT_PUBLIC_APP_URL` | URL pública; obrigatória em produção para links de e-mail (sem fallback de Host) |
+| `APP_URL` | URL do app lida em execução; definir por ambiente para links de e-mail, convites e recuperação de senha. Dublin: `https://team.3035service.com`; produção: `https://app.30grow.com` |
+| `NEXT_PUBLIC_APP_URL` | URL incorporada no build e fallback legado quando `APP_URL` não está definida |
 | `NEXT_PUBLIC_SITE_URL` | Opcional. Endereço indexável da landing, `/pricing`, `/blog`, `/jobs` e `/companies` (canonical, sitemap, robots, og:image, JSON-LD), ex. `https://30grow.com`. Sem ela, usa `NEXT_PUBLIC_APP_URL`. Lida no build |
 | `BOOTSTRAP_ADMIN_EMAIL` / `_PASSWORD` | Admin criado na primeira subida |
 | `SMTP_*` + `MAIL_FROM` | E-mail (convites, senha, alertas de vagas). `SMTP_MOCK=1` captura em memória |

@@ -1,3 +1,4 @@
+import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { query } from '../../../../lib/db.js';
 import {
   hashUnusablePassword,
@@ -82,7 +83,7 @@ export async function POST(request) {
       return apiError(request, ERR.SMTP_NOT_CONFIGURED, 503);
     }
 
-    const appUrl = String(process.env.NEXT_PUBLIC_APP_URL || '')
+    const appUrl = String(runtimeAppUrl() || '')
       .trim()
       .replace(/\/+$/, '');
     if (!appUrl) {

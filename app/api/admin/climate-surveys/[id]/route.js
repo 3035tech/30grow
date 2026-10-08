@@ -1,3 +1,4 @@
+import { runtimeAppUrl } from '../../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db';
 import { apiError, ERR } from '../../../../../lib/api-error';
@@ -153,7 +154,7 @@ export async function PATCH(request, props) {
     if (body.emailInvites) {
       const origin =
         body.appOrigin ||
-        process.env.NEXT_PUBLIC_APP_URL ||
+        runtimeAppUrl() ||
         new URL(request.url).origin;
       const mailed = await emailClimateSurveyInvites(query, {
         companyId,

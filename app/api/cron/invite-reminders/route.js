@@ -1,3 +1,4 @@
+import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { query, queryRead } from '../../../../lib/db';
 
@@ -9,7 +10,7 @@ import { apiError, ERR } from '../../../../lib/api-error';
 import { verifyCronRequest } from '../../../../lib/cron-auth';
 
 function publicAppUrlFromEnv() {
-  const env = (process.env.NEXT_PUBLIC_APP_URL || '').trim();
+  const env = (runtimeAppUrl() || '').trim();
   return env ? env.replace(/\/$/, '') : '';
 }
 

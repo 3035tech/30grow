@@ -1,3 +1,4 @@
+import { runtimeAppUrl } from '../../../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
@@ -16,7 +17,7 @@ import { normalizeLocale } from '../../../../../../lib/i18n.js';
 
 
 function appOrigin(request) {
-  const env = String(process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
+  const env = String(runtimeAppUrl() || '').replace(/\/$/, '');
   if (env) return env;
   try {
     return new URL(request.url).origin;

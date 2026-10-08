@@ -1,3 +1,4 @@
+import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
@@ -34,7 +35,7 @@ export async function POST(request) {
     return apiError(request, ERR.RATE_LIMIT, 429, {}, { headers: { 'Retry-After': String(rlEmail.retryAfterSec) } });
   }
 
-  const appUrl = String(process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(
+  const appUrl = String(runtimeAppUrl() || new URL(request.url).origin).replace(
     /\/+$/,
     ''
   );
