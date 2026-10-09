@@ -1,5 +1,5 @@
-import { cookies, headers } from 'next/headers';
-import { LOCALE_COOKIE, normalizeLocale, t } from '../../lib/i18n';
+import { headers } from 'next/headers';
+import { t } from '../../lib/i18n';
 import { buildBlogIndexJsonLd, buildBlogIndexMetadata, BLOG_CONTENT_LOCALE, listBlogPosts } from '../../lib/blog/index.js';
 import { BlogBreadcrumb, BlogShell } from './BlogShell';
 import { BlogPostCard } from '../_components/BlogPostCard';
@@ -10,7 +10,7 @@ export function generateMetadata() {
 
 export default async function BlogIndexPage() {
   const nonce = (await headers()).get('x-nonce') || undefined;
-  const locale = normalizeLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = BLOG_CONTENT_LOCALE;
   const posts = listBlogPosts();
   return (
     <BlogShell locale={locale}>

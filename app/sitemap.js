@@ -2,6 +2,7 @@ import { listSitemapPublicEntries } from '../lib/public-vacancy-posting';
 import { listSitemapAggregatorEntries } from '../lib/public-job-aggregators';
 import { BLOG_PATH, listBlogPosts } from '../lib/blog/index.js';
 import { publicSiteBaseUrl } from '../lib/public-site-url.js';
+import { publicMarketingSitemapEntries } from '../lib/public-marketing-sitemap.js';
 
 /**
  * Sitemap: / + /pricing + /blog (+ posts) + /jobs + aggregators (remote/city with enough volume) + vagas públicas indexáveis.
@@ -14,27 +15,10 @@ export default async function sitemap() {
   const now = new Date();
   const blogPosts = listBlogPosts();
   const entries = [
-    {
-      url: `${base}/`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${base}/llms.txt`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.4,
-    },
-    {
-      url: `${base}/pricing`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
+    ...publicMarketingSitemapEntries(base),
     {
       url: `${base}${BLOG_PATH}`,
-      lastModified: blogPosts[0] ? new Date(blogPosts[0].updatedAt || blogPosts[0].publishedAt) : now,
+      lastModified: blogPosts[0] ? new Date(blogPosts[0].updatedAt || blogPosts[0].publishedAt) : undefined,
       changeFrequency: 'weekly',
       priority: 0.7,
     },
@@ -46,19 +30,16 @@ export default async function sitemap() {
     })),
     {
       url: `${base}/jobs`,
-      lastModified: now,
       changeFrequency: 'daily',
       priority: 0.8,
     },
     {
       url: `${base}/privacy`,
-      lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${base}/terms`,
-      lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.3,
     },

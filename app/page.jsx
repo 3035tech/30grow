@@ -1,5 +1,5 @@
-import { cookies, headers } from 'next/headers';
-import { LOCALE_COOKIE, LOCALES, normalizeLocale } from '../lib/i18n';
+import { headers } from 'next/headers';
+import { LOCALES, normalizeLocale } from '../lib/i18n';
 import {
   buildProductLandingJsonLd,
   buildProductLandingMetadata,
@@ -11,13 +11,13 @@ import ProductLandingClient from './_components/ProductLandingClient';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
-  const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = normalizeLocale((await headers()).get('x-public-locale'));
   return buildProductLandingMetadata(locale);
 }
 
 export default async function HomePage() {
   const nonce = (await headers()).get('x-nonce') || undefined;
-  const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = normalizeLocale((await headers()).get('x-public-locale'));
   const copyByLocale = Object.fromEntries(LOCALES.map((loc) => [loc, getProductLandingCopy(loc)]));
   const jsonLd = buildProductLandingJsonLd(locale);
   const blogPosts = listBlogPosts({ limit: BLOG_LANDING_CAP }).map(({ slug, path, title, description, categoryLabel, publishedAt, publishedLabel, readingMinutes }) => ({

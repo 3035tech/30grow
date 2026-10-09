@@ -17,7 +17,8 @@ Convenções que valem para todos os módulos:
 - HTML rastreável, JSON-LD e `/llms.txt`; narrativa candidato → colaborador, T1–T9 e inventário real dos módulos.
 - Blog público `/blog` (10+ artigos em pt-BR: Eneagrama no trabalho, rubrica, entrevista estruturada, onboarding, 1:1, PDI, clima/eNPS, Motivadores, LGPD). Conteúdo estático em `lib/blog/articles/*.js`, registrado em `lib/blog/index.js`; metadata, canonical e JSON-LD (`BlogPosting`, `BreadcrumbList`, `FAQPage`). A landing mostra os 3 mais recentes (`#blog`) e o rodapé/header linkam o blog. Para publicar: criar o arquivo do artigo, importar em `ARTICLES` e rodar `test/unit/blog.unit.test.js` (slug único, descrição 70–170 caracteres, sem travessão com espaços).
 - CTA principal **30 dias grátis** → `/signup`. Acessos de gestor (`/login`) e colaborador (`/employee/login`) separados.
-- Copy por idioma em `lib/product-landing-seo.js` (pt-BR, pt-PT, en, es-419, es-ES; fr-FR/de-DE herdam do inglês até a tradução).
+- URLs próprias em pt-BR (raiz), pt-PT (`/pt-pt`), inglês (`/en`), espanhol (`/es`, `/es-es`), francês (`/fr`) e alemão (`/de`), com canonical e hreflang recíprocos. Português do Brasil é o padrão público, independente de cookies. O espanhol latino usa `hreflang="es"`, conforme os códigos aceitos pelo Google.
+- Seis páginas de soluções por variante regional (42 páginas): recrutamento, Eneagrama/Motivadores, desempenho/clima, onboarding/LMS, departamento pessoal e organograma. HTML com conteúdo visível, links internos, títulos e descrições próprios; 56 URLs de marketing no sitemap contando home e preços. [Validação e publicação do SEO](public-seo-2026-10-09.md).
 - Analytics de conversão: tabela `landing_analytics` (pageview → cta_click → signup_start → signup_complete → login).
 
 ### Self-service signup e ativação

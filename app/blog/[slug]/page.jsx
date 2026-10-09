@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Icon } from '../../_components/Icon';
-import { LOCALE_COOKIE, normalizeLocale, t } from '../../../lib/i18n';
+import { t } from '../../../lib/i18n';
 import {
   BLOG_CONTENT_LOCALE,
   buildBlogPostJsonLd,
@@ -33,7 +33,7 @@ export default async function BlogPostPage(props) {
   const { slug } = await props.params;
   const post = getBlogPost(slug);
   if (!post) notFound();
-  const locale = normalizeLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = BLOG_CONTENT_LOCALE;
   const related = relatedBlogPosts(post);
   const toc = post.sections.map((section) => (
     <li key={section.id}>

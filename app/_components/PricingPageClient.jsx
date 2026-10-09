@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { publicMarketingPath } from '../../lib/public-marketing-paths';
+import { PublicLanguageLinks } from './PublicLanguageLinks';
 import { PublicSiteHeader } from './PublicSiteHeader';
 import { useLocale } from '../../lib/useLocale';
 import { localeHtmlLang, normalizeLocale, t } from '../../lib/i18n';
@@ -58,7 +60,7 @@ export default function PricingPageClient({ locale: initialLocale, headerCopyByL
         <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 text-xs text-ink-faint sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <span>{t(locale, 'pricing.footerBrand')}</span>
           <div className="flex flex-wrap gap-4">
-            <Link href="/" className="text-ink-muted no-underline hover:text-ink">
+            <Link href={publicMarketingPath(locale)} className="text-ink-muted no-underline hover:text-ink">
               {t(locale, 'pricing.backHome')}
             </Link>
             <Link href="/login" className="text-ink-muted no-underline hover:text-ink">
@@ -73,6 +75,7 @@ export default function PricingPageClient({ locale: initialLocale, headerCopyByL
           </div>
         </div>
       </footer>
+      <PublicLanguageLinks locale={locale} page="/pricing" />
     </div>
   );
 }

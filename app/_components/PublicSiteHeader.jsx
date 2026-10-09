@@ -6,6 +6,7 @@ import LanguageSelect from './LanguageSelect';
 import { cn } from '../../lib/cn';
 import { normalizeLocale } from '../../lib/i18n';
 import { useLocale } from '../../lib/useLocale';
+import { publicMarketingPath, publicMarketingRoute } from '../../lib/public-marketing-paths';
 
 export function PrimaryCta({ copy, compact = false }) {
   return <Link href="/signup" className={`inline-flex min-h-touch items-center justify-center rounded-control bg-action font-ui font-semibold text-action-ink no-underline transition-colors hover:bg-action-hover ${compact ? 'px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm' : 'px-6 py-3.5 text-base'}`}>{compact ? copy.navEarly : copy.ctaEarly}</Link>;
@@ -17,23 +18,37 @@ export function PrimaryCta({ copy, compact = false }) {
  */
 export function PublicSiteHeader({ copy, locale, onLocaleChange, sectionBase = '', active = null }) {
   const u = copy.ui;
+  const homePath = publicMarketingPath(locale);
+  const anchorBase = sectionBase ? homePath : '';
+  const switchLanguage = (next) => {
+    const route = publicMarketingRoute(window.location.pathname);
+    if (route || window.location.pathname === '/blog' || window.location.pathname.startsWith('/blog/')) {
+      const target = new URL(publicMarketingPath(next, route?.page, route?.solutionIndex), window.location.origin);
+      target.search = window.location.search;
+      target.searchParams.delete('lang');
+      target.hash = window.location.hash;
+      window.location.assign(target.href);
+      return;
+    }
+    onLocaleChange?.(next);
+  };
   const linkClass = (isActive) => cn('whitespace-nowrap text-sm no-underline hover:text-ink', isActive ? 'font-semibold text-ink' : 'text-ink-muted');
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
-        <Link href="/" className="inline-flex items-center no-underline" aria-label="30Grow">
+        <Link href={homePath} className="inline-flex items-center no-underline" aria-label="30Grow">
           <BrandMark size={30} withWordmark className="brand-mark--responsive" />
         </Link>
         <nav className="hidden items-center gap-3 lg:flex xl:gap-6" aria-label={u.mainNavigation}>
-          <a href={`${sectionBase}#como-funciona`} className={linkClass(false)}>{u.navJourney}</a>
-          <a href={`${sectionBase}#modulos`} className={linkClass(false)}>{u.navModules}</a>
-          <a href={`${sectionBase}#app-colaborador`} className={linkClass(false)}>{copy.employeeApp.label}</a>
-          <Link href="/pricing" className={linkClass(active === 'pricing')} aria-current={active === 'pricing' ? 'page' : undefined}>{u.navPricing}</Link>
+          <a href={`${anchorBase}#como-funciona`} className={linkClass(false)}>{u.navJourney}</a>
+          <a href={`${anchorBase}#modulos`} className={linkClass(false)}>{u.navModules}</a>
+          <a href={`${anchorBase}#app-colaborador`} className={linkClass(false)}>{copy.employeeApp.label}</a>
+          <Link href={publicMarketingPath(locale, '/pricing')} className={linkClass(active === 'pricing')} aria-current={active === 'pricing' ? 'page' : undefined}>{u.navPricing}</Link>
           <Link href="/blog" className={linkClass(active === 'blog')} aria-current={active === 'blog' ? 'page' : undefined}>{u.navBlog || 'Blog'}</Link>
-          <a href={`${sectionBase}#faq`} className={linkClass(false)}>FAQ</a>
+          <a href={`${anchorBase}#faq`} className={linkClass(false)}>FAQ</a>
         </nav>
         <div className="flex items-center gap-2 [&>label>span]:hidden">
-          <LanguageSelect locale={locale} onChange={onLocaleChange} compact />
+          <LanguageSelect locale={locale} onChange={switchLanguage} compact />
           <Link href="/login" className="hidden min-h-touch items-center whitespace-nowrap px-2 text-sm text-ink-muted no-underline hover:text-ink sm:inline-flex xl:px-3">{copy.navLogin}</Link>
           <div className="hidden sm:block"><PrimaryCta copy={copy} compact /></div>
         </div>

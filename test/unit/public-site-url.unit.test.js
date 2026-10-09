@@ -24,7 +24,7 @@ test('public site URL prefers NEXT_PUBLIC_SITE_URL and trims the trailing slash'
 test('falls back to NEXT_PUBLIC_APP_URL, then to relative paths', () => {
   delete process.env.NEXT_PUBLIC_SITE_URL;
   process.env.NEXT_PUBLIC_APP_URL = 'https://app.30grow.com';
-  assert.equal(publicSiteBaseUrl(), 'https://app.30grow.com');
+  assert.equal(publicSiteBaseUrl(), 'https://30grow.com');
   delete process.env.NEXT_PUBLIC_APP_URL;
   assert.equal(publicSiteBaseUrl(), '');
   assert.equal(productLandingAbsoluteUrl('/pricing'), '/pricing');

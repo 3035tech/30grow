@@ -33,6 +33,8 @@ import {
   resolveContentSecurityPolicy,
 } from './lib/security-csp';
 import { isCrawlerNoIndexPath } from './lib/crawler-guard';
+import { PUBLIC_LOCALE_HEADER, publicMarketingRoute, publicMarketingPath } from './lib/public-marketing-paths';
+import { publicSiteBaseUrl } from './lib/public-site-url';
 import {
   LOCALE_COOKIE,
   LOCALE_COOKIE_MAX_AGE_SEC,
@@ -237,6 +239,40 @@ export async function proxy(request) {
   request.headers.set('x-nonce', nonce);
   request.headers.set('Content-Security-Policy', resolveContentSecurityPolicy(nonce));
   const { pathname } = request.nextUrl;
+  // Standalone Next can expose the container host in nextUrl behind the ALB.
+  // Redirects only accept the fixed production allowlist below.
+  const publicRequestHost = (request.headers.get('x-forwarded-host') || request.headers.get('host') || request.nextUrl.host).split(',')[0].trim().toLowerCase();
+  // Never trust a visitor-supplied locale override; public locale comes from the URL.
+  request.headers.delete(PUBLIC_LOCALE_HEADER);
+  const marketing = publicMarketingRoute(pathname);
+  if (marketing) {
+    request.headers.set(PUBLIC_LOCALE_HEADER, marketing.locale);
+    // Preserve legacy ?lang links without keeping duplicate language URLs.
+    const queryLocale = request.nextUrl.searchParams.get('lang');
+    const canonicalPath = queryLocale
+      ? publicMarketingPath(queryLocale, marketing.page, marketing.solutionIndex)
+      : publicMarketingPath(marketing.locale, marketing.page, marketing.solutionIndex);
+    const base = publicSiteBaseUrl();
+    const canonicalHost = base ? new URL(base).host : null;
+    const productionHosts = ['30grow.com', 'www.30grow.com', 'app.30grow.com'];
+    if (canonicalPath !== pathname || (canonicalHost && productionHosts.includes(publicRequestHost) && publicRequestHost !== canonicalHost)) {
+      const target = base && productionHosts.includes(publicRequestHost) ? new URL(canonicalPath, base) : new URL(canonicalPath, request.url);
+      target.search = request.nextUrl.search;
+      target.searchParams.delete('lang');
+      return secureResponse(request, NextResponse.redirect(target, 308));
+    }
+    return secureResponse(request, nextResponse(request));
+  }
+  // Consolidate existing public content too, while app/auth/token routes keep their origin.
+  const publicContent = pathname === '/blog' || pathname.startsWith('/blog/') || pathname === '/jobs' || pathname.startsWith('/jobs/') || pathname.startsWith('/companies/') || ['/privacy', '/terms', '/robots.txt', '/sitemap.xml', '/llms.txt'].includes(pathname);
+  const publicBase = publicSiteBaseUrl();
+  if (publicContent && publicBase && ['30grow.com', 'www.30grow.com', 'app.30grow.com'].includes(publicRequestHost) && publicRequestHost !== new URL(publicBase).host) {
+    const target = new URL(pathname, publicBase);
+    target.search = request.nextUrl.search;
+    return secureResponse(request, NextResponse.redirect(target, 308));
+  }
+  // Blog articles are written in Brazilian Portuguese; keep their SSR language stable.
+  if (pathname === '/blog' || pathname.startsWith('/blog/')) request.headers.set(PUBLIC_LOCALE_HEADER, 'pt-BR');
   detectMissingLocale(request);
 
   if (pathname === SESSION_EDGE_PATH || pathname === EMPLOYEE_SESSION_EDGE_PATH) {

@@ -11,9 +11,10 @@ import { themeInitScript } from '../lib/theme-mode';
 
 export async function generateMetadata() {
   const cookieStore = await cookies();
-  const locale = normalizeLocale(cookieStore.get(LOCALE_COOKIE)?.value);
+  const locale = normalizeLocale((await headers()).get('x-public-locale') || cookieStore.get(LOCALE_COOKIE)?.value);
   return {
     title: '30Grow',
+    verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
     description: t(locale, 'home.metaDescription'),
     icons: {
       icon: [
@@ -34,7 +35,7 @@ export const viewport = { themeColor: '#111827' };
 export default async function RootLayout({ children }) {
   const nonce = (await headers()).get('x-nonce') || undefined;
   const cookieStore = await cookies();
-  const locale = normalizeLocale(cookieStore.get(LOCALE_COOKIE)?.value);
+  const locale = normalizeLocale((await headers()).get('x-public-locale') || cookieStore.get(LOCALE_COOKIE)?.value);
   return (
     <html lang={localeHtmlLang(locale)} suppressHydrationWarning>
       <head>

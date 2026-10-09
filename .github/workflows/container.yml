@@ -33,6 +33,9 @@ jobs:
       - name: Security regression gate
         run: npm run test:security
 
+      - name: Public SEO and application-link regression gate
+        run: node --test test/unit/public-marketing-seo.unit.test.js test/unit/public-site-url.unit.test.js test/unit/app-url.unit.test.js test/unit/product-landing-seo.unit.test.js
+
       - name: Audit runtime dependencies
         run: npm audit --omit=dev --audit-level=high
 
@@ -102,6 +105,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          build-args: |
+            NEXT_PUBLIC_APP_URL=https://app.30grow.com
+            NEXT_PUBLIC_SITE_URL=https://30grow.com
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
