@@ -7,7 +7,7 @@ import { ERR, HTTP_STATUS } from '../../lib/api-error-codes.js';
 import { LOCALES } from '../../lib/locale-negotiation.js';
 const zLocale = z.enum(LOCALES);
 const common = {
-  z, zLocale, ERR, HTTP_STATUS, getCompanyEnabledModules: async () => null, getEmployeeProfile: async () => ({ ok: true }), getEmployeeHome: async () => ({ ok: true }), t: () => "Task", normalizeLocale: (v) => v, getTimeClockAccess: async () => ({ ok: true }),
+  employeeSectionVisible: () => false, getEmployeeDpHome: async () => null, getEmployeeTimeClockToday: async () => null, listEmployeeSurveyInbox: async () => null, listFeedbackInbox: async () => null, listEmployeeVisibleCompensation: async () => null, z, zLocale, ERR, HTTP_STATUS, getCompanyEnabledModules: async () => null, getEmployeeProfile: async () => ({ ok: true }), getEmployeeHome: async () => ({ ok: true }), t: () => "Task", normalizeLocale: (v) => v, getTimeClockAccess: async () => ({ ok: true }),
   NextResponse: { json: (body, options) => ({ body, ...options }) },
   apiError: (_request, code, status, _values, init) => ({ code, status, ...init }),
   apiErrorFromResult: (_request, result, options) => ({ code: result.errorCode, status: 400, ...options?.init }),
@@ -65,7 +65,7 @@ test('magic exchange requires 2FA and grants only the token-owned company, not i
 });
 test('magic request has uniform success, CAPTCHA, account limits and bounded strict input', async () => {
   let sent = 0, captcha = true;
-  const deps = { ...common, accountRateLimitKey: () => 'account', verifyTurnstileToken: async () => ({ ok: captcha }), requestEmployeeMagicLink: async (_db, input) => { sent++; assert.equal(input.requireMail, true); return { ok: true, sent: false, ambiguous: true }; } };
+  const deps = { ...common, accountRateLimitKey: () => 'account', verifyTurnstileToken: async () => ({ ok: captcha }), requestEmployeeMagicLink: async (_db, input) => { sent++; assert.equal(input.requireMail, true); assert.equal(input.mobile, true); return { ok: true, sent: false, ambiguous: true }; } };
   const route = await load('app/api/mobile/v1/auth/magic-link/route.js', deps);
   const result = await route.POST(req({ email: 'person@example.com', locale: 'en' }));
   assert.equal(result.body?.ok, true, JSON.stringify(result));

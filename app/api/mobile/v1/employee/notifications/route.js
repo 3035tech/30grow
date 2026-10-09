@@ -4,7 +4,8 @@ import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../.
 import { listCandidateNotifications, markCandidateNotificationRead } from '../../../../../../lib/employee-notifications.js';
 import { mobilePushDestinationFor, normalizeMobilePushDestinations, resolveMobilePushDestination } from '../../../../../../lib/mobile-employee-push.js';
 import { mobileNotificationTarget } from '../../../../../../lib/mobile-notification-target.js';
-import { t } from '../../../../../../lib/i18n.js';
+import { getEmployeeProfile } from '../../../../../../lib/employee-profile.js';
+import { t, normalizeLocale } from '../../../../../../lib/i18n.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
 
 export const dynamic = 'force-dynamic';
@@ -29,11 +30,13 @@ function options(request) {
   return parsed.success ? parsed.data : null;
 }
 async function responseFor(request, session, { page, context, notificationId, destinations }) {
+  const profile = await getEmployeeProfile(null, session);
+  const locale = normalizeLocale(profile.ok ? profile.person.preferredLocale : 'pt-BR');
   const supported = normalizeMobilePushDestinations(String(destinations || '').split(','));
   const result = await listCandidateNotifications(null, { companyId: session.companyId, candidateId: session.candidateId, limit: PAGE_SIZE, offset: notificationId ? 0 : (page - 1) * PAGE_SIZE, ...(notificationId ? { id: notificationId } : {}) });
   if (!result.ok) return apiErrorFromResult(request, result);
   return NextResponse.json({
-    items: result.items.map((item) => ({ id: Number(item.id), title: t('pt-BR', item.copy.titleKey, item.copy.values), body: t('pt-BR', item.copy.bodyKey, item.copy.values), createdAt: new Date(item.createdAt).toISOString(), readAt: item.readAt ? new Date(item.readAt).toISOString() : null, destination: resolveMobilePushDestination(mobilePushDestinationFor(item.type), supported), ...(context ? { target: mobileNotificationTarget(item) } : {}) })),
+    items: result.items.map((item) => ({ id: Number(item.id), title: t(locale, item.copy.titleKey, item.copy.values), body: t(locale, item.copy.bodyKey, item.copy.values), createdAt: new Date(item.createdAt).toISOString(), readAt: item.readAt ? new Date(item.readAt).toISOString() : null, destination: resolveMobilePushDestination(mobilePushDestinationFor(item.type), supported), ...(context ? { target: mobileNotificationTarget(item) } : {}) })),
     unreadCount: Number(result.unreadCount) || 0,
     pagination: { page, totalPages: Math.min(MAX_PAGE, Math.max(1, Math.ceil((result.total || 0) / PAGE_SIZE))) },
   }, { headers: NO_STORE });

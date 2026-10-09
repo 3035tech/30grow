@@ -9,7 +9,7 @@ test('mobile home exposes only the authenticated company introduction', async ()
   for (const companyId of [1, 2, null]) {
     const calls = [];
     const dependencies = {
-      z, dismissEmployeeWelcome: async () => ({ ok: true }), apiErrorFromResult: () => ({}), checkRateLimit: async () => ({ ok: true }), clientIpFromRequest: () => 'ip',
+      query: null, employeeSectionVisible: () => false, getEmployeeDpHome: async () => null, getEmployeeTimeClockToday: async () => null, listEmployeeSurveyInbox: async () => null, listFeedbackInbox: async () => null, listEmployeeVisibleCompensation: async () => null, z, dismissEmployeeWelcome: async () => ({ ok: true }), apiErrorFromResult: () => ({}), checkRateLimit: async () => ({ ok: true }), clientIpFromRequest: () => 'ip',
       NextResponse: { json: (body) => body },
       apiError: (_request, code, status) => ({ code, status }),
       HTTP_STATUS: { UNAUTHORIZED: 401, INTERNAL_SERVER_ERROR: 500 }, ERR: { UNAUTHORIZED: 'UNAUTHORIZED', INTERNAL: 'INTERNAL' },

@@ -30,7 +30,7 @@ export async function POST(request) {
     if (!captcha.ok) return apiError(request, ERR.TURNSTILE_FAILED, HTTP_STATUS.BAD_REQUEST, {}, { headers: NO_STORE });
     const account = await checkRateLimit(accountRateLimitKey('employee-magic', parsed.data.email), 6, 15 * 60 * 1000);
     if (!account.ok) return apiError(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS, {}, { headers: { ...NO_STORE, 'Retry-After': String(account.retryAfterSec) } });
-    const result = await requestEmployeeMagicLink(query, { email: parsed.data.email, companySlug: parsed.data.companySlug, locale: parsed.data.locale, requireMail: true });
+    const result = await requestEmployeeMagicLink(query, { email: parsed.data.email, companySlug: parsed.data.companySlug, locale: parsed.data.locale, requireMail: true, mobile: true });
     if (!result.ok) return apiErrorFromResult(request, result, { init: { headers: NO_STORE } });
     return NextResponse.json({ ok: true }, { headers: NO_STORE });
   } catch {
