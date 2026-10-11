@@ -1,5 +1,7 @@
 'use client';
 
+import { ListLoadError } from './ListLoadError';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -155,7 +157,7 @@ export function TimeClockRequestsBlock({ locale = 'pt-BR', companyId, onChanged 
   const q = useDebounced(qDraft);
   const [status, setStatus] = useState(TIME_REQUEST_STATUS.PENDING);
   const [page, setPage] = useState(1);
-  const [list, setList] = useState({ items: [], total: 0, loading: true });
+  const [list, setList] = useState({ items: [], total: 0, loading: true, error: null });
   const [reloadKey, setReloadKey] = useState(0);
   const [openId, setOpenId] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -165,7 +167,7 @@ export function TimeClockRequestsBlock({ locale = 'pt-BR', companyId, onChanged 
 
   useEffect(() => {
     let alive = true;
-    setList((s) => ({ ...s, loading: true }));
+    setList((s) => ({ ...s, loading: true, error: null }));
     const params = new URLSearchParams({
       companyId: String(companyId),
       status,
@@ -182,7 +184,7 @@ export function TimeClockRequestsBlock({ locale = 'pt-BR', companyId, onChanged 
       .catch((e) => {
         if (!alive) return;
         toast(e?.message || t(locale, `${KR}.listError`), 'error');
-        setList({ items: [], total: 0, loading: false });
+        setList({ items: [], total: 0, loading: false, error: e?.message || String(e) });
       });
     return () => {
       alive = false;
@@ -274,7 +276,9 @@ export function TimeClockRequestsBlock({ locale = 'pt-BR', companyId, onChanged 
         </AdminListFilterSelect>
       </AdminListFilters>
 
-      {list.loading && list.items.length === 0 ? (
+      {list.error ? (
+        <ListLoadError locale={locale} message={t(locale, `${KR}.listError`)} onRetry={() => setReloadKey((n) => n + 1)} />
+      ) : list.loading && list.items.length === 0 ? (
         <AppLoading variant="panel" />
       ) : list.items.length === 0 ? (
         <EmptyState

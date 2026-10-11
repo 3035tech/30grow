@@ -1,5 +1,7 @@
 'use client';
 
+import { ListLoadError } from './ListLoadError';
+
 import { useCallback, useEffect, useState } from 'react';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -43,9 +45,9 @@ function useDebounced(value, ms = 300) {
 
 function usePagedList(url, params, deps) {
   const { toast } = useAppFeedback();
-  const [state, setState] = useState({ items: [], total: 0, loading: true });
+  const [state, setState] = useState({ items: [], total: 0, loading: true, error: null });
   const load = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true }));
+    setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await fetch(`${url}?${new URLSearchParams(params)}`);
       const data = await res.json().catch(() => ({}));
@@ -53,7 +55,7 @@ function usePagedList(url, params, deps) {
       setState({ items: data.items || [], total: Number(data.total) || 0, loading: false });
     } catch (e) {
       toast(e?.message || String(e), 'error');
-      setState({ items: [], total: 0, loading: false });
+      setState({ items: [], total: 0, loading: false, error: e?.message || String(e) });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
@@ -105,7 +107,7 @@ function PeopleList({ locale, companyId, onOpen, reloadKey }) {
     ...(q.trim() ? { q: q.trim() } : {}),
     ...(orgUnit ? { orgUnit } : {}),
   };
-  const { items, total, loading } = usePagedList(
+  const { items, total, loading, error, reload } = usePagedList(
     '/api/admin/time-clock/people',
     params,
     [companyId, page, q, orgUnit, reloadKey]
@@ -132,7 +134,9 @@ function PeopleList({ locale, companyId, onOpen, reloadKey }) {
         <OrgUnitFilter companyId={companyId} locale={locale} value={orgUnit} onChange={setOrgUnit} />
       </AdminListFilters>
 
-      {loading && items.length === 0 ? (
+      {error ? (
+        <ListLoadError locale={locale} message={t(locale, 'panel.timeClock.loadError')} onRetry={reload} />
+      ) : loading && items.length === 0 ? (
         <AppLoading variant="panel" />
       ) : items.length === 0 ? (
         <EmptyState
@@ -219,7 +223,7 @@ function BankBalances({ locale, companyId, onOpen, reloadKey }) {
     offset: String((page - 1) * PAGE_SIZE),
     ...(q.trim() ? { q: q.trim() } : {}),
   };
-  const { items, total, loading } = usePagedList(
+  const { items, total, loading, error, reload } = usePagedList(
     '/api/admin/hour-bank',
     params,
     [companyId, page, q, reloadKey]
@@ -240,7 +244,9 @@ function BankBalances({ locale, companyId, onOpen, reloadKey }) {
           placeholder={t(locale, `${K}.searchPeople`)}
         />
       </AdminListFilters>
-      {loading && items.length === 0 ? (
+      {error ? (
+        <ListLoadError locale={locale} message={t(locale, 'panel.timeClock.loadError')} onRetry={reload} />
+      ) : loading && items.length === 0 ? (
         <AppLoading variant="panel" />
       ) : items.length === 0 ? (
         <EmptyState title={t(locale, `${K}.peopleEmptyFiltered`)} message={t(locale, `${K}.peopleEmptyHint`)} />

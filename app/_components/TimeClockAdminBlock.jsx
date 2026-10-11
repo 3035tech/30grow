@@ -1,5 +1,7 @@
 'use client';
 
+import { ListLoadError } from './ListLoadError';
+
 import { useCallback, useEffect, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import {
@@ -41,6 +43,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
   const [items, setItems] = useState([]);
   const [schedule, setSchedule] = useState(null);
   const [flaggedCount, setFlaggedCount] = useState(0);
+  const [loadError, setLoadError] = useState(null);
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [busy, setBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -48,6 +51,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
   const [autoOpenedForFlags, setAutoOpenedForFlags] = useState(false);
 
   const load = useCallback(async () => {
+    setLoadError(null);
     if (!companyId) {
       setItems([]);
       setLoading(false);
@@ -64,6 +68,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
       setFlaggedCount(Number(data.flaggedCount) || 0);
     } catch (e) {
       toast(e?.message || t(locale, 'panel.timeClock.loadError'), 'error');
+      setLoadError(t(locale, 'panel.timeClock.loadError'));
       setItems([]);
     } finally {
       setLoading(false);
@@ -271,7 +276,9 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
       className="mt-2"
       collapsedHint={t(locale, 'panel.timeClock.hint')}
     >
-      {loading ? (
+      {loadError ? (
+        <ListLoadError locale={locale} message={loadError} onRetry={load} />
+      ) : loading ? (
         <AppLoading variant="panel" />
       ) : (
         <ContentEnter animKey={`tc|${companyId}|${day}|${items.length}|${flaggedCount}`}>

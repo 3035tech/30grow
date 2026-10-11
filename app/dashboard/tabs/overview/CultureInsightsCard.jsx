@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { ListLoadError } from '../../../_components/ListLoadError';
 import { cn } from '../../../../lib/cn';
 import { S } from '../../dashboard-shared';
 import { InsightListItem } from '../../../_components/InsightListItem';
@@ -12,6 +13,10 @@ export default function CultureInsightsCard({ locale = 'pt-BR', companyId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showFull, setShowFull] = useState(false);
+  const [error, setError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [fullLoading, setFullLoading] = useState(false);
+  const requestVersion = useRef(0);
 
   function t(key, values = {}) {
     const path = `adminModules.cultureInsights.${key}`;
@@ -20,36 +25,55 @@ export default function CultureInsightsCard({ locale = 'pt-BR', companyId }) {
   }
 
   useEffect(() => {
-    loadData();
-  }, [companyId]);
-
-  async function loadData() {
-    if (!companyId) return;
-    setLoading(true);
-    try {
-      const res = await fetch('/api/admin/organizational-culture?summary=true');
-      const json = await res.json();
-      if (json.ok) {
-        setData(json.summary);
-      }
-    } catch (err) {
-      console.error('Failed to load culture insights:', err);
-    } finally {
+    const version = ++requestVersion.current;
+    const controller = new AbortController();
+    setData(null);
+    setShowFull(false);
+    setError(null);
+    setFullLoading(false);
+    if (!companyId) {
       setLoading(false);
+      return () => { requestVersion.current++; };
     }
-  }
+    setLoading(true);
+    async function loadData() {
+      try {
+        const params = new URLSearchParams({ companyId: String(companyId), summary: 'true' });
+        const res = await fetch(`/api/admin/organizational-culture?${params}`, { signal: controller.signal });
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || String(res.status));
+        if (version === requestVersion.current) setData(json.summary);
+      } catch (err) {
+        if (version === requestVersion.current && !controller.signal.aborted) setError(err.message);
+      } finally {
+        if (version === requestVersion.current) setLoading(false);
+      }
+    }
+    void loadData();
+    return () => {
+      controller.abort();
+      requestVersion.current++;
+    };
+  }, [companyId, reloadKey]);
 
   async function loadFullInsights() {
-    if (!companyId) return;
+    if (!companyId || fullLoading) return;
+    const version = requestVersion.current;
+    setFullLoading(true);
+    setError(null);
     try {
-      const res = await fetch('/api/admin/organizational-culture');
+      const params = new URLSearchParams({ companyId: String(companyId) });
+      const res = await fetch(`/api/admin/organizational-culture?${params}`);
       const json = await res.json();
-      if (json.ok) {
-        setData({ ...data, fullCulture: json.culture });
+      if (!res.ok || !json.ok) throw new Error(json.error || String(res.status));
+      if (version === requestVersion.current) {
+        setData((current) => ({ ...current, fullCulture: json.culture }));
         setShowFull(true);
       }
     } catch (err) {
-      console.error('Failed to load full culture:', err);
+      if (version === requestVersion.current) setError(err.message);
+    } finally {
+      if (version === requestVersion.current) setFullLoading(false);
     }
   }
 
@@ -87,6 +111,10 @@ export default function CultureInsightsCard({ locale = 'pt-BR', companyId }) {
         <AppLoading locale={locale} variant="inline" />
       </div>
     );
+  }
+
+  if (error) {
+    return <div className={S.card}><ListLoadError locale={locale} message={t('loadError')} onRetry={() => setReloadKey((n) => n + 1)} /></div>;
   }
 
   if (!data || (!data.hasClimateData && !data.hasPulseData && !data.hasTypeMixData)) {
@@ -164,7 +192,7 @@ export default function CultureInsightsCard({ locale = 'pt-BR', companyId }) {
             </div>
           </div>
 
-          <button type="button" onClick={loadFullInsights} className={S.cardLink}>
+          <button type="button" onClick={loadFullInsights} disabled={fullLoading} className={S.cardLink}>
             {t('viewFull')} →
           </button>
         </div>
@@ -179,7 +207,7 @@ export default function CultureInsightsCard({ locale = 'pt-BR', companyId }) {
               if (insight.category === 'climate') {
                 actionLink = '/dashboard?tab=climate';
               } else if (insight.category === 'pulse') {
-                actionLink = '/dashboard?tab=groups';
+                actionLink = '/dashboard?tab=group';
               } else if (insight.category === 'alignment') {
                 actionLink = '/dashboard?tab=companies';
               } else if (insight.category === 'type_mix') {

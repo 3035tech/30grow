@@ -1,5 +1,7 @@
 'use client';
 
+import { ListLoadError } from './ListLoadError';
+
 import { useCallback, useEffect, useState } from 'react';
 import { t } from '../../lib/i18n';
 import {
@@ -42,12 +44,14 @@ export function HourBankAdminBlock({
   const [balances, setBalances] = useState([]);
   const [pending, setPending] = useState([]);
   const [schedule, setSchedule] = useState(null);
+  const [loadError, setLoadError] = useState(null);
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [busy, setBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [open, setOpen] = useState(false);
 
   const load = useCallback(async () => {
+    setLoadError(null);
     if (!companyId) {
       setBalances([]);
       setPending([]);
@@ -80,6 +84,7 @@ export function HourBankAdminBlock({
       if ((entData.items || []).length > 0) setOpen(true);
     } catch (e) {
       toast(e?.message || t(locale, 'panel.hourBank.loadError'), 'error');
+      setLoadError(t(locale, 'panel.hourBank.loadError'));
       setBalances([]);
       setPending([]);
     } finally {
@@ -279,7 +284,9 @@ export function HourBankAdminBlock({
       variant="card"
       className="mt-2"
     >
-      {loading ? (
+      {loadError ? (
+        <ListLoadError locale={locale} message={loadError} onRetry={load} />
+      ) : loading ? (
         <AppLoading variant="panel" />
       ) : (
         <ContentEnter animKey={`hour-bank|${enabled ? 1 : 0}|${pending.length}|${balances.length}`}>

@@ -1,5 +1,7 @@
 'use client';
 
+import { ListLoadError } from './ListLoadError';
+
 import { useCallback, useEffect, useState } from 'react';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -71,9 +73,11 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [data, setData] = useState({ items: [], total: 0, sumCents: 0 });
+  const [loadError, setLoadError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    setLoadError(null);
     setLoading(true);
     try {
       const params = new URLSearchParams({ companyId: String(companyId), status, page: String(page), pageSize: String(pageSize) });
@@ -84,6 +88,7 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
       setData({ items: json.items || [], total: Number(json.total) || 0, sumCents: Number(json.sumCents) || 0 });
     } catch (e) {
       toast(e?.message || t(locale, 'panel.field.loadError'), 'error');
+      setLoadError(t(locale, 'panel.field.loadError'));
       setData({ items: [], total: 0, sumCents: 0 });
     } finally {
       setLoading(false);
@@ -172,7 +177,9 @@ function FieldExpensesQueue({ locale, companyId, promptForm, toast, onChanged })
         </AdminListFilterSelect>
       </AdminListFilters>
 
-      {loading ? (
+      {loadError ? (
+        <ListLoadError locale={locale} message={loadError} onRetry={load} />
+      ) : loading ? (
         <AppLoading locale={locale} variant="panel" />
       ) : data.items.length === 0 ? (
         <ContentEnter animKey={`${animKey}|empty`}>
@@ -265,10 +272,12 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [data, setData] = useState({ items: [], total: 0, day: '' });
+  const [loadError, setLoadError] = useState(null);
   const [loading, setLoading] = useState(true);
   const shownDay = day || data.day;
 
   const load = useCallback(async () => {
+    setLoadError(null);
     setLoading(true);
     try {
       const params = new URLSearchParams({ companyId: String(companyId), page: String(page), pageSize: String(pageSize) });
@@ -279,6 +288,7 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
       setData({ items: json.items || [], total: Number(json.total) || 0, day: json.day || day });
     } catch (e) {
       toast(e?.message || t(locale, 'panel.field.loadError'), 'error');
+      setLoadError(t(locale, 'panel.field.loadError'));
       setData({ items: [], total: 0, day });
     } finally {
       setLoading(false);
@@ -373,7 +383,9 @@ function FieldVisitsDay({ locale, companyId, promptForm, toast }) {
         <AdminCreateButton label={t(locale, 'panel.field.planVisit')} onClick={() => void plan()} />
       </div>
 
-      {loading ? (
+      {loadError ? (
+        <ListLoadError locale={locale} message={loadError} onRetry={load} />
+      ) : loading ? (
         <AppLoading locale={locale} variant="panel" />
       ) : data.items.length === 0 ? (
         <ContentEnter animKey={`${animKey}|empty`}>

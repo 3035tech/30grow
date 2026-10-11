@@ -1,5 +1,7 @@
 'use client';
 
+import { ListLoadError } from './ListLoadError';
+
 import { useCallback, useEffect, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -53,12 +55,12 @@ export function TimeClockHolidaysBlock({ locale = 'pt-BR', companyId, onChanged 
   const [qDraft, setQDraft] = useState('');
   const q = useDebounced(qDraft);
   const [page, setPage] = useState(1);
-  const [state, setState] = useState({ items: [], total: 0, loading: true });
+  const [state, setState] = useState({ items: [], total: 0, loading: true, error: null });
   const [busy, setBusy] = useState(false);
   useEffect(() => setPage(1), [q, year]);
 
   const load = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true }));
+    setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const params = new URLSearchParams({
         companyId: String(companyId),
@@ -73,7 +75,7 @@ export function TimeClockHolidaysBlock({ locale = 'pt-BR', companyId, onChanged 
       setState({ items: data.items || [], total: Number(data.total) || 0, loading: false });
     } catch (e) {
       toast(e?.message || t(locale, `${KH}.loadError`), 'error');
-      setState({ items: [], total: 0, loading: false });
+      setState({ items: [], total: 0, loading: false, error: e?.message || String(e) });
     }
   }, [companyId, year, page, q, locale, toast]);
 
@@ -170,7 +172,7 @@ export function TimeClockHolidaysBlock({ locale = 'pt-BR', companyId, onChanged 
   };
 
   const years = [thisYear - 1, thisYear, thisYear + 1, thisYear + 2].map(String);
-  const { items, total, loading } = state;
+  const { items, total, loading, error } = state;
   const dirty = Boolean(qDraft.trim());
 
   return (
@@ -211,7 +213,9 @@ export function TimeClockHolidaysBlock({ locale = 'pt-BR', companyId, onChanged 
         </AdminListFilterSelect>
       </AdminListFilters>
 
-      {loading && items.length === 0 ? (
+      {error ? (
+        <ListLoadError locale={locale} message={t(locale, `${KH}.loadError`)} onRetry={load} />
+      ) : loading && items.length === 0 ? (
         <AppLoading variant="panel" />
       ) : items.length === 0 ? (
         <EmptyState

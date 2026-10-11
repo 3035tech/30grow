@@ -103,3 +103,12 @@ Equipe. Submissão da avaliação e drag-and-drop ficam em specs mutáveis separ
 - Seeds de demo “reais” / migrate → continuam em `scripts/`
 - Código de produto → `app/`, `lib/`, `migrations/`
 - Artefatos Playwright (`test-results/`, `playwright-report/`) → gitignored
+
+## Falhas de carregamento no painel
+
+`node --test test/unit/dashboard-load-errors.unit.test.cjs` verifica Cultura Organizacional
+(resumo e detalhes com empresa, descarte de respostas antigas e recuperação), além das
+listas de Ponto, Feriados, Solicitações, Banco de Horas e Field. Falhas HTTP devem exibir
+um aviso persistente com nova tentativa; uma resposta vazia bem-sucedida mantém o estado
+vazio normal. A prova executa componentes com requisições controladas, sem banco ou sessão
+real; não substitui o smoke no navegador após publicar.
