@@ -457,7 +457,14 @@ export async function DELETE(request, props) {
   const cand = await query(`SELECT company_id AS "companyId" FROM candidates WHERE id = $1 LIMIT 1`, [id]);
   if (cand.rowCount === 0) return apiError(request, ERR.NOT_FOUND, 404);
 
-  const del = await query(`DELETE FROM candidates WHERE id = $1 RETURNING id`, [id]);
+  const del = await withTransaction(async (client) => {
+    // These FKs use SET NULL: remove identity-bound invites before deleting
+    // the candidate, otherwise their snapshots and reminder tokens survive.
+    const scope = [id, cand.rows[0].companyId];
+    await client.query(`DELETE FROM candidate_invites WHERE candidate_id = $1 AND company_id = $2`, scope);
+    await client.query(`DELETE FROM ae_invites WHERE candidate_id = $1 AND company_id = $2`, scope);
+    return client.query(`DELETE FROM candidates WHERE id = $1 AND company_id = $2 RETURNING id`, scope);
+  });
   if (del.rowCount === 0) return apiError(request, ERR.NOT_FOUND, 404);
 
   // Legacy results have no reliable candidate/tenant relationship. A name is

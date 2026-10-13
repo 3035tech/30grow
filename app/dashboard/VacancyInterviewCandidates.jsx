@@ -99,7 +99,7 @@ function CandidateCard({
   onToggleSelect = null,
   selectDisabled = false,
 }) {
-  const { notice, toast } = useAppFeedback();
+  const { notice, toast, confirm } = useAppFeedback();
   const [notes, setNotes] = useState(row.interviewNotes || '');
   const [phone, setPhone] = useState(stripPhone(row.phone) || '');
   const [linkedinUrl, setLinkedinUrl] = useState(row.linkedinUrl || '');
@@ -113,6 +113,7 @@ function CandidateCard({
   const [profileBusy, setProfileBusy] = useState(false);
   const [inviteBusy, setInviteBusy] = useState(false);
   const [motivatorsBusy, setMotivatorsBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [decisionBrief, setDecisionBrief] = useState(null);
   const [fitScores, setFitScores] = useState(null);
@@ -294,8 +295,29 @@ function CandidateCard({
     motivatorsDone && row.motivatorsInviteStatus !== 'completed'
       ? 'completed'
       : row.motivatorsInviteStatus;
-  const anyInviteBusy = inviteBusy || motivatorsBusy;
+  const anyInviteBusy = inviteBusy || motivatorsBusy || deleting;
   const locBits = [row.city, row.state].filter(Boolean).join(' / ');
+
+  const deleteCandidate = async () => {
+    const ok = await confirm({
+      message: t(locale, 'panel.team.confirmDeletePerson', { name: titleCasePersonName(row.fullName) }),
+      danger: true,
+      confirmLabel: t(locale, 'panel.team.deletePerson'),
+    });
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/candidates/${encodeURIComponent(row.candidateId)}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || t(locale, 'panel.team.deletePersonError'));
+      onChanged?.();
+      onPipelineChange?.();
+    } catch (e) {
+      await showError(e?.message || t(locale, 'panel.team.deletePersonError'));
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div
@@ -434,6 +456,16 @@ function CandidateCard({
               : motivatorsDone
                 ? t(locale, 'recruiting.motivatorsDone')
                 : t(locale, 'recruiting.sendMotivators')}
+          </button>
+          <button
+            type="button"
+            onClick={deleteCandidate}
+            disabled={anyInviteBusy || busy || profileBusy || notesAiBusy || selectDisabled}
+            aria-label={t(locale, 'panel.team.ariaDeletePerson')}
+            aria-busy={deleting || undefined}
+            className="min-h-touch rounded-control border border-danger/35 px-2.5 py-2 font-mono text-xs text-danger disabled:cursor-default disabled:opacity-60"
+          >
+            {deleting ? <Spinner className="h-4 w-4" /> : t(locale, 'panel.team.deletePerson')}
           </button>
         </div>
       </div>
