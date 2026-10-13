@@ -688,28 +688,6 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
                               {workspace.recruiters.map((recruiter) => <option key={recruiter.id} value={recruiter.id}>{recruiter.name}</option>)}
                             </SelectField>
                           </label>
-                          <label className="mt-2 block">
-                            <span className="sr-only">{t(locale, 'recruiting.moveToStage')}</span>
-                            <SelectField
-                              className="ui-select w-full min-h-touch rounded-control border border-ink/12 bg-canvas px-2 py-1.5 font-mono text-2xs text-ink"
-                              value={r.pipelineStage || 'new'}
-                              disabled={isBusy}
-                              aria-label={t(locale, 'recruiting.moveToStageHint')}
-                              title={t(locale, 'recruiting.moveToStageHint')}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => {
-                                const next = e.target.value;
-                                if (!next || next === (r.pipelineStage || 'new')) return;
-                                void moveTo(r, next);
-                              }}
-                            >
-                              {stages.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  {s.label}
-                                </option>
-                              ))}
-                            </SelectField>
-                          </label>
                         </div>
                       );
                     })}

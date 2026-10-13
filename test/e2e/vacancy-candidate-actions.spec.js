@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { Pool } from 'pg';
-import { HR, dismissManagerOnboarding, uniqueCandidateEmail } from './fixtures.js';
+import { HR, dismissManagerOnboarding, uniqueCandidateEmail, html5DragAndDrop } from './fixtures.js';
 
 test('expired vacancy link sends invites; candidate deletion confirms, recovers and refreshes', async ({ page, baseURL }) => {
   test.skip(!process.env.VACANCY_LINK_TEST_DATABASE_URL, 'Requires an explicitly configured local test database and SMTP mock');
@@ -34,6 +34,21 @@ test('expired vacancy link sends invites; candidate deletion confirms, recovers 
     expect((await inviteResponse).ok()).toBeTruthy();
     expect((await db.query('SELECT token FROM vacancy_links WHERE vacancy_id = $1 AND active', [vacancy.id])).rows[0].token).toBe(oldLink.rows[0].token);
     await expect(card.getByText('Eneagrama: Enviado', { exact: true })).toBeVisible();
+
+    await page.getByRole('tab', { name: 'Pipeline', exact: true }).click();
+    const pipelineCard = page.locator('.kanban-scroll div[draggable="true"]').filter({ hasText: name });
+    const approved = page.locator('.kanban-scroll > div > div').filter({
+      has: page.locator('.sticky').filter({ hasText: 'Aprovado' }),
+    });
+    await expect(pipelineCard).toBeVisible();
+    await expect(pipelineCard.getByRole('combobox', { name: 'Responsável pelo candidato', exact: true })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Mover para estágio', exact: true })).toHaveCount(0);
+    const stageResponse = page.waitForResponse(r => r.request().method() === 'PATCH' && r.url().endsWith(`/candidates/${candidateId}`));
+    await html5DragAndDrop(pipelineCard, approved);
+    expect((await stageResponse).ok()).toBeTruthy();
+    await expect(approved).toContainText(name);
+    expect((await db.query('SELECT pipeline_stage FROM vacancy_candidates WHERE candidate_id = $1 AND vacancy_id = $2', [candidateId, vacancy.id])).rows[0].pipeline_stage).toBe('approved');
+    await page.getByRole('tab', { name: 'Candidatos', exact: true }).click();
 
     let deletes = 0;
     page.on('request', r => { if (r.method() === 'DELETE') deletes++; });

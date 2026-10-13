@@ -4,7 +4,7 @@
  * Run only against DTOV; synthetic records remain for diagnosis until DTOV reset.
  */
 import { test, expect as baseExpect } from '@playwright/test';
-import { dismissManagerOnboarding, fillLogin, uniqueCandidateEmail } from './fixtures.js';
+import { dismissManagerOnboarding, fillLogin, uniqueCandidateEmail, html5DragAndDrop } from './fixtures.js';
 
 // Local Next dev compiles each first-visited route on demand.
 const expect = baseExpect.configure({ timeout: 60_000 });
@@ -181,19 +181,23 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await expect(page.getByRole('textbox', { name: 'Anotações da entrevista…', exact: true })).toHaveText(decision);
     await page.getByRole('tab', { name: 'Pipeline', exact: true }).click();
     await expect(page.locator('.kanban-scroll div[draggable="true"]')).toHaveCount(1);
-    const stage = page.getByRole('combobox', { name: 'Mover para estágio', exact: true });
-    await expect(stage).toHaveText('Teste concluído');
-    await choose(page, 'Mover para estágio', 'Aprovado');
-    await expect(stage).toHaveText('Aprovado');
-    await choose(page, 'Mover para estágio', 'Contratado');
+    const card = page.locator('.kanban-scroll div[draggable="true"]');
+    const column = (label) => page.locator('.kanban-scroll > div > div').filter({
+      has: page.locator('.sticky').filter({ hasText: label }),
+    });
+    await expect(page.getByRole('combobox', { name: 'Mover para estágio', exact: true })).toHaveCount(0);
+    await expect(column('Teste concluído')).toContainText(candidateName);
+    await html5DragAndDrop(card, column('Aprovado'));
+    await expect(column('Aprovado')).toContainText(candidateName);
+    await html5DragAndDrop(card, column('Contratado'));
     await expect(page.getByRole('dialog', { name: 'Data de início', exact: true })).toBeVisible();
     await page.getByRole('dialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
-    await expect(stage).toHaveText('Aprovado');
-    await choose(page, 'Mover para estágio', 'Contratado');
+    await expect(column('Aprovado')).toContainText(candidateName);
+    await html5DragAndDrop(card, column('Contratado'));
     await page.getByRole('dialog').getByRole('button', { name: 'Confirmar', exact: true }).click();
-    await expect(stage).toHaveText('Contratado');
+    await expect(column('Contratado')).toContainText(candidateName);
     await page.reload();
-    await expect(stage).toHaveText('Contratado');
+    await expect(column('Contratado')).toContainText(candidateName);
   });
 
   await test.step('Find exactly the same hired person in Team after reload', async () => {
