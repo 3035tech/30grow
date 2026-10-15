@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { ProductScreenshot } from '../../_components/ProductScreenshot';
+import { SOLUTION_SCREENSHOTS } from '../../../lib/product-screenshots';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { normalizeLocale, localeHtmlLang } from '../../../lib/i18n';
@@ -27,6 +29,7 @@ export default async function SolutionPage({ params }) {
   const { index, locale } = await pageData(params);
   const solutions = getPublicSolutions(locale);
   const solution = solutions[index];
+  const screenshot = SOLUTION_SCREENSHOTS[index];
   const copy = getProductLandingCopy(locale);
   const labels = solutionCopy(locale);
   const root = productLandingAbsoluteUrl('/');
@@ -36,7 +39,7 @@ export default async function SolutionPage({ params }) {
   const headerCopyByLocale = Object.fromEntries(PUBLIC_MARKETING_LOCALES.map((loc) => [loc, getPublicHeaderCopy(loc)]));
   const jsonLd = {
     '@context': 'https://schema.org', '@graph': [
-      { '@type': 'WebPage', '@id': `${url}#webpage`, url, name: solution.title, description: solution.body, inLanguage: localeHtmlLang(locale), isPartOf: { '@id': `${root}#website` }, about: { '@id': `${root}#software` } },
+      { '@type': 'WebPage', '@id': `${url}#webpage`, url, name: solution.title, description: solution.body, inLanguage: localeHtmlLang(locale), isPartOf: { '@id': `${root}#website` }, about: { '@id': `${root}#software` }, ...(screenshot ? { primaryImageOfPage: { '@type': 'ImageObject', url: productLandingAbsoluteUrl(screenshot.src), width: screenshot.width, height: screenshot.height } } : {}) },
       { '@type': 'BreadcrumbList', itemListElement: [
         { '@type': 'ListItem', position: 1, name: '30Grow', item: productLandingAbsoluteUrl(home) },
         { '@type': 'ListItem', position: 2, name: solution.title, item: url },
@@ -56,6 +59,7 @@ export default async function SolutionPage({ params }) {
           <h1 className="font-display text-3xl font-semibold leading-tight sm:text-5xl">{solution.title}</h1>
           <p className="mt-6 text-lg leading-8 text-ink-muted">{solution.body}</p>
         </header>
+        {screenshot ? <div className="mt-10"><ProductScreenshot image={screenshot} title={solution.title} locale={locale} eager /></div> : null}
         <section className="mt-12" aria-labelledby="features-title">
           <h2 id="features-title" className="font-display text-2xl font-semibold">{labels.features}</h2>
           <ul className="mt-5 grid list-disc gap-x-10 gap-y-4 pl-5 leading-7 text-ink-muted sm:grid-cols-2">

@@ -85,7 +85,7 @@ test('sitemap includes every actual marketing translation, stable timestamps and
   assert.equal(new Set(entries.map((item) => item.url)).size, entries.length);
   for (const item of entries) {
     assert.ok(publicMarketingRoute(new URL(item.url).pathname));
-    assert.equal(item.lastModified.toISOString(), '2026-10-09T00:00:00.000Z');
+    assert.equal(item.lastModified.toISOString(), '2026-10-15T00:00:00.000Z');
     assert.ok(Object.values(item.alternates.languages).includes(item.url));
     assert.doesNotMatch(item.url, /app\.30grow|login|signup|token|dashboard/);
   }
@@ -109,12 +109,31 @@ test('search images keep the product brand distinct from its publisher and expos
     assert.equal(organization.brand.name, '30Grow');
     assert.equal(organization.brand.logo.url, 'https://30grow.com/brand/logo-512.png');
     const image = graph.find((item) => item['@type'] === 'WebPage').primaryImageOfPage;
-    assert.equal(image.url, 'https://30grow.com/brand/landing-people-context-v1.png');
+    assert.equal(image.url, 'https://30grow.com/product/visao-geral.webp');
     assert.ok(image.width >= 1200);
     const metadata = buildProductLandingMetadata(locale);
     assert.equal(metadata.openGraph.images[0].url, image.url);
     assert.ok(metadata.openGraph.images[0].alt?.length > 20);
   }
   const entries = publicMarketingSitemapEntries('https://30grow.com');
-  assert.equal(entries.filter((entry) => entry.images?.length).length, PUBLIC_MARKETING_LOCALES.length);
+  assert.equal(entries.filter((entry) => entry.images?.length).length, PUBLIC_MARKETING_LOCALES.length * 6);
+});
+
+
+test('solution previews match the module shown and do not reuse another module for DP', async () => {
+  configure();
+  const { SOLUTION_SCREENSHOTS } = await import('../../lib/product-screenshots.js');
+  const { existsSync } = await import('node:fs');
+  for (const locale of PUBLIC_MARKETING_LOCALES) {
+    SOLUTION_SCREENSHOTS.forEach((image, index) => {
+      const metadata = buildSolutionMetadata(locale, index);
+      if (image) {
+        assert.ok(existsSync(new URL(`../../public${image.src}`, import.meta.url)));
+        assert.equal(metadata.openGraph.images[0].url, `https://30grow.com${image.src}`);
+        assert.equal(metadata.twitter.images[0], metadata.openGraph.images[0].url);
+      } else {
+        assert.match(metadata.openGraph.images[0].url, /brand\/logo-512\.png$/);
+      }
+    });
+  }
 });
