@@ -46,3 +46,9 @@ Este corte não inclui CNPJ/filiais, orçamento financeiro, posição gestora, v
 Estados das posições exibidos em badges com rótulos no singular; formulários de movimentação mostram código, posição, unidade, cargo e ocupante na liberação. Botões indicam envio em andamento. A lista diferencia ausência de resultados filtrados de ausência de posições e não mostra estado vazio após falha de carregamento. O bloco de posições na vaga distingue carregamento, erro com nova tentativa e lista vazia, com identificação e estado de cada posição. Textos em português e inglês.
 
 Verificação após o polish: build de produção aprovado; lint do componente sem erros; 28 verificações HTTP/navegador aprovadas. Capturas desktop (1365px), celular (390px) e modo escuro revistas, sem overflow da página. Sem alteração de schema ou das regras de negócio; sem deploy.
+
+## Bootstrap em banco vazio
+
+Os blocos 158 e 159 são aplicados pelo runner ordenado de migrations após o bootstrap histórico. Não devem ser copiados ao bootstrap nem marcados como aplicados nele: dependem de tabelas intermediárias, incluindo `ai_usage_events` e `org_units`. O pacote de scripts pendentes e as migrations canônicas permanecem intactos.
+
+Correção validada em banco PostgreSQL local vazio e isolado: bootstrap com interrupção no primeiro erro, runner até a migration 159, segunda execução sem pendências e validação dos 18 contratos de schema. Nenhum banco existente foi apagado. A execução Docker de `dtov:reset` no CI não foi repetida localmente.
