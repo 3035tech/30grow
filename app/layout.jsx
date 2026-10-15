@@ -18,6 +18,7 @@ export async function generateMetadata() {
     description: t(locale, 'home.metaDescription'),
     icons: {
       icon: [
+        { url: '/brand/logo-192.png', sizes: '192x192', type: 'image/png' },
         { url: versionedIcon('/favicon.ico'), sizes: 'any' },
         { url: versionedIcon('/brand/favicon.svg'), type: 'image/svg+xml' },
         { url: versionedIcon('/brand/logo-32.png'), sizes: '32x32', type: 'image/png' },

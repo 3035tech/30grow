@@ -98,3 +98,23 @@ test('public SEO configuration does not change invitation/authentication link or
   process.env.NEXT_PUBLIC_SITE_URL = 'https://www.30grow.com';
   assert.equal(runtimeAppUrl(), 'https://app.30grow.com');
 });
+
+
+test('search images keep the product brand distinct from its publisher and expose a real landing image', () => {
+  configure();
+  for (const locale of PUBLIC_MARKETING_LOCALES) {
+    const graph = JSON.parse(buildProductLandingJsonLd(locale))['@graph'];
+    const organization = graph.find((item) => item['@type'] === 'Organization');
+    assert.equal(organization.name, '3035Tech');
+    assert.equal(organization.brand.name, '30Grow');
+    assert.equal(organization.brand.logo.url, 'https://30grow.com/brand/logo-512.png');
+    const image = graph.find((item) => item['@type'] === 'WebPage').primaryImageOfPage;
+    assert.equal(image.url, 'https://30grow.com/brand/landing-people-context-v1.png');
+    assert.ok(image.width >= 1200);
+    const metadata = buildProductLandingMetadata(locale);
+    assert.equal(metadata.openGraph.images[0].url, image.url);
+    assert.ok(metadata.openGraph.images[0].alt?.length > 20);
+  }
+  const entries = publicMarketingSitemapEntries('https://30grow.com');
+  assert.equal(entries.filter((entry) => entry.images?.length).length, PUBLIC_MARKETING_LOCALES.length);
+});
