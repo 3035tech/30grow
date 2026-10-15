@@ -1,4 +1,4 @@
-import { apiError, ERR } from '../../../../../lib/api-error.js';
+import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import {
   getSessionPayload,
   isAdminRole,
@@ -39,6 +39,7 @@ export async function GET(request, props) {
 
     return Response.json(jobRole);
   } catch (err) {
+    if(err?.code===ERR.POSITION_IN_USE)return apiErrorFromResult(request,{errorCode:err.code});
     console.error('[job-roles] GET [id] error:', err);
     return apiError(request, ERR.INTERNAL, 500);
   }
@@ -94,6 +95,7 @@ export async function PATCH(request, props) {
 
     return Response.json(updatedRole);
   } catch (err) {
+    if(err?.code===ERR.POSITION_IN_USE)return apiErrorFromResult(request,{errorCode:err.code});
     console.error('[job-roles] PATCH [id] error:', err);
 
     if (err.message === 'INVALID_RUBRIC') {
@@ -151,6 +153,7 @@ export async function DELETE(request, props) {
 
     return Response.json({ success: true, id });
   } catch (err) {
+    if(err?.code===ERR.POSITION_IN_USE)return apiErrorFromResult(request,{errorCode:err.code});
     console.error('[job-roles] DELETE [id] error:', err);
     return apiError(request, ERR.INTERNAL, 500);
   }

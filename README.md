@@ -253,3 +253,35 @@ docker compose up -d --build                                 # rebuild
 ## Suporte
 
 contact@3035tech.com · +55 51 99644-2104
+
+### Tags de candidatos
+
+RH e direção podem criar tags com nome e cor em **Gerenciar tags**, no quadro da vaga ou no Banco de talentos. Use **Adicionar tags** no cartão ou no perfil para associar várias tags à pessoa. Elas são compartilhadas entre as vagas da mesma empresa. Os filtros aceitam qualquer uma das selecionadas, todas ou candidatos sem tags; o quadro também salva essa seleção nas visualizações. Tags desativadas preservam os vínculos existentes e continuam filtráveis, mas não aceitam novas associações.
+
+Aplicar a migration `157_candidate_tags.sql` antes de publicar o aplicativo. Ela cria o cadastro e a relação por empresa sem modificar os dados existentes. Verificação em PostgreSQL descartável: `node test/dtov/candidate-tags.test.js` (alvo exclusivo DTOV, localhost:55432). O quadro informa quando o limite de 200 registros foi atingido; o filtro de tags é aplicado antes desse limite e antes da paginação do Banco de talentos.
+
+
+### Importação de perfil por IA
+
+Em **Equipe → Informações cadastrais**, ou no candidato expandido da vaga, envie currículo PDF ou o PDF exportado do LinkedIn (até 5 MB). Clique em **Ler perfil com IA**. Revise contato, cidade/UF, histórico e resumo profissional; selecione apenas os campos que deseja aplicar. Campos existentes ficam desmarcados. O resumo inclui experiência, formação, competências, idiomas e certificações presentes no documento, sem avaliação de adequação para contratação.
+
+A leitura usa o cliente OpenAI existente, cota por empresa e a feature `cv_profile_import` no consumo de IA. PDFs com texto usam o texto extraído; PDFs digitalizados/sem extração usam arquivo PDF no mesmo cliente e exigem modelo/provedor compatível com PDF e visão (`AI_MODEL_CV_PROFILE_IMPORT`, padrão existente). Falhas de leitura/IA não alteram o perfil; o arquivo enviado permanece disponível. Não há cache compartilhado de currículos. Revisões expiram em 30 minutos e precisam ser refeitas se o arquivo ou um campo selecionado mudar. Remover o PDF preserva os dados já revisados.
+
+Aplicar `158_candidate_profile_import.sql` antes do aplicativo. Testes: `test/dtov/candidate-profile-import.test.js` e `test/dtov/profile-import-ux.browser.test.js` (DTOV local, IA simulada e armazenamento S3 local para o browser); testes nunca enviam dados reais à IA. A migration foi reaplicada no banco descartável; nenhuma alteração em produção.
+
+### Padrão transversal de listas
+
+Tabelas compartilhadas indicam rolagem, oferecem botões/setas/Home/End e mantêm a primeira coluna visível. Filtros usam o mesmo agrupamento e se reorganizam no celular. Contexto de listas (filtros, página, tamanho e ordenação) usa parâmetros `list.<módulo>.<campo>` e acompanha a navegação existente. Não se persiste formulário, documento ou edição não confirmada na URL. Banco de talentos retorna da ficha à lista filtrada; pipeline permite mover etapas por controle acessível, além de arrastar. Avisos de sucesso ficam abaixo de diálogos para não encobrir ações.
+
+
+### Organização e headcount
+
+Em **Pessoas → Organização**, use **Estrutura e organograma** para unidades hierárquicas tipadas e **Posições e headcount** para planejar assentos por unidade/cargo. Crie uma posição com código único, FTE (0,01–1) e vigência; aprove para liberar alocação ou recrutamento. Aprovação usa as permissões atuais da Equipe (RH/direção/admin), com autor/data e auditoria; vínculo a vaga também exige gerir vagas.
+
+A posição pode ser ocupada por um colaborador existente ou vinculada a uma vaga aberta do mesmo cargo. Transferir uma pessoa encerra sua posição anterior, preserva o histórico e sincroniza cargo/unidade atuais. Liberar posição mantém a pessoa empregada; desligamentos são registrados no fluxo existente e liberam a posição automaticamente. Posições ocupadas ou em recrutamento não podem ser congeladas/encerradas. Planejamento pode ser editado enquanto ainda não aprovado.
+
+Quando há múltiplas posições vinculadas, elas são preenchidas em ordem de cadastro (ID); seleção explícita de assento é uma evolução futura. Cada contratação via vaga vinculada preenche uma posição na mesma transação que atualiza a pessoa e o pipeline; repetição não duplica ocupação e contratação excedente retorna conflito sem alteração parcial. Uma vaga passa a exigir posições aprovadas depois de seu primeiro vínculo estrutural, inclusive após desvincular; vagas legadas continuam independentes. A quantidade de contratações da vaga limita seus vínculos ativos/preenchidos, mas não é o headcount da empresa. Não se inventam posições para colaboradores existentes: eles aparecem no indicador sem posição.
+
+Indicadores consideram unidade/cargo exatos, sem agregar subunidades automaticamente, incluindo posições aprovadas e ocupações confirmadas com início futuro; não são uma visão histórica por data. Busca e situação filtram a lista; os totais continuam sendo do recorte unidade/cargo. Ocupação primária é uma pessoa por posição; para dois contratos de meia jornada use duas posições com FTE 0,5. Histórico mostra os 100 vínculos mais recentes. Limite: 5.000 posições por empresa; listagem paginada.
+
+Aplicar `159_organizational_positions.sql` antes do aplicativo. A migration preserva pessoas/cargos/unidades legadas; não cria alocações retroativas. Testes descartáveis: `test/dtov/org-headcount.test.js` e `test/dtov/org-headcount.browser.test.js`. Expansões como filiais/CNPJ, orçamento, posição gestora, múltiplos vínculos simultâneos e organograma por posição seguem no B-ORG.

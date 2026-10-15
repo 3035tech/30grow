@@ -30,7 +30,7 @@ const bodySchema = z.discriminatedUnion('action', [
     companyId: zPositiveInt.optional(),
     vacancyId: zPositiveInt,
     name: z.string().trim().min(1).max(60),
-    filters: z.record(z.unknown()),
+    filters: z.record(z.string(), z.unknown()),
   }),
 ]);
 

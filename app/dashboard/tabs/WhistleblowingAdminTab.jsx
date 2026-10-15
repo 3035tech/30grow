@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { cn } from '../../../lib/cn';
@@ -61,7 +63,7 @@ export function WhistleblowingAdminTab({ locale = 'pt-BR', companyId }) {
   const [reports, setReports] = useState([]);
   const [aggregates, setAggregates] = useState(null);
   const [busyId, setBusyId] = useState(null);
-  const [inboxFilter, setInboxFilter] = useState('open');
+  const [inboxFilter, setInboxFilter] = useListUrlState('whistleblowing', 'inboxFilter', 'open');
 
   const load = useCallback(async () => {
     if (!companyId) {

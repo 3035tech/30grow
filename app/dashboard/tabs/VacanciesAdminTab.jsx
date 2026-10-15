@@ -58,6 +58,7 @@ import { VacancyRubricEditor } from '../vacancies/VacancyRubricEditor';
 import { VacancyFitRankingBlock } from '../vacancies/VacancyFitRankingBlock';
 import { VacancyFunnelAnalyticsBlock } from '../vacancies/VacancyFunnelAnalyticsBlock';
 import { VacancyReferralBlock } from '../vacancies/VacancyReferralBlock';
+import { VacancyPositions } from '../OrgHeadcountBlock';
 import { VacancyKanbanBlock } from '../vacancies/VacancyKanbanBlock';
 import { PipelineStagesEditor } from '../vacancies/PipelineStagesEditor';
 import { PipelineTemplatesManager } from '../vacancies/PipelineTemplatesManager';
@@ -148,7 +149,7 @@ function vacancyEditDraft(v = {}) {
 
 export { VacancyInviteByEmail };
 
-export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR' }) {
+export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganization = true, locale = 'pt-BR' }) {
   const { confirm, notice, promptForm, toast } = useAppFeedback();
   const urlParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -1321,7 +1322,9 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, locale = 'pt-BR'
 
               {detailSection === 'pipeline' ? (
                 <>
+                  {canViewOrganization ? <VacancyPositions key={`headcount-${v.id}-${pipelineRefresh}`} companyId={v.companyId} vacancyId={v.id} locale={locale} navigateDashboard={navigateDashboard}/> : null}
                   <VacancyKanbanBlock
+                    onStageChanged={() => setPipelineRefresh(value=>value+1)}
                     vacancyId={v.id}
                     companyId={v.companyId}
                     locale={locale}

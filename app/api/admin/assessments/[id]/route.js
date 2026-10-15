@@ -2,16 +2,16 @@ import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../lib/auth';
-import { query, queryRead } from '../../../../../lib/db';
+import { query, queryRead, withTransaction } from '../../../../../lib/db';
 import { audit } from '../../../../../lib/audit';
-import { apiError, ERR } from '../../../../../lib/api-error';
+import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error';
 import {
   PIPELINE_STAGE,
   PIPELINE_STAGE_SET,
   normalizeRejectionReason,
   normalizeStartDate,
 } from '../../../../../lib/pipeline';
-import { markCandidateHired, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../lib/hire';
+import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../lib/hire';
 import { canAccessCandidateRecord, isAdminRole } from '../../../../../lib/permissions';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/job-funnel';
 
@@ -70,21 +70,10 @@ export async function PATCH(request, props) {
     const vacancyId = own.rows[0]?.vacancyId;
     const assCompanyId = own.rows[0]?.companyId;
     const funnelEvent = pipelineStageToFunnelEvent(stage);
-    if (funnelEvent && vacancyId && assCompanyId && stage !== currentStage) {
-      scheduleJobFunnelEvent({
-        companyId: assCompanyId,
-        vacancyId,
-        eventType: funnelEvent,
-        candidateId,
-        sessionId: own.rows[0]?.attrSessionId || null,
-        source: own.rows[0]?.attrSource || null,
-        medium: own.rows[0]?.attrMedium || null,
-        campaign: own.rows[0]?.attrCampaign || null,
-        referralCode: own.rows[0]?.attrRef || null,
-      });
-    }
 
-    const up = await query(
+
+    const up = await withTransaction(async db => {
+    const result = await db.query(
       `UPDATE assessments SET
          pipeline_stage = $2,
          rejection_reason = CASE WHEN $2 = '${PIPELINE_STAGE.REJECTED}' THEN $3 ELSE NULL END,
@@ -101,7 +90,7 @@ export async function PATCH(request, props) {
       !isAdmin ? [id, stage, rejectionReason, startDate, companyId] : [id, stage, rejectionReason, startDate]
     );
 
-    await query(
+    await db.query(
       `INSERT INTO assessment_pipeline_history
          (assessment_id, from_stage, to_stage, reason, start_date, changed_by_user_id)
        VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -113,10 +102,28 @@ export async function PATCH(request, props) {
         stage === PIPELINE_STAGE.HIRED ? startDate : null,
         payload.userId || null,
       ]
-    ).catch(() => {});
+    );
+
+    if (stage === PIPELINE_STAGE.HIRED && candidateId) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
+    return result;
+    });
+
+    if (funnelEvent && vacancyId && assCompanyId && stage !== currentStage) {
+      scheduleJobFunnelEvent({
+        companyId: assCompanyId,
+        vacancyId,
+        eventType: funnelEvent,
+        candidateId,
+        sessionId: own.rows[0]?.attrSessionId || null,
+        source: own.rows[0]?.attrSource || null,
+        medium: own.rows[0]?.attrMedium || null,
+        campaign: own.rows[0]?.attrCampaign || null,
+        referralCode: own.rows[0]?.attrRef || null,
+      });
+    }
 
     if (stage === PIPELINE_STAGE.HIRED && candidateId) {
-      await markCandidateHired({ candidateId, vacancyId, startDate });
+      await runCandidateHireEffects({ companyId:assCompanyId,candidateId,startDate });
       if (vacancyId) {
         await query(
           `UPDATE vacancy_candidates SET
@@ -168,6 +175,7 @@ export async function PATCH(request, props) {
 
     return NextResponse.json(up.rows[0]);
   } catch (e) {
+    if (Object.values(ERR).includes(e?.code)) return apiErrorFromResult(request,{errorCode:e.code});
     console.error(e);
     return apiError(request, ERR.INTERNAL, 500);
   }

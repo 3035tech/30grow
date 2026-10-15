@@ -28,9 +28,9 @@ export function AdminListFilters({
   return (
     <div
       role="search"
-      aria-label={ariaLabel}
+      aria-label={ariaLabel || t(locale, 'panel.common.filters')}
       className={cn(
-        'mb-3 flex max-w-full flex-wrap items-end gap-2.5 pb-0.5',
+        'ui-list-filters mb-3 flex max-w-full flex-wrap items-end gap-2.5 rounded-control border border-ink/8 bg-ink/[0.015] p-3',
         className
       )}
     >

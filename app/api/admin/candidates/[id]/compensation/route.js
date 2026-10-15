@@ -70,6 +70,7 @@ export async function GET(request, props) {
         : null,
     });
   } catch (err) {
+    if(err?.code==='23514' && err?.message===ERR.POSITION_IN_USE)return apiErrorFromResult(request,{errorCode:ERR.POSITION_IN_USE});
     if (err?.code === '42P01' || err?.code === '42703') {
       return apiError(request, ERR.SCHEMA_NOT_INITIALIZED, 503);
     }
@@ -178,6 +179,7 @@ export async function POST(request, props) {
         : null,
     });
   } catch (err) {
+    if(err?.code==='23514' && err?.message===ERR.POSITION_IN_USE)return apiErrorFromResult(request,{errorCode:ERR.POSITION_IN_USE});
     if (err?.code === '42P01' || err?.code === '42703') {
       return apiError(request, ERR.SCHEMA_NOT_INITIALIZED, 503);
     }

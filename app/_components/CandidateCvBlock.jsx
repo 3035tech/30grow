@@ -6,6 +6,7 @@ import { t, localeHtmlLang } from '../../lib/i18n';
 import { S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
 import { AppLoading, ContentEnter } from './AppLoading';
+import { CandidateProfileImport } from './CandidateProfileImport';
 import { CopyableLink } from './CopyableLink';
 
 /**
@@ -22,20 +23,25 @@ export function CandidateCvBlock({
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [cv, setCv] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [suggestions, setSuggestions] = useState({});
   const [candidateFields, setCandidateFields] = useState({});
 
   const load = useCallback(async () => {
     if (!candidateId) return;
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await fetch(`/api/admin/candidates/${encodeURIComponent(candidateId)}/cv`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
+      setSummary(data.professionalSummary || null);
       setCv(data.cv || null);
       setSuggestions(data.suggestions || {});
       setCandidateFields(data.candidateFields || {});
     } catch (e) {
+      setLoadError(true);
       setCv(null);
       setSuggestions({});
     } finally {
@@ -155,9 +161,11 @@ export function CandidateCvBlock({
         <span className={cn(S.cardSection, 'mb-0 block')}>{t(locale, 'recruiting.cvTitle')}</span>
         {loading ? <AppLoading locale={locale} variant="inline" /> : null}
       </div>
-      <p className="mb-3 mt-0 text-xs leading-snug text-ink-muted">{t(locale, 'recruiting.cvIntro')}</p>
+      <p className="mb-3 mt-0 text-xs leading-snug text-ink-muted">{t(locale, 'recruiting.cvAiHint')}</p>
 
-      {!loading ? (
+      {loadError ? <p role="alert" className="text-sm text-danger">{t(locale, 'recruiting.cvAiReadFailed')} <button type="button" onClick={load} className={S.btnGhost}>{t(locale, 'panel.common.retry')}</button></p> : null}
+      {summary ? <section className="mb-4 border-l-2 border-brand-500/40 pl-3"><h3 className="mb-2 text-sm font-semibold">{t(locale, 'recruiting.cvAiSummary')}</h3><p className="m-0 whitespace-pre-wrap break-words text-sm leading-relaxed text-ink-muted">{summary}</p></section> : null}
+      {!loading && !loadError ? (
         <ContentEnter>
           {cv?.hasCv ? (
             <div className="mb-3 space-y-2">
@@ -179,6 +187,7 @@ export function CandidateCvBlock({
                 ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
+                <CandidateProfileImport key={candidateId} candidateId={candidateId} locale={locale} disabled={uploading} onApplied={async data => { await load(); onApplied?.(data); }} />
                 <button
                   type="button"
                   disabled={uploading}

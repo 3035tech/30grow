@@ -161,7 +161,7 @@ export function AppFeedbackProvider({ children, locale = 'pt-BR' }) {
       ) : null}
       {typeof document !== 'undefined' && toasts.length > 0
         ? createPortal(
-            <div className="pointer-events-none fixed bottom-4 right-4 z-[10080] flex max-w-[min(360px,calc(100vw-32px))] flex-col gap-2">
+            <div className="ui-toast-stack pointer-events-none fixed bottom-4 right-4 z-[10080] flex max-w-[min(360px,calc(100vw-32px))] flex-col gap-2">
               {toasts.map((item) => (
                 <div
                   key={item.id}

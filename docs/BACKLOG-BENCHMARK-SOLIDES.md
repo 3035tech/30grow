@@ -432,6 +432,20 @@ Não copiar as mais de 12 abas observadas na Sólides. Usar página/drawer com s
 
 ## 6. Itens de backlog
 
+**Corte entregue em 15/10/2026 (migration 159):** unidades tipadas sobre o cadastro existente; posições por unidade/cargo com código, FTE, vigência, aprovação e ciclo de vida; ocupação primária e transferências com histórico; indicadores de aprovadas/ocupadas/disponíveis/congeladas e pessoas sem posição; vínculo a vaga e contratação transacional nos dois pipelines; liberação no desligamento. Interface em Organização → Estrutura e organograma / Posições e headcount. A preservação do legado e a validação estão em `docs/VALIDACAO-HEADCOUNT.md`.
+
+| Item | Entregue neste corte | Evolução ainda aberta |
+|---|---|---|
+| B-ORG-001 | Hierarquia existente, tipo fixo, proteção de unidades com posições e auditoria | Código/descrição, vigência da unidade, ordenação e dimensões jurídicas |
+| B-ORG-005 | Posição própria, código único, cargo/unidade, FTE, vigência, aprovação, congelamento e encerramento | Orçamento, centro de custo, filial/local, posição gestora e criticidade |
+| B-ORG-006 | Uma ocupação primária atual, histórico, motivo, autor, transferência, cargo/unidade sincronizados e saída | Vínculos secundários, gestor matricial e demais dimensões funcionais |
+| B-ORG-007 | Subvisões de estrutura/organograma e headcount no módulo existente | Workspace amplo de movimentações e configurações avançadas |
+| B-ORG-009 | Headcount e FTE aprovados versus ocupados, disponíveis, congelados e não alocados, por unidade/cargo | Orçamento e visões históricas por data/período |
+| B-ORG-010 | Vincular posições a vaga do mesmo cargo; contratação atômica, idempotência e capacidade | Criar a vaga diretamente de uma posição e seleção explícita de assento em processos com múltiplas posições |
+
+Os textos abaixo preservam a visão de evolução completa; considerar a coluna de pendências para não reabrir o núcleo já entregue. O organograma por posição (B-ORG-008), competências e demais itens continuam abertos.
+
+
 ### B-ORG-001: modelo canônico de unidades organizacionais
 
 Criar unidades hierárquicas, tipadas, com vigência, tenant, validação de ciclos, soft delete e auditoria.

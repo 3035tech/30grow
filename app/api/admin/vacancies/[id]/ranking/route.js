@@ -7,6 +7,8 @@ import {
   requireCapability,
 } from '../../../../../../lib/ae/require-admin.js';
 import { getVacancyRanking } from '../../../../../../lib/vacancy-ranking.js';
+import { z, parseSearchParams } from '../../../../../../lib/validate.js';
+import { candidateTagFilterShape } from '../../../../../../lib/candidate-tags-validation.js';
 import { contentLocale } from '../../../../../../lib/i18n.js';
 
 /** GET /api/admin/vacancies/[id]/ranking — fit ranking for vacancy pipeline. */
@@ -21,6 +23,8 @@ export async function GET(request, props) {
     const vacancyId = params?.id;
     if (!vacancyId) return apiError(request, ERR.INVALID_VACANCY, 400);
 
+    const filters = parseSearchParams(request, z.object(candidateTagFilterShape));
+    if (!filters.ok) return filters.response;
     const url = new URL(request.url);
     const qLocale = url.searchParams.get('locale');
     const locale = contentLocale(qLocale);
@@ -30,6 +34,7 @@ export async function GET(request, props) {
       companyId: scope.companyId,
       isAdmin: scope.isAdmin,
       locale,
+      ...filters.data,
     });
     if (!result.ok) {
       const status = result.errorCode === 'NOT_FOUND' ? 404 : 400;
@@ -40,6 +45,10 @@ export async function GET(request, props) {
       vacancyId: result.vacancyId,
       ranking: result.ranking,
       nucleusSize: result.nucleusSize,
+      companyId: result.companyId,
+      total: result.total,
+      truncated: result.truncated,
+      rankingCap: result.rankingCap,
     });
   } catch (e) {
     console.error(e);

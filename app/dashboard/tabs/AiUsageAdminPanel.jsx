@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
@@ -30,8 +32,8 @@ export function AiUsageAdminPanel({ locale }) {
   const [month, setMonth] = useState(months[0].id);
   const [companyId, setCompanyId] = useState('');
   const [feature, setFeature] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useListUrlState('aiUsage', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('aiUsage', 'pageSize', 20);
   const [companies, setCompanies] = useState([]);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);

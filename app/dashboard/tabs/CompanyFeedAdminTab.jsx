@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
+
 import { useCallback, useEffect, useState } from 'react';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
@@ -35,10 +37,10 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
   const [kudos, setKudos] = useState([]);
   const [postsTotal, setPostsTotal] = useState(0);
   const [kudosTotal, setKudosTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [kudosPage, setKudosPage] = useState(1);
-  const [q, setQ] = useState('');
-  const [qDraft, setQDraft] = useState('');
+  const [page, setPage] = useListUrlState('feed', 'page', 1);
+  const [kudosPage, setKudosPage] = useListUrlState('feed', 'kudosPage', 1);
+  const [q, setQ] = useListUrlState('feed', 'q', '');
+  const [qDraft, setQDraft] = useListSearchDraft(q);
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [loadError, setLoadError] = useState(false);
   const pageSize = 20;

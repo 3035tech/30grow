@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/cn';
@@ -301,10 +303,10 @@ function InvitesList({ locale, refreshKey, isAdmin, companyFilter, onCreateInvit
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('all');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('createdAt');
-  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useListUrlState('motivatorsInvites', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('motivatorsInvites', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('motivatorsInvites', 'sort', 'createdAt');
+  const [sortDir, setSortDir] = useListUrlState('motivatorsInvites', 'sortDir', 'desc');
   const [notice, setNotice] = useState(null);
   const appUrl =
     (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : '';
@@ -507,17 +509,17 @@ function ResultsList({ locale, isAdmin, companyFilter, focusAttemptId = null }) 
   const { confirm } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('completedAt');
-  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useListUrlState('motivatorsResults', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('motivatorsResults', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('motivatorsResults', 'sort', 'completedAt');
+  const [sortDir, setSortDir] = useListUrlState('motivatorsResults', 'sortDir', 'desc');
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [detail, setDetail] = useState(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const [searchDraft, setSearchDraft] = useState('');
-  const [q, setQ] = useState('');
+  const [q, setQ] = useListUrlState('motivatorsResults', 'q', '');
   const [loadError, setLoadError] = useState('');
   const [detailError, setDetailError] = useState('');
   const loadSeqRef = useRef(0);

@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
+
 import { useCallback, useEffect, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t, messageNode, localeHtmlLang } from '../../../lib/i18n';
@@ -33,21 +35,16 @@ function dateLabel(value, locale) {
 
 export function PdiAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, initialSearch = '' }) {
   const copy = messageNode(locale, 'adminModules.pdiAdmin');
-  const [view, setView] = useState('attention');
-  const [qDraft, setQDraft] = useState(initialSearch);
-  const [q, setQ] = useState(initialSearch);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [view, setView] = useListUrlState('pdi', 'view', 'attention');
+  const [q, setQ] = useListUrlState('pdi', 'q', initialSearch);
+  const [qDraft, setQDraft] = useListSearchDraft(q);
+  const [page, setPage] = useListUrlState('pdi', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('pdi', 'pageSize', 20);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const nextSearch = String(initialSearch || '').trim();
-    setQDraft(nextSearch);
-    setQ(nextSearch);
-    setPage(1);
-  }, [initialSearch]);
+
 
   const load = useCallback(async () => {
     if (!companyId) {

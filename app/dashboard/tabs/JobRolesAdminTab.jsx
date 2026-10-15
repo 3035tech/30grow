@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 import { useEffect, useMemo, useState } from 'react';
 import { t, contentLocale } from '../../../lib/i18n';
 import { cn } from '../../../lib/cn';
@@ -67,12 +69,12 @@ export function JobRolesAdminTab({ locale, companyId }) {
   const [drawerMode, setDrawerMode] = useState(null); // 'create' | 'edit' | null
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('name');
-  const [sortDir, setSortDir] = useState('asc');
-  const [nameQ, setNameQ] = useState('');
-  const [activeFilter, setActiveFilter] = useState('');
+  const [page, setPage] = useListUrlState('roles', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('roles', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('roles', 'sort', 'name');
+  const [sortDir, setSortDir] = useListUrlState('roles', 'sortDir', 'asc');
+  const [nameQ, setNameQ] = useListUrlState('roles', 'nameQ', '');
+  const [activeFilter, setActiveFilter] = useListUrlState('roles', 'activeFilter', '');
 
   const loadRoles = async () => {
     if (!companyId) {

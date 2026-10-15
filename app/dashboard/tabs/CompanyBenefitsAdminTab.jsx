@@ -1,4 +1,6 @@
 'use client';
+
+import { useListUrlState } from '../hooks/useListUrlState';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAppFeedback } from '../../_components/AppFeedback';
@@ -32,13 +34,13 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
   const [benefits, setBenefits] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
-  const [filterCategoryId, setFilterCategoryId] = useState('');
-  const [filterBenefitType, setFilterBenefitType] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('name');
-  const [sortDir, setSortDir] = useState('asc');
-  const [nameQ, setNameQ] = useState('');
+  const [filterCategoryId, setFilterCategoryId] = useListUrlState('benefits', 'filterCategoryId', '');
+  const [filterBenefitType, setFilterBenefitType] = useListUrlState('benefits', 'filterBenefitType', '');
+  const [page, setPage] = useListUrlState('benefits', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('benefits', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('benefits', 'sort', 'name');
+  const [sortDir, setSortDir] = useListUrlState('benefits', 'sortDir', 'asc');
+  const [nameQ, setNameQ] = useListUrlState('benefits', 'nameQ', '');
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const { confirm, promptForm, toast } = useAppFeedback();
   const [viewing, setViewing] = useState(null);

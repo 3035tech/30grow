@@ -21,6 +21,7 @@ import { titleCasePersonName } from '../../../lib/person-name';
 import { rejectionReasonLabel } from '../pipeline-prompts';
 import { usePipelineExtras } from '../PipelineExtrasContext';
 import { useAppFeedback } from '../../_components/AppFeedback';
+import { CandidateTagsProvider, CandidateTags } from '../CandidateTags';
 import { AdminRichFormDrawer } from '../../_components/AdminRichFormDrawer';
 import { EnneagramCross } from '../../_components/EnneagramCross';
 import { RowActionsMenu } from '../../_components/RowActionsMenu';
@@ -250,6 +251,7 @@ export function TeamTab({
   listTotal = 0,
   focusCandidateId = null,
   focusSection = null,
+  returnTab = null,
   listFilter = null,
   onClearListFilter = null,
   navigateDashboard = null,
@@ -932,7 +934,8 @@ export function TeamTab({
     setPersonTab('people');
     setPeopleSubTab('summary');
     if (typeof navigateDashboard === 'function') {
-      navigateDashboard({ tab: 'team', candidate: null, section: null, scroll: false, clientOnly: true });
+      const returnTab = new URLSearchParams(window.location.search).get('returnTab');
+      navigateDashboard({ tab: ['talent-bank', 'vacancies', 'organization'].includes(returnTab) ? returnTab : 'team', candidate: null, section: null, returnTab: null, scroll: false, clientOnly: true });
     }
   };
 
@@ -1332,6 +1335,7 @@ export function TeamTab({
         maxWidth="920px"
         fullPage={isPersonPage}
         withinShell={isPersonPage}
+        backLabel={['talent-bank', 'vacancies', 'organization'].includes(returnTab) ? t(locale, 'recruiting.backToList') : undefined}
         headerMeta={personHeaderMeta}
         headerActions={personHeaderActions}
       >
@@ -1697,6 +1701,7 @@ export function TeamTab({
                 detail.candidate.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
                   <div className="mb-4">
                     <CandidateCvBlock
+                      key={detail.candidate.id}
                       candidateId={detail.candidate.id}
                       locale={locale}
                       embedded
@@ -1724,6 +1729,9 @@ export function TeamTab({
                       </button>
                     )}
                   </div>
+                  <CandidateTagsProvider companyId={detail?.candidate?.companyId} locale={locale} onChanged={reloadDetailSilently}>
+                    <CandidateTags candidateId={detail?.candidate?.id} name={detail?.candidate?.fullName} tags={detail?.candidate?.tags || []} locale={locale} />
+                  </CandidateTagsProvider>
                   {!profileEditing ? (
                     (() => {
                       const c = detail?.candidate;

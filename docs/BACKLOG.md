@@ -4,11 +4,19 @@ Ideias de funcionalidades **ainda não implementadas**.
 
 **Pedidos do RH (testes Maria/Duda):** ver [`docs/BACKLOG-RH-TESTES.md`](./BACKLOG-RH-TESTES.md) (`B-RH1-*` / `B-RH2-*`). Fonte Word: [`docs/30TEAM_Backlog_Consolidado_Observacoes.docx`](./30TEAM_Backlog_Consolidado_Observacoes.docx).
 
+**Estrutura e headcount:** núcleo entregue em 15/10/2026, migration 159. Posições aprovadas por cargo/unidade, ocupação/histórico, indicadores e contratação vinculada. Ampliações ainda abertas em B-ORG: orçamento/filiais, vínculos secundários, organograma por posição, carreira/competências e aprovações unificadas. Ver a matriz de entregue/pendente no benchmark e `docs/VALIDACAO-HEADCOUNT.md`.
+
 **Benchmark Sólides/RHGestor:** ver [`docs/BACKLOG-BENCHMARK-SOLIDES.md`](./BACKLOG-BENCHMARK-SOLIDES.md). O documento registra a análise crítica dos prints, o modelo organizacional recomendado e os itens `B-ORG-*` para evolução futura. Não implica paridade de funcionalidades com o concorrente.
 
 **Auditoria UI/UX de todas as telas:** ver [`docs/BACKLOG-UI-AUDIT-ALL-SCREENS.md`](./BACKLOG-UI-AUDIT-ALL-SCREENS.md). O inventário `B-UIA-*` mapeia hierarquia, uso de espaço, densidade, navegação, ações, estados e responsividade em todas as superfícies do dashboard, colaborador e fluxos públicos.
 
 **Prioridade de lançamento do MVP:** ver [`docs/BACKLOG-MVP-LAUNCH.md`](./BACKLOG-MVP-LAUNCH.md). A lista aberta `MVP-03`–`MVP-16` separa bloqueadores do primeiro cliente, melhorias para os pilotos e escala condicionada a métricas reais. Os gates `MVP-01` e `MVP-02` foram entregues.
+
+## Aberto — Importação antes do cadastro
+
+### B-RH-CV-LINKEDIN-CREATE — Criar candidato começando pelo arquivo
+
+A importação por IA e revisão no perfil existente foram entregues (migration 158). Evolução restante: iniciar um novo cadastro pelo currículo/PDF do LinkedIn, antes de informar nome/e-mail, reutilizando a mesma revisão e o cadastro canônico de candidatos. Validar duplicidade por e-mail e empresa e só criar a pessoa após confirmação dos dados. Hoje, cadastre/abra a pessoa e importe em Informações cadastrais.
 
 ## Como usar (humano + agente)
 

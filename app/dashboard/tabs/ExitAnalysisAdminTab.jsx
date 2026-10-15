@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAppFeedback } from '../../_components/AppFeedback';
@@ -39,13 +41,13 @@ export function ExitAnalysisAdminTab({ locale = 'pt-BR', companyId, isAdmin }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [viewRecord, setViewRecord] = useState(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('exitDate');
-  const [sortDir, setSortDir] = useState('desc');
-  const [nameQ, setNameQ] = useState('');
-  const [exitTypeFilter, setExitTypeFilter] = useState('');
-  const [exitReasonFilter, setExitReasonFilter] = useState('');
+  const [page, setPage] = useListUrlState('exits', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('exits', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('exits', 'sort', 'exitDate');
+  const [sortDir, setSortDir] = useListUrlState('exits', 'sortDir', 'desc');
+  const [nameQ, setNameQ] = useListUrlState('exits', 'nameQ', '');
+  const [exitTypeFilter, setExitTypeFilter] = useListUrlState('exits', 'exitTypeFilter', '');
+  const [exitReasonFilter, setExitReasonFilter] = useListUrlState('exits', 'exitReasonFilter', '');
   const { promptForm, toast, confirm } = useAppFeedback();
   const { rehire, busyId: rehireBusyId } = useRehireEmployee({ locale, companyId });
 

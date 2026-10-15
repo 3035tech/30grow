@@ -1354,7 +1354,7 @@ function DashboardClientContent({
                   navigateDashboard={navigateWithOpts}
                 />
               )}
-              {tab === 'organization' && can(sessionAuth, CAP.TEAM_VIEW) && <OrganizationTab key={scopedCompanyId} locale={locale} companyId={scopedCompanyId} navigateDashboard={navigateWithOpts} />}
+              {tab === 'organization' && can(sessionAuth, CAP.TEAM_VIEW) && <OrganizationTab canManageVacancies={can(sessionAuth, CAP.VACANCIES_MANAGE)} key={scopedCompanyId} locale={locale} companyId={scopedCompanyId} navigateDashboard={navigateWithOpts} />}
               {tab === 'team' && can(sessionAuth, CAP.TEAM_VIEW) && (
                 <>
                   <TeamTab
@@ -1370,6 +1370,7 @@ function DashboardClientContent({
                     listTotal={listTotal}
                     focusCandidateId={urlParams.get('candidate')}
                     focusSection={urlParams.get('section')}
+                    returnTab={urlParams.get('returnTab')}
                     listFilter={selectedListFilter || urlParams.get('filter')}
                     onClearListFilter={() => pushFilters({ filter: null })}
                     navigateDashboard={navigateWithOpts}
@@ -1467,9 +1468,9 @@ function DashboardClientContent({
                   }}
                 />
               )}
-              {tab === 'vacancies' && showVacancies && <VacanciesAdminTab isAdmin={isAdmin} navigateDashboard={navigateWithOpts} locale={locale} />}
+              {tab === 'vacancies' && showVacancies && <VacanciesAdminTab canViewOrganization={can(sessionAuth,CAP.TEAM_VIEW)} isAdmin={isAdmin} navigateDashboard={navigateWithOpts} locale={locale} />}
               {tab === 'talent-bank' && showVacancies && (
-                <TalentBankAdminTab locale={locale} companyId={scopedCompanyId} />
+                <TalentBankAdminTab navigateDashboard={navigateWithOpts} locale={locale} companyId={scopedCompanyId} />
               )}
               {tab === 'motivators' && showMotivators && (
                 <MotivatorsAdminTab isAdmin={isAdmin} companies={companies} locale={locale} />

@@ -1,6 +1,7 @@
 'use client';
 
 import { UI_TYPE } from '../../lib/ui-typography';
+import { HorizontalScrollRegion } from '../_components/HorizontalScrollRegion';
 import { SelectField } from '../_components/SelectField';
 
 import Link from 'next/link';
@@ -793,22 +794,14 @@ function AdminTableShell({
   ariaLabel,
 }) {
   const shell = (
-    <div
-      role="region"
-      tabIndex={0}
-      aria-label={ariaLabel || t(locale, 'panel.common.dataTable')}
-      className={cn(
-        'overflow-x-auto overscroll-x-contain rounded-card border border-ink/10 [scrollbar-width:thin] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35',
-        className
-      )}
-    >
+    <HorizontalScrollRegion table locale={locale} ariaLabel={ariaLabel} className={className}>
       <table
         className="w-full border-collapse text-left text-prose"
         style={minWidth ? { minWidth } : undefined}
       >
         {children}
       </table>
-    </div>
+    </HorizontalScrollRegion>
   );
   if (animKey === undefined || animKey === null || animKey === '') return shell;
   return (

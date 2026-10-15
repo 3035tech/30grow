@@ -1,5 +1,8 @@
 'use client';
 
+import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
+
+import { CandidateTagsProvider, CandidateTags, CandidateTagFilters } from '../CandidateTags';
 import { useCallback, useEffect, useState } from 'react';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
@@ -49,21 +52,36 @@ function stageLabel(locale, stage) {
 /**
  * Talent bank — reuse people who already applied / linked to a vacancy.
  */
-export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
+export function TalentBankAdminTab(props) {
+  const [tagRefresh, setTagRefresh] = useState(0);
+  return (
+    <CandidateTagsProvider
+      companyId={props.companyId}
+      locale={props.locale}
+      onChanged={() => setTagRefresh((current) => current + 1)}
+    >
+      <TalentBankContent {...props} tagRefresh={tagRefresh} />
+    </CandidateTagsProvider>
+  );
+}
+
+function TalentBankContent({ tagRefresh, locale = 'pt-BR', companyId, navigateDashboard }) {
   const { promptForm, toast, notice, confirm } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [error, setError] = useState('');
-  const [qDraft, setQDraft] = useState('');
-  const [q, setQ] = useState('');
-  const [vacancyId, setVacancyId] = useState('');
-  const [stage, setStage] = useState('');
-  const [topType, setTopType] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('lastActivityAt');
-  const [sortDir, setSortDir] = useState('desc');
+  const [q, setQ] = useListUrlState('talent', 'q', '');
+  const [qDraft, setQDraft] = useListSearchDraft(q);
+  const [vacancyId, setVacancyId] = useListUrlState('talent', 'vacancyId', '');
+  const [stage, setStage] = useListUrlState('talent', 'stage', '');
+  const [topType, setTopType] = useListUrlState('talent', 'topType', '');
+  const [tagFilters, setTagFilters] = useListUrlState('talent', 'tagFilters', { tagIds: [], tagMode: 'any' });
+  const tagIdsKey = tagFilters.tagIds.join(',');
+  const [page, setPage] = useListUrlState('talent', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('talent', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('talent', 'sort', 'lastActivityAt');
+  const [sortDir, setSortDir] = useListUrlState('talent', 'sortDir', 'desc');
   const [vacancyOptions, setVacancyOptions] = useState([]);
   const [diagnoseBusy, setDiagnoseBusy] = useState(false);
 
@@ -83,7 +101,7 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
     }
   }, []);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal) => {
     if (!companyId) {
       setItems([]);
       setTotal(0);
@@ -100,31 +118,36 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
         sortDir,
         companyId: String(companyId),
       });
+      qs.set('tagIds', tagIdsKey); qs.set('tagMode', tagFilters.tagMode);
       if (q) qs.set('q', q);
       if (vacancyId) qs.set('vacancyId', vacancyId);
       if (stage) qs.set('stage', stage);
       if (topType) qs.set('topType', topType);
-      const res = await fetch(`/api/admin/talent-bank?${qs.toString()}`);
+      const res = await fetch(`/api/admin/talent-bank?${qs.toString()}`, { signal });
       const data = await res.json().catch(() => ({}));
+      if (signal?.aborted) return;
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.talentBank.loadFailed'));
       setItems(Array.isArray(data.items) ? data.items : []);
       setTotal(typeof data.total === 'number' ? data.total : 0);
     } catch (e) {
+      if (signal?.aborted) return;
       setError(e?.message || t(locale, 'panel.common.error'));
       setItems([]);
       setTotal(0);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
-  }, [companyId, page, pageSize, sort, sortDir, q, vacancyId, stage, topType, locale]);
+  }, [companyId, page, pageSize, sort, sortDir, q, vacancyId, stage, topType, locale, tagIdsKey, tagFilters.tagMode]);
 
   useEffect(() => {
     loadVacancies();
   }, [loadVacancies]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [load, tagRefresh]);
 
   const toggleSort = (columnKey) => {
     const nextDir = clientSortNextDir(columnKey, sort, sortDir);
@@ -194,6 +217,7 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
           setVacancyId('');
           setStage('');
           setTopType('');
+          setTagFilters({ tagIds: [], tagMode: 'any' });
           setPage(1);
         }
       }
@@ -287,10 +311,11 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
           setVacancyId('');
           setStage('');
           setTopType('');
+          setTagFilters({ tagIds: [], tagMode: 'any' });
           setPage(1);
         }}
         clearEnabled={Boolean(
-          String(qDraft || '').trim() || q || vacancyId || stage || topType
+          String(qDraft || '').trim() || q || vacancyId || stage || topType || tagFilters.tagIds.length || tagFilters.tagMode === 'none'
         )}
       >
         <AdminListSearch
@@ -347,6 +372,7 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
             </option>
           ))}
         </AdminListFilterSelect>
+        <CandidateTagFilters value={tagFilters} locale={locale} onChange={(value) => { setTagFilters(value); setPage(1); }} />
       </AdminListFilters>
 
       {error ? <p className="m-0 text-sm text-danger">{error}</p> : null}
@@ -437,6 +463,7 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
                     <td className="px-4 py-3">
                       <div className="font-medium text-ink">{row.fullName || '—'}</div>
                       <div className="font-mono text-2xs text-ink-faint">#{row.id}</div>
+                      <CandidateTags candidateId={row.id} name={row.fullName} tags={row.tags || []} locale={locale} />
                     </td>
                     <td className="px-4 py-3 text-sm text-ink-muted">{row.email || '—'}</td>
                     <td className="px-4 py-3 text-sm text-ink">
@@ -458,7 +485,7 @@ export function TalentBankAdminTab({ locale = 'pt-BR', companyId }) {
                     <td className="px-4 py-3 text-right">
                       <AdminActionsCell>
                         <AdminIconButton
-                          href={`/dashboard?tab=team&candidate=${row.id}`}
+                          onClick={() => navigateDashboard?.({ tab: 'team', candidate: row.id, section: 'profile', returnTab: 'talent-bank', clientOnly: true })}
                           label={t(locale, 'panel.talentBank.openPerson')}
                           icon="team"
                         />

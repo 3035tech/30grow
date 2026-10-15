@@ -618,3 +618,15 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .grow-journey-progress, .grow-journey[data-visible="true"] .grow-journey-stage { animation: none; }
 }
+
+/* Canonical comparison tables: identity stays visible while scrolling. */
+.ui-data-table table tr > :first-child { position: sticky; left: 0; z-index: 1; background: rgb(var(--canvas)); }
+.ui-data-table table thead tr > :first-child { z-index: 2; }
+@media (max-width: 639px) {
+  .ui-list-filters > * { flex: 1 1 100%; max-width: 100%; min-width: 0; }
+  .ui-list-filters input, .ui-list-filters select { min-width: 0; }
+  .ui-data-table table tr > :first-child { max-width: 13rem; overflow-wrap: anywhere; }
+}
+
+/* A transient success message must not cover a dialog's primary action. */
+body:has([role="dialog"]) .ui-toast-stack { z-index: 9990; }

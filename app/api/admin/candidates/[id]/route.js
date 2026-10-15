@@ -1,3 +1,4 @@
+import { candidateTagsSelectSql } from '../../../../../lib/candidate-tags-core.js';
 import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
@@ -31,7 +32,7 @@ export async function GET(request, props) {
 
   const id = params?.id;
   const c = await queryRead(
-    `SELECT c.id, c.company_id AS "companyId", c.full_name AS "fullName", c.email,
+    `SELECT c.id, ${candidateTagsSelectSql('c')} AS tags, c.company_id AS "companyId", c.full_name AS "fullName", c.email,
             c.personal_email AS "personalEmail", c.marital_status AS "maritalStatus",
             c.employee_number AS "employeeNumber", c.work_format AS "workFormat",
             c.work_history AS "workHistory", c.hr_notes AS "hrNotes",

@@ -299,6 +299,12 @@ export function useDashboardNavigation({
       if (p.get(key) === def) p.delete(key);
     }
 
+    const returnTab = opts.returnTab !== undefined ? opts.returnTab : urlParams.get('returnTab');
+    if (nextTab === 'team' && ['talent-bank', 'vacancies', 'organization'].includes(returnTab)) p.set('returnTab', returnTab);
+    // Preserve canonical per-module list state when entering/closing a workspace.
+    for (const [key, value] of Object.entries(merged)) {
+      if (!(opts.company !== undefined && String(opts.company) !== String(company)) && key.startsWith('list.') && value != null && String(value).length <= 2000) p.set(key, String(value));
+    }
     return p;
   };
 

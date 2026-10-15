@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
+
 import { useCallback, useEffect, useState } from 'react';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { formatSalaryDisplay } from '../../../lib/br-masks';
@@ -69,16 +71,16 @@ export function CompensationAdminTab({ locale = 'pt-BR', companyId, navigateDash
   const { toast } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useListUrlState('compensation', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('compensation', 'pageSize', 20);
   const [total, setTotal] = useState(0);
-  const [sort, setSort] = useState('name');
-  const [sortDir, setSortDir] = useState('asc');
-  const [qDraft, setQDraft] = useState('');
-  const [q, setQ] = useState('');
-  const [statusFilter, setStatusFilter] = useState(EMPLOYMENT_STATUS.EMPLOYEE);
-  const [hasSalary, setHasSalary] = useState('all');
-  const [marketBand, setMarketBand] = useState('all');
+  const [sort, setSort] = useListUrlState('compensation', 'sort', 'name');
+  const [sortDir, setSortDir] = useListUrlState('compensation', 'sortDir', 'asc');
+  const [q, setQ] = useListUrlState('compensation', 'q', '');
+  const [qDraft, setQDraft] = useListSearchDraft(q);
+  const [statusFilter, setStatusFilter] = useListUrlState('compensation', 'statusFilter', EMPLOYMENT_STATUS.EMPLOYEE);
+  const [hasSalary, setHasSalary] = useListUrlState('compensation', 'hasSalary', 'all');
+  const [marketBand, setMarketBand] = useListUrlState('compensation', 'marketBand', 'all');
   const [historyPerson, setHistoryPerson] = useState(null);
   const [workspaceSection, setWorkspaceSection] = useState('people');
   const [accessDenied, setAccessDenied] = useState(false);

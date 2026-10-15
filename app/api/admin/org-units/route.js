@@ -5,13 +5,14 @@ import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
 import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { ORG_UNIT_TYPES } from '../../../../lib/org-position-constants.js';
 import { ORG_UNIT } from '../../../../lib/org-unit-constants.js';
 import { listOrgUnits, getCandidateOrgUnit, saveOrgUnit, assignOrgUnit } from '../../../../lib/people/org-units.js';
 
 const company = { companyId: zPositiveInt.optional() };
 const querySchema = z.object({ ...company, candidateId: zPositiveInt.optional() });
 const unitSchema = z.object({
-  ...company, name: z.string().trim().min(1).max(ORG_UNIT.MAX_NAME), parentId: zPositiveInt.nullable(),
+  ...company, unitType:z.enum(ORG_UNIT_TYPES).optional(), name: z.string().trim().min(1).max(ORG_UNIT.MAX_NAME), parentId: zPositiveInt.nullable(),
 });
 export const GET = withAdminApi({ cap: CAP.TEAM_VIEW, query: querySchema }, async ({ request, companyId, query }) => {
   const result = query.candidateId
@@ -37,5 +38,5 @@ function mutation(schema, action, work) {
   });
 }
 export const POST = mutation(unitSchema, 'org_units.create', saveOrgUnit);
-export const PATCH = mutation(z.object({ ...company, id: zPositiveInt, active: z.boolean().default(true), name: z.string().trim().min(1).max(ORG_UNIT.MAX_NAME).optional(), parentId: zPositiveInt.nullable().optional() }), 'org_units.update', saveOrgUnit);
+export const PATCH = mutation(z.object({ ...company, id: zPositiveInt, unitType:z.enum(ORG_UNIT_TYPES).optional(), active: z.boolean().default(true), name: z.string().trim().min(1).max(ORG_UNIT.MAX_NAME).optional(), parentId: zPositiveInt.nullable().optional() }), 'org_units.update', saveOrgUnit);
 export const PUT = mutation(z.object({ ...company, candidateId: zPositiveInt, orgUnitId: zPositiveInt.nullable() }), 'org_units.assign', assignOrgUnit);

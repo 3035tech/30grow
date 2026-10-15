@@ -1,4 +1,6 @@
 'use client';
+
+import { useListUrlState } from '../hooks/useListUrlState';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAppFeedback } from '../../_components/AppFeedback';
@@ -31,13 +33,13 @@ export function LearningResourcesAdminTab({ locale = 'pt-BR', companyId }) {
   const [resources, setResources] = useState([]);
   const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
-  const [filterTheme, setFilterTheme] = useState('');
-  const [filterType, setFilterType] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('title');
-  const [sortDir, setSortDir] = useState('asc');
-  const [nameQ, setNameQ] = useState('');
+  const [filterTheme, setFilterTheme] = useListUrlState('learning', 'filterTheme', '');
+  const [filterType, setFilterType] = useListUrlState('learning', 'filterType', '');
+  const [page, setPage] = useListUrlState('learning', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('learning', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('learning', 'sort', 'title');
+  const [sortDir, setSortDir] = useListUrlState('learning', 'sortDir', 'asc');
+  const [nameQ, setNameQ] = useListUrlState('learning', 'nameQ', '');
   const { confirm, promptForm, toast } = useAppFeedback();
   const [viewing, setViewing] = useState(null);
 

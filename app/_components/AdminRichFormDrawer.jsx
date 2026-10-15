@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { t as i18nT } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -28,6 +28,7 @@ export function AdminRichFormDrawer({
   closeLabel: closeLabelOverride = null,
   eyebrow = null,
 }) {
+  const titleId = useId();
   const TitleTag = fullPage ? 'h1' : 'h2';
   const eyebrowText = eyebrow || (fullPage ? i18nT(locale, 'ui.adminRichFormDrawer.peopleTeam') : '');
   const [mounted, setMounted] = useState(false);
@@ -110,7 +111,7 @@ export function AdminRichFormDrawer({
         tabIndex={-1}
         role={withinShell ? 'region' : 'dialog'}
         {...(!withinShell ? { 'aria-modal': 'true' } : {})}
-        aria-labelledby="rich-form-drawer-title"
+        aria-labelledby={titleId}
         className={cn(
           'admin-rich-drawer-panel flex flex-col overflow-hidden border border-ink/12 bg-white',
           fullPage
@@ -141,7 +142,7 @@ export function AdminRichFormDrawer({
             ) : null}
             {eyebrowText ? <span className={UI_TYPE.label}>{eyebrowText}</span> : null}
             <TitleTag
-              id="rich-form-drawer-title"
+              id={titleId}
               className={cn(
                 'mb-0 break-words',
                 eyebrowText && 'mt-1.5',

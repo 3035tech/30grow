@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
@@ -87,12 +89,12 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(() => Boolean(companyId));
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [leaveTypeFilter, setLeaveTypeFilter] = useState('all');
-  const [qDraft, setQDraft] = useState('');
-  const [q, setQ] = useState('');
+  const [page, setPage] = useListUrlState('dp', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('dp', 'pageSize', 20);
+  const [statusFilter, setStatusFilter] = useListUrlState('dp', 'statusFilter', 'all');
+  const [leaveTypeFilter, setLeaveTypeFilter] = useListUrlState('dp', 'leaveTypeFilter', 'all');
+  const [q, setQ] = useListUrlState('dp', 'q', '');
+  const [qDraft, setQDraft] = useListSearchDraft(q);
   const [reloadKey, setReloadKey] = useState(0);
 
   const [calendarItems, setCalendarItems] = useState([]);

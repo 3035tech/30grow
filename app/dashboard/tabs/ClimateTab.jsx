@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 import { SelectField } from '../../_components/SelectField';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -367,7 +369,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
   const [showCompare, setShowCompare] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [detailSection, setDetailSection] = useState('overview');
-  const [listFilter, setListFilter] = useState('active'); // active | archived | all
+  const [listFilter, setListFilter] = useListUrlState('climate', 'listFilter', 'active'); // active | archived | all
   const [view, setView] = useState('surveys'); // surveys | nr1
 
   const companyQs =

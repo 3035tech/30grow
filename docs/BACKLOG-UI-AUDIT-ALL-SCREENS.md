@@ -4,6 +4,8 @@ Auditoria transversal de disposição de componentes, hierarquia visual, uso de 
 
 Data da análise: setembro de 2026.
 
+Entrega transversal de 15/10/2026: o padrão compartilhado de tabelas agora inclui indicação de rolagem, botões, setas/Home/End e primeira coluna fixa; filtros se agrupam e se reorganizam no celular; avisos não encobrem ações de diálogos. Estado de listas locais foi ligado à URL em Remuneração, DP, Cargos, Avaliações, PDI, Sucessão, Análise demissional, Biblioteca, Cursos, Benefícios, Mural, Motivadores, Clima, Ouvidoria, Organização, Consumo de IA e Banco de talentos. As listagens de Equipe, Vagas, Usuários, Empresas, Leads, Feedback e Auditoria mantêm seus contratos de URL existentes. A ficha retorna ao Banco de talentos preservando contexto e o pipeline oferece movimentação por seleção acessível. Isso padroniza o comportamento transversal; os itens específicos de hierarquia/conteúdo por tela abaixo continuam com seus respectivos estados.
+
 ## 1. Escopo e método
 
 Foram auditadas estaticamente:

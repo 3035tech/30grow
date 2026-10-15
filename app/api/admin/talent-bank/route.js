@@ -4,8 +4,11 @@ import { CAP } from '../../../../lib/ae/require-admin.js';
 import { listTalentBank } from '../../../../lib/talent-bank.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 
+import { candidateTagFilterShape } from '../../../../lib/candidate-tags-validation.js';
+
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),
+  ...candidateTagFilterShape,
   q: z.string().trim().max(120).optional(),
   vacancyId: zPositiveInt.optional(),
   stage: z.string().trim().max(40).optional(),
@@ -30,6 +33,8 @@ export const GET = withAdminApi(
   async ({ companyId, query }) => {
     const data = await listTalentBank(null, {
       companyId,
+      tagIds: query.tagIds,
+      tagMode: query.tagMode,
       q: query.q || '',
       vacancyId: query.vacancyId ?? null,
       stage: query.stage || null,

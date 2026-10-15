@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../lib/auth';
-import { query } from '../../../../../../../lib/db';
+import { query, withTransaction } from '../../../../../../../lib/db';
 import { sanitizeInterviewNotesHtml } from '../../../../../../../lib/sanitize-html';
-import { apiError, ERR } from '../../../../../../../lib/api-error';
+import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error';
 import { CAP, isAdminRole, requireCapability } from '../../../../../../../lib/permissions';
 import {
   PIPELINE_STAGE,
@@ -12,7 +12,7 @@ import {
   normalizeStartDate,
 } from '../../../../../../../lib/pipeline';
 import { resolveCompanyPipelineStage } from '../../../../../../../lib/company-pipeline-stages';
-import { markCandidateHired, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../../../lib/hire';
+import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../../../lib/hire';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../../../lib/job-funnel';
 import { auditFromRequest } from '../../../../../../../lib/audit';
 
@@ -99,7 +99,8 @@ export async function PATCH(request, props) {
     const isRejectedCanonical = stageCanonical === PIPELINE_STAGE.REJECTED;
     const isHiredCanonical = stageCanonical === PIPELINE_STAGE.HIRED;
 
-    const upd = await query(
+    const upd = await withTransaction(async db => {
+    const updated = await db.query(
       `UPDATE vacancy_candidates
        SET interview_notes = CASE WHEN $3::boolean THEN $4 ELSE interview_notes END,
            pipeline_stage = CASE WHEN $5::boolean THEN $6 ELSE pipeline_stage END,
@@ -136,6 +137,10 @@ export async function PATCH(request, props) {
       ]
     );
 
+    if (isHiredCanonical) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
+    return updated;
+    });
+
     if (body.pipelineStage !== undefined && stage != null) {
       await query(
         `INSERT INTO vacancy_candidate_pipeline_history
@@ -163,7 +168,7 @@ export async function PATCH(request, props) {
     }
 
     if (isHiredCanonical) {
-      await markCandidateHired({ candidateId, vacancyId, startDate });
+      await runCandidateHireEffects({ companyId:loaded.link.companyId,candidateId,startDate });
       await maybeCloseVacancyIfFilled(vacancyId);
       await notifyHireOnboardingKit(query, {
         companyId: loaded.link.companyId,
@@ -198,6 +203,7 @@ export async function PATCH(request, props) {
       email: loaded.link.email,
     });
   } catch (error) {
+    if (Object.values(ERR).includes(error?.code)) return apiErrorFromResult(request,{errorCode:error.code});
     console.error(error);
     return apiError(request, ERR.INTERNAL, 500);
   }

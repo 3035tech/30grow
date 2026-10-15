@@ -88,7 +88,7 @@ describe('recruiting analytics (DTOV)', { skip: !dtov }, () => {
     });
     assert.equal(saved.ok, true);
     assert.deepEqual(saved.view.filters, {
-      q: '', owner: 'mine', aging: 'stalled', fit: 'all', notes: true, hideEmpty: false, compact: false,
+      q: '', owner: 'mine', aging: 'stalled', fit: 'all', notes: true, hideEmpty: false, compact: false, tagIds: [], tagMode: 'any',
     });
 
     const workspace = await getRecruitingWorkspace({ companyId, userId, vacancyId });

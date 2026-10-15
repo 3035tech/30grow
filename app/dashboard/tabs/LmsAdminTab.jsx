@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t, contentLocale } from '../../../lib/i18n';
@@ -65,8 +67,8 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
   const { confirm, promptForm, toast } = useAppFeedback();
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [courses, setCourses] = useState([]);
-  const [courseQ, setCourseQ] = useState('');
-  const [activeFilter, setActiveFilter] = useState('');
+  const [courseQ, setCourseQ] = useListUrlState('lms', 'courseQ', '');
+  const [activeFilter, setActiveFilter] = useListUrlState('lms', 'activeFilter', '');
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
@@ -78,10 +80,10 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
   const [cohortName, setCohortName] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [mandatory, setMandatory] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('title');
-  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useListUrlState('lms', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('lms', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('lms', 'sort', 'title');
+  const [sortDir, setSortDir] = useListUrlState('lms', 'sortDir', 'asc');
   const [enrollPage, setEnrollPage] = useState(1);
   const [enrollPageSize, setEnrollPageSize] = useState(ENROLL_PAGE_THRESHOLD);
   const [cohortReport, setCohortReport] = useState(null);

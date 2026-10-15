@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 /**
  * Performance Reviews Admin Tab — manage cycles, goals, and reviews → PDI (B-1004).
  * Segment: formal competency reviews (B-RH2-15).
@@ -47,12 +49,12 @@ export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId }) {
   const [mode, setMode] = useState('formal');
   const [cycles, setCycles] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('periodStart');
-  const [sortDir, setSortDir] = useState('desc');
-  const [nameQ, setNameQ] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useListUrlState('reviews', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('reviews', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('reviews', 'sort', 'periodStart');
+  const [sortDir, setSortDir] = useListUrlState('reviews', 'sortDir', 'desc');
+  const [nameQ, setNameQ] = useListUrlState('reviews', 'nameQ', '');
+  const [statusFilter, setStatusFilter] = useListUrlState('reviews', 'statusFilter', '');
   const [selectedCycle, setSelectedCycle] = useState(null);
   const [viewingCycle, setViewingCycle] = useState(null);
   const [cycleReviews, setCycleReviews] = useState({ cycleId: null, loading: false, error: false, rows: [] });

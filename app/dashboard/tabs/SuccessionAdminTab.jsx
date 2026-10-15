@@ -1,5 +1,7 @@
 'use client';
 
+import { useListUrlState } from '../hooks/useListUrlState';
+
 /**
  * Succession Admin Tab — critical roles + successors + readiness (B-1005).
  */
@@ -40,12 +42,12 @@ export function SuccessionAdminTab({ locale = 'pt-BR', companyId }) {
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [expandedRoles, setExpandedRoles] = useState(new Set());
   const [successorsByRole, setSuccessorsByRole] = useState({});
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [sort, setSort] = useState('title');
-  const [sortDir, setSortDir] = useState('asc');
-  const [nameQ, setNameQ] = useState('');
-  const [impactFilter, setImpactFilter] = useState('');
+  const [page, setPage] = useListUrlState('succession', 'page', 1);
+  const [pageSize, setPageSize] = useListUrlState('succession', 'pageSize', 20);
+  const [sort, setSort] = useListUrlState('succession', 'sort', 'title');
+  const [sortDir, setSortDir] = useListUrlState('succession', 'sortDir', 'asc');
+  const [nameQ, setNameQ] = useListUrlState('succession', 'nameQ', '');
+  const [impactFilter, setImpactFilter] = useListUrlState('succession', 'impactFilter', '');
   const { confirm, promptForm, toast } = useAppFeedback();
 
   function t(key, values = {}) {

@@ -1,5 +1,7 @@
 'use client';
 
+import { CandidateTagsProvider, CandidateTags, CandidateTagFilters } from '../CandidateTags';
+import { HorizontalScrollRegion } from '../../_components/HorizontalScrollRegion';
 import { SelectField } from '../../_components/SelectField';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -25,10 +27,24 @@ import {
   formatAbsenceReasonLines,
 } from '../../../lib/people/list-absence-diagnostics-core.js';
 
-const EMPTY_FILTERS = Object.freeze({ q: '', owner: 'all', aging: 'all', fit: 'all', notes: false });
+const EMPTY_FILTERS = Object.freeze({ q: '', owner: 'all', aging: 'all', fit: 'all', notes: false, tagIds: [], tagMode: 'any' });
 
-export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPersonClick = null, companyStages = null, companyId = null }) {
+export function VacancyKanbanBlock(props) {
+  const [tagRefresh, setTagRefresh] = useState(0);
+  return (
+    <CandidateTagsProvider
+      companyId={props.companyId}
+      locale={props.locale}
+      onChanged={() => setTagRefresh((current) => current + 1)}
+    >
+      <VacancyKanbanContent {...props} tagRefresh={tagRefresh} />
+    </CandidateTagsProvider>
+  );
+}
+
+function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, onPersonClick = null, onStageChanged = null, companyStages = null, companyId = null }) {
   const [rows, setRows] = useState([]);
+  const [rankingMeta, setRankingMeta] = useState({ total: 0, truncated: false });
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
   const [moving, setMoving] = useState(null);
@@ -93,16 +109,22 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
     return () => { cancelled = true; };
   }, [companyStages, vacancyId, companyId]);
 
+  const tagIdsKey = (filters.tagIds || []).join(',');
+  const tagMode = filters.tagMode || 'any';
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       setErr('');
       try {
-        const res = await fetch(`/api/admin/vacancies/${encodeURIComponent(vacancyId)}/ranking`);
+        const params = new URLSearchParams({ locale, tagIds: tagIdsKey, tagMode });
+        const res = await fetch(`/api/admin/vacancies/${encodeURIComponent(vacancyId)}/ranking?${params}`);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
-        if (!cancelled) setRows(Array.isArray(data.ranking) ? data.ranking : []);
+        if (!cancelled) {
+          setRows(Array.isArray(data.ranking) ? data.ranking : []);
+          setRankingMeta({ total: data.total || 0, truncated: data.truncated === true });
+        }
       } catch (e) {
         if (!cancelled) setErr(e?.message || t(locale, 'panel.common.error'));
       } finally {
@@ -110,12 +132,13 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
       }
     })();
     return () => { cancelled = true; };
-  }, [vacancyId, refreshKey, locale]);
+  }, [vacancyId, refreshKey, locale, tagRefresh, tagIdsKey, tagMode]);
 
   const cardKey = (r) =>
     r.assessmentId != null ? `a:${r.assessmentId}` : `vc:${r.vacancyCandidateId}`;
 
   const moveTo = async (row, stage) => {
+    if ((row.pipelineStage || 'new') === stage) return;
     const stageObj = stageById[stage] || { id: stage, canonicalKey: stage };
     const extras = await requestPipelineExtras(locale, stageObj);
     if (extras == null) return;
@@ -160,6 +183,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
           } : r))
         );
       }
+      onStageChanged?.();
     } catch (e) {
       setRows((prev) => prev.map((r) => (cardKey(r) === key ? { ...r, pipelineStage: row.pipelineStage } : r)));
       setErr(e?.message || t(locale, 'recruiting.moveCandidateError'));
@@ -195,7 +219,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
   const hasFiltered = filteredRows.length > 0;
   const searchQuery = filters.q.trim();
   const boardFiltersActive =
-    filters.owner !== 'all' || filters.aging !== 'all' || filters.fit !== 'all' || filters.notes;
+    filters.owner !== 'all' || filters.aging !== 'all' || filters.fit !== 'all' || filters.notes || Boolean(filters.tagIds?.length) || filters.tagMode === 'none';
 
   const runAbsenceDiagnose = async () => {
     if (!searchQuery || diagnoseBusy) return;
@@ -323,7 +347,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
         {loading ? <AppLoading variant="inline" /> : null}
         {!loading && hasAny && (
           <span className="font-mono text-2xs text-ink-faint">
-            {t(locale, 'recruiting.candidatesCount', { n: rows.length })}
+            {t(locale, 'recruiting.candidatesCount', { n: rankingMeta.total })}
           </span>
         )}
         {hasAny ? (
@@ -348,7 +372,9 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
         ) : null}
       </div>
 
-      {hasAny ? (
+      <div className="mb-3"><CandidateTagFilters value={filters} onChange={setFilters} locale={locale} /></div>
+      {rankingMeta.truncated ? <p role="status" className="mb-3 text-sm text-ink-muted">{t(locale, 'candidateTags.truncated', { shown: rows.length, total: rankingMeta.total })}</p> : null}
+      {hasAny || boardFiltersActive || searchQuery ? (
         <div className="mb-3 rounded-xl border border-ink/10 bg-canvas/70 p-3">
           <div className="grid gap-2 md:grid-cols-[minmax(180px,1.2fr)_minmax(150px,0.8fr)_minmax(130px,0.7fr)_minmax(130px,0.7fr)_auto]">
             <input
@@ -423,7 +449,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
 
       {!loading && !hasAny ? (
         <EmptyState
-          title={t(locale, 'recruiting.pipelineEmpty')}
+          title={t(locale, boardFiltersActive ? 'recruiting.pipelineNoFilterResults' : 'recruiting.pipelineEmpty')}
           className="py-4"
         />
       ) : null}
@@ -439,7 +465,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
       ) : null}
 
       {hasAny && hasFiltered && (
-        <div className="kanban-scroll relative overflow-x-visible pb-2 md:overflow-x-auto md:[-webkit-overflow-scrolling:touch]">
+        <HorizontalScrollRegion locale={locale} ariaLabel={t(locale, 'recruiting.pipelineTitle')} className="kanban-scroll relative pb-2">
           <div className="flex w-full flex-col items-stretch gap-2.5 md:min-w-max md:flex-row md:items-start">
             {visibleStages.map((stage) => {
               const cards = grouped[stage.id] || [];
@@ -593,6 +619,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
                               </span>
                             ) : null}
                           </div>
+                          <CandidateTags candidateId={r.candidateId} name={r.name} tags={r.tags || []} locale={locale} />
                           {r.email ? (
                             <div
                               className="mb-[5px] overflow-hidden text-ellipsis whitespace-nowrap font-mono text-2xs text-ink-faint"
@@ -676,6 +703,12 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
                             </div>
                           ) : null}
                           <label className="mt-2 block">
+                            <span className="sr-only">{t(locale, 'recruiting.moveStage')}</span>
+                            <SelectField value={r.pipelineStage || 'new'} disabled={isBusy} onChange={event => void moveTo(r, event.target.value)} aria-label={t(locale, 'recruiting.moveStage')} className="ui-select min-h-touch w-full text-xs">
+                              {stages.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+                            </SelectField>
+                          </label>
+                          <label className="mt-2 block">
                             <span className="sr-only">{t(locale, 'recruiting.candidateOwner')}</span>
                             <SelectField
                               value={r.ownerUserId || ''}
@@ -711,7 +744,7 @@ export function VacancyKanbanBlock({ vacancyId, locale, refreshKey = 0, onPerson
               );
             })}
           </div>
-        </div>
+        </HorizontalScrollRegion>
       )}
     </div>
   );
