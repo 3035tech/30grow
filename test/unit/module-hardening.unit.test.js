@@ -215,13 +215,19 @@ describe('module hardening', () => {
 
   it('keeps canonical admin chrome responsive and avoids nested DP tables', () => {
     const shared = source('app/dashboard/dashboard-shared.jsx');
+    const scrollRegion = source('app/_components/HorizontalScrollRegion.jsx');
     const filters = source('app/_components/AdminListFilters.jsx');
     const dp = source('app/dashboard/tabs/DpAdminTab.jsx');
     assert.match(shared, /sm:flex-row sm:items-start/);
-    assert.match(shared, /overscroll-x-contain/);
-    assert.match(shared, /role="region"/);
-    assert.match(shared, /panel\.common\.dataTable/);
-    assert.match(shared, /focus-visible:ring-2/);
+    assert.match(shared, /import \{ HorizontalScrollRegion \} from '\.\.\/_components\/HorizontalScrollRegion'/);
+    const tableShell = shared.slice(shared.indexOf('function AdminTableShell('), shared.indexOf('export const DashboardPageTitleContext'));
+    assert.match(tableShell, /<HorizontalScrollRegion table locale=\{locale\} ariaLabel=\{ariaLabel\}/);
+    assert.match(tableShell, /<table[\s\S]*<\/table>\s*<\/HorizontalScrollRegion>/);
+    assert.match(scrollRegion, /overscroll-x-contain/);
+    assert.match(scrollRegion, /role="region"/);
+    assert.match(scrollRegion, /tabIndex=\{0\}/);
+    assert.match(scrollRegion, /panel\.common\.dataTable/);
+    assert.match(scrollRegion, /focus-visible:ring-2/);
     assert.match(filters, /font-ui text-sm/);
     assert.doesNotMatch(dp, /<AdminTableShell[^>]*>\s*<table/);
   });
