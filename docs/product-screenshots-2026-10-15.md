@@ -7,3 +7,7 @@ WebP: visão geral, recrutamento, motivadores, PDI, onboarding e organograma. Or
 A home substitui a prévia desenhada por uma captura e apresenta quatro telas ampliáveis. Cinco soluções recebem a captura correspondente; Departamento Pessoal não anuncia imagem de outro módulo. Todas as legendas informam dados demonstrativos; idiomas externos informam interface em português. Datas antigas, cargos não informados e pendências pertencem ao cenário de teste e não são resultados de clientes.
 
 Imagens carregadas sob demanda, com dimensões e tamanhos responsivos; imagem da abertura tem prioridade. Logo da marca permanece separado das imagens do produto. Metadata e sitemap referenciam as imagens exibidas. Sem alterar autenticação, preço, formulários ou lógica do sistema.
+
+## Refinamento de apresentação
+
+Miniaturas alinhadas sem recortar as capturas; título e legenda com hierarquia própria. Visualizador nativo dialog com foco contido, fechamento por Escape ou fundo, zoom em tamanho real e acesso ao arquivo original. Arquivo original carregado somente ao abrir. Links diretos continuam disponíveis sem JavaScript e com teclas modificadoras. Rótulos traduzidos; captura permanece em português. Galeria com margem para não ocultar o título atrás do cabeçalho fixo.
