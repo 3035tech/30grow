@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { errorMessage, t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { profilePanelHeaderClass as panelHeaderClass } from './ProfileUi';
@@ -58,6 +59,10 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   const [companyModulesBaseline, setCompanyModulesBaseline] = useState([]);
   const [modulesSaving, setModulesSaving] = useState(false);
   const [profileSection, setProfileSection] = useState('account');
+  const profileSearch = useSearchParams();
+  useEffect(() => {
+    if (profileSearch.get('section') === 'billing') setProfileSection('billing');
+  }, [profileSearch]);
   const feedback = useAppFeedbackOptional();
   const toast = feedback?.toast;
 
@@ -292,7 +297,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
     }
   };
 
-  const hasBillingSection = ['admin', 'hr'].includes(role);
+  const hasBillingSection = ['admin', 'direction', 'hr'].includes(role);
   const emailDirty = email.trim().toLowerCase() !== savedEmail.trim().toLowerCase();
   const emailReauthMissing =
     emailDirty && (twoFaStatus !== 'ready' || !emailReauthPassword || (twoFaEnabled && emailReauthTotp.length !== 6));
@@ -318,7 +323,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
         ) : (
           <ContentEnter animKey="profile-ready">
             <div className="mt-5">
-              {companyName ? <CompanyLicenseSummary license={license} locale={locale} /> : null}
+              {companyName ? <CompanyLicenseSummary license={license} locale={locale} onManage={() => setProfileSection('billing')} /> : null}
               <PanelSubNav
                 ariaLabel={t(locale, 'dashboard.profileSectionsAria')}
                 active={profileSection}
@@ -441,6 +446,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                     companyId={companyId}
                     companyName={companyName}
                     license={license}
+                    onLicenseChange={setLicense}
                   />
                 ) : null}
 

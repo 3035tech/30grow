@@ -62,7 +62,7 @@ export const GET = withAdminApi(
   async ({ request, companyId, query }) => {
     const result = await getEmployeeTimeMirror(null, {
       companyId,
-      candidateId: query.candidateId,
+      candidateId: query.candidateId, includeFormer:true,
       from: query.from || null,
       to: query.to || null,
     });

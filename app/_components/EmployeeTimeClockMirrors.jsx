@@ -143,6 +143,7 @@ export function EmployeeTimeClockMirrors({ locale = 'pt-BR' }) {
                     {t(locale, `${KM}.ack.${m.ackStatus}`)}
                   </StatusToneChip>
                 </div>
+                {m.nightMinutes>0?<p className={S.muted}>{t(locale,'timeShift.nightTotals',{physical:formatMinutesClock(m.nightMinutes),equivalent:formatMinutesClock(m.nightEquivalentMinutes)})}</p>:null}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                   <StatMetricTile value={formatMinutesClock(m.workedMinutes)} label={t(locale, `${KM}.colWorked`)} />
                   <StatMetricTile value={formatMinutesClock(m.expectedMinutes)} label={t(locale, `${KM}.expected`)} />

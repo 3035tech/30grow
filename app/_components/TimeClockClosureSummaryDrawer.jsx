@@ -2,14 +2,20 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { t } from '../../lib/i18n';
-import { formatDisplayDate, formatDisplayDateTime } from '../../lib/format-display-date.js';
+import {
+  formatDisplayDate,
+  formatDisplayDateTime,
+} from '../../lib/format-display-date.js';
 import { cn } from '../../lib/cn';
 import {
   TIME_CLOCK_ACK_STATUS,
   TIME_CLOCK_ACK_STATUSES,
   TIME_CLOCK_CLOSURE_STATUS,
 } from '../../lib/domain-status.js';
-import { TIME_CLOCK_ACK_TONE as ACK_TONE, formatMinutesClock } from '../../lib/time-clock-format.js';
+import {
+  TIME_CLOCK_ACK_TONE as ACK_TONE,
+  formatMinutesClock,
+} from '../../lib/time-clock-format.js';
 import {
   S,
   AdminListPager,
@@ -30,17 +36,32 @@ const K = 'panel.timeClockMgr';
 const PAGE_SIZE = 25;
 
 const dateBr = (v, locale) => formatDisplayDate(v, locale, { fallback: '' });
-const dateTimeBr = (v, locale) => formatDisplayDateTime(v, locale, { fallback: '' });
+const dateTimeBr = (v, locale) =>
+  formatDisplayDateTime(v, locale, { fallback: '' });
 
 /** Per-person summary of one closure: totals, bank balance and mirror acknowledgment. */
-export function TimeClockClosureSummaryDrawer({ locale = 'pt-BR', companyId, closure, onClose, onChanged }) {
+export function TimeClockClosureSummaryDrawer({
+  locale = 'pt-BR',
+  companyId,
+  closure,
+  onClose,
+  onChanged,
+}) {
   const { toast } = useAppFeedback();
   const [qDraft, setQDraft] = useState('');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [reconciliation, setReconciliation] = useState(null);
+  const [checking, setChecking] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [state, setState] = useState({ items: [], total: 0, counts: null, loading: true });
+  const [state, setState] = useState({
+    items: [],
+    total: 0,
+    counts: null,
+    loading: true,
+  });
   const closureId = closure?.id;
 
   useEffect(() => {
@@ -48,6 +69,9 @@ export function TimeClockClosureSummaryDrawer({ locale = 'pt-BR', companyId, clo
     return () => clearTimeout(id);
   }, [qDraft]);
   useEffect(() => setPage(1), [q, status]);
+  useEffect(() => {
+    setReconciliation(null);
+  }, [closureId, companyId]);
 
   const base = `/api/admin/time-clock/closures/${closureId}/people`;
 
@@ -65,7 +89,12 @@ export function TimeClockClosureSummaryDrawer({ locale = 'pt-BR', companyId, clo
       const res = await fetch(`${base}?${params}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || String(res.status));
-      setState({ items: data.items || [], total: Number(data.total) || 0, counts: data.counts || null, loading: false });
+      setState({
+        items: data.items || [],
+        total: Number(data.total) || 0,
+        counts: data.counts || null,
+        loading: false,
+      });
     } catch (e) {
       toast(e?.message || t(locale, `${K}.loadError`), 'error');
       setState({ items: [], total: 0, counts: null, loading: false });
@@ -99,8 +128,48 @@ export function TimeClockClosureSummaryDrawer({ locale = 'pt-BR', companyId, clo
   const counts = state.counts;
   const hasRows = Boolean(counts?.total);
   const isClosed = closure?.status === TIME_CLOCK_CLOSURE_STATUS.CLOSED;
+  const accountingHref = `${base}?${new URLSearchParams({ companyId: String(companyId), format: 'accounting' })}`;
   const csvHref = `${base}?${new URLSearchParams({ companyId: String(companyId), format: 'csv' })}`;
   const dirty = Boolean(qDraft.trim() || status);
+  async function downloadAccounting() {
+    setDownloading(true);
+    try {
+      const res = await fetch(accountingHref, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(90000),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw Error(d.error || t(locale, 'rep.loadError'));
+      }
+      const url = URL.createObjectURL(await res.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `contabilidade-${closure.periodStart}_${closure.periodEnd}.csv`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      toast(e?.message || t(locale, 'rep.loadError'), 'error');
+    } finally {
+      setDownloading(false);
+    }
+  }
+  async function reconcile() {
+    setChecking(true);
+    try {
+      const r = await fetch(
+        `${base}?${new URLSearchParams({ companyId: String(companyId), format: 'reconcile' })}`,
+        { cache: 'no-store', signal: AbortSignal.timeout(60000) },
+      );
+      const d = await r.json();
+      if (!r.ok) throw Error(d.error);
+      setReconciliation(d);
+    } catch (e) {
+      toast(e?.message || t(locale, 'rep.loadError'), 'error');
+    } finally {
+      setChecking(false);
+    }
+  }
 
   return (
     <AdminRichFormDrawer
@@ -113,16 +182,112 @@ export function TimeClockClosureSummaryDrawer({ locale = 'pt-BR', companyId, clo
         from: dateBr(closure?.periodStart, locale),
         to: dateBr(closure?.periodEnd, locale),
       })}
-      headerActions={hasRows ? (
-        <a className={cn(S.btnGhost, 'inline-flex min-h-touch items-center')} href={csvHref} download>
-          {t(locale, `${K}.summaryCsv`)}
-        </a>
-      ) : null}
+      headerActions={
+        hasRows ? (
+          <div className="flex flex-wrap gap-2">
+            <a
+              className={cn(S.btnGhost, 'inline-flex min-h-touch items-center')}
+              href={csvHref}
+              download
+            >
+              {t(locale, `${K}.summaryCsv`)}
+            </a>
+            {isClosed &&
+              (Number(counts?.disputed) > 0 ? (
+                <button
+                  type="button"
+                  className={cn(S.btnBrandSoft, 'min-h-touch')}
+                  disabled
+                  title={t(locale, 'timeClosing.accountingHelp')}
+                >
+                  {t(locale, 'timeClosing.accounting')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={cn(
+                    S.btnBrandSoft,
+                    'inline-flex min-h-touch items-center',
+                  )}
+                  onClick={() => void downloadAccounting()}
+                  disabled={
+                    downloading ||
+                    checking ||
+                    reconciliation?.balanced === false
+                  }
+                >
+                  {t(locale, 'timeClosing.accounting')}
+                </button>
+              ))}
+          </div>
+        ) : null
+      }
     >
       <div className="flex flex-col gap-3">
-        <p className={cn(S.muted, 'm-0 max-w-[70ch] text-prose')}>{t(locale, `${K}.summaryIntro`)}</p>
+        <p className={cn(S.muted, 'm-0 max-w-[70ch] text-prose')}>
+          {t(locale, `${K}.summaryIntro`)}
+        </p>
+        {hasRows && isClosed ? (
+          <div className="space-y-3">
+            <button
+              type="button"
+              className={S.btnGhost}
+              disabled={checking}
+              onClick={() => void reconcile()}
+            >
+              {t(
+                locale,
+                checking ? 'timeShift.checking' : 'timeShift.reconcile',
+              )}
+            </button>
+            {reconciliation ? (
+              <InlineCallout
+                tone={reconciliation.balanced ? 'success' : 'warning'}
+              >
+                {t(
+                  locale,
+                  reconciliation.balanced
+                    ? 'timeShift.balanced'
+                    : 'timeShift.differences',
+                  {
+                    checked: reconciliation.checked,
+                    count: reconciliation.differences.length,
+                    pending: reconciliation.pending,
+                  },
+                )}
+                {reconciliation.differences.map((p) => (
+                  <p key={p.candidateId} className="mt-2">
+                    {p.fullName} —{' '}
+                    {p.fields
+                      .map((field) =>
+                        t(
+                          locale,
+                          {
+                            expectedMinutes: 'panel.timeClockMgr.expected',
+                            workedMinutes: 'panel.timeClockMgr.colWorked',
+                            extraMinutes: 'panel.timeClockMgr.colExtra',
+                            missingMinutes: 'panel.timeClockMgr.colMissing',
+                            absenceDays: 'panel.timeClockMgr.colAbsences',
+                            bankBalanceMinutes: 'panel.timeClockMgr.colBank',
+                          }[field] || 'timeShift.integrity',
+                        ),
+                      )
+                      .join(', ')}
+                  </p>
+                ))}
+              </InlineCallout>
+            ) : null}
+          </div>
+        ) : null}
+        {hasRows && isClosed ? (
+          <InlineCallout tone="info">
+            {t(locale, 'timeClosing.accountingHelp')}
+          </InlineCallout>
+        ) : null}
         {hasRows && !isClosed ? (
-          <InlineCallout tone="warning">{t(locale, `${K}.summaryCancelledNote`)}</InlineCallout>
+          <InlineCallout tone="warning">
+            {t(locale, `${K}.summaryCancelledNote`)}
+          </InlineCallout>
         ) : null}
 
         {state.loading && !counts ? (
@@ -130,8 +295,13 @@ export function TimeClockClosureSummaryDrawer({ locale = 'pt-BR', companyId, clo
         ) : !hasRows ? (
           <EmptyState
             title={t(locale, `${K}.summaryEmpty`)}
-            message={t(locale, isClosed ? `${K}.summaryEmptyHint` : `${K}.summaryEmptyCancelled`)}
-            actionLabel={isClosed ? t(locale, `${K}.summaryGenerate`) : undefined}
+            message={t(
+              locale,
+              isClosed ? `${K}.summaryEmptyHint` : `${K}.summaryEmptyCancelled`,
+            )}
+            actionLabel={
+              isClosed ? t(locale, `${K}.summaryGenerate`) : undefined
+            }
             onAction={isClosed ? () => void generate() : undefined}
             actionDisabled={generating}
           />
@@ -198,27 +368,85 @@ export function TimeClockClosureSummaryDrawer({ locale = 'pt-BR', companyId, clo
                     </thead>
                     <tbody>
                       {state.items.map((p) => (
-                        <tr key={p.candidateId} className="border-b border-ink/8 align-top last:border-b-0">
+                        <tr
+                          key={p.candidateId}
+                          className="border-b border-ink/8 align-top last:border-b-0"
+                        >
                           <td className="px-4 py-2.5">
-                            <p className="m-0 font-ui text-sm text-ink">{p.fullName}</p>
-                            <p className={cn(S.faint, 'm-0')}>{p.jobRoleName || p.email}</p>
+                            <p className="m-0 font-ui text-sm text-ink">
+                              {p.fullName} —{' '}
+                              {p.fields
+                                .map((field) =>
+                                  t(
+                                    locale,
+                                    {
+                                      expectedMinutes:
+                                        'panel.timeClockMgr.expected',
+                                      workedMinutes:
+                                        'panel.timeClockMgr.colWorked',
+                                      extraMinutes:
+                                        'panel.timeClockMgr.colExtra',
+                                      missingMinutes:
+                                        'panel.timeClockMgr.colMissing',
+                                      absenceDays:
+                                        'panel.timeClockMgr.colAbsences',
+                                      bankBalanceMinutes:
+                                        'panel.timeClockMgr.colBank',
+                                    }[field] || 'timeShift.integrity',
+                                  ),
+                                )
+                                .join(', ')}
+                            </p>
+                            <p className={cn(S.faint, 'm-0')}>
+                              {p.jobRoleName || p.email}
+                            </p>
                           </td>
-                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{p.workdays}</td>
-                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{formatMinutesClock(p.workedMinutes)}</td>
-                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink-muted">{formatMinutesClock(p.expectedMinutes)}</td>
-                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{formatMinutesClock(p.extraMinutes)}</td>
-                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{formatMinutesClock(p.missingMinutes)}</td>
-                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{p.absenceDays}</td>
                           <td className="px-4 py-2.5 font-mono tabular-nums text-ink">
-                            {p.bankBalanceMinutes == null ? <span className={S.faint}>·</span> : formatMinutesClock(p.bankBalanceMinutes)}
+                            {p.workdays}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">
+                            {formatMinutesClock(p.workedMinutes)}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink-muted">
+                            {formatMinutesClock(p.expectedMinutes)}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">
+                            {formatMinutesClock(p.extraMinutes)}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">
+                            {formatMinutesClock(p.missingMinutes)}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">
+                            {p.absenceDays}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono tabular-nums text-ink">
+                            {p.bankBalanceMinutes == null ? (
+                              <span className={S.faint}>·</span>
+                            ) : (
+                              formatMinutesClock(p.bankBalanceMinutes)
+                            )}
                           </td>
                           <td className="px-4 py-2.5">
-                            <StatusToneChip tone={ACK_TONE[p.ackStatus] || 'neutral'}>
+                            <StatusToneChip
+                              tone={ACK_TONE[p.ackStatus] || 'neutral'}
+                            >
                               {t(locale, `${K}.ack.${p.ackStatus}`)}
                             </StatusToneChip>
-                            {p.ackAt ? <p className={cn(S.faint, 'm-0 mt-1')}>{dateTimeBr(p.ackAt, locale)}</p> : null}
-                            {p.ackStatus === TIME_CLOCK_ACK_STATUS.DISPUTED && p.disputeNote ? (
-                              <p className={cn(S.faint, 'm-0 mt-1 max-w-[18rem] whitespace-pre-wrap')}>{p.disputeNote}</p>
+                            {p.ackAt ? (
+                              <p className={cn(S.faint, 'm-0 mt-1')}>
+                                {dateTimeBr(p.ackAt, locale)}
+                              </p>
+                            ) : null}
+                            {p.ackStatus === TIME_CLOCK_ACK_STATUS.DISPUTED &&
+                            p.disputeNote ? (
+                              <p
+                                className={cn(
+                                  S.faint,
+                                  'm-0 mt-1 max-w-[18rem] whitespace-pre-wrap',
+                                )}
+                              >
+                                {p.disputeNote}
+                              </p>
                             ) : null}
                           </td>
                         </tr>

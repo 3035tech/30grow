@@ -666,6 +666,8 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
                       <StatusToneChip tone={OCCURRENCE_TONE[day.occurrence] || 'neutral'}>
                         {t(locale, `${K}.occ.${day.occurrence}`)}
                       </StatusToneChip>
+                      {day.nightMinutes > 0 ? <span className="block text-xs text-ink-muted">{t(locale,'timeShift.nightTotals',{physical:formatMinutesClock(day.nightMinutes),equivalent:formatMinutesClock(day.nightEquivalentMinutes)})}</span> : null}
+                      {day.requiresScheduleReview ? <p className="text-xs text-warning">{t(locale,'timeClosing.scheduleReview')}</p> : null}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2.5 align-middle">
                       <span className="font-ui text-sm capitalize text-ink">{dayLabel(day.day, locale)}</span>

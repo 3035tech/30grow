@@ -1,0 +1,11 @@
+{
+  "registration13Accepted": false,
+  "afdRegistration": "00005120261234567",
+  "afdComplementaryAbsent": "00000000000000",
+  "nightSchedule": "04|1|420|2200|0500||",
+  "historicalBankWithCurrentDisabled": [],
+  "historyReviewStillExportsDsr": [
+    "07|1|1|2026-10-04||"
+  ],
+  "oversizedWorkerId": "03|1000000000|52998224725|Pessoa teste"
+}

@@ -20,6 +20,7 @@ RUN npm run build
 
 # ── Stage 3: runner ──────────────────────────────────────────────────────────
 FROM docker.io/library/node:22-alpine AS runner
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 ENV NODE_ENV=production

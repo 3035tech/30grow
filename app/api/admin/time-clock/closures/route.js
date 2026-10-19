@@ -16,7 +16,7 @@ import {
   createTimeClockClosure,
   listTimeClockClosures,
 } from '../../../../../lib/people/time-clock-manager.js';
-import { notifyClosureMirrorsReady } from '../../../../../lib/people/time-clock-closure-people.js';
+import { notifyClosureMirrorsReady, notifyClosureReopened } from '../../../../../lib/people/time-clock-closure-people.js';
 
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -123,6 +123,9 @@ export const PATCH = withAdminApi(
       targetId: result.id,
       metadata: { periodStart: result.periodStart, periodEnd: result.periodEnd },
     });
+    try {
+      await notifyClosureReopened(null, { companyId, closureId: result.id, periodStart: result.periodStart, periodEnd: result.periodEnd });
+    } catch (e) { console.error('[time-clock] reopening notif', e?.message || e); }
     return NextResponse.json(result);
   }
 );

@@ -37,8 +37,8 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const idempotencyKey = mobileIdempotencyKey(request);
     const coords = parsePunchCoordinates(body.latitude, body.longitude);
-    if (!idempotencyKey || !TIME_PUNCH_KINDS.includes(body.punchKind) || !coords) return apiError(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST);
-    const result = await createTimePunch({ query }, { companyId: session.companyId, candidateId: session.candidateId, punchKind: body.punchKind, latitude: coords.latitude, longitude: coords.longitude, idempotencyKey });
+    if (!idempotencyKey || !TIME_PUNCH_KINDS.includes(body.punchKind)) return apiError(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST);
+    const result = await createTimePunch({ query }, { companyId: session.companyId, candidateId: session.candidateId, punchKind: body.punchKind, latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null, collector: '01', idempotencyKey });
     if (!result.ok) return apiErrorFromResult(request, result);
     const today = await load(session);
     if (!today.ok) return apiErrorFromResult(request, today);

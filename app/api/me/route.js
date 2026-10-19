@@ -6,7 +6,7 @@ import { LOCALE_COOKIE, normalizeLocale } from '../../../lib/i18n';
 import { apiError, ERR, httpStatusForError } from '../../../lib/api-error';
 import { bumpSessionVersion, verifySessionWithCapabilities } from '../../../lib/session';
 import { checkRateLimit, clientIpFromRequest } from '../../../lib/rate-limit';
-import { companyLicenseSummary } from '../../../lib/company-license';
+import { licenseWithBilling } from '../../../lib/billing/license';
 import { roleMayUse2Fa } from '../../../lib/manager-2fa';
 import { verifyTotpCode } from '../../../lib/totp';
 import { auditFromRequest } from '../../../lib/audit';
@@ -65,7 +65,7 @@ export async function GET(request) {
   if (res.rowCount === 0) return apiError(request, ERR.USER_NOT_FOUND, 404);
 
   const { licenseNumber, licenseStartsAt, licenseExpiresAt, licenseExpired, ...user } = res.rows[0];
-  return NextResponse.json({ user, license: companyLicenseSummary(res.rows[0]) }, {
+  return NextResponse.json({ user, license: await licenseWithBilling(res.rows[0], user.companyId) }, {
     headers: { 'Cache-Control': 'private, no-store' },
   });
 }

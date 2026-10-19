@@ -490,6 +490,7 @@ export function PromptFormDialog({
     if (f.type === 'select') {
       return (
         <SelectField
+          aria-label={f.label}
           value={values[fk] ?? ''}
           onChange={(e) => setField(fk, e.target.value)}
           disabled={Boolean(f.disabled)}

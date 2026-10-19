@@ -14,6 +14,7 @@ Sobre isso o produto cobre o ciclo da pessoa na empresa: vagas e funil, contrata
 | [`test/README.md`](test/README.md) | Provas: DTOV (Postgres efêmero), HTTP smoke, Playwright |
 | [`migrations/README.md`](migrations/README.md) | Schema canônico e convenções de migration |
 | [`docs/release-runbook.md`](docs/release-runbook.md) | Homologação, produção e rollback |
+| [`docs/stripe-billing.md`](docs/stripe-billing.md) | Assinaturas Stripe, licença no perfil, configuração e validação por ambiente |
 | [`docs/job-seo-and-distribution.md`](docs/job-seo-and-distribution.md) | Página pública da vaga, SEO, Indexing API, funil |
 | [`docs/analytics-api.md`](docs/analytics-api.md) | API de relatórios para integrações |
 | [`docs/help-assistant-knowledge.md`](docs/help-assistant-knowledge.md) | Guia do painel e assistente de Ajuda (IA) |

@@ -41,7 +41,7 @@ test('totalsForPeriod: worked, extra, absence, justified, incomplete and holiday
     workdays: 4,
     absenceDays: 1,
     justifiedDays: 1,
-    incompleteDays: 1,
+    incompleteDays: 1, nightMinutes:0, nightEquivalentMinutes:0,
   });
 });
 

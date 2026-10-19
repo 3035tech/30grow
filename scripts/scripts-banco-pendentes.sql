@@ -3860,3 +3860,616 @@ BEGIN
 END $$;
 DROP TRIGGER IF EXISTS org_check_candidate_position ON candidates;
 CREATE TRIGGER org_check_candidate_position BEFORE UPDATE OF org_unit_id,job_role_id ON candidates FOR EACH ROW EXECUTE FUNCTION org_check_candidate_position();
+
+
+-- 160: REP-P original records (expand only).
+-- Expand only. Historical punches are not assigned retrospective fiscal numbers.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+ALTER TABLE employee_time_punches ADD COLUMN IF NOT EXISTS rep_collector CHAR(2) NOT NULL DEFAULT '02' CHECK(rep_collector IN ('01','02'));
+CREATE TABLE IF NOT EXISTS rep_establishments (
+ id BIGSERIAL PRIMARY KEY,
+ company_id BIGINT NOT NULL REFERENCES companies(id) ON DELETE RESTRICT,
+ employer_document VARCHAR(14) NOT NULL UNIQUE CHECK (employer_document ~ '^([0-9]{11}|[A-Z0-9]{12}[0-9]{2})$'),
+ employer_name VARCHAR(150) NOT NULL CHECK (length(trim(employer_name))>0),
+ workplace VARCHAR(100) NOT NULL CHECK (length(trim(workplace))>0),
+ registration VARCHAR(17) NOT NULL CHECK (registration ~ '^[0-9]{17}$'),
+ timezone TEXT NOT NULL DEFAULT 'America/Sao_Paulo',
+ complementary_document VARCHAR(14) NOT NULL DEFAULT '' CHECK (complementary_document ~ '^([0-9]{12}|[0-9]{14})?$'),
+ responsible_cpf VARCHAR(11) NOT NULL CHECK (responsible_cpf ~ '^[0-9]{11}$'),
+ last_nsr BIGINT NOT NULL DEFAULT 0 CHECK (last_nsr BETWEEN 0 AND 999999999),
+ last_punch_hash VARCHAR(64) NOT NULL DEFAULT '',
+ created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+ UNIQUE(id,company_id)
+);
+CREATE TABLE IF NOT EXISTS rep_workers (
+ id BIGSERIAL PRIMARY KEY,
+ company_id BIGINT NOT NULL,
+ establishment_id BIGINT NOT NULL,
+ candidate_id BIGINT NOT NULL REFERENCES candidates(id) ON DELETE RESTRICT,
+ cpf VARCHAR(11) NOT NULL CHECK (cpf ~ '^[0-9]{11}$'),
+ weekly_rest_day SMALLINT NOT NULL DEFAULT 0 CHECK(weekly_rest_day BETWEEN 0 AND 6),
+ worker_name VARCHAR(52) NOT NULL CHECK(length(trim(worker_name))>0),
+ responsible_cpf VARCHAR(11) NOT NULL CHECK (responsible_cpf ~ '^[0-9]{11}$'),
+ created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+ FOREIGN KEY(establishment_id,company_id) REFERENCES rep_establishments(id,company_id) ON DELETE RESTRICT,
+ UNIQUE(company_id,candidate_id), UNIQUE(establishment_id,cpf)
+);
+CREATE TABLE IF NOT EXISTS rep_original_records (
+ establishment_id BIGINT NOT NULL REFERENCES rep_establishments(id) ON DELETE RESTRICT,
+ nsr BIGINT NOT NULL CHECK (nsr BETWEEN 1 AND 999999999),
+ record_type SMALLINT NOT NULL CHECK(record_type IN (2,5,6,7)),
+ recorded_at TIMESTAMPTZ NOT NULL,
+ punch_id BIGINT UNIQUE REFERENCES employee_time_punches(id) ON DELETE RESTRICT,
+ worker_id BIGINT REFERENCES rep_workers(id) ON DELETE RESTRICT,
+ record_text TEXT NOT NULL CHECK(record_text !~ E'[\r\n]'),
+ record_hash VARCHAR(64), previous_hash VARCHAR(64),
+ PRIMARY KEY(establishment_id,nsr),
+ CHECK ((record_type=7)=(punch_id IS NOT NULL)),
+ CHECK(record_type<>7 OR (record_hash ~ '^[a-f0-9]{64}$' AND worker_id IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS rep_original_records_period ON rep_original_records(establishment_id,recorded_at,nsr);
+CREATE TABLE IF NOT EXISTS rep_signed_documents (
+ establishment_id BIGINT NOT NULL,
+ nsr BIGINT NOT NULL,
+ pdf BYTEA NOT NULL,
+ sha256 VARCHAR(64) NOT NULL CHECK(sha256 ~ '^[a-f0-9]{64}$'),
+ certificate_fingerprint VARCHAR(64) NOT NULL,
+ signed_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+ PRIMARY KEY(establishment_id,nsr),
+ FOREIGN KEY(establishment_id,nsr) REFERENCES rep_original_records(establishment_id,nsr) ON DELETE RESTRICT
+);
+CREATE OR REPLACE FUNCTION rep_reject_mutation() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN RAISE EXCEPTION 'REP_IMMUTABLE_RECORD' USING ERRCODE='23514'; END $$;
+DROP TRIGGER IF EXISTS rep_original_immutable ON rep_original_records;
+CREATE TRIGGER rep_original_immutable BEFORE UPDATE OR DELETE ON rep_original_records FOR EACH ROW EXECUTE FUNCTION rep_reject_mutation();
+DROP TRIGGER IF EXISTS rep_original_no_truncate ON rep_original_records;
+CREATE TRIGGER rep_original_no_truncate BEFORE TRUNCATE ON rep_original_records FOR EACH STATEMENT EXECUTE FUNCTION rep_reject_mutation();
+DROP TRIGGER IF EXISTS rep_document_immutable ON rep_signed_documents;
+CREATE TRIGGER rep_document_immutable BEFORE UPDATE OR DELETE ON rep_signed_documents FOR EACH ROW EXECUTE FUNCTION rep_reject_mutation();
+DROP TRIGGER IF EXISTS rep_document_no_truncate ON rep_signed_documents;
+CREATE TRIGGER rep_document_no_truncate BEFORE TRUNCATE ON rep_signed_documents FOR EACH STATEMENT EXECUTE FUNCTION rep_reject_mutation();
+-- Fixed fields reject overflow and unrepresentable characters instead of corrupting exports.
+CREATE OR REPLACE FUNCTION rep_field(v text,n integer) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+BEGIN
+ IF v IS NULL OR char_length(v)>n OR v ~ E'[\r\n]' THEN RAISE EXCEPTION 'REP_INVALID_FIELD'; END IF;
+ PERFORM convert_to(v,'LATIN1'); RETURN rpad(v,n,' ');
+END $$;
+CREATE OR REPLACE FUNCTION rep_stamp(t timestamptz,z text) RETURNS text LANGUAGE sql STABLE AS $$
+ SELECT to_char(t AT TIME ZONE z,'YYYY-MM-DD"T"HH24:MI:00') ||
+ CASE WHEN extract(epoch FROM ((t AT TIME ZONE z)-(t AT TIME ZONE 'UTC'))) < 0 THEN '-' ELSE '+' END ||
+ to_char(make_interval(secs=>abs(extract(epoch FROM ((t AT TIME ZONE z)-(t AT TIME ZONE 'UTC'))))) ,'HH24MI')
+$$;
+CREATE OR REPLACE FUNCTION rep_crc(v text) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE b bytea:=convert_to(v,'LATIN1'); crc integer:=0; i integer;j integer;
+BEGIN
+ FOR i IN 0..length(b)-1 LOOP
+ crc:=crc # get_byte(b,i);
+ FOR j IN 1..8 LOOP crc:=CASE WHEN (crc & 1)=1 THEN (crc>>1)#33800 ELSE crc>>1 END; END LOOP;
+ END LOOP; RETURN lpad(to_hex(crc),4,'0');
+END $$;
+CREATE OR REPLACE FUNCTION rep_guard_counter() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ IF TG_OP='INSERT' AND (NEW.last_nsr<>0 OR NEW.last_punch_hash<>'') THEN RAISE EXCEPTION 'REP_COUNTER_MANAGED'; END IF;
+ IF TG_OP='UPDATE' AND (NEW.last_nsr,NEW.last_punch_hash) IS DISTINCT FROM (OLD.last_nsr,OLD.last_punch_hash) AND pg_trigger_depth()<2 THEN RAISE EXCEPTION 'REP_COUNTER_MANAGED'; END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS rep_guard_counter ON rep_establishments;
+CREATE TRIGGER rep_guard_counter BEFORE INSERT OR UPDATE ON rep_establishments FOR EACH ROW EXECUTE FUNCTION rep_guard_counter();
+CREATE OR REPLACE FUNCTION rep_guard_append() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN IF pg_trigger_depth()<2 THEN RAISE EXCEPTION 'REP_APPEND_INTERNAL_ONLY'; END IF; RETURN NEW; END $$;
+DROP TRIGGER IF EXISTS rep_guard_append ON rep_original_records;
+CREATE TRIGGER rep_guard_append BEFORE INSERT ON rep_original_records FOR EACH ROW EXECUTE FUNCTION rep_guard_append();
+CREATE OR REPLACE FUNCTION rep_configuration_event() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE e public.rep_establishments%ROWTYPE; n bigint; at timestamptz:=clock_timestamp(); raw text; typ integer;
+BEGIN
+ IF TG_TABLE_NAME='rep_establishments' THEN
+  IF TG_OP='UPDATE' AND (NEW.company_id,NEW.employer_document,NEW.registration,NEW.timezone) IS DISTINCT FROM (OLD.company_id,OLD.employer_document,OLD.registration,OLD.timezone) THEN RAISE EXCEPTION 'REP_IDENTITY_IMMUTABLE'; END IF;
+  SELECT * INTO e FROM public.rep_establishments WHERE id=NEW.id FOR UPDATE;
+  IF TG_OP='UPDATE' AND (NEW.employer_name,NEW.workplace,NEW.responsible_cpf,NEW.complementary_document) IS NOT DISTINCT FROM (OLD.employer_name,OLD.workplace,OLD.responsible_cpf,OLD.complementary_document) THEN RETURN NEW; END IF;
+  typ:=2;
+ ELSE
+  IF NOT EXISTS(SELECT 1 FROM public.candidates WHERE id=NEW.candidate_id AND company_id=NEW.company_id) THEN RAISE EXCEPTION 'REP_WORKER_TENANT'; END IF;
+  IF TG_OP='UPDATE' AND (NEW.company_id,NEW.establishment_id,NEW.candidate_id,NEW.cpf,NEW.weekly_rest_day) IS DISTINCT FROM (OLD.company_id,OLD.establishment_id,OLD.candidate_id,OLD.cpf,OLD.weekly_rest_day) THEN RAISE EXCEPTION 'REP_IDENTITY_IMMUTABLE'; END IF;
+  IF TG_OP='UPDATE' AND (NEW.worker_name,NEW.responsible_cpf) IS NOT DISTINCT FROM (OLD.worker_name,OLD.responsible_cpf) THEN RETURN NEW; END IF;
+  SELECT * INTO e FROM public.rep_establishments WHERE id=NEW.establishment_id FOR UPDATE;
+  typ:=5;
+ END IF;
+ PERFORM public.rep_stamp(at,e.timezone);
+ UPDATE public.rep_establishments SET last_nsr=last_nsr+1 WHERE id=e.id RETURNING last_nsr INTO n;
+ IF typ=2 THEN raw:=lpad(n::text,9,'0')||'2'||public.rep_stamp(at,e.timezone)||lpad(NEW.responsible_cpf,14,'0')||CASE WHEN length(e.employer_document)=14 THEN '1' ELSE '2' END||public.rep_field(e.employer_document,14)||lpad(e.complementary_document,14,'0')||public.rep_field(e.employer_name,150)||public.rep_field(e.workplace,100);
+ ELSE raw:=lpad(n::text,9,'0')||'5'||public.rep_stamp(at,e.timezone)||CASE WHEN TG_OP='INSERT' THEN 'I' ELSE 'A' END||lpad(NEW.cpf,12,'0')||public.rep_field(NEW.worker_name,52)||'    '||NEW.responsible_cpf;
+ END IF;
+ INSERT INTO public.rep_original_records(establishment_id,nsr,record_type,recorded_at,record_text)
+ VALUES(e.id,n,typ,at,raw||public.rep_crc(raw)); RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS rep_establishment_events ON rep_establishments;
+CREATE TRIGGER rep_establishment_events AFTER INSERT OR UPDATE ON rep_establishments FOR EACH ROW EXECUTE FUNCTION rep_configuration_event();
+DROP TRIGGER IF EXISTS rep_worker_events ON rep_workers;
+CREATE TRIGGER rep_worker_events AFTER INSERT OR UPDATE ON rep_workers FOR EACH ROW EXECUTE FUNCTION rep_configuration_event();
+DROP TRIGGER IF EXISTS rep_establishment_delete ON rep_establishments;
+CREATE TRIGGER rep_establishment_delete BEFORE DELETE ON rep_establishments FOR EACH ROW EXECUTE FUNCTION rep_reject_mutation();
+DROP TRIGGER IF EXISTS rep_worker_delete ON rep_workers;
+CREATE TRIGGER rep_worker_delete BEFORE DELETE ON rep_workers FOR EACH ROW EXECUTE FUNCTION rep_reject_mutation();
+CREATE OR REPLACE FUNCTION rep_capture_punch() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE w public.rep_workers%ROWTYPE; e public.rep_establishments%ROWTYPE; n bigint; at timestamptz:=clock_timestamp(); raw text; h text; collector text;
+BEGIN
+ IF NEW.source='manager' THEN RETURN NEW; END IF;
+ SELECT * INTO w FROM public.rep_workers WHERE company_id=NEW.company_id AND candidate_id=NEW.candidate_id;
+ IF NOT FOUND THEN RETURN NEW; END IF;
+ SELECT * INTO e FROM public.rep_establishments WHERE id=w.establishment_id FOR UPDATE;
+ UPDATE public.rep_establishments SET last_nsr=last_nsr+1 WHERE id=e.id RETURNING last_nsr INTO n;
+ collector:=NEW.rep_collector;
+ raw:=lpad(n::text,9,'0')||'7'||public.rep_stamp(NEW.punched_at,e.timezone)||lpad(w.cpf,12,'0')||public.rep_stamp(at,e.timezone)||collector||'0';
+ h:=encode(public.digest(convert_to(raw||e.last_punch_hash,'LATIN1'),'sha256'),'hex');
+ INSERT INTO public.rep_original_records(establishment_id,nsr,record_type,recorded_at,punch_id,worker_id,record_text,record_hash,previous_hash)
+ VALUES(e.id,n,7,at,NEW.id,w.id,raw||h,h,e.last_punch_hash);
+ UPDATE public.rep_establishments SET last_punch_hash=h WHERE id=e.id;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS rep_capture_punch ON employee_time_punches;
+CREATE TRIGGER rep_capture_punch AFTER INSERT ON employee_time_punches FOR EACH ROW EXECUTE FUNCTION rep_capture_punch();
+CREATE OR REPLACE FUNCTION rep_protect_punch() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ IF TG_OP='DELETE' THEN RAISE EXCEPTION 'REP_PUNCH_DELETE_FORBIDDEN' USING ERRCODE='23514'; END IF;
+ IF (NEW.id,NEW.company_id,NEW.candidate_id,NEW.punched_at,NEW.punch_kind,NEW.source,NEW.latitude,NEW.longitude,NEW.notes,NEW.created_at,NEW.created_by_user_id,NEW.idempotency_key,NEW.rep_collector) IS DISTINCT FROM
+ (OLD.id,OLD.company_id,OLD.candidate_id,OLD.punched_at,OLD.punch_kind,OLD.source,OLD.latitude,OLD.longitude,OLD.notes,OLD.created_at,OLD.created_by_user_id,OLD.idempotency_key,OLD.rep_collector) THEN
+ RAISE EXCEPTION 'REP_PUNCH_ORIGINAL_IMMUTABLE' USING ERRCODE='23514'; END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS rep_protect_punch ON employee_time_punches;
+CREATE TRIGGER rep_protect_punch BEFORE UPDATE OR DELETE ON employee_time_punches FOR EACH ROW EXECUTE FUNCTION rep_protect_punch();
+DROP TRIGGER IF EXISTS rep_punch_no_truncate ON employee_time_punches;
+CREATE TRIGGER rep_punch_no_truncate BEFORE TRUNCATE ON employee_time_punches FOR EACH STATEMENT EXECUTE FUNCTION rep_reject_mutation();
+CREATE TABLE IF NOT EXISTS rep_service_observations (
+ id BIGSERIAL PRIMARY KEY,
+ establishment_id BIGINT NOT NULL REFERENCES rep_establishments(id) ON DELETE RESTRICT,
+ available BOOLEAN NOT NULL,
+ recorded_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+CREATE INDEX IF NOT EXISTS rep_service_observations_last ON rep_service_observations(establishment_id,id DESC);
+DROP TRIGGER IF EXISTS rep_service_immutable ON rep_service_observations;
+CREATE TRIGGER rep_service_immutable BEFORE UPDATE OR DELETE ON rep_service_observations FOR EACH ROW EXECUTE FUNCTION rep_reject_mutation();
+DROP TRIGGER IF EXISTS rep_service_no_truncate ON rep_service_observations;
+CREATE TRIGGER rep_service_no_truncate BEFORE TRUNCATE ON rep_service_observations FOR EACH STATEMENT EXECUTE FUNCTION rep_reject_mutation();
+CREATE OR REPLACE FUNCTION rep_capture_service_state() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE e public.rep_establishments%ROWTYPE; prior boolean; n bigint;
+BEGIN
+ SELECT * INTO e FROM public.rep_establishments WHERE id=NEW.establishment_id FOR UPDATE;
+ SELECT right(record_text,2)='07' INTO prior FROM public.rep_original_records WHERE establishment_id=NEW.establishment_id AND record_type=6 ORDER BY nsr DESC LIMIT 1;
+ IF prior IS NOT DISTINCT FROM NEW.available THEN RETURN NEW; END IF;
+ UPDATE public.rep_establishments SET last_nsr=last_nsr+1 WHERE id=e.id RETURNING last_nsr INTO n;
+ INSERT INTO public.rep_original_records(establishment_id,nsr,record_type,recorded_at,record_text)
+ VALUES(e.id,n,6,NEW.recorded_at,lpad(n::text,9,'0')||'6'||public.rep_stamp(NEW.recorded_at,e.timezone)||CASE WHEN NEW.available THEN '07' ELSE '08' END);
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS rep_capture_service_state ON rep_service_observations;
+CREATE TRIGGER rep_capture_service_state AFTER INSERT ON rep_service_observations FOR EACH ROW EXECUTE FUNCTION rep_capture_service_state();
+INSERT INTO schema_migrations(name) VALUES('160_rep_original_records.sql') ON CONFLICT(name) DO NOTHING;
+
+
+-- 161_time_clock_closed_day_guards.sql
+-- Serialize original time inputs with closure snapshots; retain all existing rows.
+-- Closing locks company candidates in id order using FOR NO KEY UPDATE. Each writer
+-- uses the same lock before rechecking the closed period, including direct SQL writes.
+CREATE OR REPLACE FUNCTION time_clock_guard_closed_day() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE row_data RECORD; v_day DATE; v_old_day DATE; v_tz TEXT; v_closed BOOLEAN;
+BEGIN
+  IF TG_OP='DELETE' THEN row_data:=OLD; ELSE row_data:=NEW; END IF;
+  IF TG_OP='UPDATE' AND (NEW.company_id IS DISTINCT FROM OLD.company_id OR NEW.candidate_id IS DISTINCT FROM OLD.candidate_id) THEN
+    RAISE EXCEPTION 'TIME_CLOCK_IDENTITY_IMMUTABLE' USING ERRCODE='P0001';
+  END IF;
+  PERFORM id FROM candidates WHERE company_id=row_data.company_id AND id=row_data.candidate_id FOR NO KEY UPDATE;
+  -- Rejections/cancellations do not alter computed time and may clear legacy pending rows.
+  IF TG_TABLE_NAME IN ('employee_time_requests','employee_hour_bank_entries') THEN
+    IF TG_OP='UPDATE' AND OLD.status='pending' AND NEW.status IN ('rejected','cancelled') THEN RETURN NEW; END IF;
+  END IF;
+  IF TG_TABLE_NAME='employee_time_punches' THEN
+    SELECT COALESCE(timezone,'America/Sao_Paulo') INTO v_tz FROM company_time_schedules WHERE company_id=row_data.company_id;
+    v_day:=(row_data.punched_at AT TIME ZONE COALESCE(v_tz,'America/Sao_Paulo'))::date;
+  ELSE v_day:=row_data.work_on; END IF;
+  v_old_day:=v_day;
+  IF TG_OP='UPDATE' THEN
+    IF TG_TABLE_NAME='employee_time_punches' THEN v_old_day:=(OLD.punched_at AT TIME ZONE COALESCE(v_tz,'America/Sao_Paulo'))::date;
+    ELSE v_old_day:=OLD.work_on; END IF;
+  END IF;
+  WITH RECURSIVE anc AS (
+    SELECT u.id,u.parent_id,1 AS depth FROM candidates c JOIN org_units u ON u.id=c.org_unit_id AND u.company_id=c.company_id
+    WHERE c.company_id=row_data.company_id AND c.id=row_data.candidate_id
+    UNION ALL SELECT p.id,p.parent_id,anc.depth+1 FROM org_units p JOIN anc ON p.id=anc.parent_id WHERE p.company_id=row_data.company_id AND anc.depth<20
+  ) SELECT EXISTS(
+    SELECT 1 FROM time_clock_closures k WHERE k.company_id=row_data.company_id AND k.status='closed'
+      AND (v_day BETWEEN k.period_start AND k.period_end OR v_old_day BETWEEN k.period_start AND k.period_end)
+      AND (k.org_unit_id IS NULL OR k.org_unit_id IN (SELECT id FROM anc) OR EXISTS(
+        SELECT 1 FROM time_clock_closure_people p WHERE p.closure_id=k.id AND p.company_id=k.company_id AND p.candidate_id=row_data.candidate_id
+      ))
+  ) INTO v_closed;
+  IF v_closed THEN RAISE EXCEPTION 'TIME_CLOCK_PERIOD_CLOSED' USING ERRCODE='P0001'; END IF;
+  IF TG_OP='DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_closed_day ON employee_time_punches;
+CREATE TRIGGER time_clock_closed_day BEFORE INSERT OR UPDATE OR DELETE ON employee_time_punches FOR EACH ROW EXECUTE FUNCTION time_clock_guard_closed_day();
+DROP TRIGGER IF EXISTS time_clock_closed_day ON employee_time_day_justifications;
+CREATE TRIGGER time_clock_closed_day BEFORE INSERT OR UPDATE OR DELETE ON employee_time_day_justifications FOR EACH ROW EXECUTE FUNCTION time_clock_guard_closed_day();
+DROP TRIGGER IF EXISTS time_clock_closed_day ON employee_time_requests;
+CREATE TRIGGER time_clock_closed_day BEFORE INSERT OR UPDATE OR DELETE ON employee_time_requests FOR EACH ROW EXECUTE FUNCTION time_clock_guard_closed_day();
+DROP TRIGGER IF EXISTS time_clock_closed_day ON employee_hour_bank_entries;
+CREATE TRIGGER time_clock_closed_day BEFORE INSERT OR UPDATE OR DELETE ON employee_hour_bank_entries FOR EACH ROW EXECUTE FUNCTION time_clock_guard_closed_day();
+
+INSERT INTO schema_migrations(name) VALUES('161_time_clock_closed_day_guards.sql') ON CONFLICT(name) DO NOTHING;
+
+-- 162: time clock historical rules
+-- Captures configuration changes prospectively; baseline is the known current state.
+CREATE TABLE IF NOT EXISTS time_clock_person_history (
+ id BIGSERIAL PRIMARY KEY, company_id BIGINT NOT NULL REFERENCES companies(id),
+ candidate_id BIGINT NOT NULL REFERENCES candidates(id), effective_on DATE NOT NULL,
+ org_unit_id BIGINT REFERENCES org_units(id), work_format TEXT, time_clock_override BOOLEAN,
+ start_date DATE, recorded_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+ UNIQUE(company_id,candidate_id,effective_on)
+);
+CREATE INDEX IF NOT EXISTS time_clock_person_history_lookup ON time_clock_person_history(company_id,candidate_id,effective_on DESC);
+INSERT INTO time_clock_person_history(company_id,candidate_id,effective_on,org_unit_id,work_format,time_clock_override,start_date)
+ SELECT company_id,id,'0001-01-01',org_unit_id,work_format,time_clock_override,COALESCE(start_date,hired_at::date)
+ FROM candidates WHERE employment_status IN ('employee','alumni') ON CONFLICT DO NOTHING;
+CREATE OR REPLACE FUNCTION time_clock_capture_person() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE d DATE;
+BEGIN
+ IF NEW.company_id IS NULL OR NEW.employment_status NOT IN ('employee','alumni') THEN RETURN NEW; END IF;
+ IF TG_OP='UPDATE' AND ROW(NEW.org_unit_id,NEW.work_format,NEW.time_clock_override,NEW.start_date,NEW.hired_at,NEW.employment_status) IS NOT DISTINCT FROM ROW(OLD.org_unit_id,OLD.work_format,OLD.time_clock_override,OLD.start_date,OLD.hired_at,OLD.employment_status) THEN RETURN NEW; END IF;
+ SELECT (clock_timestamp() AT TIME ZONE COALESCE((SELECT timezone FROM company_time_schedules WHERE company_id=NEW.company_id),'America/Sao_Paulo'))::date INTO d;
+ IF TG_OP='INSERT' OR NOT EXISTS(SELECT 1 FROM time_clock_person_history WHERE company_id=NEW.company_id AND candidate_id=NEW.id) THEN d:='0001-01-01'::date; END IF;
+ INSERT INTO time_clock_person_history(company_id,candidate_id,effective_on,org_unit_id,work_format,time_clock_override,start_date)
+ VALUES(NEW.company_id,NEW.id,d,NEW.org_unit_id,NEW.work_format,NEW.time_clock_override,COALESCE(NEW.start_date,NEW.hired_at::date))
+ ON CONFLICT(company_id,candidate_id,effective_on) DO UPDATE SET org_unit_id=EXCLUDED.org_unit_id,work_format=EXCLUDED.work_format,time_clock_override=EXCLUDED.time_clock_override,start_date=EXCLUDED.start_date,recorded_at=clock_timestamp();
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_person_history_capture ON candidates;
+CREATE TRIGGER time_clock_person_history_capture AFTER INSERT OR UPDATE ON candidates FOR EACH ROW EXECUTE FUNCTION time_clock_capture_person();
+CREATE TABLE IF NOT EXISTS time_clock_company_history (
+ id BIGSERIAL PRIMARY KEY, company_id BIGINT NOT NULL REFERENCES companies(id), effective_on DATE NOT NULL,
+ workday_start TIME NOT NULL, workday_end TIME NOT NULL, break_minutes INT NOT NULL,
+ late_grace_minutes INT NOT NULL, timezone TEXT NOT NULL, hour_bank_enabled BOOLEAN NOT NULL DEFAULT FALSE, hour_bank_max_minutes INT NOT NULL DEFAULT 2400, hour_bank_started_on DATE, recorded_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+ UNIQUE(company_id,effective_on)
+);
+INSERT INTO time_clock_company_history(company_id,effective_on,workday_start,workday_end,break_minutes,late_grace_minutes,timezone,hour_bank_enabled,hour_bank_max_minutes,hour_bank_started_on)
+ SELECT company_id,'0001-01-01',workday_start,workday_end,break_minutes,late_grace_minutes,timezone,hour_bank_enabled,hour_bank_max_minutes,hour_bank_started_on FROM company_time_schedules ON CONFLICT DO NOTHING;
+CREATE OR REPLACE FUNCTION time_clock_capture_company() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ INSERT INTO time_clock_company_history(company_id,effective_on,workday_start,workday_end,break_minutes,late_grace_minutes,timezone,hour_bank_enabled,hour_bank_max_minutes,hour_bank_started_on)
+ VALUES(NEW.company_id,CASE WHEN TG_OP='INSERT' THEN '0001-01-01'::date ELSE (clock_timestamp() AT TIME ZONE NEW.timezone)::date END,NEW.workday_start,NEW.workday_end,NEW.break_minutes,NEW.late_grace_minutes,NEW.timezone,NEW.hour_bank_enabled,NEW.hour_bank_max_minutes,NEW.hour_bank_started_on)
+ ON CONFLICT(company_id,effective_on) DO UPDATE SET workday_start=EXCLUDED.workday_start,workday_end=EXCLUDED.workday_end,break_minutes=EXCLUDED.break_minutes,late_grace_minutes=EXCLUDED.late_grace_minutes,timezone=EXCLUDED.timezone,hour_bank_enabled=EXCLUDED.hour_bank_enabled,hour_bank_max_minutes=EXCLUDED.hour_bank_max_minutes,hour_bank_started_on=EXCLUDED.hour_bank_started_on,recorded_at=clock_timestamp();
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_company_history_capture ON company_time_schedules;
+CREATE TRIGGER time_clock_company_history_capture AFTER INSERT OR UPDATE ON company_time_schedules FOR EACH ROW EXECUTE FUNCTION time_clock_capture_company();
+DO $$ BEGIN
+ IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='time_clock_history_person_tenant') THEN
+ ALTER TABLE time_clock_person_history ADD CONSTRAINT time_clock_history_person_tenant FOREIGN KEY(candidate_id,company_id) REFERENCES candidates(id,company_id);
+ ALTER TABLE time_clock_person_history ADD CONSTRAINT time_clock_history_unit_tenant FOREIGN KEY(org_unit_id,company_id) REFERENCES org_units(id,company_id);
+ END IF;
+END $$;
+CREATE TABLE IF NOT EXISTS time_clock_unit_history (
+ id BIGSERIAL PRIMARY KEY, company_id BIGINT NOT NULL REFERENCES companies(id), unit_id BIGINT NOT NULL,
+ parent_id BIGINT, effective_on DATE NOT NULL, recorded_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+ UNIQUE(company_id,unit_id,effective_on),
+ FOREIGN KEY(unit_id,company_id) REFERENCES org_units(id,company_id),
+ FOREIGN KEY(parent_id,company_id) REFERENCES org_units(id,company_id)
+);
+INSERT INTO time_clock_unit_history(company_id,unit_id,parent_id,effective_on) SELECT company_id,id,parent_id,'0001-01-01' FROM org_units ON CONFLICT DO NOTHING;
+CREATE OR REPLACE FUNCTION time_clock_capture_unit() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ IF TG_OP='UPDATE' AND NEW.parent_id IS NOT DISTINCT FROM OLD.parent_id THEN RETURN NEW; END IF;
+ INSERT INTO time_clock_unit_history(company_id,unit_id,parent_id,effective_on) VALUES(NEW.company_id,NEW.id,NEW.parent_id,CASE WHEN TG_OP='INSERT' THEN '0001-01-01'::date ELSE (clock_timestamp() AT TIME ZONE COALESCE((SELECT timezone FROM company_time_schedules WHERE company_id=NEW.company_id),'America/Sao_Paulo'))::date END)
+ ON CONFLICT(company_id,unit_id,effective_on) DO UPDATE SET parent_id=EXCLUDED.parent_id,recorded_at=clock_timestamp();
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_unit_history_capture ON org_units;
+CREATE TRIGGER time_clock_unit_history_capture AFTER INSERT OR UPDATE ON org_units FOR EACH ROW EXECUTE FUNCTION time_clock_capture_unit();
+
+INSERT INTO schema_migrations(name) VALUES('162_time_clock_history.sql') ON CONFLICT(name) DO NOTHING;
+ALTER TABLE employee_time_schedules ADD COLUMN IF NOT EXISTS shift_pattern TEXT NOT NULL DEFAULT 'weekly';
+ALTER TABLE employee_time_schedules ADD COLUMN IF NOT EXISTS cycle_anchor DATE;
+ALTER TABLE employee_time_schedules ADD COLUMN IF NOT EXISTS night_rule TEXT NOT NULL DEFAULT 'none';
+ALTER TABLE employee_time_schedules DROP CONSTRAINT IF EXISTS employee_time_schedules_shift_chk;
+ALTER TABLE employee_time_schedules ADD CONSTRAINT employee_time_schedules_shift_chk CHECK (shift_pattern IN ('weekly','12x36') AND night_rule IN ('none','urban_clt') AND (shift_pattern<>'12x36' OR (cycle_anchor IS NOT NULL AND NOT follows_company AND mod((extract(epoch FROM(workday_end-workday_start))+86400)::bigint,86400)=43200)));
+ALTER TABLE employee_time_schedules DROP CONSTRAINT IF EXISTS employee_time_schedules_shape_chk;
+ALTER TABLE employee_time_schedules ADD CONSTRAINT employee_time_schedules_shape_chk CHECK (
+ (follows_company AND workday_start IS NULL AND workday_end IS NULL AND break_start IS NULL AND break_end IS NULL AND weekdays IS NULL)
+ OR (NOT follows_company AND workday_start IS NOT NULL AND workday_end IS NOT NULL AND workday_end<>workday_start
+ AND weekdays IS NOT NULL AND cardinality(weekdays) BETWEEN 1 AND 7 AND weekdays <@ ARRAY[0,1,2,3,4,5,6]::smallint[]
+ AND ((break_start IS NULL AND break_end IS NULL) OR (break_start IS NOT NULL AND break_end IS NOT NULL
+ AND ((extract(epoch FROM (break_start-workday_start))+86400)::bigint % 86400) < ((extract(epoch FROM (break_end-workday_start))+86400)::bigint % 86400)
+ AND ((extract(epoch FROM (break_end-workday_start))+86400)::bigint % 86400) <= ((extract(epoch FROM (workday_end-workday_start))+86400)::bigint % 86400))))) ;
+-- Logical day depends on the schedule of the preceding day, never the device clock.
+CREATE OR REPLACE FUNCTION time_clock_work_day(cid BIGINT, person BIGINT, ts TIMESTAMPTZ) RETURNS DATE LANGUAGE plpgsql STABLE AS $$
+DECLARE d DATE; local_time TIME; z TEXT; s RECORD;
+BEGIN
+ SELECT timezone INTO z FROM time_clock_company_history WHERE company_id=cid AND effective_on<=(ts AT TIME ZONE timezone)::date ORDER BY effective_on DESC,id DESC LIMIT 1;
+ IF z IS NULL THEN SELECT timezone INTO z FROM company_time_schedules WHERE company_id=cid; END IF;
+ z:=COALESCE(z,'America/Sao_Paulo'); d:=(ts AT TIME ZONE z)::date; local_time:=(ts AT TIME ZONE z)::time;
+ SELECT * INTO s FROM employee_time_schedules WHERE company_id=cid AND candidate_id=person AND valid_from<=d-1 ORDER BY valid_from DESC LIMIT 1;
+ IF FOUND AND NOT s.follows_company AND s.workday_end<s.workday_start AND extract(epoch FROM local_time)<(extract(epoch FROM s.workday_end)+extract(epoch FROM s.workday_start))/2
+ AND (s.shift_pattern='weekly' AND extract(dow FROM d-1)::smallint=ANY(s.weekdays) OR s.shift_pattern='12x36' AND mod((d-1-s.cycle_anchor),2)=0) THEN RETURN d-1; END IF;
+ RETURN d;
+END $$;
+ALTER TABLE time_clock_closure_people ADD COLUMN IF NOT EXISTS night_minutes INT NOT NULL DEFAULT 0;
+ALTER TABLE time_clock_closure_people ADD COLUMN IF NOT EXISTS night_equivalent_minutes INT NOT NULL DEFAULT 0;
+ALTER TABLE time_clock_closure_people ADD COLUMN IF NOT EXISTS calculation_version INT NOT NULL DEFAULT 1;
+
+CREATE OR REPLACE FUNCTION time_clock_guard_closed_day() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE row_data RECORD; v_day DATE; v_old_day DATE; v_tz TEXT; v_closed BOOLEAN;
+BEGIN
+  IF TG_OP='DELETE' THEN row_data:=OLD; ELSE row_data:=NEW; END IF;
+  IF TG_OP='UPDATE' AND (NEW.company_id IS DISTINCT FROM OLD.company_id OR NEW.candidate_id IS DISTINCT FROM OLD.candidate_id) THEN
+    RAISE EXCEPTION 'TIME_CLOCK_IDENTITY_IMMUTABLE' USING ERRCODE='P0001';
+  END IF;
+  PERFORM id FROM candidates WHERE company_id=row_data.company_id AND id=row_data.candidate_id FOR NO KEY UPDATE;
+  -- New original markings must remain possible, even when their logical night
+  -- shift was already closed. Reconciliation detects the new original; only HR
+  -- corrections/voids are blocked. The public punch API supplies the server time.
+  IF TG_TABLE_NAME='employee_time_punches' AND TG_OP='INSERT' THEN
+    IF NEW.source='web' THEN RETURN NEW; END IF;
+  END IF;
+  -- Rejections/cancellations do not alter computed time and may clear legacy pending rows.
+  IF TG_TABLE_NAME IN ('employee_time_requests','employee_hour_bank_entries') THEN
+    IF TG_OP='UPDATE' AND OLD.status='pending' AND NEW.status IN ('rejected','cancelled') THEN RETURN NEW; END IF;
+  END IF;
+  IF TG_TABLE_NAME='employee_time_punches' THEN
+    SELECT COALESCE(timezone,'America/Sao_Paulo') INTO v_tz FROM company_time_schedules WHERE company_id=row_data.company_id;
+    v_day:=time_clock_work_day(row_data.company_id,row_data.candidate_id,row_data.punched_at);
+  ELSE v_day:=row_data.work_on; END IF;
+  v_old_day:=v_day;
+  IF TG_OP='UPDATE' THEN
+    IF TG_TABLE_NAME='employee_time_punches' THEN v_old_day:=time_clock_work_day(OLD.company_id,OLD.candidate_id,OLD.punched_at);
+    ELSE v_old_day:=OLD.work_on; END IF;
+  END IF;
+  WITH RECURSIVE anc AS (
+    SELECT u.id,u.parent_id,1 AS depth FROM candidates c JOIN org_units u ON u.id=c.org_unit_id AND u.company_id=c.company_id
+    WHERE c.company_id=row_data.company_id AND c.id=row_data.candidate_id
+    UNION ALL SELECT p.id,p.parent_id,anc.depth+1 FROM org_units p JOIN anc ON p.id=anc.parent_id WHERE p.company_id=row_data.company_id AND anc.depth<20
+  ) SELECT EXISTS(
+    SELECT 1 FROM time_clock_closures k WHERE k.company_id=row_data.company_id AND k.status='closed'
+      AND (v_day BETWEEN k.period_start AND k.period_end OR v_old_day BETWEEN k.period_start AND k.period_end)
+      AND (k.org_unit_id IS NULL OR k.org_unit_id IN (SELECT id FROM anc) OR EXISTS(
+        SELECT 1 FROM time_clock_closure_people p WHERE p.closure_id=k.id AND p.company_id=k.company_id AND p.candidate_id=row_data.candidate_id
+      ))
+  ) INTO v_closed;
+  IF v_closed THEN RAISE EXCEPTION 'TIME_CLOCK_PERIOD_CLOSED' USING ERRCODE='P0001'; END IF;
+  IF TG_OP='DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END $$;
+-- Prevent configuration writes racing a closed snapshot (also covers direct SQL).
+CREATE OR REPLACE FUNCTION time_clock_guard_schedule_version() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE r RECORD; d DATE;
+BEGIN
+ IF TG_OP='DELETE' THEN r:=OLD; ELSE r:=NEW; END IF;
+ PERFORM id FROM candidates WHERE company_id=r.company_id AND id=r.candidate_id FOR NO KEY UPDATE;
+ d:=r.valid_from;
+ IF TG_OP='UPDATE' THEN
+  IF NEW.company_id<>OLD.company_id OR NEW.candidate_id<>OLD.candidate_id THEN RAISE EXCEPTION 'TIME_CLOCK_IDENTITY_IMMUTABLE' USING ERRCODE='P0001'; END IF;
+  d:=LEAST(d,OLD.valid_from);
+ END IF;
+ IF EXISTS(SELECT 1 FROM time_clock_closures k WHERE k.company_id=r.company_id AND k.status='closed' AND k.period_end>=d AND (k.org_unit_id IS NULL OR EXISTS(SELECT 1 FROM time_clock_closure_people p WHERE p.closure_id=k.id AND p.candidate_id=r.candidate_id))) THEN RAISE EXCEPTION 'TIME_CLOCK_PERIOD_CLOSED' USING ERRCODE='P0001'; END IF;
+ IF TG_OP='DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_schedule_closed ON employee_time_schedules;
+CREATE TRIGGER time_clock_schedule_closed BEFORE INSERT OR UPDATE OR DELETE ON employee_time_schedules FOR EACH ROW EXECUTE FUNCTION time_clock_guard_schedule_version();
+CREATE OR REPLACE FUNCTION time_clock_preserve_snapshot() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ IF TG_OP='DELETE' THEN RAISE EXCEPTION 'TIME_CLOCK_SNAPSHOT_IMMUTABLE' USING ERRCODE='P0001'; END IF;
+ IF TG_TABLE_NAME='time_clock_closure_people' THEN
+ IF ROW(NEW.closure_id,NEW.company_id,NEW.candidate_id,NEW.expected_minutes,NEW.worked_minutes,NEW.extra_minutes,NEW.missing_minutes,NEW.workdays,NEW.absence_days,NEW.justified_days,NEW.incomplete_days,NEW.snapshot_hash,NEW.night_minutes,NEW.night_equivalent_minutes,NEW.calculation_version) IS DISTINCT FROM ROW(OLD.closure_id,OLD.company_id,OLD.candidate_id,OLD.expected_minutes,OLD.worked_minutes,OLD.extra_minutes,OLD.missing_minutes,OLD.workdays,OLD.absence_days,OLD.justified_days,OLD.incomplete_days,OLD.snapshot_hash,OLD.night_minutes,OLD.night_equivalent_minutes,OLD.calculation_version) THEN RAISE EXCEPTION 'TIME_CLOCK_SNAPSHOT_IMMUTABLE' USING ERRCODE='P0001'; END IF;
+ ELSE RAISE EXCEPTION 'TIME_CLOCK_SNAPSHOT_IMMUTABLE' USING ERRCODE='P0001'; END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_snapshot_preserve ON time_clock_closure_people;
+CREATE TRIGGER time_clock_snapshot_preserve BEFORE UPDATE OR DELETE ON time_clock_closure_people FOR EACH ROW EXECUTE FUNCTION time_clock_preserve_snapshot();
+DROP TRIGGER IF EXISTS time_clock_balance_preserve ON time_clock_closure_balances;
+CREATE TRIGGER time_clock_balance_preserve BEFORE UPDATE OR DELETE ON time_clock_closure_balances FOR EACH ROW EXECUTE FUNCTION time_clock_preserve_snapshot();
+-- An exit/rehire changes attendance expectations; preserve already closed intervals.
+CREATE OR REPLACE FUNCTION time_clock_guard_exit_dates() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE r RECORD; first_day DATE; last_day DATE;
+BEGIN
+ IF TG_OP='DELETE' THEN r:=OLD; first_day:=OLD.exit_date+1; last_day:=COALESCE(OLD.rehired_at,'9999-12-31'::date);
+ ELSIF TG_OP='INSERT' THEN r:=NEW; first_day:=NEW.exit_date+1; last_day:=COALESCE(NEW.rehired_at,'9999-12-31'::date);
+ ELSE
+ r:=NEW;
+ IF NEW.company_id<>OLD.company_id OR NEW.candidate_id<>OLD.candidate_id THEN RAISE EXCEPTION 'TIME_CLOCK_IDENTITY_IMMUTABLE' USING ERRCODE='P0001'; END IF;
+ IF NEW.exit_date=OLD.exit_date AND NEW.rehired_at IS NOT DISTINCT FROM OLD.rehired_at THEN RETURN NEW; END IF;
+ IF NEW.exit_date=OLD.exit_date THEN
+ first_day:=LEAST(COALESCE(OLD.rehired_at,'9999-12-31'::date),COALESCE(NEW.rehired_at,'9999-12-31'::date));
+ last_day:=GREATEST(COALESCE(OLD.rehired_at,'9999-12-31'::date),COALESCE(NEW.rehired_at,'9999-12-31'::date));
+ ELSE first_day:=LEAST(OLD.exit_date,NEW.exit_date)+1; last_day:=GREATEST(COALESCE(OLD.rehired_at,'9999-12-31'::date),COALESCE(NEW.rehired_at,'9999-12-31'::date)); END IF;
+ END IF;
+ PERFORM id FROM candidates WHERE company_id=r.company_id AND id=r.candidate_id FOR NO KEY UPDATE;
+ IF EXISTS(SELECT 1 FROM time_clock_closures k WHERE k.company_id=r.company_id AND k.status='closed' AND k.period_end>=first_day AND k.period_start<last_day AND (k.org_unit_id IS NULL OR EXISTS(SELECT 1 FROM time_clock_closure_people p WHERE p.closure_id=k.id AND p.candidate_id=r.candidate_id))) THEN RAISE EXCEPTION 'TIME_CLOCK_PERIOD_CLOSED' USING ERRCODE='P0001'; END IF;
+ IF TG_OP='DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_exit_closed ON exit_records;
+CREATE TRIGGER time_clock_exit_closed BEFORE INSERT OR UPDATE OR DELETE ON exit_records FOR EACH ROW EXECUTE FUNCTION time_clock_guard_exit_dates();
+
+INSERT INTO schema_migrations(name) VALUES('163_time_clock_shifts.sql') ON CONFLICT(name) DO NOTHING;
+CREATE TABLE IF NOT EXISTS time_clock_push_deliveries (
+ id BIGSERIAL PRIMARY KEY, company_id BIGINT NOT NULL REFERENCES companies(id),
+ candidate_id BIGINT NOT NULL REFERENCES candidates(id), notification_id BIGINT NOT NULL REFERENCES candidate_notifications(id) ON DELETE CASCADE,
+ token_id BIGINT NOT NULL REFERENCES mobile_employee_push_tokens(id) ON DELETE CASCADE,
+ status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','sending','sent','failed','skipped')),
+ attempts INT NOT NULL DEFAULT 0 CHECK(attempts>=0), next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+ locked_at TIMESTAMPTZ, last_error TEXT CHECK(last_error IN ('network','provider','unregistered','context_changed','exhausted') OR last_error IS NULL),
+ sent_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(notification_id,token_id)
+);
+CREATE INDEX IF NOT EXISTS time_clock_push_due ON time_clock_push_deliveries(next_attempt_at,id) WHERE status IN ('pending','sending');
+CREATE OR REPLACE FUNCTION time_clock_enqueue_push() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ IF NEW.type IN ('time_request_decided','time_mirror_available','time_closing_reminder','time_mirror_reopened') THEN
+ INSERT INTO time_clock_push_deliveries(company_id,candidate_id,notification_id,token_id)
+ SELECT NEW.company_id,NEW.recipient_candidate_id,NEW.id,t.id FROM mobile_employee_push_tokens t
+ WHERE t.company_id=NEW.company_id AND t.candidate_id=NEW.recipient_candidate_id AND t.active
+ ON CONFLICT DO NOTHING;
+ END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS time_clock_push_enqueue ON candidate_notifications;
+CREATE TRIGGER time_clock_push_enqueue AFTER INSERT ON candidate_notifications FOR EACH ROW EXECUTE FUNCTION time_clock_enqueue_push();
+CREATE TABLE IF NOT EXISTS time_clock_health_observations (
+ id BIGSERIAL PRIMARY KEY, kind TEXT NOT NULL CHECK(kind IN ('clock','signing_failure')),
+ company_id BIGINT REFERENCES companies(id), offset_ms BIGINT, observed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+ CHECK((kind='clock' AND offset_ms IS NOT NULL) OR kind='signing_failure')
+);
+CREATE INDEX IF NOT EXISTS time_clock_health_latest ON time_clock_health_observations(kind,observed_at DESC);
+ALTER TABLE time_clock_push_deliveries ADD COLUMN IF NOT EXISTS total_attempts INT NOT NULL DEFAULT 0;
+CREATE TABLE IF NOT EXISTS time_clock_push_attempts (
+ id BIGSERIAL PRIMARY KEY, delivery_id BIGINT NOT NULL REFERENCES time_clock_push_deliveries(id) ON DELETE CASCADE,
+ attempt_no INT NOT NULL CHECK(attempt_no>0), started_at TIMESTAMPTZ NOT NULL DEFAULT now(), finished_at TIMESTAMPTZ,
+ outcome TEXT CHECK(outcome IN ('sent','pending','failed','skipped') OR outcome IS NULL),
+ error_code TEXT CHECK(error_code IN ('network','provider','unregistered','context_changed','exhausted') OR error_code IS NULL), UNIQUE(delivery_id,attempt_no)
+);
+
+ALTER TABLE time_clock_health_observations ADD COLUMN IF NOT EXISTS source TEXT CHECK(source IS NULL OR char_length(source)<=253);
+
+INSERT INTO schema_migrations(name) VALUES('164_time_clock_operations.sql') ON CONFLICT(name) DO NOTHING;
+
+-- REP fiscal layout corrections
+BEGIN;
+-- Forward-only formatting fix: do not modify any historical fiscal record or hash.
+-- Accept the real numeric INPI identifier; field width belongs to the serializer.
+ALTER TABLE rep_establishments DROP CONSTRAINT IF EXISTS rep_establishments_registration_check;
+ALTER TABLE rep_establishments ADD CONSTRAINT rep_establishments_registration_check CHECK (registration ~ '^[0-9]{1,17}$');
+-- Explicit removal of legacy left zero padding is permitted, never automatic.
+-- All other identity changes remain forbidden. The correction appends an event.
+CREATE OR REPLACE FUNCTION rep_configuration_event() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE e public.rep_establishments%ROWTYPE; n bigint; at timestamptz:=clock_timestamp(); raw text; typ integer;
+BEGIN
+ IF TG_TABLE_NAME='rep_establishments' THEN
+  IF TG_OP='UPDATE' AND ((NEW.company_id,NEW.employer_document,NEW.timezone) IS DISTINCT FROM (OLD.company_id,OLD.employer_document,OLD.timezone) OR (NEW.registration IS DISTINCT FROM OLD.registration AND NOT (length(OLD.registration)=17 AND length(NEW.registration)<17 AND OLD.registration=lpad(NEW.registration,17,'0')))) THEN RAISE EXCEPTION 'REP_IDENTITY_IMMUTABLE'; END IF;
+  SELECT * INTO e FROM public.rep_establishments WHERE id=NEW.id FOR UPDATE;
+  IF TG_OP='UPDATE' AND (NEW.employer_name,NEW.workplace,NEW.responsible_cpf,NEW.complementary_document,NEW.registration) IS NOT DISTINCT FROM (OLD.employer_name,OLD.workplace,OLD.responsible_cpf,OLD.complementary_document,OLD.registration) THEN RETURN NEW; END IF;
+  typ:=2;
+ ELSE
+  IF NOT EXISTS(SELECT 1 FROM public.candidates WHERE id=NEW.candidate_id AND company_id=NEW.company_id) THEN RAISE EXCEPTION 'REP_WORKER_TENANT'; END IF;
+  IF TG_OP='UPDATE' AND (NEW.company_id,NEW.establishment_id,NEW.candidate_id,NEW.cpf,NEW.weekly_rest_day) IS DISTINCT FROM (OLD.company_id,OLD.establishment_id,OLD.candidate_id,OLD.cpf,OLD.weekly_rest_day) THEN RAISE EXCEPTION 'REP_IDENTITY_IMMUTABLE'; END IF;
+  IF TG_OP='UPDATE' AND (NEW.worker_name,NEW.responsible_cpf) IS NOT DISTINCT FROM (OLD.worker_name,OLD.responsible_cpf) THEN RETURN NEW; END IF;
+  SELECT * INTO e FROM public.rep_establishments WHERE id=NEW.establishment_id FOR UPDATE;
+  typ:=5;
+ END IF;
+ PERFORM public.rep_stamp(at,e.timezone);
+ UPDATE public.rep_establishments SET last_nsr=last_nsr+1 WHERE id=e.id RETURNING last_nsr INTO n;
+ IF typ=2 THEN raw:=lpad(n::text,9,'0')||'2'||public.rep_stamp(at,e.timezone)||public.rep_field(NEW.responsible_cpf,14)||CASE WHEN length(e.employer_document)=14 THEN '1' ELSE '2' END||public.rep_field(e.employer_document,14)||public.rep_field(e.complementary_document,14)||public.rep_field(e.employer_name,150)||public.rep_field(e.workplace,100);
+ ELSE raw:=lpad(n::text,9,'0')||'5'||public.rep_stamp(at,e.timezone)||CASE WHEN TG_OP='INSERT' THEN 'I' ELSE 'A' END||lpad(NEW.cpf,12,'0')||public.rep_field(NEW.worker_name,52)||'    '||NEW.responsible_cpf;
+ END IF;
+ INSERT INTO public.rep_original_records(establishment_id,nsr,record_type,recorded_at,record_text)
+ VALUES(e.id,n,typ,at,raw||public.rep_crc(raw)); RETURN NEW;
+END $$;
+
+INSERT INTO schema_migrations(name) VALUES('165_rep_layout_corrections.sql') ON CONFLICT(name) DO NOTHING;
+
+COMMIT;
+
+-- 166_stripe_billing.sql
+BEGIN;
+-- Relational billing state: one commercial policy per company, distinct Stripe
+-- identities per sandbox/live mode; no card data or raw webhook payloads stored.
+CREATE TABLE IF NOT EXISTS company_billing_terms (
+  company_id INTEGER PRIMARY KEY REFERENCES companies(id),
+  managed BOOLEAN NOT NULL DEFAULT FALSE,
+  trial_ends_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- Preserve all existing companies and their promised terms. Legacy access is
+-- grandfathered until an explicit subscription is purchased.
+INSERT INTO company_billing_terms(company_id, managed, trial_ends_at)
+SELECT c.id, FALSE, COALESCE(l.expires_at, now()) FROM companies c
+LEFT JOIN company_licenses l ON l.company_id=c.id
+ON CONFLICT(company_id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS company_billing_accounts (
+  company_id INTEGER NOT NULL REFERENCES companies(id),
+  livemode BOOLEAN NOT NULL,
+  customer_id TEXT UNIQUE,
+  subscription_id TEXT UNIQUE,
+  status TEXT NOT NULL DEFAULT 'none' CHECK(status IN ('none','incomplete','incomplete_expired','trialing','active','past_due','canceled','unpaid','paused')),
+  plan_key TEXT CHECK(plan_key IN ('brl_small_monthly','brl_growing_monthly','brl_medium_monthly','brl_small_annual','usd_company_monthly','brl_launch_monthly')),
+  currency TEXT CHECK(currency IN ('brl','usd')),
+  period_end TIMESTAMPTZ,
+  cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+  schedule_id TEXT,
+  checkout_attempt UUID,
+  checkout_plan_key TEXT CHECK(checkout_plan_key IN ('brl_small_monthly','brl_growing_monthly','brl_medium_monthly','brl_small_annual','usd_company_monthly')),
+  checkout_launch BOOLEAN NOT NULL DEFAULT FALSE,
+  checkout_trial_end TIMESTAMPTZ,
+  checkout_created_at TIMESTAMPTZ,
+  checkout_session_id TEXT UNIQUE,
+  checkout_expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY(company_id, livemode)
+);
+CREATE TABLE IF NOT EXISTS billing_launch_redemptions (
+  company_id INTEGER NOT NULL REFERENCES companies(id),
+  livemode BOOLEAN NOT NULL,
+  slot INTEGER NOT NULL CHECK(slot BETWEEN 1 AND 20),
+  redeemed BOOLEAN NOT NULL DEFAULT FALSE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  subscription_id TEXT UNIQUE,
+  PRIMARY KEY(company_id,livemode),
+  UNIQUE(livemode,slot),
+  FOREIGN KEY(company_id,livemode) REFERENCES company_billing_accounts(company_id,livemode)
+);
+CREATE TABLE IF NOT EXISTS billing_webhook_events (
+  event_id TEXT PRIMARY KEY,
+  livemode BOOLEAN NOT NULL,
+  event_type TEXT NOT NULL,
+  stripe_created_at TIMESTAMPTZ NOT NULL,
+  processed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS billing_webhook_events_processed_idx ON billing_webhook_events(processed_at);
+
+-- New signups receive 30 days in every cohort. Existing licenses are never
+-- rewritten. This also covers old app instances during an overlapping rollout.
+CREATE OR REPLACE FUNCTION issue_company_early_access_license() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.signup_source='early_access' AND NEW.company_id IS NOT NULL THEN
+    INSERT INTO company_licenses(company_id,starts_at,expires_at,offer_tier,trial_days)
+    VALUES(NEW.company_id,NEW.created_at,NEW.created_at+interval '30 days','trial',30)
+    ON CONFLICT(company_id) DO NOTHING;
+    INSERT INTO company_billing_terms(company_id,managed,trial_ends_at)
+    SELECT company_id,TRUE,expires_at FROM company_licenses WHERE company_id=NEW.company_id
+    ON CONFLICT(company_id) DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+COMMENT ON TABLE company_billing_terms IS 'New self-service companies have a 30-day trial; existing companies preserve access. No automatic retroactive billing.';
+COMMENT ON TABLE billing_launch_redemptions IS '20 founder slots per Stripe mode. Reservations expire; redeemed slots persist even after cancellation to prevent reuse.';
+-- Capacity is an integrity rule, including concurrent hires from different APIs.
+-- Only app connections explicitly enabled for a Stripe mode enforce it. Other
+-- environments, legacy companies and unpaid local trials are preserved.
+CREATE OR REPLACE FUNCTION enforce_company_billing_capacity() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+  billing_mode TEXT := current_setting('grow.billing_mode',true);
+  max_people INTEGER;
+  current_people INTEGER;
+BEGIN
+  IF billing_mode IS NULL OR billing_mode NOT IN ('test','live') OR NEW.employment_status<>'employee' THEN RETURN NEW; END IF;
+  IF TG_OP='UPDATE' THEN
+    IF OLD.employment_status='employee' AND OLD.company_id=NEW.company_id THEN RETURN NEW; END IF;
+  END IF;
+  PERFORM 1 FROM companies WHERE id=NEW.company_id FOR UPDATE;
+  SELECT CASE a.plan_key WHEN 'brl_small_monthly' THEN 20 WHEN 'brl_small_annual' THEN 20
+    WHEN 'brl_launch_monthly' THEN 20 WHEN 'brl_growing_monthly' THEN 50 WHEN 'brl_medium_monthly' THEN 100 END
+    INTO max_people FROM company_billing_accounts a JOIN company_billing_terms t USING(company_id)
+    WHERE a.company_id=NEW.company_id AND a.livemode=(billing_mode='live') AND t.managed
+      AND a.status IN ('active','trialing') AND a.period_end>now();
+  IF max_people IS NULL THEN RETURN NEW; END IF;
+  SELECT COUNT(*) INTO current_people FROM candidates WHERE company_id=NEW.company_id AND employment_status='employee' AND id IS DISTINCT FROM NEW.id;
+  IF current_people>=max_people THEN RAISE EXCEPTION USING ERRCODE='P0001',MESSAGE='BILLING_CAPACITY'; END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS candidates_billing_capacity ON candidates;
+CREATE TRIGGER candidates_billing_capacity BEFORE INSERT OR UPDATE OF company_id,employment_status ON candidates
+FOR EACH ROW EXECUTE FUNCTION enforce_company_billing_capacity();
+
+INSERT INTO schema_migrations(name) VALUES('166_stripe_billing.sql') ON CONFLICT(name) DO NOTHING;
+
+COMMIT;

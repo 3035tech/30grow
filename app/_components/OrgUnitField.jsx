@@ -38,21 +38,21 @@ export function useOrgUnits(companyId) {
   return { ...state, reload };
 }
 
-export function OrgUnitSelect({ units, locale, value, onChange, disabled, filter = false }) {
+export function OrgUnitSelect({ units, locale, value, onChange, disabled, filter = false, includeNone = true }) {
   return <FormField label={t(locale, 'panel.orgUnits.unit')}>
     <SelectField value={value ?? ''} onChange={onChange} disabled={disabled} aria-label={t(locale, 'panel.orgUnits.unit')}>
       {filter ? <option value="">{t(locale, 'panel.orgUnits.all')}</option> : null}
-      <option value={filter ? ORG_UNIT.FILTER_NONE : ''}>{t(locale, 'panel.orgUnits.none')}</option>
+      {includeNone ? <option value={filter ? ORG_UNIT.FILTER_NONE : ''}>{t(locale, 'panel.orgUnits.none')}</option> : null}
       {orgUnitOptions(units).map((unit) => <option key={unit.id} value={unit.id}>{unit.label}</option>)}
     </SelectField>
   </FormField>;
 }
 
-export function OrgUnitFilter({ companyId, locale, value, onChange }) {
+export function OrgUnitFilter({ companyId, locale, value, onChange, includeNone = true }) {
   const { units, loading, error, reload } = useOrgUnits(companyId);
   if (!companyId) return null;
   return <div className="min-w-0 sm:min-w-56">
-    <OrgUnitSelect units={units} locale={locale} value={value} onChange={(event) => onChange(event.target.value)} disabled={loading || Boolean(error)} filter />
+    <OrgUnitSelect units={units} locale={locale} value={value} onChange={(event) => onChange(event.target.value)} disabled={loading || Boolean(error)} filter includeNone={includeNone} />
     {error ? <div role="alert" className={S.faint}>{error} <button type="button" className={S.btnGhost} onClick={reload}>{t(locale, 'panel.orgUnits.retry')}</button></div> : null}
   </div>;
 }

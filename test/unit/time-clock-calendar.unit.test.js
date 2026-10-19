@@ -108,7 +108,7 @@ describe('normalizeEmployeeSchedule / normalizeWeekdays', () => {
     assert.equal(ok.ok, true);
     assert.equal(ok.value.workdayStart, '08:00');
     for (const bad of [
-      { workdayStart: '18:00', workdayEnd: '08:00', weekdays: [1] },
+      { workdayStart: '18:00', workdayEnd: '18:00', weekdays: [1] },
       { workdayStart: '08:00', workdayEnd: '17:00', weekdays: [] },
       { workdayStart: '08:00', workdayEnd: '17:00', breakStart: '07:00', breakEnd: '09:00', weekdays: [1] },
       { workdayStart: '08:00', workdayEnd: '17:00', breakStart: '12:00', weekdays: [1] },

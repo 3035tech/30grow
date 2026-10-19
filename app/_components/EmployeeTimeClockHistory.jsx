@@ -673,6 +673,7 @@ export function EmployeeTimeClockHistory({ locale = 'pt-BR', reloadKey = 0 }) {
               <StatMetricTile value={totals.pendingRequests} label={t(locale, `${KR}.pendingTotal`)} />
             )}
           </div>
+          {totals.pendingRequests > 0 ? <InlineCallout tone="info" className="mb-4">{t(locale, 'timeClosing.employeePending')}</InlineCallout> : null}
           {days.length === 0 ? (
             <EmptyState title={t(locale, `${KR}.historyEmpty`)} message={t(locale, `${KR}.historyEmptyHint`)} />
           ) : (
@@ -697,7 +698,9 @@ export function EmployeeTimeClockHistory({ locale = 'pt-BR', reloadKey = 0 }) {
                           {t(locale, `${KM}.occ.${day.occurrence}`)}
                         </StatusToneChip>
                         {reqStatus ? <TimeRequestStatusChip status={reqStatus} locale={locale} /> : null}
-                        {day.holiday ? <span className={S.faint}>{day.holiday.name}</span> : null}
+                        {day.nightMinutes > 0 ? <span className="block text-xs text-ink-muted">{t(locale,'timeShift.nightTotals',{physical:formatMinutesClock(day.nightMinutes),equivalent:formatMinutesClock(day.nightEquivalentMinutes)})}</span> : null}
+                      {day.requiresScheduleReview ? <span className="text-xs text-warning">{t(locale,'timeClosing.employeeScheduleReview')}</span> : null}
+                      {day.holiday ? <span className={S.faint}>{day.holiday.name}</span> : null}
                       </span>
                       <span className="text-right font-mono text-prose tabular-nums text-ink">
                         {formatMinutesClock(day.workedMinutes)}

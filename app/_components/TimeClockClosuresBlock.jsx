@@ -23,6 +23,7 @@ import { useAppFeedback } from './AppFeedback';
 import { EmptyState } from './EmptyState';
 import { useOrgUnits } from './OrgUnitField';
 import { StatusToneChip } from './StatusToneChip';
+import { TimeClockReadiness } from './TimeClockReadiness';
 import { TimeClockClosureSummaryDrawer } from './TimeClockClosureSummaryDrawer';
 
 const K = 'panel.timeClockMgr';
@@ -43,7 +44,7 @@ async function sendJson(method, body) {
 }
 
 /** Period closures: close a past period (locks adjustments) and cancel to unlock. */
-export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
+export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId, onOpenPerson }) {
   const { toast, promptForm } = useAppFeedback();
   const { units } = useOrgUnits(companyId);
   const [qDraft, setQDraft] = useState('');
@@ -51,7 +52,9 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [state, setState] = useState({ items: [], total: 0, loading: true });
+  const [readinessVersion,setReadinessVersion]=useState(0);
   const [summaryOf, setSummaryOf] = useState(null);
+  const [closingPeriod,setClosingPeriod]=useState(()=>{const today=localIsoToday();const last=shiftIsoDay(`${today.slice(0,8)}01`,-1);return {periodStart:`${last.slice(0,8)}01`,periodEnd:last,orgUnitId:''};});
 
   useEffect(() => {
     const id = setTimeout(() => setQ(qDraft.trim()), 300);
@@ -85,8 +88,6 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
 
   const startClosing = async () => {
     const today = localIsoToday();
-    const firstThis = `${today.slice(0, 8)}01`;
-    const lastPrev = shiftIsoDay(firstThis, -1);
     await promptForm({
       title: t(locale, `${K}.closeTitle`),
       message: t(locale, `${K}.closeMessage`),
@@ -98,7 +99,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
           type: 'date',
           label: t(locale, `${K}.from`),
           required: true,
-          defaultValue: `${lastPrev.slice(0, 8)}01`,
+          defaultValue: closingPeriod.periodStart,
         },
         {
           key: 'periodEnd',
@@ -106,7 +107,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
           type: 'date',
           label: t(locale, `${K}.to`),
           required: true,
-          defaultValue: lastPrev,
+          defaultValue: closingPeriod.periodEnd,
           validate: (v, all) => {
             if (!v) return null;
             if (all.periodStart && v < all.periodStart) return t(locale, `${K}.closeRangeInvalid`);
@@ -118,7 +119,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
           key: 'orgUnitId',
           type: 'select',
           label: t(locale, `${K}.closeFilter`),
-          defaultValue: '',
+          defaultValue: closingPeriod.orgUnitId,
           options: [
             { value: '', label: t(locale, `${K}.noFilter`) },
             ...orgUnitOptions(units).map((u) => ({ value: String(u.id), label: u.label })),
@@ -140,10 +141,12 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
         } else {
           toast(t(locale, `${K}.closedOk`), 'ok');
         }
+        setClosingPeriod({ periodStart: values.periodStart, periodEnd: values.periodEnd, orgUnitId: values.orgUnitId || '' });
         setStatus('');
         setQDraft('');
         setPage(1);
         await load();
+        setReadinessVersion(value=>value+1);
       },
     });
   };
@@ -170,6 +173,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
         await sendJson('PATCH', { companyId, closureId: row.id, reason: String(values.reason).trim() });
         toast(t(locale, `${K}.cancelledOk`), 'ok');
         await load();
+        setReadinessVersion(value=>value+1);
       },
     });
   };
@@ -185,6 +189,7 @@ export function TimeClockClosuresBlock({ locale = 'pt-BR', companyId }) {
         </button>
       </div>
 
+      <TimeClockReadiness locale={locale} companyId={companyId} period={closingPeriod} onPeriodChange={setClosingPeriod} onOpen={onOpenPerson} reloadKey={readinessVersion} />
       <AdminListFilters
         aria-label={t(locale, `${K}.closingFilters`)}
         locale={locale}

@@ -18,19 +18,37 @@ const SUNDAY_ANCHOR = Date.UTC(2023, 0, 1, 12);
 
 export function weekdayShort(i, locale) {
   const d = new Date(SUNDAY_ANCHOR + i * 86400000);
-  const w = d.toLocaleDateString(localeHtmlLang(locale), { weekday: 'short', timeZone: 'UTC' }).replace(/\.$/, '');
+  const w = d
+    .toLocaleDateString(localeHtmlLang(locale), {
+      weekday: 'short',
+      timeZone: 'UTC',
+    })
+    .replace(/\.$/, '');
   return `${w.charAt(0).toLocaleUpperCase()}${w.slice(1)}`;
 }
 
 function dateLabel(iso, locale) {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString(localeHtmlLang(locale), { timeZone: 'UTC' });
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString(
+    localeHtmlLang(locale),
+    { timeZone: 'UTC' },
+  );
 }
 
 function scheduleText(s, locale) {
   const parts = [`${s.workdayStart}–${s.workdayEnd}`];
-  if (s.breakStart && s.breakEnd) parts.push(t(locale, `${KS}.breakRange`, { start: s.breakStart, end: s.breakEnd }));
-  else if (s.breakMinutes) parts.push(t(locale, `${KS}.breakMinutes`, { n: s.breakMinutes }));
-  parts.push((s.weekdays || COMPANY_WORKDAYS).map((d) => weekdayShort(d, locale)).join(', '));
+  if (s.breakStart && s.breakEnd)
+    parts.push(
+      t(locale, `${KS}.breakRange`, { start: s.breakStart, end: s.breakEnd }),
+    );
+  else if (s.breakMinutes)
+    parts.push(t(locale, `${KS}.breakMinutes`, { n: s.breakMinutes }));
+  parts.push(
+    s.shiftPattern === '12x36'
+      ? `12×36${s.cycleAnchor ? ` (${dateLabel(s.cycleAnchor, locale)})` : ''}`
+      : (s.weekdays || COMPANY_WORKDAYS)
+          .map((d) => weekdayShort(d, locale))
+          .join(', '),
+  );
   return parts.join(' · ');
 }
 
@@ -49,7 +67,12 @@ async function requestJson(url, init) {
  * Ponto › espelho: effective-dated work schedule of one employee. Without a version the
  * company schedule applies; a version can also return to it from a date.
  */
-export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateId, onChanged }) {
+export function TimeClockScheduleBlock({
+  locale = 'pt-BR',
+  companyId,
+  candidateId,
+  onChanged,
+}) {
   const { toast, promptForm, confirm } = useAppFeedback();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +82,11 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setData(await requestJson(`${base}?${new URLSearchParams({ companyId: String(companyId) })}`));
+      setData(
+        await requestJson(
+          `${base}?${new URLSearchParams({ companyId: String(companyId) })}`,
+        ),
+      );
     } catch (e) {
       toast(e?.message || t(locale, `${KS}.loadError`), 'error');
       setData(null);
@@ -98,7 +125,24 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
         if (all.followsCompany) return null;
         const s = String(v || '').trim();
         if (!s) return required ? t(locale, `${KS}.timeRequired`) : null;
-        return HM_RE.test(s) ? null : t(locale, `${KS}.timeInvalid`);
+        if (!HM_RE.test(s)) return t(locale, `${KS}.timeInvalid`);
+        if (
+          key === 'workdayEnd' &&
+          all.shiftPattern === '12x36' &&
+          HM_RE.test(String(all.workdayStart || '').trim())
+        ) {
+          const minutes = (value) => {
+            const [h, m] = value.split(':').map(Number);
+            return h * 60 + m;
+          };
+          if (
+            (minutes(s) - minutes(String(all.workdayStart).trim()) + 1440) %
+              1440 !==
+            720
+          )
+            return t(locale, 'timeShift.twelveHours');
+        }
+        return null;
       },
     });
     await promptForm({
@@ -106,13 +150,55 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
       message: t(locale, `${KS}.editMessage`),
       confirmLabel: t(locale, `${KS}.save`),
       fields: [
-        { key: 'validFrom', type: 'date', label: t(locale, `${KS}.validFrom`), required: true, defaultValue: today },
+        {
+          key: 'validFrom',
+          type: 'date',
+          label: t(locale, `${KS}.validFrom`),
+          required: true,
+          defaultValue: today,
+        },
         {
           key: 'followsCompany',
           type: 'boolean',
           label: t(locale, `${KS}.followsCompany`),
-          help: company ? t(locale, `${KS}.followsCompanyHelp`, { schedule: scheduleText(company, locale) }) : undefined,
+          help: company
+            ? t(locale, `${KS}.followsCompanyHelp`, {
+                schedule: scheduleText(company, locale),
+              })
+            : undefined,
           defaultValue: false,
+        },
+        {
+          key: 'shiftPattern',
+          type: 'select',
+          label: t(locale, 'timeShift.pattern'),
+          defaultValue: seed.shiftPattern || 'weekly',
+          options: [
+            { value: 'weekly', label: t(locale, 'timeShift.weekly') },
+            { value: '12x36', label: '12×36' },
+          ],
+          showWhen: (v) => !v.followsCompany,
+        },
+        {
+          key: 'cycleAnchor',
+          type: 'date',
+          label: t(locale, 'timeShift.anchor'),
+          defaultValue: seed.cycleAnchor || today,
+          help: t(locale, 'timeShift.twelveHours'),
+          showWhen: (v) => !v.followsCompany && v.shiftPattern === '12x36',
+          required: true,
+        },
+        {
+          key: 'nightRule',
+          type: 'select',
+          label: t(locale, 'timeShift.nightRule'),
+          defaultValue: seed.nightRule || 'none',
+          options: [
+            { value: 'none', label: t(locale, 'timeShift.none') },
+            { value: 'urban_clt', label: t(locale, 'timeShift.urban') },
+          ],
+          showWhen: (v) => !v.followsCompany,
+          help: t(locale, 'timeShift.help'),
         },
         hmField('workdayStart', 'wd', true),
         hmField('workdayEnd', 'wd', true),
@@ -123,9 +209,17 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
           type: 'checkboxGroup',
           label: t(locale, `${KS}.weekdays`),
           defaultValue: (seed.weekdays || COMPANY_WORKDAYS).map(String),
-          options: WEEKDAYS.map((d) => ({ value: String(d), label: weekdayShort(d, locale) })),
-          showWhen: (v) => !v.followsCompany,
-          validate: (v, all) => (all.followsCompany || (Array.isArray(v) && v.length) ? null : t(locale, `${KS}.weekdaysRequired`)),
+          options: WEEKDAYS.map((d) => ({
+            value: String(d),
+            label: weekdayShort(d, locale),
+          })),
+          showWhen: (v) => !v.followsCompany && v.shiftPattern !== '12x36',
+          validate: (v, all) =>
+            all.followsCompany ||
+            all.shiftPattern === '12x36' ||
+            (Array.isArray(v) && v.length)
+              ? null
+              : t(locale, `${KS}.weekdaysRequired`),
         },
       ],
       submit: async (values) => {
@@ -144,7 +238,14 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
                   workdayEnd: String(values.workdayEnd || '').trim(),
                   breakStart: String(values.breakStart || '').trim() || null,
                   breakEnd: String(values.breakEnd || '').trim() || null,
-                  weekdays: (values.weekdays || []).map(Number),
+                  weekdays:
+                    values.shiftPattern === '12x36'
+                      ? [...WEEKDAYS]
+                      : (values.weekdays || []).map(Number),
+                  shiftPattern: values.shiftPattern || 'weekly',
+                  cycleAnchor:
+                    values.shiftPattern === '12x36' ? values.cycleAnchor : null,
+                  nightRule: values.nightRule || 'none',
                 }),
           }),
         });
@@ -153,17 +254,65 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
     });
   };
 
+  const correctAdmission = async () => {
+    await promptForm({
+      title: t(locale, 'timeShift.historyTitle'),
+      message: t(locale, 'timeShift.historyHelp'),
+      confirmLabel: t(locale, `${KS}.save`),
+      fields: [
+        {
+          key: 'effectiveOn',
+          type: 'date',
+          label: t(locale, `${KS}.validFrom`),
+          required: true,
+        },
+        {
+          key: 'startDate',
+          type: 'date',
+          label: t(locale, 'timeShift.admission'),
+          required: true,
+        },
+        {
+          key: 'reason',
+          type: 'textarea',
+          label: t(locale, 'timeShift.evidence'),
+          required: true,
+          validate: (v) =>
+            String(v || '').trim().length >= 10
+              ? null
+              : t(locale, 'timeShift.evidence'),
+        },
+      ],
+      submit: async (values) => {
+        await requestJson(
+          `/api/admin/time-clock/people/${candidateId}/history`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...values, companyId }),
+          },
+        );
+        await afterSave(`${KS}.saved`);
+      },
+    });
+  };
+
   const remove = async (row) => {
     const ok = await confirm({
       title: t(locale, `${KS}.deleteTitle`),
-      message: t(locale, `${KS}.deleteMessage`, { date: dateLabel(row.validFrom, locale) }),
+      message: t(locale, `${KS}.deleteMessage`, {
+        date: dateLabel(row.validFrom, locale),
+      }),
       confirmLabel: t(locale, `${KS}.deleteConfirm`),
       danger: true,
     });
     if (!ok) return;
     setBusy(true);
     try {
-      await requestJson(`${base}?${new URLSearchParams({ companyId: String(companyId), id: String(row.id) })}`, { method: 'DELETE' });
+      await requestJson(
+        `${base}?${new URLSearchParams({ companyId: String(companyId), id: String(row.id) })}`,
+        { method: 'DELETE' },
+      );
       await afterSave(`${KS}.deleted`);
     } catch (e) {
       toast(e?.message || t(locale, `${KS}.saveError`), 'error');
@@ -181,26 +330,52 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
       count={items.length || null}
       variant="card"
     >
+      <button
+        type="button"
+        className={S.btnGhost}
+        onClick={() => void correctAdmission()}
+      >
+        {t(locale, 'timeShift.historyTitle')}
+      </button>
       {loading && !data ? (
         <AppLoading variant="panel" />
       ) : !data ? (
         <div className="flex flex-wrap items-center gap-2">
-          <p className={cn(S.muted, 'm-0 text-prose')}>{t(locale, `${KS}.loadError`)}</p>
-          <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void load()}>
+          <p className={cn(S.muted, 'm-0 text-prose')}>
+            {t(locale, `${KS}.loadError`)}
+          </p>
+          <button
+            type="button"
+            className={cn(S.btnGhost, 'min-h-touch')}
+            onClick={() => void load()}
+          >
             {t(locale, 'common.retry')}
           </button>
         </div>
       ) : (
-        <ContentEnter animKey={`schedule|${candidateId}|${items.length}|${current?.id || 0}`}>
+        <ContentEnter
+          animKey={`schedule|${candidateId}|${items.length}|${current?.id || 0}`}
+        >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusToneChip tone={ownSchedule ? 'info' : 'neutral'}>
-                  {t(locale, ownSchedule ? `${KS}.sourceEmployee` : `${KS}.sourceCompany`)}
+                  {t(
+                    locale,
+                    ownSchedule
+                      ? `${KS}.sourceEmployee`
+                      : `${KS}.sourceCompany`,
+                  )}
                 </StatusToneChip>
-                {effective ? <span className="font-mono text-sm tabular-nums text-ink">{scheduleText(effective, locale)}</span> : null}
+                {effective ? (
+                  <span className="font-mono text-sm tabular-nums text-ink">
+                    {scheduleText(effective, locale)}
+                  </span>
+                ) : null}
               </div>
-              <p className={cn(S.muted, 'm-0 mt-1 max-w-[62ch] text-prose')}>{t(locale, `${KS}.intro`)}</p>
+              <p className={cn(S.muted, 'm-0 mt-1 max-w-[62ch] text-prose')}>
+                {t(locale, `${KS}.intro`)}
+              </p>
             </div>
             <button
               type="button"
@@ -214,7 +389,9 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
 
           {items.length ? (
             <div className="mt-4">
-              <p className={cn(S.label, 'mb-2')}>{t(locale, `${KS}.historyTitle`)}</p>
+              <p className={cn(S.label, 'mb-2')}>
+                {t(locale, `${KS}.historyTitle`)}
+              </p>
               <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
                 {items.map((row) => (
                   <li
@@ -222,19 +399,29 @@ export function TimeClockScheduleBlock({ locale = 'pt-BR', companyId, candidateI
                     className="flex flex-wrap items-center gap-2 rounded-control border border-ink/10 px-3 py-2"
                   >
                     <span className="font-ui text-sm text-ink">
-                      {t(locale, `${KS}.fromDate`, { date: dateLabel(row.validFrom, locale) })}
+                      {t(locale, `${KS}.fromDate`, {
+                        date: dateLabel(row.validFrom, locale),
+                      })}
                     </span>
                     <span className={cn(S.faint, 'font-mono tabular-nums')}>
-                      {row.followsCompany ? t(locale, `${KS}.followsCompanyShort`) : scheduleText(row, locale)}
+                      {row.followsCompany
+                        ? t(locale, `${KS}.followsCompanyShort`)
+                        : scheduleText(row, locale)}
                     </span>
                     {row.id === current?.id ? (
-                      <StatusToneChip tone="success">{t(locale, `${KS}.current`)}</StatusToneChip>
+                      <StatusToneChip tone="success">
+                        {t(locale, `${KS}.current`)}
+                      </StatusToneChip>
                     ) : row.validFrom > today ? (
-                      <StatusToneChip tone="info">{t(locale, `${KS}.upcoming`)}</StatusToneChip>
+                      <StatusToneChip tone="info">
+                        {t(locale, `${KS}.upcoming`)}
+                      </StatusToneChip>
                     ) : null}
                     <div className="ml-auto">
                       <AdminDeleteButton
-                        label={t(locale, `${KS}.deleteAria`, { date: dateLabel(row.validFrom, locale) })}
+                        label={t(locale, `${KS}.deleteAria`, {
+                          date: dateLabel(row.validFrom, locale),
+                        })}
                         disabled={busy}
                         onClick={() => void remove(row)}
                       />

@@ -25,6 +25,7 @@ import { HourBankAdminBlock } from './HourBankAdminBlock';
 import { OrgUnitFilter } from './OrgUnitField';
 import { SegmentedControl } from './SegmentedControl';
 import { StatusToneChip } from './StatusToneChip';
+import { RepAdminSettings } from './RepAdminSettings';
 import { TimeClockAdminBlock } from './TimeClockAdminBlock';
 import { TimeClockClosuresBlock } from './TimeClockClosuresBlock';
 import { TimeClockHolidaysBlock } from './TimeClockHolidaysBlock';
@@ -346,6 +347,7 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
 
   return (
     <div className="flex flex-col gap-4">
+      <RepAdminSettings key={companyId} companyId={companyId} locale={locale} />
       <SegmentedControl
         aria-label={t(locale, `${K}.viewsAria`)}
         value={view}
@@ -414,7 +416,7 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
 
       {view === 'holidays' ? <TimeClockHolidaysBlock locale={locale} companyId={companyId} onChanged={bump} /> : null}
 
-      {view === 'closing' ? <TimeClockClosuresBlock locale={locale} companyId={companyId} /> : null}
+      {view === 'closing' ? <TimeClockClosuresBlock key={companyId} locale={locale} companyId={companyId} onOpenPerson={openPerson} /> : null}
     </div>
   );
 }

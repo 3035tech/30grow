@@ -131,7 +131,7 @@ describe('partial excuse (interval)', () => {
     const punches = fullDay.slice(0, 2);
     const s = summarizeTimeDay({
       punches,
-      schedule,
+      schedule: {...schedule, breakStart:'12:00',breakEnd:'13:00'},
       justification: { reason: 'medical_certificate', excusedStart: '13:00', excusedEnd: '15:00' },
     });
     assert.equal(s.workedMinutes, 180);
@@ -143,7 +143,7 @@ describe('partial excuse (interval)', () => {
     const punches = fullDay.slice(0, 2);
     const s = summarizeTimeDay({
       punches,
-      schedule,
+      schedule: {...schedule, breakStart:'12:00',breakEnd:'13:00'},
       justification: { reason: 'excused_absence', excusedStart: '13:00', excusedEnd: '18:00' },
     });
     assert.equal(s.missingMinutes, 0);

@@ -24,6 +24,7 @@ const TAB_CHUNKS = {
   users: () => import('./tabs/UsersAdminTab'),
   leads: () => import('./tabs/LeadsAdminTab'),
   'product-feedback': () => import('./tabs/ProductFeedbackAdminTab'),
+  'digital-certificate': () => import('./tabs/DigitalCertificateAdminTab'),
   audit: () => import('./tabs/AuditAdminTab'),
   'performance-reviews': () => import('./tabs/PerformanceReviewsAdminTab'),
   pdi: () => import('./tabs/PdiAdminTab'),

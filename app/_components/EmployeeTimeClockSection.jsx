@@ -14,6 +14,7 @@ import { EmptyState } from './EmptyState';
 import { CollapsibleBlock } from './CollapsibleBlock';
 import { PunchLocationMap } from './PunchLocationMap';
 import { useDeviceLocation } from './useDeviceLocation';
+import { RepEmployeeTools } from './RepEmployeeTools';
 import { DeviceLocationStatus } from './DeviceLocationStatus';
 
 function formatTime(value, locale, timeZone) {
@@ -29,7 +30,7 @@ function formatTime(value, locale, timeZone) {
 
 /**
  * Collaborator web time clock: location status (get / refresh before punching), last
- * punch location and the punch button. Every punch carries a fresh device location.
+ * punch location and the punch button. Location is supplementary and its failure does not prevent recording.
  */
 export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onPunched = null }) {
   const { toast } = useAppFeedback();
@@ -37,6 +38,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const { geo, locate, freshFix } = useDeviceLocation(locale);
+  const pendingPunch = useRef(null);
   const onBadgeRef = useRef(onBadge);
   onBadgeRef.current = onBadge;
   const onPunchedRef = useRef(onPunched);
@@ -48,6 +50,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
       const res = await fetch('/api/employee/time-clock');
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || 'load');
+      pendingPunch.current = null;
       setData(json);
       if (typeof onBadgeRef.current === 'function') {
         onBadgeRef.current(json.open ? 1 : 0);
@@ -65,22 +68,25 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
   }, [load]);
 
   const punch = async () => {
-    if (!data?.nextKind) return;
+    if (!data?.nextKind || busy) return;
     const kind = data.nextKind;
     setBusy(true);
     try {
-      const fix = await freshFix();
+      const fix = await freshFix().catch(() => null);
+      if (!pendingPunch.current || pendingPunch.current.kind !== kind) pendingPunch.current = {kind, key: crypto.randomUUID()};
       const res = await fetch('/api/employee/time-clock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           punchKind: kind,
-          latitude: fix.latitude,
-          longitude: fix.longitude,
+          latitude: fix?.latitude ?? null,
+          longitude: fix?.longitude ?? null,
+          idempotencyKey: pendingPunch.current.key,
         }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || 'punch');
+      pendingPunch.current = null;
       setData(json);
       if (typeof onBadgeRef.current === 'function') onBadgeRef.current(json.open ? 1 : 0);
       if (typeof onPunchedRef.current === 'function') onPunchedRef.current();
@@ -140,6 +146,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
           )}
         </div>
 
+        <RepEmployeeTools locale={locale} timezone={data.schedule?.timezone} revision={data.punches?.length} />
         <DeviceLocationStatus locale={locale} geo={geo} locate={locate} disabled={busy} id="emp-tc-geo" />
 
         <button
@@ -155,7 +162,7 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
               ? t(locale, 'employeeHome.timeClock.punching')
               : nextLabel}
         </button>
-        <p className="m-0 text-xs text-ink-muted">{t(locale, 'employeeHome.timeClock.geoNotice')}</p>
+        <p className="m-0 text-xs text-ink-muted">{t(locale, 'rep.locationOptional')}</p>
 
         <div className="border-t border-ink/8 pt-3">
           <p className={cn(S.label, 'm-0')}>{t(locale, 'employeeHome.timeClock.lastTitle')}</p>

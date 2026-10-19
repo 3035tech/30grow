@@ -210,6 +210,10 @@ const ProductFeedbackAdminTab = dynamic(
     })),
   { loading: () => <TabLoadingFallback /> }
 );
+const DigitalCertificateAdminTab = dynamic(
+  () => import('./tabs/DigitalCertificateAdminTab').then(m => ({default:m.DigitalCertificateAdminTab})),
+  {loading:()=> <TabLoadingFallback />}
+);
 const AuditAdminTab = dynamic(
   () => import('./tabs/AuditAdminTab').then((m) => ({ default: m.AuditAdminTab })),
   { loading: () => <TabLoadingFallback /> }
@@ -901,6 +905,7 @@ function DashboardClientContent({
       showCompanies && { id: 'companies', icon: 'companies', label: t(locale, 'dashboard.companies') },
       showLeads && { id: 'leads', icon: 'users', label: t(locale, 'dashboard.leads') },
       showProductFeedback && { id: 'product-feedback', icon: 'feedbackInfo', label: t(locale, 'dashboard.productFeedback') },
+      isSuperAdminPayload(sessionAuth) && {id:'digital-certificate', icon:'list', label:t(locale,'digitalCertificate.title')},
       showAudit && { id: 'audit', icon: 'list', label: t(locale, 'dashboard.audit') },
     ],
   };
@@ -1548,6 +1553,7 @@ function DashboardClientContent({
               {tab === 'product-feedback' && showProductFeedback && (
                 <ProductFeedbackAdminTab navigateDashboard={navigateWithOpts} locale={locale} />
               )}
+              {tab === 'digital-certificate' && isSuperAdminPayload(sessionAuth) && <DigitalCertificateAdminTab locale={locale} />}
               {tab === 'audit' && showAudit && (
                 <AuditAdminTab
                   tenantOnly={!isSuperAdminPayload(sessionAuth)}

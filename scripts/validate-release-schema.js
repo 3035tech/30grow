@@ -20,6 +20,22 @@ const migrationsDir = path.join(root, 'migrations');
 const pendingBundlePath = path.join(root, 'scripts', 'scripts-banco-pendentes.sql');
 
 const REQUIRED_SCHEMA = Object.freeze({
+  company_billing_terms: ['company_id', 'managed', 'trial_ends_at'],
+  company_billing_accounts: ['company_id', 'livemode', 'customer_id', 'subscription_id', 'status', 'plan_key', 'checkout_attempt'],
+  billing_launch_redemptions: ['company_id', 'livemode', 'slot', 'redeemed', 'subscription_id'],
+  billing_webhook_events: ['event_id', 'livemode', 'event_type', 'processed_at'],
+  time_clock_person_history:['company_id','candidate_id','effective_on','start_date'],
+  time_clock_company_history:['company_id','effective_on','hour_bank_enabled','hour_bank_max_minutes'],
+  time_clock_unit_history:['company_id','unit_id','parent_id','effective_on'],
+  time_clock_push_deliveries:['notification_id','token_id','status','attempts','total_attempts'],
+  time_clock_push_attempts:['delivery_id','attempt_no','outcome','finished_at'],
+  time_clock_health_observations:['kind','offset_ms','observed_at'],
+  employee_time_schedules:['shift_pattern','cycle_anchor','night_rule'],
+  time_clock_closure_people:['night_minutes','night_equivalent_minutes','calculation_version'],
+  rep_establishments: ['id', 'company_id', 'employer_document', 'last_nsr', 'last_punch_hash'],
+  rep_workers: ['id', 'company_id', 'candidate_id', 'cpf', 'weekly_rest_day'],
+  rep_original_records: ['establishment_id', 'nsr', 'record_text', 'record_hash', 'punch_id'],
+  rep_signed_documents: ['establishment_id', 'nsr', 'pdf', 'sha256'],
   second_factor_challenges: ['id', 'purpose', 'user_id', 'candidate_id', 'company_id', 'session_version', 'expires_at'],
   companies: ['id', 'enabled_modules', 'deleted'],
   users: ['id', 'company_id', 'role', 'active', 'deleted'],

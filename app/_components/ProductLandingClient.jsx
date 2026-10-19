@@ -16,6 +16,8 @@ import { publicMarketingPath } from '../../lib/public-marketing-paths';
 import { ProductScreenshot } from './ProductScreenshot';
 import { OVERVIEW_SCREENSHOT, SOLUTION_SCREENSHOTS, HOME_SCREENSHOT_INDICES, screenshotLabels } from '../../lib/product-screenshots';
 import { PublicLanguageLinks } from './PublicLanguageLinks';
+import { PublicPricingPlans } from './PublicPricingPlans';
+import { publicPricingCurrency } from '../../lib/pricing-currency';
 
 const PILLAR_ICONS = ['vacancies', 'compatibility', 'team', 'academy', 'dp', 'team'];
 
@@ -162,6 +164,15 @@ export default function ProductLandingClient({ copyByLocale, locale: initialLoca
                   ))}
                 </ul>
                 {normalizeLocale(locale) !== 'pt-BR' ? <p className="mb-0 mt-4 text-xs text-ink-faint">{copy.blog.contentLanguageNote}</p> : null}
+              </div>
+            </section>
+          ) : null}
+          {publicPricingCurrency(locale) === 'BRL' ? (
+            <section id="planos" className="border-t border-ink/10 bg-canvas py-14 sm:py-16" aria-labelledby="landing-plans-title">
+              <div className="mx-auto max-w-6xl px-5 sm:px-8">
+                <h2 id="landing-plans-title" className="m-0 max-w-3xl text-3xl font-semibold leading-tight text-ink">{copy.pricingPlansTitle}</h2>
+                <p className="mb-8 mt-4 max-w-3xl text-base leading-7 text-ink-muted">{copy.pricingPlansLead}</p>
+                <PublicPricingPlans locale={locale} />
               </div>
             </section>
           ) : null}

@@ -1,6 +1,6 @@
 /**
  * GET  /api/employee/time-clock — today's punches + next kind
- * POST /api/employee/time-clock — punch in/out (location required)
+ * POST /api/employee/time-clock — punch in/out (location is supplementary evidence)
  */
 
 import { NextResponse } from 'next/server';
@@ -49,15 +49,16 @@ export async function POST(request) {
     }
 
     const coords = parsePunchCoordinates(body.latitude, body.longitude);
-    if (!coords) return apiError(request, ERR.GEOLOCATION_REQUIRED, 400);
+
 
     const result = await createTimePunch({ query }, {
       companyId,
       candidateId,
       punchKind,
-      latitude: coords.latitude,
-      longitude: coords.longitude,
+      latitude: coords?.latitude ?? null,
+      longitude: coords?.longitude ?? null,
       notes: body.notes,
+      idempotencyKey: typeof body.idempotencyKey === 'string' && /^[a-zA-Z0-9-]{16,100}$/.test(body.idempotencyKey) ? body.idempotencyKey : null,
     });
     if (!result.ok) return apiErrorFromResult(request, result);
 

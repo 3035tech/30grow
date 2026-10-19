@@ -44,3 +44,19 @@ test('license and logout have bilingual help and UI copy', () => {
     assert.notEqual(t(locale, 'employeeHome.logoutFailed'), 'employeeHome.logoutFailed');
   }
 });
+
+test('Stripe extends the existing license view without replacing number or historical term', () => {
+  const row={licenseNumber:'23',licenseStartsAt:'2026-01-01T00:00:00Z',licenseExpiresAt:'2026-02-01T00:00:00Z',licenseExpired:true,licenseOfferTier:'trial',licenseTrialDays:30};
+  const billing={managed:true,subscriptionId:'sub_test',status:'active',planKey:'brl_small_monthly',periodEnd:'2099-01-01T00:00:00Z',trialEndsAt:row.licenseExpiresAt};
+  const paid=companyLicenseSummary(row,billing);
+  assert.equal(paid.number,'30T-EA-000023');
+  assert.equal(paid.originalExpiresAt,row.licenseExpiresAt);
+  assert.equal(paid.expiresAt,billing.periodEnd);
+  assert.equal(paid.status,COMPANY_LICENSE.ACTIVE);
+  assert.equal(paid.plan,'subscription');
+  assert.equal(paid.billing.source,'stripe');
+  const unpaid=companyLicenseSummary(row,{...billing,status:'unpaid'});
+  assert.equal(unpaid.status,COMPANY_LICENSE.EXPIRED);
+  assert.equal(unpaid.number,paid.number);
+  assert.equal(companyLicenseSummary(row,{...billing,planKey:null}).status,COMPANY_LICENSE.EXPIRED);
+});

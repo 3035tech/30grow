@@ -22,6 +22,7 @@ const bodySchema = z.object({
   companyId: zPositiveInt.optional(),
   validFrom: z.string().max(16),
   followsCompany: z.boolean().optional(),
+  shiftPattern: z.enum(['weekly','12x36']).optional(), cycleAnchor: z.string().optional().nullable(), nightRule: z.enum(['none','urban_clt']).optional(),
   workdayStart: zHm.optional().nullable(),
   workdayEnd: zHm.optional().nullable(),
   breakStart: zHm.optional().nullable(),
@@ -76,7 +77,7 @@ export const POST = withAdminApi(
       workdayEnd: body.workdayEnd,
       breakStart: body.breakStart,
       breakEnd: body.breakEnd,
-      weekdays: body.weekdays,
+      weekdays: body.weekdays, shiftPattern: body.shiftPattern, cycleAnchor: body.cycleAnchor, nightRule: body.nightRule,
     });
     if (!result.ok) return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA });
     await audit({

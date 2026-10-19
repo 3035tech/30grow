@@ -12,6 +12,7 @@ import { TIME_CLOCK_ACK_STATUSES } from '../../../../../../../lib/domain-status.
 import { z, zPositiveInt } from '../../../../../../../lib/validate.js';
 import {
   exportClosurePeopleCsv,
+  reconcileClosure,
   generateClosurePeople,
   listClosurePeople,
   notifyClosureMirrorsReady,
@@ -21,7 +22,7 @@ export const dynamic = 'force-dynamic';
 
 const querySchema = z.object({
   companyId: zPositiveInt.optional(),
-  format: z.enum(['json', 'csv']).optional(),
+  format: z.enum(['json', 'csv', 'accounting','reconcile']).optional(),
   status: z.enum(/** @type {[string, ...string[]]} */ (TIME_CLOCK_ACK_STATUSES)).optional(),
   q: z.string().max(80).optional(),
   page: z.coerce.number().int().min(1).max(10000).optional(),
@@ -34,16 +35,24 @@ const ACCESS = { anyCap: [CAP.DP_VIEW, CAP.TEAM_VIEW], requireCompany: true };
 
 export const GET = withAdminApi(
   { ...ACCESS, companyFrom: 'query', query: querySchema, logLabel: 'time-clock-closure-people' },
-  async ({ request, companyId, query, params }) => {
+  async ({ request, companyId, query, params, payload }) => {
     const closureId = Number(params?.id);
-    if (query.format === 'csv') {
-      const result = await exportClosurePeopleCsv(null, { companyId, closureId });
+    if(query.format==='reconcile'){
+      const result=await reconcileClosure(null,{companyId,closureId});
+      if(!result.ok)return apiErrorFromResult(request,result);
+      return NextResponse.json(result,{headers:{'Cache-Control':'private, no-store'}});
+    }
+    if (query.format === 'csv' || query.format === 'accounting') {
+      const result = await exportClosurePeopleCsv(null, { companyId, closureId, profile:query.format === 'accounting' ? 'accounting' : 'audit' });
       if (!result.ok) return apiErrorFromResult(request, result, { fallbackCode: ERR.NOT_FOUND });
+      await audit({actorUserId:payload.userId,companyId,action:query.format==='accounting'?'time_clock.accounting_export':'time_clock.summary_export',targetType:'time_clock_closure',targetId:closureId,metadata:{count:result.count}});
       return new NextResponse(result.csv, {
         status: 200,
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="espelho-${result.closure.periodStart}_${result.closure.periodEnd}.csv"`,
+          'Cache-Control': 'private, no-store',
+          'X-Content-Type-Options': 'nosniff',
+          'Content-Disposition': `attachment; filename="${query.format==='accounting'?'contabilidade':'espelho'}-${result.closure.periodStart}_${result.closure.periodEnd}.csv"`,
         },
       });
     }
