@@ -1,3 +1,4 @@
+import { readCertificateUpload } from '../../lib/rep/certificate-upload.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -60,7 +61,8 @@ async function fixture({
       calls.push('read');
       return settings;
     },
-    validateAndSaveCertificate: async () => {
+    readCertificateUpload,
+    validateAndSaveUploadedCertificate: async () => {
       calls.push('validate');
       if (failure) throw new Error('AWS private password=secret');
       return publicCertificateSettings(settings);
@@ -106,18 +108,15 @@ async function fixture({
   await route.evaluate();
   return { calls, route: route.namespace };
 }
-const request = (origin = 'https://team.test') =>
-  new Request('https://team.test/api/admin/digital-certificate', {
-    method: 'POST',
-    headers: { origin, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'save',
-      bucket: 'private',
-      key: 'a1.p12',
-      region: 'sa-east-1',
-      password: 'secret-test',
-    }),
+const request = (origin = 'https://team.test') => {
+  const body = new FormData();
+  body.set('action', 'save');
+  body.set('password', 'secret-test');
+  body.set('file', new File(['test'], 'certificate.p12'));
+  return new Request('https://team.test/api/admin/digital-certificate', {
+    method: 'POST', headers: { origin }, body,
   });
+};
 test('API rejects missing sessions and tenant users before reading secrets', async () => {
   for (const payload of [
     null,

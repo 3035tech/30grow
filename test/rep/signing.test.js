@@ -152,6 +152,16 @@ test('CAdES detached and PAdES PDF verify cryptographically; missing/invalid cre
       ]);
       await writeFile('/private/tmp/30grow-rep-test-receipt.pdf', pdf);
     });
+    // Uploaded bytes are validated directly, before any S3 write, and remain
+    // intact for upload while the signing helper wipes only its private copy.
+    const uploadedP12 = Buffer.from(encryptedP12);
+    await withSigningCertificate(async ({ sign }) => {
+      assert.ok((await sign(content)).length > 0);
+    }, { settings: { password: 'test-only' }, p12: uploadedP12 });
+    assert.deepEqual(uploadedP12, encryptedP12);
+    await assert.rejects(withSigningCertificate(() => {}, {
+      settings: { password: 'wrong' }, p12: uploadedP12,
+    }), /UNAVAILABLE/);
     // Exercise the admin path against a real temporary A1 and mocked private AWS storage.
     process.env.REP_SIGNING_SECRET_ID = 'rep-test-secret';
     let stored = {};

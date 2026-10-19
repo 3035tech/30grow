@@ -1,3 +1,4 @@
+import { readCertificateUpload, validateAndSaveUploadedCertificate } from '../../../../lib/rep/certificate-upload.js';
 import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
@@ -5,8 +6,6 @@ import { apiError, ERR, HTTP_STATUS } from '../../../../lib/api-error.js';
 import { CAP } from '../../../../lib/permissions.js';
 import {
   canManageDigitalCertificate,
-  certificateAdminSchema,
-  validateAndSaveCertificate,
 } from '../../../../lib/rep/certificate-admin.js';
 import {
   certificateSecretConfigured,
@@ -39,8 +38,8 @@ export const GET = withAdminApi(options, async ({ request, payload }) => {
   }
 });
 export const POST = withAdminApi(
-  { ...options, body: certificateAdminSchema },
-  async ({ request, payload, body }) => {
+  options,
+  async ({ request, payload }) => {
     if (!canManageDigitalCertificate(payload))
       return fail(request, ERR.FORBIDDEN, HTTP_STATUS.FORBIDDEN);
     // Do not accept cross-site submissions containing a platform-wide credential.
@@ -56,8 +55,11 @@ export const POST = withAdminApi(
     );
     if (!limit.ok)
       return fail(request, ERR.RATE_LIMIT, HTTP_STATUS.TOO_MANY_REQUESTS);
+    let body;
+    try { body = await readCertificateUpload(request); }
+    catch { return fail(request, ERR.INVALID_DATA, HTTP_STATUS.BAD_REQUEST); }
     try {
-      const result = await validateAndSaveCertificate(body);
+      const result = await validateAndSaveUploadedCertificate(body);
       await auditFromRequest(request, {
         actorUserId: payload.userId,
         action:
