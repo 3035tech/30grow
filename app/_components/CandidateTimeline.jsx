@@ -365,7 +365,7 @@ export function CandidateTimeline({
 
       {stage === PIPELINE_STAGE.REJECTED && rejectionEv?.reason ? (
         <p className="mt-3 mb-0 w-full text-center text-xs text-danger">
-          {t(locale, 'recruiting.rejectionReasonLabel')}: {rejectionReasonLabel(locale, rejectionEv.reasons?.length ? rejectionEv.reasons : rejectionEv.reason)}
+          {t(locale, 'recruiting.rejectionReasonsLabel')}: {rejectionReasonLabel(locale, rejectionEv.reasons?.length ? rejectionEv.reasons : rejectionEv.reason)}
         </p>
       ) : null}
 

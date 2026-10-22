@@ -1641,7 +1641,7 @@ export function TeamTab({
                             )}
                             {a.rejectionReason ? (
                               <div className="mt-1 font-ui text-prose text-red-800 dark:text-danger">
-                                {t(locale, 'recruiting.rejectionReasonLabel')}: {rejectionReasonLabel(locale, a.rejectionReasons?.length ? a.rejectionReasons : a.rejectionReason)}
+                                {t(locale, 'recruiting.rejectionReasonsLabel')}: {rejectionReasonLabel(locale, a.rejectionReasons?.length ? a.rejectionReasons : a.rejectionReason)}
                               </div>
                             ) : null}
                             {a.startDate && a.pipelineStage === PIPELINE_STAGE.HIRED ? (
