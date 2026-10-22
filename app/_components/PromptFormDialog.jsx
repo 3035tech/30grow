@@ -227,7 +227,12 @@ export function PromptFormDialog({
 
   const setField = (key, value) => {
     setValues((prev) => ({ ...prev, [key]: value }));
-    setFieldErrors({});
+    setFieldErrors((previous) => {
+      if (!Object.hasOwn(previous, key)) return previous;
+      const next = { ...previous };
+      delete next[key];
+      return next;
+    });
     setSubmitError('');
   };
 

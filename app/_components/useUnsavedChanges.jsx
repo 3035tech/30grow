@@ -7,12 +7,14 @@ import { t } from '../../lib/i18n';
 export function useUnsavedChanges({ open, dirty, onClose, locale, blocked = false, panelRef }) {
   const [asking, setAsking] = useState(false);
   const pending = useRef(null);
+  const returnFocus = useRef(null);
   const state = useRef({ dirty, blocked, onClose });
   state.current = { dirty, blocked, onClose };
   const requestClose = useCallback((afterClose) => {
     if (state.current.blocked || pending.current) return;
     const close = () => { state.current.onClose?.(); if (typeof afterClose === 'function') afterClose(); };
     if (!state.current.dirty) return close();
+    returnFocus.current = document.activeElement;
     pending.current = close;
     setAsking(true);
   }, []);
@@ -33,7 +35,11 @@ export function useUnsavedChanges({ open, dirty, onClose, locale, blocked = fals
   const confirmation = <ConfirmDialog danger preferCancel open={open && asking} locale={locale}
     title={t(locale, 'formValidation.discardTitle')} message={t(locale, 'formValidation.discardBody')}
     confirmLabel={t(locale, 'formValidation.discard')} cancelLabel={t(locale, 'formValidation.keepEditing')}
-    onCancel={() => { pending.current = null; setAsking(false); }}
+    onCancel={() => {
+      pending.current = null;
+      setAsking(false);
+      requestAnimationFrame(() => { if (returnFocus.current?.isConnected) returnFocus.current.focus(); });
+    }}
     onConfirm={() => { const close = pending.current; pending.current = null; setAsking(false); close?.(); }} />;
   return { requestClose, confirmation };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -29,6 +29,8 @@ export function ConfirmDialog({
   onCancel,
 }) {
   const [mounted, setMounted] = useState(false);
+  const titleId = useId();
+  const messageId = useId();
 
   useEffect(() => {
     setMounted(true);
@@ -63,17 +65,36 @@ export function ConfirmDialog({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
+        aria-labelledby={titleId}
+        aria-describedby={messageId}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            onCancel?.();
+            return;
+          }
+          if (event.key !== 'Tab') return;
+          const buttons = [...event.currentTarget.querySelectorAll('button:not(:disabled)')];
+          const first = buttons[0], last = buttons.at(-1);
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last?.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first?.focus();
+          }
+        }}
         className={dialogCardClass}
         onClick={(e) => e.stopPropagation()}
       >
         <h2
-          id="confirm-dialog-title"
+          id={titleId}
           className="m-0 font-ui text-xl font-semibold leading-snug text-ink"
         >
           {heading}
         </h2>
-        <p className="mb-0 mt-3 max-h-[50vh] overflow-y-auto whitespace-pre-line break-words text-sm leading-[1.55] text-ink-muted">{message}</p>
+        <p id={messageId} className="mb-0 mt-3 max-h-[50vh] overflow-y-auto whitespace-pre-line break-words text-sm leading-[1.55] text-ink-muted">{message}</p>
         <div className="mt-[22px] flex justify-end gap-2.5">
           <button type="button" onClick={onCancel} autoFocus={preferCancel} className={dialogBtnGhostClass}>
             {cancelLabel || t(locale, 'panel.common.cancel')}
