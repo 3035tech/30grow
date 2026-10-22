@@ -23,3 +23,7 @@ O guia de componentes documenta vazio, filtro sem resultado, carregamento, erro,
 - Prévia estreita do relatório mostra período, amostra e primeiro indicador sem abrir filtros, sem overflow horizontal global. Viewport solicitado de 390×844; DOM informou largura efetiva de 433 px. Não equivale a ensaio em aparelho físico ou certificação de leitor de tela.
 
 Sem migration, alteração de fórmula, envio externo ou uso de pessoas reais nos testes. Os demais itens médios da auditoria, como simplificação do formulário de vaga e revisão completa de números/textos, não são considerados concluídos por esta entrega.
+
+## Acabamento adicional solicitado
+
+Após a primeira publicação, houve uma segunda passada: o controle do relatório passou a se chamar “Filtrar período”; scores e percentuais usam separador decimal do idioma; cabeçalhos e avisos quebram textos longos; títulos de avisos usam tipografia normal legível; Cargos começa em carregamento quando há empresa, evitando o flash inicial de lista vazia. A prévia confirmou `87,5%` e `8,0/10` em português e continuou sem overflow global. Os 544 testes unitários passaram novamente. Esta formatação pontual não encerra a revisão ampla de nomenclatura e pluralização da auditoria.

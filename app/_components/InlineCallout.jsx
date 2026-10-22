@@ -35,7 +35,7 @@ export function InlineCallout({
 }) {
   const body = (
     <>
-      {title ? <div className="mb-0.5 font-mono text-2xs uppercase tracking-wide">{title}</div> : null}
+      {title ? <div className="mb-0.5 break-words font-ui text-sm font-semibold">{title}</div> : null}
       {children}
     </>
   );
@@ -62,11 +62,11 @@ export function InlineCallout({
       ) : null}
       {action ? (
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="min-w-[12rem] flex-1">{body}</div>
+          <div className="min-w-[12rem] flex-1 break-words">{body}</div>
           <div className="shrink-0">{action}</div>
         </div>
       ) : (
-        <div className="min-w-0 flex-1">{body}</div>
+        <div className="min-w-0 flex-1 break-words">{body}</div>
       )}
     </div>
   );

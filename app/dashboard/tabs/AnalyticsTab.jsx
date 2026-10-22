@@ -7,7 +7,7 @@ import { SelectField } from '../../_components/SelectField';
  */
 
 import { useState, useEffect } from 'react';
-import { t } from '../../../lib/i18n.js';
+import { t, localeNumberLocale } from '../../../lib/i18n.js';
 import { useLocale } from '../../../lib/useLocale.js';
 import { PanelSubNav, S } from '../dashboard-shared.jsx';
 import { DateField } from '../../_components/DateField.jsx';
@@ -21,6 +21,10 @@ import { cn } from '../../../lib/cn.js';
 import { StatMetricTile } from '../../_components/StatMetricTile';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { Icon } from '../../_components/Icon';
+
+function reportDecimal(value, locale) {
+  return value.toLocaleString(localeNumberLocale(locale), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
 
 const TREND_TONE = {
   brand: { bar: 'bg-brand-500', value: 'text-brand-600' },
@@ -352,8 +356,8 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
 
         <div className="px-5 py-6 sm:px-7 sm:py-7">
         <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-          <div className="max-w-2xl">
-            <h2 className="m-0 font-display text-2xl font-semibold text-ink">{viewTitle}</h2>
+          <div className="min-w-0 max-w-2xl">
+            <h2 className="m-0 break-words font-display text-2xl font-semibold text-ink">{viewTitle}</h2>
             <p className="mb-0 mt-1.5 hidden font-ui text-sm leading-6 text-ink-muted sm:block">{viewDescription}</p>
           </div>
           {activeView !== 'compare' ? (
@@ -425,7 +429,7 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
 
           <MetricCard
             title={t(locale, 'panel.analytics.retention6m')}
-            value={metrics.retention.sixMonths.hiredCount ? `${metrics.retention.sixMonths.rate}%` : t(locale, 'panel.analytics.unavailable')}
+            value={metrics.retention.sixMonths.hiredCount ? `${metrics.retention.sixMonths.rate.toLocaleString(localeNumberLocale(locale))}%` : t(locale, 'panel.analytics.unavailable')}
             subtitle={`${metrics.retention.sixMonths.retainedCount}/${metrics.retention.sixMonths.hiredCount}`}
             locale={locale}
             onClick={canNav ? () => navigateDashboard({ tab: 'team' }) : undefined}
@@ -433,7 +437,7 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
 
           <MetricCard
             title={t(locale, 'panel.analytics.retention12m')}
-            value={metrics.retention.twelveMonths.hiredCount ? `${metrics.retention.twelveMonths.rate}%` : t(locale, 'panel.analytics.unavailable')}
+            value={metrics.retention.twelveMonths.hiredCount ? `${metrics.retention.twelveMonths.rate.toLocaleString(localeNumberLocale(locale))}%` : t(locale, 'panel.analytics.unavailable')}
             subtitle={`${metrics.retention.twelveMonths.retainedCount}/${metrics.retention.twelveMonths.hiredCount}`}
             locale={locale}
             onClick={canNav ? () => navigateDashboard({ tab: 'team' }) : undefined}
@@ -441,20 +445,20 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
 
           <MetricCard
             title={t(locale, 'panel.analytics.avgHiredFit')}
-            value={metrics.fitComparison.hiredCount ? `${metrics.fitComparison.hiredAvgFit.toFixed(1)}/10` : t(locale, 'panel.analytics.unavailable')}
+            value={metrics.fitComparison.hiredCount ? `${reportDecimal(metrics.fitComparison.hiredAvgFit, locale)}/10` : t(locale, 'panel.analytics.unavailable')}
             subtitle={metrics.fitComparison.hiredCount
               ? t(locale, 'panel.analytics.fitPoolDelta', {
-                  pool: metrics.fitComparison.poolAvgFit.toFixed(1),
-                  delta: `${metrics.fitComparison.delta > 0 ? '+' : ''}${metrics.fitComparison.delta.toFixed(1)}`,
+                  pool: reportDecimal(metrics.fitComparison.poolAvgFit, locale),
+                  delta: `${metrics.fitComparison.delta > 0 ? '+' : ''}${reportDecimal(metrics.fitComparison.delta, locale)}`,
                 })
-              : t(locale, 'panel.analytics.fitPoolOnly', { pool: metrics.fitComparison.poolAvgFit.toFixed(1) })}
+              : t(locale, 'panel.analytics.fitPoolOnly', { pool: reportDecimal(metrics.fitComparison.poolAvgFit, locale) })}
             locale={locale}
             onClick={canNav ? () => navigateDashboard({ tab: 'vacancies' }) : undefined}
           />
 
           <MetricCard
             title={t(locale, 'panel.analytics.rubricAdherence')}
-            value={metrics.rubricAdherence.count ? `${metrics.rubricAdherence.avgAdherence.toFixed(1)}/10` : t(locale, 'panel.analytics.unavailable')}
+            value={metrics.rubricAdherence.count ? `${reportDecimal(metrics.rubricAdherence.avgAdherence, locale)}/10` : t(locale, 'panel.analytics.unavailable')}
             subtitle={t(locale, 'panel.analytics.hiresCount', { n: metrics.rubricAdherence.count })}
             locale={locale}
             onClick={canNav ? () => navigateDashboard({ tab: 'vacancies' }) : undefined}
@@ -464,7 +468,7 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
 
         {/* Filtros */}
         {activeView === 'metrics' && (
-        <CollapsibleBlock locale={locale} title={t(locale, 'panel.common.filters')} defaultOpen={false}>
+        <CollapsibleBlock locale={locale} title={t(locale, 'betaWorkspace.reportFilters')} defaultOpen={false}>
         <form
           className="mb-6 grid items-end gap-4 rounded-control border border-ink/10 bg-ink/[0.025] p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
           onSubmit={applyMetricFilters}
@@ -672,8 +676,8 @@ function AreaComparison({ comparison, locale }) {
       {rows.map((row) => (
         <div key={row.name} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-ink/8 px-4 py-4 last:border-b-0">
           <div><p className="m-0 font-ui text-sm font-semibold text-ink">{row.name}</p><p className="mb-0 mt-1 font-ui text-xs text-ink-faint">{t(locale, 'panel.analytics.peopleCount', { n: row.count })}</p></div>
-          <span className="font-mono text-sm font-semibold tabular-nums text-ink">{row.avgHrScore.toFixed(1)}</span>
-          <span className="font-mono text-sm font-semibold tabular-nums text-danger">{row.highRiskPct.toFixed(1)}%</span>
+          <span className="font-mono text-sm font-semibold tabular-nums text-ink">{reportDecimal(row.avgHrScore, locale)}</span>
+          <span className="font-mono text-sm font-semibold tabular-nums text-danger">{reportDecimal(row.highRiskPct, locale)}%</span>
         </div>
       ))}
       </div>

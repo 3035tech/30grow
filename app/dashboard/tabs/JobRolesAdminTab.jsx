@@ -65,7 +65,7 @@ export function JobRolesAdminTab({ locale, companyId, companyName }) {
   const [formBaseline, setFormBaseline] = useState(JSON.stringify(emptyForm()));
   const [fieldErrors, setFieldErrors] = useState({});
   const { toast, confirm, notice, promptForm } = useAppFeedback();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(companyId));
   const [saving, setSaving] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
   const [roles, setRoles] = useState([]);

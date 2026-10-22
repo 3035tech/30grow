@@ -831,7 +831,7 @@ function AdminPageHeader({ title, subtitle = null, description = null, actions =
       )}
     >
       <div className="min-w-0">
-        {!repeatedTitle ? <Heading className={pageTitle ? S.sectionTitle : S.pageTitle}>{title}</Heading> : null}
+        {!repeatedTitle ? <Heading className={cn(pageTitle ? S.sectionTitle : S.pageTitle, 'break-words')}>{title}</Heading> : null}
       </div>
       {actions ? (
         <div className="flex min-w-0 flex-wrap items-center justify-start gap-2 sm:col-start-2 sm:row-start-1 sm:justify-end">
