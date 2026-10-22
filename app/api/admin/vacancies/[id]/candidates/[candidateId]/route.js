@@ -8,7 +8,7 @@ import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-
 import { CAP, isAdminRole, requireCapability } from '../../../../../../../lib/permissions';
 import {
   PIPELINE_STAGE,
-  normalizeRejectionReason,
+  normalizeRejectionReasons,
   normalizeStartDate,
 } from '../../../../../../../lib/pipeline';
 import { resolveRecruitingPipelineStage } from '../../../../../../../lib/pipeline-templates';
@@ -74,6 +74,7 @@ export async function PATCH(request, props) {
     let stage = undefined;
     let stageCanonical = null;
     let rejectionReason = null;
+    let rejectionReasons = [];
     let startDate = null;
     if (body.pipelineStage !== undefined) {
       const s = body.pipelineStage == null ? null : String(body.pipelineStage).trim();
@@ -85,7 +86,9 @@ export async function PATCH(request, props) {
         stageCanonical = resolved.canonicalKey;
       }
       stage = s;
-      rejectionReason = normalizeRejectionReason(body.rejectionReason ?? body.reason);
+      const selectedReasons = normalizeRejectionReasons(body.rejectionReasons ?? body.rejectionReason ?? body.reason);
+      rejectionReason = selectedReasons?.[0] ?? null;
+      rejectionReasons = stageCanonical === PIPELINE_STAGE.REJECTED ? selectedReasons : [];
       startDate = normalizeStartDate(body.startDate);
       if (stageCanonical === PIPELINE_STAGE.REJECTED && !rejectionReason) {
         return apiError(request, ERR.REJECTION_REASON_REQUIRED, 400);
@@ -104,6 +107,7 @@ export async function PATCH(request, props) {
       `UPDATE vacancy_candidates
        SET interview_notes = CASE WHEN $3::boolean THEN $4 ELSE interview_notes END,
            pipeline_stage = CASE WHEN $5::boolean THEN $6 ELSE pipeline_stage END,
+           rejection_reasons = CASE WHEN $5::boolean THEN $11::text[] ELSE rejection_reasons END,
            rejection_reason = CASE
              WHEN $5::boolean AND $9::boolean THEN $7
              WHEN $5::boolean AND NOT $9::boolean THEN NULL
@@ -121,7 +125,7 @@ export async function PATCH(request, props) {
        WHERE vacancy_id = $1 AND candidate_id = $2
        RETURNING id, vacancy_id AS "vacancyId", candidate_id AS "candidateId",
                  interview_notes AS "interviewNotes", pipeline_stage AS "pipelineStage",
-                 rejection_reason AS "rejectionReason", start_date AS "startDate",
+                 rejection_reason AS "rejectionReason", rejection_reasons AS "rejectionReasons", start_date AS "startDate",
                  hired_at AS "hiredAt", updated_at AS "updatedAt"`,
       [
         vacancyId,
@@ -134,28 +138,24 @@ export async function PATCH(request, props) {
         startDate,
         isRejectedCanonical,
         isHiredCanonical,
+        rejectionReasons,
       ]
     );
 
     if (isHiredCanonical) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
+    if (body.pipelineStage !== undefined && stage != null) {
+      await db.query(
+        `INSERT INTO vacancy_candidate_pipeline_history
+           (vacancy_candidate_id, from_stage, to_stage, reason, start_date, changed_by_user_id, rejection_reasons)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::text[])`,
+        [loaded.link.id, currentStage, stage, isRejectedCanonical ? rejectionReason : null,
+         isHiredCanonical ? startDate : null, payload.userId || null, rejectionReasons]
+      );
+    }
     return updated;
     });
 
     if (body.pipelineStage !== undefined && stage != null) {
-      await query(
-        `INSERT INTO vacancy_candidate_pipeline_history
-           (vacancy_candidate_id, from_stage, to_stage, reason, start_date, changed_by_user_id)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [
-          loaded.link.id,
-          currentStage,
-          stage,
-          isRejectedCanonical ? rejectionReason : null,
-          isHiredCanonical ? startDate : null,
-          payload.userId || null,
-        ]
-      ).catch(() => {});
-
       const funnelEvent = pipelineStageToFunnelEvent(stageCanonical);
       if (funnelEvent && stage !== currentStage) {
         scheduleJobFunnelEvent({
@@ -193,6 +193,7 @@ export async function PATCH(request, props) {
         vacancyId: Number(vacancyId),
         candidateId: Number(candidateId),
         pipelineStage: stage ?? currentStage,
+        rejectionReasons: body.pipelineStage !== undefined ? rejectionReasons : undefined,
         notesUpdated: body.interviewNotes !== undefined || body.notes !== undefined,
       },
     });

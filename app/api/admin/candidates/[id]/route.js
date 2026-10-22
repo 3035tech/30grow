@@ -1,3 +1,4 @@
+import { rejectionReasonsSql } from '../../../../../lib/pipeline';
 import { candidateTagsSelectSql } from '../../../../../lib/candidate-tags-core.js';
 import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities';
@@ -71,7 +72,7 @@ export async function GET(request, props) {
             ass.vacancy_id AS "vacancyId",
             v.title AS "vacancyTitle",
             ass.pipeline_stage AS "pipelineStage",
-            ass.rejection_reason AS "rejectionReason",
+            ass.rejection_reason AS "rejectionReason", ${rejectionReasonsSql('ass')} AS "rejectionReasons",
             ass.start_date AS "startDate",
             ass.hired_at AS "hiredAt",
             ass.invite_id AS "inviteId",
@@ -91,9 +92,9 @@ export async function GET(request, props) {
     const assessmentIds = a.rows.map((r) => r.id);
     try {
       const h = await queryRead(
-        `SELECT assessment_id AS "assessmentId", from_stage AS "fromStage", to_stage AS "toStage",
-                reason, start_date AS "startDate", changed_at AS "changedAt"
-         FROM assessment_pipeline_history
+        `SELECT h.assessment_id AS "assessmentId", from_stage AS "fromStage", to_stage AS "toStage",
+                reason, ${rejectionReasonsSql('h', 'reason')} AS reasons, start_date AS "startDate", changed_at AS "changedAt"
+         FROM assessment_pipeline_history h
          WHERE assessment_id = ANY($1::bigint[])
          ORDER BY changed_at ASC`,
         [assessmentIds]

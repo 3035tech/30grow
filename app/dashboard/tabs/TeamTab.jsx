@@ -1641,7 +1641,7 @@ export function TeamTab({
                             )}
                             {a.rejectionReason ? (
                               <div className="mt-1 font-ui text-prose text-red-800 dark:text-danger">
-                                {t(locale, 'recruiting.rejectionReasonLabel')}: {rejectionReasonLabel(locale, a.rejectionReason)}
+                                {t(locale, 'recruiting.rejectionReasonLabel')}: {rejectionReasonLabel(locale, a.rejectionReasons?.length ? a.rejectionReasons : a.rejectionReason)}
                               </div>
                             ) : null}
                             {a.startDate && a.pipelineStage === PIPELINE_STAGE.HIRED ? (
@@ -1654,7 +1654,7 @@ export function TeamTab({
                                 {a.pipelineHistory.map((h, i) => (
                                   <span key={i} className="mr-2.5">
                                     {h.fromStage || '—'} → {h.toStage}
-                                    {h.reason ? ` (${rejectionReasonLabel(locale, h.reason)})` : ''}
+                                    {h.reason ? ` (${rejectionReasonLabel(locale, h.reasons?.length ? h.reasons : h.reason)})` : ''}
                                     {h.startDate ? ` · ${h.startDate}` : ''}
                                     {' · '}
                                     {new Date(h.changedAt).toLocaleDateString(localeHtmlLang(locale), { day: '2-digit', month: '2-digit', year: '2-digit' })}

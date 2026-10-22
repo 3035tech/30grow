@@ -5,7 +5,8 @@ import { t } from '../../lib/i18n';
 
 export function rejectionReasonLabel(locale, code) {
   if (!code) return null;
-  return t(locale, rejectionReasonLabelKey(code));
+  const reasons = Array.isArray(code) ? code : [code];
+  return reasons.map((reason) => t(locale, rejectionReasonLabelKey(reason))).join(' · ');
 }
 
 export { REJECTION_REASONS };

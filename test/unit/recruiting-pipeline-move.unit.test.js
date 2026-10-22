@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
-import { PIPELINE_STAGE, normalizeRejectionReason, normalizeStartDate } from '../../lib/pipeline.js';
+import { PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate } from '../../lib/pipeline.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 async function load(path, deps) {
@@ -21,7 +21,7 @@ async function fixture({ canonicalKey = 'screening', found = true, accessible = 
   const db = async (sql, args) => {
     calls.push({ sql, args });
     if (sql.includes('SELECT')) return { rowCount: accessible ? 1 : 0, rows: accessible ? [row] : [] };
-    return { rowCount: 1, rows: [{ id: 42, pipelineStage: sql.includes('UPDATE assessments') ? args[1] : args[5] }] };
+    return { rowCount: 1, rows: [{ id: 42, pipelineStage: sql.includes('UPDATE assessments') ? args[1] : args[5], rejectionReasons: sql.includes('UPDATE assessments') ? args[6] : args[10] }] };
   };
   const deps = {
     NextResponse: { json: (body) => ({ status: 200, body }) }, cookies: async () => ({ get: () => ({ value: 'session' }) }), COOKIE_NAME: 'session',
@@ -30,7 +30,7 @@ async function fixture({ canonicalKey = 'screening', found = true, accessible = 
     query: db, queryRead: db, withTransaction: (fn) => fn({ query: db }),
     audit: async () => {}, auditFromRequest: async () => {},
     ERR, apiError: (_, code, status) => ({ code, status }), apiErrorFromResult: (_, result) => result,
-    PIPELINE_STAGE, normalizeRejectionReason, normalizeStartDate, sanitizeInterviewNotesHtml: (v) => v,
+    PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, sanitizeInterviewNotesHtml: (v) => v,
     resolveRecruitingPipelineStage: async (scope) => { resolutions.push(scope); return found ? { stageKey: scope.stageKey, canonicalKey } : null; },
     pipelineStageToFunnelEvent: (stage) => { events.push(stage); return null; }, scheduleJobFunnelEvent: () => {},
     persistCandidateHire: async (_, data) => { hires.push(data); }, runCandidateHireEffects: async () => {}, maybeCloseVacancyIfFilled: async () => {}, notifyHireOnboardingKit: async () => {},
@@ -55,6 +55,25 @@ for (const [kind, path, params] of [
     assert.equal(history.args[2], 'c_encaminhado_cliente');
     assert.equal(f.hires.length, 0);
   });
+  for (const input of [ { rejectionReasons: ['salary', 'skill_gap', 'salary'] }, { rejectionReason: 'salary' } ]) {
+    test(`${kind}: rejects with all reasons, deduplicates and accepts legacy payload ${JSON.stringify(input)}`, async () => {
+      const f = await fixture({ canonicalKey: 'rejected' });
+      const result = await move(f, { pipelineStage: 'rejected', ...input });
+      assert.equal(result.status, 200);
+      const expected = input.rejectionReasons ? ['salary', 'skill_gap'] : ['salary'];
+      assert.deepEqual(Array.from(result.body.rejectionReasons), expected);
+      const history = f.calls.find((c) => c.sql.includes('INSERT INTO') && c.sql.includes('history'));
+      assert.deepEqual(Array.from(history.args[6]), expected);
+      assert.equal(history.args[3], expected[0]);
+    });
+  }
+  for (const reasons of [[], ['salary', 'unknown'], [null], 'salary,skill_gap']) {
+    test(`${kind}: empty or invalid reason list cannot write ${JSON.stringify(reasons)}`, async () => {
+      const f = await fixture({ canonicalKey: 'rejected' });
+      assert.equal((await move(f, { pipelineStage: 'rejected', rejectionReasons: reasons })).code, ERR.REJECTION_REASON_REQUIRED);
+      assert.equal(f.calls.some((c) => /UPDATE|INSERT/.test(c.sql)), false);
+    });
+  }
   test(`${kind}: a stage outside this vacancy is rejected without writes`, async () => {
     const f = await fixture({ found: false });
     assert.equal((await move(f, { pipelineStage: 'c_other_company' })).code, ERR.INVALID_PIPELINE_STAGE);

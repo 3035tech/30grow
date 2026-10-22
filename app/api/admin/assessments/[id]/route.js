@@ -7,7 +7,7 @@ import { audit } from '../../../../../lib/audit';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error';
 import {
   PIPELINE_STAGE,
-  normalizeRejectionReason,
+  normalizeRejectionReasons,
   normalizeStartDate,
 } from '../../../../../lib/pipeline';
 import { resolveRecruitingPipelineStage } from '../../../../../lib/pipeline-templates';
@@ -36,7 +36,8 @@ export async function PATCH(request, props) {
       return apiError(request, ERR.INVALID_PIPELINE_STAGE, 400);
     }
 
-    const rejectionReason = normalizeRejectionReason(body.rejectionReason ?? body.reason);
+    const selectedReasons = normalizeRejectionReasons(body.rejectionReasons ?? body.rejectionReason ?? body.reason);
+    const rejectionReason = selectedReasons?.[0] ?? null;
     const startDate = normalizeStartDate(body.startDate);
 
     const own = await queryRead(
@@ -73,6 +74,7 @@ export async function PATCH(request, props) {
       return apiError(request, ERR.START_DATE_REQUIRED, 400);
     }
 
+    const rejectionReasons = canonicalStage === PIPELINE_STAGE.REJECTED ? selectedReasons : [];
     const funnelEvent = pipelineStageToFunnelEvent(canonicalStage);
 
 
@@ -80,6 +82,7 @@ export async function PATCH(request, props) {
     const result = await db.query(
       `UPDATE assessments SET
          pipeline_stage = $2,
+         rejection_reasons = $7::text[],
          rejection_reason = CASE WHEN $6 = '${PIPELINE_STAGE.REJECTED}' THEN $3 ELSE NULL END,
          start_date = CASE WHEN $6 = '${PIPELINE_STAGE.HIRED}' THEN $4::date ELSE start_date END,
          hired_at = CASE
@@ -88,16 +91,16 @@ export async function PATCH(request, props) {
          END
        WHERE id = $1 AND company_id = $5
        RETURNING id, pipeline_stage AS "pipelineStage",
-                 rejection_reason AS "rejectionReason",
+                 rejection_reason AS "rejectionReason", rejection_reasons AS "rejectionReasons",
                  start_date AS "startDate",
                  hired_at AS "hiredAt"`,
-      [id, stage, rejectionReason, startDate, assCompanyId, canonicalStage]
+      [id, stage, rejectionReason, startDate, assCompanyId, canonicalStage, rejectionReasons]
     );
 
     await db.query(
       `INSERT INTO assessment_pipeline_history
-         (assessment_id, from_stage, to_stage, reason, start_date, changed_by_user_id)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+         (assessment_id, from_stage, to_stage, reason, start_date, changed_by_user_id, rejection_reasons)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::text[])`,
       [
         id,
         currentStage,
@@ -105,10 +108,19 @@ export async function PATCH(request, props) {
         canonicalStage === PIPELINE_STAGE.REJECTED ? rejectionReason : null,
         canonicalStage === PIPELINE_STAGE.HIRED ? startDate : null,
         payload.userId || null,
+        rejectionReasons,
       ]
     );
 
     if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
+    if (vacancyId && candidateId) {
+      await db.query(
+        `UPDATE vacancy_candidates SET rejection_reasons = $3::text[],
+           rejection_reason = $4, updated_at = NOW()
+         WHERE vacancy_id = $1 AND candidate_id = $2 AND company_id = $5`,
+        [vacancyId, candidateId, rejectionReasons, rejectionReasons[0] ?? null, assCompanyId]
+      );
+    }
     return result;
     });
 
@@ -172,6 +184,7 @@ export async function PATCH(request, props) {
       targetId: String(id),
       metadata: {
         pipelineStage: stage,
+        rejectionReasons,
         rejectionReason: canonicalStage === PIPELINE_STAGE.REJECTED ? rejectionReason : undefined,
         startDate: canonicalStage === PIPELINE_STAGE.HIRED ? startDate : undefined,
       },

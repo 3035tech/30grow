@@ -365,7 +365,7 @@ export function CandidateTimeline({
 
       {stage === PIPELINE_STAGE.REJECTED && rejectionEv?.reason ? (
         <p className="mt-3 mb-0 w-full text-center text-xs text-danger">
-          {t(locale, 'recruiting.rejectionReasonLabel')}: {rejectionReasonLabel(locale, rejectionEv.reason)}
+          {t(locale, 'recruiting.rejectionReasonLabel')}: {rejectionReasonLabel(locale, rejectionEv.reasons?.length ? rejectionEv.reasons : rejectionEv.reason)}
         </p>
       ) : null}
 
@@ -387,6 +387,7 @@ export function CandidateTimeline({
                   });
                 }
                 const bits = [text];
+                if (ev.type === 'pipeline.change' && ev.reason) bits.push(rejectionReasonLabel(locale, ev.reasons?.length ? ev.reasons : ev.reason));
                 if (ev.vacancyTitle) bits.push(ev.vacancyTitle);
                 if (ev.topType != null) bits.push(`T${ev.topType}`);
                 return (

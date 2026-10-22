@@ -1,24 +1,21 @@
 'use client';
 
-import { SelectField } from '../_components/SelectField';
-
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { REJECTION_REASONS, normalizeStartDate } from '../../lib/pipeline';
 import { t } from '../../lib/i18n';
 import { rejectionReasonLabel } from './pipeline-prompts';
 import { DateField } from '../_components/DateField';
 import { FormField } from '../_components/FormField';
-import { fieldInputClass, fieldSelectClass } from '../_components/form-control-styles';
+import { fieldInputClass } from '../_components/form-control-styles';
 import { S } from './dashboard-shared';
 
 const PipelineExtrasContext = createContext(null);
 
 const FIELD = `${fieldInputClass} w-full font-ui text-sm`;
-const FIELD_SELECT = `${fieldSelectClass} w-full font-ui text-sm`;
 
 function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
   const today = new Date().toISOString().slice(0, 10);
-  const [reason, setReason] = useState('profile_fit');
+  const [reasons, setReasons] = useState([]);
   const [startDate, setStartDate] = useState(today);
   const [error, setError] = useState('');
 
@@ -34,11 +31,11 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
   const submit = () => {
     setError('');
     if (mode === 'rejected') {
-      if (!reason) {
+      if (!reasons.length) {
         setError(t(locale, 'recruiting.rejectReasonRequired'));
         return;
       }
-      onConfirm({ rejectionReason: reason });
+      onConfirm({ rejectionReasons: reasons });
       return;
     }
     const normalized = normalizeStartDate(startDate);
@@ -64,7 +61,7 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="pipeline-extras-title"
-        className="w-full max-w-[440px] rounded-card border border-ink/12 bg-surface px-[26px] py-6 shadow-dialog"
+        className="max-h-[calc(100dvh-3rem)] w-full max-w-[560px] overflow-y-auto rounded-card border border-ink/12 bg-surface px-[26px] py-6 shadow-dialog"
         onClick={(e) => e.stopPropagation()}
       >
         <span className="font-mono text-2xs uppercase tracking-[2px] text-brand-500">
@@ -80,23 +77,19 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
 
         <div className="mt-5">
           {mode === 'rejected' ? (
-            <FormField
-              htmlFor="pipeline-reject-reason"
-              label={t(locale, 'recruiting.rejectionReasonLabel')}
-            >
-              <SelectField
-                id="pipeline-reject-reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className={FIELD_SELECT}
-              >
+            <fieldset className="m-0 min-w-0 border-0 p-0">
+              <legend className="mb-2 font-ui text-sm font-medium text-ink">{t(locale, 'recruiting.rejectionReasonsLabel')}</legend>
+              <div className="grid max-h-[min(40dvh,320px)] grid-cols-1 gap-1 overflow-y-auto overscroll-contain rounded-control border border-ink/12 p-2 sm:grid-cols-2">
                 {REJECTION_REASONS.map((code) => (
-                  <option key={code} value={code}>
-                    {rejectionReasonLabel(locale, code)}
-                  </option>
+                  <label key={code} className="flex min-h-touch cursor-pointer items-center gap-2 rounded-control px-2 py-2 font-ui text-sm text-ink hover:bg-ink/[0.04]">
+                    <input type="checkbox" value={code} checked={reasons.includes(code)}
+                      onChange={(event) => setReasons((selected) => event.target.checked ? [...selected, code] : selected.filter((reason) => reason !== code))}
+                      className="h-4 w-4 shrink-0 accent-brand-600" />
+                    <span>{rejectionReasonLabel(locale, code)}</span>
+                  </label>
                 ))}
-              </SelectField>
-            </FormField>
+              </div>
+            </fieldset>
           ) : (
             <FormField
               as="div"
@@ -115,7 +108,7 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
         </div>
 
         {error ? (
-          <p className="mb-0 mt-3 font-mono text-xs text-danger">{error}</p>
+          <p role="alert" className="mb-0 mt-3 font-mono text-xs text-danger">{error}</p>
         ) : null}
 
         <div className="mt-[22px] flex justify-end gap-2.5">

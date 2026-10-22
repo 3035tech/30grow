@@ -162,7 +162,8 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
           prev.map((r) => (cardKey(r) === key ? {
             ...r,
             pipelineStage: stage,
-            rejectionReason: data.rejectionReason ?? extras.rejectionReason ?? r.rejectionReason,
+            rejectionReason: data.rejectionReason ?? null,
+            rejectionReasons: data.rejectionReasons ?? [],
             startDate: data.startDate ?? extras.startDate ?? r.startDate,
           } : r))
         );
@@ -178,7 +179,8 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
           prev.map((r) => (cardKey(r) === key ? {
             ...r,
             pipelineStage: stage,
-            rejectionReason: data.rejectionReason ?? extras.rejectionReason ?? r.rejectionReason,
+            rejectionReason: data.rejectionReason ?? null,
+            rejectionReasons: data.rejectionReasons ?? [],
             startDate: data.startDate ?? extras.startDate ?? r.startDate,
           } : r))
         );
@@ -648,7 +650,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                           </div>
                           {r.rejectionReason ? (
                             <div className="mt-1 font-mono text-2xs text-danger">
-                              {rejectionReasonLabel(locale, r.rejectionReason)}
+                              {rejectionReasonLabel(locale, r.rejectionReasons?.length ? r.rejectionReasons : r.rejectionReason)}
                             </div>
                           ) : null}
                           {r.startDate && (r.pipelineStage === PIPELINE_STAGE.HIRED) ? (

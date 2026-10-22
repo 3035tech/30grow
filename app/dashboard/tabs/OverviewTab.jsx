@@ -510,6 +510,7 @@ export function OverviewTab({
           <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
             {t(locale, 'panel.overview.topRejectReasons')}
           </span>
+          <p className="mb-0 mt-1 text-xs text-ink-muted">{t(locale, 'recruiting.rejectionReasonsCountHint')}</p>
           {reasons.length === 0 ? (
             <p className="mt-2.5 mb-0 text-prose italic text-ink-faint">
               {t(locale, 'panel.overview.noRejectReasons')}
