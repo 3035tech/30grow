@@ -37,7 +37,8 @@ import { FormField } from '../../_components/FormField';
 import { CompanyLogoCropDialog } from '../../_components/CompanyLogoCropDialog';
 import { COMPANY_LOGO_ACCEPT } from '../../../lib/company-logo-limits';
 import { CompanyModulesField } from '../../_components/CompanyModulesField';
-import { ContentEnter } from '../../_components/AppLoading';
+import { InlineCallout } from '../../_components/InlineCallout';
+import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { AiUsageAdminPanel } from './AiUsageAdminPanel';
 import { OnboardingFunnelAdminPanel } from './OnboardingFunnelAdminPanel';
 import {
@@ -232,7 +233,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
   const [searchDraft, setSearchDraft] = useState(companiesQ);
   const dateLocale = localeHtmlLang(locale);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState([]);
   const [companiesTotal, setCompaniesTotal] = useState(0);
   const [companiesTotalPages, setCompaniesTotalPages] = useState(1);
@@ -679,14 +680,10 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
   return (
     <div className="flex flex-col gap-4">
       {error ? (
-        <div className={cn(S.card, 'px-[18px] py-3.5')}>
-          <p className="m-0 font-mono text-xs text-danger">{error}</p>
-        </div>
+        <InlineCallout tone="danger" action={<button type="button" className={S.btnGhost} disabled={loading} onClick={loadCompanies}>{t(locale, 'panel.orgUnits.retry')}</button>}>{error}</InlineCallout>
       ) : null}
       {msg ? (
-        <div className={cn(S.card, 'px-[18px] py-3.5')}>
-          <p className="m-0 font-mono text-xs text-success">{msg}</p>
-        </div>
+        <InlineCallout tone="success">{msg}</InlineCallout>
       ) : null}
 
       <AdminPageHeader
@@ -780,7 +777,7 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
             <option value="inactive">{t(locale, 'panel.admin.filterActiveNo')}</option>
           </AdminListFilterSelect>
         </AdminListFilters>
-        {companiesTotal === 0 ? (
+        {loading && !companies.length ? <AppLoading locale={locale} variant="panel" /> : error && !companies.length ? null : companiesTotal === 0 ? (
           <div className="mt-3">
             <EmptyState
               message={

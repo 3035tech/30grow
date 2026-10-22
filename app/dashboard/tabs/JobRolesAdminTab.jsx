@@ -26,6 +26,7 @@ import {
   clientSortNextDir,
 } from '../dashboard-shared';
 import { useAppFeedback } from '../../_components/AppFeedback';
+import { InlineCallout } from '../../_components/InlineCallout';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading } from '../../_components/AppLoading';
 import {
@@ -407,13 +408,13 @@ export function JobRolesAdminTab({ locale, companyId, companyName }) {
   }
 
   if (loading && roles.length === 0) {
-    return <AppLoading variant="panel" />;
+    return <AppLoading locale={locale} variant="panel" />;
   }
 
   if (error) {
     return (
       <div className={S.card}>
-        <p className="text-red-800 dark:text-danger">{error}</p>
+        <InlineCallout tone="danger" action={<button type="button" className={S.btnGhost} onClick={loadRoles}>{t(locale, 'panel.orgUnits.retry')}</button>}>{error}</InlineCallout>
       </div>
     );
   }
@@ -470,7 +471,7 @@ export function JobRolesAdminTab({ locale, companyId, companyName }) {
           </AdminListFilterSelect>
         </AdminListFilters>
         {sortedRoles.length === 0 ? (
-          <EmptyState message={t(locale, 'panel.admin.noUsersMatch')} />
+          <EmptyState message={t(locale, 'betaWorkspace.noRolesMatch')} actionLabel={t(locale, 'panel.common.clearFilters')} onAction={() => { setNameQ(''); setActiveFilter(''); setPage(1); }} />
         ) : (
         <>
         <AdminTableShell locale={locale} minWidth="720px" animKey={`${nameQ}|${activeFilter}|${safePage}|${pageSize}`}>

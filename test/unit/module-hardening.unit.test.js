@@ -218,7 +218,8 @@ describe('module hardening', () => {
     const scrollRegion = source('app/_components/HorizontalScrollRegion.jsx');
     const filters = source('app/_components/AdminListFilters.jsx');
     const dp = source('app/dashboard/tabs/DpAdminTab.jsx');
-    assert.match(shared, /sm:flex-row sm:items-start/);
+    assert.match(shared, /sm:grid-cols-\[minmax\(0,1fr\)_auto\]/);
+    assert.match(shared, /sm:col-start-2 sm:row-start-1/);
     assert.match(shared, /import \{ HorizontalScrollRegion \} from '\.\.\/_components\/HorizontalScrollRegion'/);
     const tableShell = shared.slice(shared.indexOf('function AdminTableShell('), shared.indexOf('export const DashboardPageTitleContext'));
     assert.match(tableShell, /<HorizontalScrollRegion table locale=\{locale\} ariaLabel=\{ariaLabel\}/);

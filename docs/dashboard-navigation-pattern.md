@@ -72,3 +72,9 @@ Menu lateral
 ```
 
 Em mobile, o menu vira drawer e workspaces de lista + detalhe passam a telas sequenciais. Não se deve comprimir duas colunas de trabalho em uma largura insuficiente.
+
+### Ajuste do beta — 22/10/2026
+
+A ausência de preferência salva abre só a área ativa já na primeira renderização. Uma preferência existente de lista vazia significa que o usuário escolheu manter todos os grupos abertos; isso continua preservado. Preferências inválidas voltam ao padrão seguro de abertura, e destinos removidos não permanecem no estado do menu.
+
+Organização é o destino da edição de unidades, hierarquia e organograma. Grupos reúne composição e colaboração, com atalho para Organização apenas para quem pode abrir essa tela. A simulação de um grupo não monta nem salva alterações estruturais no organograma.

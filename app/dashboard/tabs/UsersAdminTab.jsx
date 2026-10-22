@@ -1,5 +1,7 @@
 'use client';
 
+import { AppLoading } from '../../_components/AppLoading';
+
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { InlineCallout } from '../../_components/InlineCallout';
@@ -56,7 +58,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
   const usersCompany = String(sp.usersCompany || '').trim();
   const hasUsersFilter = Boolean(usersQ || usersRole || usersActive || usersCompany);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchDraft, setSearchDraft] = useState(usersQ);
   const [companyOptions, setCompanyOptions] = useState([]);
   const [users, setUsers] = useState([]);
@@ -483,7 +485,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
   return (
     <div className="flex flex-col gap-4">
       {error ? (
-        <InlineCallout tone="danger" role="alert">{error}</InlineCallout>
+        <InlineCallout tone="danger" action={<button type="button" className={S.btnGhost} disabled={loading} onClick={loadUsersOnly}>{t(locale, 'panel.orgUnits.retry')}</button>}>{error}</InlineCallout>
       ) : null}
       {msg ? (
         <InlineCallout tone="success" role="status">{msg}</InlineCallout>
@@ -604,7 +606,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
             </AdminListFilterSelect>
           ) : null}
         </AdminListFilters>
-        {usersTotal === 0 ? (
+        {loading && !users.length ? <AppLoading locale={locale} variant="panel" /> : error && !users.length ? null : usersTotal === 0 ? (
           <div className="mt-3">
             <EmptyState
               message={

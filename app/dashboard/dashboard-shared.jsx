@@ -826,21 +826,19 @@ function AdminPageHeader({ title, subtitle = null, description = null, actions =
   return (
     <header
       className={cn(
-        'mb-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-start sm:gap-4',
+        'mb-4 grid grid-cols-1 items-start gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-4',
         className
       )}
     >
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0">
         {!repeatedTitle ? <Heading className={pageTitle ? S.sectionTitle : S.pageTitle}>{title}</Heading> : null}
-        {lead ? (
-          <p className={cn(S.muted, 'm-0 mt-1.5 max-w-[62ch] text-prose')}>{lead}</p>
-        ) : null}
       </div>
       {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 pt-0.5 sm:justify-end">
+        <div className="flex min-w-0 flex-wrap items-center justify-start gap-2 sm:col-start-2 sm:row-start-1 sm:justify-end">
           {actions}
         </div>
       ) : null}
+      {lead ? <p className={cn(S.muted, 'm-0 max-w-[62ch] text-prose sm:col-start-1')}>{lead}</p> : null}
     </header>
   );
 }

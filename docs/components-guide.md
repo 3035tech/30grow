@@ -255,3 +255,33 @@ Criar e editar usam o mesmo `VacancyFormFields` (`app/dashboard/vacancies/`): `m
 - `app/_components/RubricEditor.jsx`
 - `lib/data.js` — TYPE_DATA
 - `lib/theme.js` — cores semânticas
+
+## Contrato de estados e hierarquia — beta, 22/10/2026
+
+Reutilizar os componentes existentes em vez de criar variantes locais para cada módulo:
+
+| Estado | Componente | Contrato |
+|---|---|---|
+| Sem registros | `EmptyState` | Título/mensagem e próximo passo autorizado. `description` é aceito como alias de `message`; não renderizar junto de erro de leitura. |
+| Filtro sem resultados | `EmptyState` | Informar ausência de correspondência e oferecer limpar filtros. Não sugerir que a base inteira está vazia. |
+| Carregando | `AppLoading` | Preservar contexto; `variant="panel"` contém rótulo acessível e skeleton decorativo. `aria-busy` informa trabalho em andamento. |
+| Falha recuperável | `InlineCallout tone="danger"` | `role="alert"` por padrão, mensagem compreensível e ação de tentar novamente quando disponível. Erro não é estado vazio. |
+| Sucesso | `InlineCallout tone="success"` ou `toast(..., 'ok')` | Confirmação anunciada como `status`, sem cor como único sinal. |
+| Alterações pendentes | `AdminRichFormDrawer` | O rodapé informa alterações não salvas. Confirmar descarte no fechar/cancelar/Esc/fundo; salvar só remove a indicação quando o estado de origem for atualizado. |
+| Processamento | `AdminRichFormDrawer busy` | Indica processamento; impede descarte durante a operação. O módulo mantém a responsabilidade de bloquear envio duplicado e refletir resultado real. |
+| Validação de campo | `FormField` + erros por campo | Preservar valores, descrever como corrigir e focar o primeiro campo inválido; manter o contrato de validação já existente. |
+| Ação destrutiva | `useAppFeedback().confirm` | Identificar registro/efeito, permitir cancelar e respeitar autorização do endpoint. Não executar ação ao abrir uma tela. |
+
+`InlineCallout` e toasts usam texto e semântica de anúncio, com `aria-atomic` para mensagens completas. O `role` explícito de um consumidor continua respeitado.
+
+### Cabeçalhos e celular
+
+- `AdminPageHeader`: título → ações → descrição na ordem de leitura. No desktop, ações ocupam a coluna à direita do título.
+- `AdminRichFormDrawer`: título/fechar, ações do registro e depois metadados. Ação primária do formulário continua no rodapé; conteúdo rola separadamente.
+- Vagas mantém a tabela comparativa e a região de rolagem. A primeira coluna abre o detalhe pelo título, com ação Abrir explícita no celular e alvo de toque mínimo. Não exigir ir até a última coluna para abrir o registro.
+- Relatórios mostra período/amostra e indicadores antes dos filtros de data recolhíveis. Exportação mantém nome acessível mesmo quando aparece só como ícone.
+- Visão geral mostra Atenção agora antes dos filtros de coorte. O contexto da empresa continua visível e os filtros mantêm seus contratos de URL.
+
+### Prova esperada ao reutilizar
+
+Verificar o estado inicial e o retorno após falha; teclado e foco; tela estreita sem overflow global; uma mensagem de sucesso real; rascunho preservado ao continuar editando. Uma prévia com dados fictícios prova apresentação e interação local, não integrações externas nem um aparelho físico.

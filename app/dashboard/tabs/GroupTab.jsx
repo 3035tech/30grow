@@ -12,7 +12,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { CompatBadge, S, TypeBadge } from '../dashboard-shared';
 import { TeamPulseBlock } from '../../_components/TeamPulseBlock';
 import { TeamTensionNarrativeBlock } from '../../_components/TeamTensionNarrativeBlock';
-import { OrgChartBlock } from '../../_components/OrgChartBlock';
+import { InlineCallout } from '../../_components/InlineCallout';
 import { RosterEmptyHint } from '../../_components/RosterEmptyHint';
 import { ContentEnter, Spinner } from '../../_components/AppLoading';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
@@ -82,6 +82,7 @@ function PersonMini({ person, right, baseCompat = null, onRemove = null, locale 
 }
 
 export function GroupTab({
+  canViewOrganization = false,
   results,
   groupBase,
   setGroupBaseId,
@@ -326,16 +327,18 @@ export function GroupTab({
   };
 
 
+  const organizationShortcut = canViewOrganization && resolvedCompanyId && typeof navigateDashboard === 'function' ? (
+    <InlineCallout tone="info" action={
+      <button type="button" className={S.btnGhost} onClick={() => navigateDashboard({ tab: 'organization' })}>
+        {t(locale, 'betaWorkspace.openOrganization')}
+      </button>
+    }>{t(locale, 'betaWorkspace.groupsPurpose')}</InlineCallout>
+  ) : null;
+
   if ((results || []).length === 0) {
     return (
       <div className="space-y-4">
-        {resolvedCompanyId ? (
-          <OrgChartBlock
-            locale={locale}
-            companyId={resolvedCompanyId}
-            navigateDashboard={navigateDashboard}
-          />
-        ) : null}
+        {organizationShortcut}
         <RosterEmptyHint
           locale={locale}
           roster={roster || ROSTER_SCOPE.INTERNAL}
@@ -347,11 +350,7 @@ export function GroupTab({
 
   return (
     <div className="space-y-4">
-      <OrgChartBlock
-        locale={locale}
-        companyId={resolvedCompanyId}
-        navigateDashboard={navigateDashboard}
-      />
+      {organizationShortcut}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className={S.card}>
         <div className="flex flex-wrap items-center justify-between gap-3">

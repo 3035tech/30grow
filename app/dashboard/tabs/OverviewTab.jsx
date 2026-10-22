@@ -23,6 +23,7 @@ import {
 import { ContentEnter } from '../../_components/AppLoading';
 import { StatMetricTile } from '../../_components/StatMetricTile';
 import { MeterBar } from '../../_components/MeterBar';
+import { InlineCallout } from '../../_components/InlineCallout';
 import { EmptyState } from '../../_components/EmptyState';
 
 const PEOPLE_OPS_OPEN_KEY = '30team_overview_people_ops_open';
@@ -78,6 +79,7 @@ function attentionContext(locale, item) {
 
 export function OverviewTab({
   overview = null,
+  filterControls = null,
   locale = 'pt-BR',
   companyId = null,
   navigateDashboard,
@@ -163,6 +165,7 @@ export function OverviewTab({
   if (data.needsCompanyScope) {
     return (
       <div className={S.stack}>
+        {filterControls}
         <div className={cn(S.card, 'p-5 sm:px-6')}>
           <span className={S.label}>{t(locale, 'panel.overview.needsCompanyScopeTitle')}</span>
           <p className="mt-2.5 mb-0 max-w-[62ch] text-prose leading-relaxed text-ink-muted">
@@ -182,7 +185,7 @@ export function OverviewTab({
   return (
     <div className="flex flex-col gap-4">
       {data.error ? (
-        <p className="m-0 text-danger">{t(locale, 'panel.overview.loadError')}</p>
+        <InlineCallout tone="danger">{t(locale, 'panel.overview.loadError')}</InlineCallout>
       ) : null}
       {/* Onboarding Checklist */}
       {onboardingProgress && onboardingProgress.progress < 100 && (
@@ -280,6 +283,8 @@ export function OverviewTab({
           </div>
         ) : null}
       </div>
+
+      {filterControls}
 
       <TeamBehavioralIntelBlock
         locale={locale}

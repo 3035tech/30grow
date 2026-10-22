@@ -39,3 +39,22 @@ describe('dashboard navigation information architecture', () => {
     assert.deepEqual(getDashboardTabNav('unknown'), DASHBOARD_TAB_NAV.overview);
   });
 });
+
+// A missing key and an intentionally empty saved list have different meanings.
+describe('sidebar preferences', () => {
+  it('starts with the current section only and preserves intentionally open groups', async () => {
+    const { getClosedSidebarGroups } = await import('../../lib/dashboard-navigation.js');
+    const ids = ['home', 'people', 'recruiting'];
+    assert.deepEqual(getClosedSidebarGroups(ids, 'people'), ['home', 'recruiting']);
+    assert.deepEqual(getClosedSidebarGroups(ids, 'people', []), []);
+    assert.deepEqual(getClosedSidebarGroups(ids, 'people', ['people', 'recruiting']), ['recruiting']);
+  });
+  it('recovers from malformed storage, discards obsolete groups and supports footer destinations', async () => {
+    const { getClosedSidebarGroups } = await import('../../lib/dashboard-navigation.js');
+    const ids = ['home', 'people'];
+    assert.deepEqual(getClosedSidebarGroups(ids, null, 'broken'), ids);
+    assert.deepEqual(getClosedSidebarGroups(ids, 'people', [123]), ['home']);
+    assert.deepEqual(getClosedSidebarGroups(ids, null, ['removed', 'home']), ['home']);
+    assert.deepEqual(getClosedSidebarGroups(ids, null), ids);
+  });
+});

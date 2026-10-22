@@ -7,6 +7,7 @@ import { t as i18nT } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { UI_TYPE } from '../../lib/ui-typography';
 import { dialogOverlayClass } from './app-dialog-styles';
+import { InlineCallout } from './InlineCallout';
 import { DialogCloseButton } from './DialogCloseButton';
 
 /**
@@ -140,7 +141,7 @@ export function AdminRichFormDrawer({
         onClick={(e) => e.stopPropagation()}
       >
         <div className={cn(
-          'flex flex-shrink-0 items-start justify-between gap-3 border-b border-ink/12 px-[22px] pb-3.5 pt-[18px]',
+          'grid flex-shrink-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 border-b border-ink/12 px-[22px] pb-3.5 pt-[18px]',
           fullPage && !withinShell && 'mx-auto w-full max-w-[1180px] px-4 sm:px-8 lg:px-10',
           withinShell && 'sticky top-0 z-20 border-b-ink/10 bg-canvas/95 px-0 py-3.5 backdrop-blur-sm'
         )}>
@@ -166,16 +167,12 @@ export function AdminRichFormDrawer({
             >
               {title}
             </TitleTag>
-            {headerMeta ? (
-              <div className="mt-2 flex flex-wrap items-center gap-1.5 font-ui text-prose text-ink/75">
-                {headerMeta}
-              </div>
-            ) : null}
           </div>
-          <div className={cn('flex shrink-0 items-start gap-2', fullPage && 'mt-8')}>
-            {headerActions}
+          {headerActions ? <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:mr-12">{headerActions}</div> : null}
+          <div className="col-start-2 row-start-1 justify-self-end">
             <DialogCloseButton onClick={() => requestClose()} locale={locale} label={fullPage ? closeLabel : undefined} />
           </div>
+          {headerMeta ? <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-1.5 font-ui text-prose text-ink/75">{headerMeta}</div> : null}
         </div>
         <div ref={contentRef} className={cn(
           'flex-1 px-[22px] py-[18px]',
@@ -188,6 +185,9 @@ export function AdminRichFormDrawer({
             'flex flex-shrink-0 flex-wrap justify-end gap-2.5 border-t border-ink/12 px-[22px] pb-[18px] pt-3.5',
             fullPage && !withinShell && 'mx-auto w-full max-w-[1180px] px-4 sm:px-8 lg:px-10'
           )}>
+            {dirty || busy ? <div className="w-full sm:mr-auto sm:w-auto">
+              <InlineCallout tone={busy ? 'info' : 'warning'}>{i18nT(locale, busy ? 'betaWorkspace.working' : 'betaWorkspace.unsaved')}</InlineCallout>
+            </div> : null}
             {footer}
           </div>
         ) : null}

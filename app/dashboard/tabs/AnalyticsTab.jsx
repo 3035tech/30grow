@@ -14,6 +14,8 @@ import { DateField } from '../../_components/DateField.jsx';
 import { FormField, formFieldRowClass } from '../../_components/FormField';
 import { useAppFeedback } from '../../_components/AppFeedback.jsx';
 import { AppLoading } from '../../_components/AppLoading.jsx';
+import { formatDisplayDate } from '../../../lib/format-display-date.js';
+import { InlineCallout } from '../../_components/InlineCallout';
 import { EmptyState } from '../../_components/EmptyState';
 import { cn } from '../../../lib/cn.js';
 import { StatMetricTile } from '../../_components/StatMetricTile';
@@ -331,7 +333,8 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
     <div className="space-y-6">
       <div className={cn(S.cardShell, 'overflow-hidden')}>
         <div className="border-b border-ink/10 px-5 pb-0 pt-6 sm:px-7 sm:pt-7">
-          <p className="m-0 max-w-3xl font-ui text-sm leading-6 text-ink-muted">{t(locale, 'panel.analytics.intro')}</p>
+          <p className="m-0 font-ui text-sm text-ink-muted sm:hidden">{t(locale, 'betaWorkspace.reportIntro')}</p>
+          <p className="m-0 hidden max-w-3xl font-ui text-sm leading-6 text-ink-muted sm:block">{t(locale, 'panel.analytics.intro')}</p>
           <PanelSubNav
             ariaLabel={t(locale, 'panel.analytics.viewsAria')}
             active={activeView}
@@ -348,15 +351,15 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
         </div>
 
         <div className="px-5 py-6 sm:px-7 sm:py-7">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="max-w-2xl">
             <h2 className="m-0 font-display text-2xl font-semibold text-ink">{viewTitle}</h2>
-            <p className="mb-0 mt-1.5 font-ui text-sm leading-6 text-ink-muted">{viewDescription}</p>
+            <p className="mb-0 mt-1.5 hidden font-ui text-sm leading-6 text-ink-muted sm:block">{viewDescription}</p>
           </div>
           {activeView !== 'compare' ? (
-            <a className={cn(S.btnGhost, 'shrink-0')} href={`/api/admin/analytics/export?${exportParams}`} download>
+            <a className={cn(S.btnGhost, 'shrink-0')} aria-label={t(locale, 'panel.analytics.export')} title={t(locale, 'panel.analytics.export')} href={`/api/admin/analytics/export?${exportParams}`} download>
               <Icon name="download" className="h-4 w-4" />
-              {t(locale, 'panel.analytics.export')}
+              <span className="hidden sm:inline">{t(locale, 'panel.analytics.export')}</span>
             </a>
           ) : null}
         </div>
@@ -366,55 +369,12 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
             <AppLoading locale={locale} variant="panel" />
           </div>
         ) : error ? (
-          <EmptyState
-            title={t(locale, 'panel.analytics.loadErrorTitle')}
-            message={error}
-            actionLabel={t(locale, 'panel.common.retry')}
-            onAction={activeView === 'trends' ? loadTrends : activeView === 'compare' ? loadComparison : loadMetrics}
-          />
+          <InlineCallout tone="danger" title={t(locale, 'panel.analytics.loadErrorTitle')}
+            action={<button type="button" className={S.btnGhost} onClick={activeView === 'trends' ? loadTrends : activeView === 'compare' ? loadComparison : loadMetrics}>{t(locale, 'panel.common.retry')}</button>}>
+            {error}
+          </InlineCallout>
         ) : (
           <>
-
-        {/* Filtros */}
-        {activeView === 'metrics' && (
-        <form
-          className="mb-6 grid items-end gap-4 rounded-control border border-ink/10 bg-ink/[0.025] p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-          onSubmit={applyMetricFilters}
-        >
-          <FormField
-            as="div"
-            label={t(locale, 'panel.analytics.startDate')}
-          >
-            <DateField
-              className={S.input}
-              value={draftFilters.startDate}
-              onChange={(e) => setDraftFilters((current) => ({ ...current, startDate: e.target.value }))}
-              aria-label={t(locale, 'panel.analytics.startDate')}
-            />
-          </FormField>
-          <FormField
-            as="div"
-            label={t(locale, 'panel.analytics.endDate')}
-          >
-            <DateField
-              className={S.input}
-              value={draftFilters.endDate}
-              onChange={(e) => setDraftFilters((current) => ({ ...current, endDate: e.target.value }))}
-              aria-label={t(locale, 'panel.analytics.endDate')}
-            />
-          </FormField>
-          <div className="flex min-h-touch items-center justify-end gap-2 sm:col-span-2 lg:col-span-1">
-            {(filters.startDate || filters.endDate || draftFilters.startDate || draftFilters.endDate) ? (
-              <button type="button" className={S.btnGhost} onClick={clearMetricFilters}>
-                {t(locale, 'panel.common.clear')}
-              </button>
-            ) : null}
-            <button type="submit" className={S.btnPrimary} disabled={!filtersDirty}>
-              {t(locale, 'panel.analytics.apply')}
-            </button>
-          </div>
-        </form>
-        )}
 
         {activeView !== 'compare' && meta ? (
           <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-ink/10 pb-4 font-ui text-xs text-ink-muted">
@@ -422,78 +382,13 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
               period: activeView === 'trends'
                 ? t(locale, 'panel.analytics.monthsValue', { n: meta.months || trendMonths })
                 : (meta.period?.startDate || meta.period?.endDate
-                  ? `${meta.period?.startDate || '…'}–${meta.period?.endDate || '…'}`
+                  ? `${meta.period?.startDate ? formatDisplayDate(meta.period.startDate, locale) : '…'}–${meta.period?.endDate ? formatDisplayDate(meta.period.endDate, locale) : '…'}`
                   : t(locale, 'panel.analytics.allHistory')),
             })}</span>
             <span>{t(locale, 'panel.analytics.updatedAt', { value: new Date(meta.generatedAt).toLocaleString(locale) })}</span>
+            {activeView === 'metrics' && metrics ? <span>{t(locale, 'panel.analytics.sampleSummary', { hires: metrics.sampleSize?.hires || 0, fit: metrics.sampleSize?.poolFit || 0 })}</span> : null}
           </div>
         ) : null}
-
-        {activeView === 'metrics' && metrics && !metricsEmpty ? (
-          <CollapsibleBlock
-            locale={locale}
-            title={t(locale, 'panel.analytics.methodTitle')}
-            collapsedHint={t(locale, 'panel.analytics.sampleSummary', {
-              hires: metrics.sampleSize?.hires || 0,
-              fit: metrics.sampleSize?.poolFit || 0,
-            })}
-            titleClassName="font-ui text-sm normal-case tracking-normal text-ink"
-            className="mb-5 rounded-control border border-ink/10 bg-info/5 px-4 py-3"
-            bordered={false}
-          >
-            <p className="m-0 max-w-4xl font-ui text-xs leading-5 text-ink-muted">
-              {t(locale, 'panel.analytics.methodBody')}
-            </p>
-          </CollapsibleBlock>
-        ) : null}
-
-        {activeView === 'trends' && (
-        <div className={cn(formFieldRowClass, 'mb-6 gap-4 rounded-control border border-ink/10 bg-ink/[0.025] p-4')}>
-          <FormField label={t(locale, 'panel.analytics.periodMonths')}>
-            <SelectField
-              className={S.select}
-              value={trendMonths}
-              onChange={(e) => setTrendMonths(parseInt(e.target.value, 10))}
-            >
-              <option value="6">{t(locale, 'panel.analytics.months6')}</option>
-              <option value="12">{t(locale, 'panel.analytics.months12')}</option>
-              <option value="24">{t(locale, 'panel.analytics.months24')}</option>
-            </SelectField>
-          </FormField>
-        </div>
-        )}
-
-        {activeView === 'compare' && (
-          <div className="space-y-5">
-            {areaOptions.length < 2 ? (
-              <EmptyState
-                title={t(locale, 'panel.analytics.compareEmptyTitle')}
-                message={t(locale, 'panel.analytics.compareEmptyBody')}
-              />
-            ) : (
-              <>
-                <div className="grid grid-cols-1 items-end gap-4 rounded-control border border-ink/10 bg-ink/[0.025] p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-                  <FormField label={t(locale, 'panel.analytics.compareAreaA')}>
-                    <SelectField className={cn(S.select, 'w-full')} value={compareParams.areaA} onChange={(event) => { setComparison(null); setCompareParams((current) => ({ ...current, areaA: event.target.value })); }}>
-                      <option value="">{t(locale, 'panel.analytics.compareSelectArea')}</option>
-                      {areaOptions.map((area) => <option key={area} value={area}>{area}</option>)}
-                    </SelectField>
-                  </FormField>
-                  <FormField label={t(locale, 'panel.analytics.compareAreaB')}>
-                    <SelectField className={cn(S.select, 'w-full')} value={compareParams.areaB} onChange={(event) => { setComparison(null); setCompareParams((current) => ({ ...current, areaB: event.target.value })); }}>
-                      <option value="">{t(locale, 'panel.analytics.compareSelectArea')}</option>
-                      {areaOptions.map((area) => <option key={area} value={area}>{area}</option>)}
-                    </SelectField>
-                  </FormField>
-                  <button type="button" className={cn(S.btnPrimary, 'self-end')} disabled={!compareParams.areaA || !compareParams.areaB || compareParams.areaA === compareParams.areaB} onClick={loadComparison}>
-                    {t(locale, 'panel.analytics.compareAction')}
-                  </button>
-                </div>
-                {comparison ? <AreaComparison comparison={comparison} locale={locale} /> : null}
-              </>
-            )}
-          </div>
-        )}
 
         {/* Cards de métricas */}
         {activeView === 'metrics' && metrics && metricsEmpty ? (
@@ -566,6 +461,115 @@ export function AnalyticsTab({ companyId, locale: initialLocale = 'pt-BR', navig
           />
         </div>
         ) : null}
+
+        {/* Filtros */}
+        {activeView === 'metrics' && (
+        <CollapsibleBlock locale={locale} title={t(locale, 'panel.common.filters')} defaultOpen={false}>
+        <form
+          className="mb-6 grid items-end gap-4 rounded-control border border-ink/10 bg-ink/[0.025] p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+          onSubmit={applyMetricFilters}
+        >
+          <FormField
+            as="div"
+            label={t(locale, 'panel.analytics.startDate')}
+          >
+            <DateField
+              className={S.input}
+              value={draftFilters.startDate}
+              onChange={(e) => setDraftFilters((current) => ({ ...current, startDate: e.target.value }))}
+              aria-label={t(locale, 'panel.analytics.startDate')}
+            />
+          </FormField>
+          <FormField
+            as="div"
+            label={t(locale, 'panel.analytics.endDate')}
+          >
+            <DateField
+              className={S.input}
+              value={draftFilters.endDate}
+              onChange={(e) => setDraftFilters((current) => ({ ...current, endDate: e.target.value }))}
+              aria-label={t(locale, 'panel.analytics.endDate')}
+            />
+          </FormField>
+          <div className="flex min-h-touch items-center justify-end gap-2 sm:col-span-2 lg:col-span-1">
+            {(filters.startDate || filters.endDate || draftFilters.startDate || draftFilters.endDate) ? (
+              <button type="button" className={S.btnGhost} onClick={clearMetricFilters}>
+                {t(locale, 'panel.common.clear')}
+              </button>
+            ) : null}
+            <button type="submit" className={S.btnPrimary} disabled={!filtersDirty}>
+              {t(locale, 'panel.analytics.apply')}
+            </button>
+          </div>
+        </form>
+        </CollapsibleBlock>
+        )}
+
+        {activeView === 'metrics' && metrics && !metricsEmpty ? (
+          <CollapsibleBlock
+            locale={locale}
+            title={t(locale, 'panel.analytics.methodTitle')}
+            collapsedHint={t(locale, 'panel.analytics.sampleSummary', {
+              hires: metrics.sampleSize?.hires || 0,
+              fit: metrics.sampleSize?.poolFit || 0,
+            })}
+            titleClassName="font-ui text-sm normal-case tracking-normal text-ink"
+            className="mb-5 rounded-control border border-ink/10 bg-info/5 px-4 py-3"
+            bordered={false}
+          >
+            <p className="m-0 max-w-4xl font-ui text-xs leading-5 text-ink-muted">
+              {t(locale, 'panel.analytics.methodBody')}
+            </p>
+          </CollapsibleBlock>
+        ) : null}
+
+        {activeView === 'trends' && (
+        <div className={cn(formFieldRowClass, 'mb-6 gap-4 rounded-control border border-ink/10 bg-ink/[0.025] p-4')}>
+          <FormField label={t(locale, 'panel.analytics.periodMonths')}>
+            <SelectField
+              className={S.select}
+              value={trendMonths}
+              onChange={(e) => setTrendMonths(parseInt(e.target.value, 10))}
+            >
+              <option value="6">{t(locale, 'panel.analytics.months6')}</option>
+              <option value="12">{t(locale, 'panel.analytics.months12')}</option>
+              <option value="24">{t(locale, 'panel.analytics.months24')}</option>
+            </SelectField>
+          </FormField>
+        </div>
+        )}
+
+        {activeView === 'compare' && (
+          <div className="space-y-5">
+            {areaOptions.length < 2 ? (
+              <EmptyState
+                title={t(locale, 'panel.analytics.compareEmptyTitle')}
+                message={t(locale, 'panel.analytics.compareEmptyBody')}
+              />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 items-end gap-4 rounded-control border border-ink/10 bg-ink/[0.025] p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                  <FormField label={t(locale, 'panel.analytics.compareAreaA')}>
+                    <SelectField className={cn(S.select, 'w-full')} value={compareParams.areaA} onChange={(event) => { setComparison(null); setCompareParams((current) => ({ ...current, areaA: event.target.value })); }}>
+                      <option value="">{t(locale, 'panel.analytics.compareSelectArea')}</option>
+                      {areaOptions.map((area) => <option key={area} value={area}>{area}</option>)}
+                    </SelectField>
+                  </FormField>
+                  <FormField label={t(locale, 'panel.analytics.compareAreaB')}>
+                    <SelectField className={cn(S.select, 'w-full')} value={compareParams.areaB} onChange={(event) => { setComparison(null); setCompareParams((current) => ({ ...current, areaB: event.target.value })); }}>
+                      <option value="">{t(locale, 'panel.analytics.compareSelectArea')}</option>
+                      {areaOptions.map((area) => <option key={area} value={area}>{area}</option>)}
+                    </SelectField>
+                  </FormField>
+                  <button type="button" className={cn(S.btnPrimary, 'self-end')} disabled={!compareParams.areaA || !compareParams.areaB || compareParams.areaA === compareParams.areaB} onClick={loadComparison}>
+                    {t(locale, 'panel.analytics.compareAction')}
+                  </button>
+                </div>
+                {comparison ? <AreaComparison comparison={comparison} locale={locale} /> : null}
+              </>
+            )}
+          </div>
+        )}
 
         {/* Tendências */}
         {activeView === 'trends' && trends && trendsEmpty ? (

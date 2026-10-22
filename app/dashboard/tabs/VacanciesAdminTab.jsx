@@ -1004,14 +1004,10 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
         {!v || error || msg ? (
         <div className={cn(S.card, 'px-7 py-[22px]')}>
           {error ? (
-            <p className="mb-0 mt-2.5 font-mono text-prose text-red-800 dark:text-danger">
-              {error}
-            </p>
+            <InlineCallout tone="danger">{error}</InlineCallout>
           ) : null}
           {msg ? (
-            <p className="mb-0 mt-2.5 font-mono text-prose text-success">
-              {msg}
-            </p>
+            <InlineCallout tone="success">{msg}</InlineCallout>
           ) : null}
           {(detailLoading || loading) && !v ? (
             <AppLoading
@@ -1035,7 +1031,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
         {v ? (
           <>
             <div className={S.card}>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-baseline gap-2.5">
                     <h1 className="m-0 text-xl font-bold text-ink">{v.title}</h1>
@@ -1056,61 +1052,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                       <span className="font-mono text-prose text-ink/75">· {v.companyName}</span>
                     ) : null}
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
-                    {v.positionsCount != null && v.positionsCount > 0 && (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.openings')}
-                        value={t(locale, 'recruiting.positionsCount', { n: v.positionsCount })}
-                      />
-                    )}
-                    {v.targetDate && formatPublicVacancyDate(v.targetDate, locale) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.deadline')}
-                        value={t(locale, 'recruiting.targetDate', {
-                          date: formatPublicVacancyDate(v.targetDate, locale),
-                        })}
-                      />
-                    ) : null}
-                    {formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.salaryRange')}
-                        value={formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax)}
-                      />
-                    ) : null}
-                    <VacancyMetaItem
-                      label={i18nT(locale, 'ui.vacanciesAdminTab.owner')}
-                      value={v.ownerName || (i18nT(locale, 'ui.vacanciesAdminTab.notAssigned'))}
-                      warning={!v.ownerName}
-                    />
-                    {employmentTypeLabelKey(v.employmentType) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.employment')}
-                        value={t(locale, employmentTypeLabelKey(v.employmentType))}
-                      />
-                    ) : null}
-                    {formatWorkplaceLabel(
-                      {
-                        workplaceModality: v.workplaceModality,
-                        workplaceCity: v.workplaceCity,
-                        workplaceState: v.workplaceState,
-                      },
-                      locale,
-                      t
-                    ) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.workplace')}
-                        value={formatWorkplaceLabel(
-                          {
-                            workplaceModality: v.workplaceModality,
-                            workplaceCity: v.workplaceCity,
-                            workplaceState: v.workplaceState,
-                          },
-                          locale,
-                          t
-                        )}
-                      />
-                    ) : null}
-                  </div>
+
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
                   <button
@@ -1167,6 +1109,62 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                   </details>
                 </div>
               </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+                    {v.positionsCount != null && v.positionsCount > 0 && (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.openings')}
+                        value={t(locale, 'recruiting.positionsCount', { n: v.positionsCount })}
+                      />
+                    )}
+                    {v.targetDate && formatPublicVacancyDate(v.targetDate, locale) ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.deadline')}
+                        value={t(locale, 'recruiting.targetDate', {
+                          date: formatPublicVacancyDate(v.targetDate, locale),
+                        })}
+                      />
+                    ) : null}
+                    {formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax) ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.salaryRange')}
+                        value={formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax)}
+                      />
+                    ) : null}
+                    <VacancyMetaItem
+                      label={i18nT(locale, 'ui.vacanciesAdminTab.owner')}
+                      value={v.ownerName || (i18nT(locale, 'ui.vacanciesAdminTab.notAssigned'))}
+                      warning={!v.ownerName}
+                    />
+                    {employmentTypeLabelKey(v.employmentType) ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.employment')}
+                        value={t(locale, employmentTypeLabelKey(v.employmentType))}
+                      />
+                    ) : null}
+                    {formatWorkplaceLabel(
+                      {
+                        workplaceModality: v.workplaceModality,
+                        workplaceCity: v.workplaceCity,
+                        workplaceState: v.workplaceState,
+                      },
+                      locale,
+                      t
+                    ) ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.workplace')}
+                        value={formatWorkplaceLabel(
+                          {
+                            workplaceModality: v.workplaceModality,
+                            workplaceCity: v.workplaceCity,
+                            workplaceState: v.workplaceState,
+                          },
+                          locale,
+                          t
+                        )}
+                      />
+                    ) : null}
+                  </div>
 
               <div className="mt-5">
                 <PanelSubNav
@@ -1575,8 +1573,8 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
             </>
           )}
         />
-        {error ? <p className="mb-0 mt-2 font-ui text-sm text-red-800 dark:text-danger">{error}</p> : null}
-        {msg ? <p className="mb-0 mt-2 font-ui text-sm text-success">{msg}</p> : null}
+        {error ? <InlineCallout tone="danger" className="mt-2" action={<button type="button" onClick={loadVacancies} disabled={loading} className={S.btnGhost}>{t(locale, 'panel.orgUnits.retry')}</button>}>{error}</InlineCallout> : null}
+        {msg ? <InlineCallout tone="success" className="mt-2">{msg}</InlineCallout> : null}
 
         {vacFilterFromUrl !== 'all' ? (
           <div className="mt-2.5 rounded-control border border-ink/12 bg-ink/[0.03] px-3.5 py-2.5">
@@ -1594,7 +1592,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
         ) : null}
         {!vacLoaded ? (
           <AppLoading variant="panel" locale={locale} label={t(locale, 'panel.common.loading')} />
-        ) : vacTotal === 0 && !listFiltered && !loading ? (
+        ) : error && vacancies.length === 0 ? null : vacTotal === 0 && !listFiltered && !loading ? (
           <div className="mt-3">
             <EmptyState
               message={
@@ -1753,10 +1751,11 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                           <button
                             type="button"
                             onClick={() => openVacancyDetail(v.id)}
-                            className="line-clamp-2 block max-w-full cursor-pointer border-none bg-transparent p-0 text-left font-ui text-sm font-medium text-ink hover:text-brand-600 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35"
+                            className="block min-h-touch max-w-full cursor-pointer border-none bg-transparent p-0 text-left font-ui text-sm font-medium text-ink hover:text-brand-600 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35"
                             title={v.title}
                           >
-                            {v.title}
+                            <span className="line-clamp-2">{v.title}</span>
+                            <span className="mt-1 inline-flex items-center gap-1 text-brand-600 sm:hidden">{t(locale, 'panel.team.openDetail')} <span aria-hidden>→</span></span>
                           </button>
                           <div className="mt-1 w-0 min-w-full truncate font-ui text-prose text-ink-muted" title={workplace || undefined}>
                             <span className="font-mono tabular-nums">#{v.id}</span>

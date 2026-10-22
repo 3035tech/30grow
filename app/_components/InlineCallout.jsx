@@ -28,7 +28,7 @@ export function InlineCallout({
   tone = 'info',
   children,
   className = '',
-  role = 'status',
+  role = null,
   emphasis = false,
   title = '',
   action = null,
@@ -41,7 +41,8 @@ export function InlineCallout({
   );
   return (
     <div
-      role={role}
+      role={role || (tone === 'danger' ? 'alert' : 'status')}
+      aria-atomic="true"
       className={cn(
         'rounded-control border px-3.5 py-2.5 font-ui text-prose leading-snug',
         statusToneClass(tone),

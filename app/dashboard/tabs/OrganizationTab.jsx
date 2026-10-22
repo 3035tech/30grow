@@ -70,7 +70,7 @@ export function OrganizationTab({ companyId, locale, navigateDashboard, canManag
     <OrgChartBlock key={companyId} locale={locale} companyId={companyId} navigateDashboard={navigateDashboard} />
     <AdminPageHeader title={listTitle} description={t(locale, 'panel.orgUnits.hint')}
       actions={<AdminCreateButton label={t(locale, units.length ? 'panel.orgUnits.create' : 'panel.orgUnits.firstCreate')} disabled={busy || loading || Boolean(error)} onClick={() => edit()} />} />
-    {loading ? <AppLoading locale={locale} variant="panel" /> : error ? <InlineCallout tone="danger"><span role="alert">{error}</span><button type="button" className={S.btnGhost} onClick={reload}>{t(locale, 'panel.orgUnits.retry')}</button></InlineCallout> : !units.length ? <EmptyState title={t(locale, 'panel.orgUnits.empty')} description={t(locale, 'panel.orgUnits.emptyHint')} /> : <ContentEnter animKey={`units-${companyId}-${units.length}`}>
+    {loading ? <AppLoading locale={locale} variant="panel" /> : error ? <InlineCallout tone="danger" action={<button type="button" className={S.btnGhost} onClick={reload}>{t(locale, 'panel.orgUnits.retry')}</button>}>{error}</InlineCallout> : !units.length ? <EmptyState title={t(locale, 'panel.orgUnits.empty')} description={t(locale, 'panel.orgUnits.emptyHint')} /> : <ContentEnter animKey={`units-${companyId}-${units.length}`}>
       <ul className="m-0 list-none space-y-3 p-0">{options.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE).map((unit) => <li key={unit.id} className={S.cardTight}>
         <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">

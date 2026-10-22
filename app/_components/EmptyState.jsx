@@ -5,10 +5,10 @@ import { UI_TYPE } from '../../lib/ui-typography';
 import { cn } from '../../lib/cn';
 
 const actionClass =
-  'inline-flex min-h-touch items-center justify-center rounded-control border border-brand-500/30 bg-brand-500/10 px-4 py-2 font-ui text-sm font-medium text-brand-600 no-underline';
+  'inline-flex min-h-touch items-center justify-center rounded-control border border-brand-500/30 bg-brand-500/10 px-4 py-2 font-ui text-sm font-medium text-brand-600 no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35';
 
 const secondaryActionClass =
-  'inline-flex min-h-touch items-center justify-center rounded-control border border-ink/15 bg-transparent px-4 py-2 font-ui text-sm text-ink-muted no-underline';
+  'inline-flex min-h-touch items-center justify-center rounded-control border border-ink/15 bg-transparent px-4 py-2 font-ui text-sm text-ink-muted no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35';
 
 /**
  * Shared empty state for dashboard lists — one message + optional primary/secondary CTAs.
@@ -16,6 +16,7 @@ const secondaryActionClass =
 export function EmptyState({
   title,
   message,
+  description,
   actionLabel,
   onAction,
   actionHref,
@@ -43,9 +44,9 @@ export function EmptyState({
       {title ? (
         <p className={cn("mb-1 mt-0", UI_TYPE.card)}>{title}</p>
       ) : null}
-      {message ? (
+      {message || description ? (
         <p className={cn("my-0 max-w-[60ch]", UI_TYPE.supporting)}>
-          {message}
+          {message || description}
         </p>
       ) : null}
       {showActions ? (

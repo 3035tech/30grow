@@ -289,8 +289,8 @@ try {
     noLeak(r, B);
     assert.ok(r.text.includes(A.marker));
   });
-  for (const label of ['hrA', 'adminA']) await check(`${label}: overview SSR retains own company context`, async () => {
-    const r = await request(`/dashboard?company=${B.id}&tab=overview`, byLabel[label].cookie);
+  for (const label of ['hrA', 'adminA']) for (const tab of ['overview', 'analytics', 'group']) await check(`${label}: ${tab} SSR retains own company context`, async () => {
+    const r = await request(`/dashboard?company=${B.id}&tab=${tab}`, byLabel[label].cookie);
     assert.equal(r.status, 200);
     noLeak(r, B);
     assert.ok(r.text.includes(A.marker));

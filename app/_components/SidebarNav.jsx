@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import Link from 'next/link';
+import { getClosedSidebarGroups } from '../../lib/dashboard-navigation';
 import { cn } from '../../lib/cn';
 import { t } from '../../lib/i18n';
 import { Icon } from './Icon';
@@ -32,10 +33,10 @@ function useIsDesktop() {
 
 function readClosedGroups(storageKey) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    return Array.isArray(parsed) ? parsed.map(String) : [];
+    const raw = localStorage.getItem(storageKey);
+    return raw == null ? null : JSON.parse(raw);
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -48,13 +49,14 @@ function writeClosedGroups(storageKey, ids) {
 }
 
 /** Closed groups persist per browser; the group of the current page always reopens. */
-function useClosedGroups(storageKey, activeGroupId) {
-  const [closed, setClosed] = useState([]);
+function useClosedGroups(storageKey, activeGroupId, groupIds) {
+  const groupIdsKey = groupIds.join('|');
+  const [closed, setClosed] = useState(() => getClosedSidebarGroups(groupIds, activeGroupId));
 
   useEffect(() => {
     const saved = readClosedGroups(storageKey);
-    setClosed(activeGroupId ? saved.filter((id) => id !== activeGroupId) : saved);
-  }, [storageKey]); // eslint-disable-line react-hooks/exhaustive-deps -- load once per key
+    setClosed(getClosedSidebarGroups(groupIds, activeGroupId, saved));
+  }, [storageKey, groupIdsKey]); // eslint-disable-line react-hooks/exhaustive-deps -- group identity only
 
   useEffect(() => {
     if (!activeGroupId) return;
@@ -67,9 +69,11 @@ function useClosedGroups(storageKey, activeGroupId) {
   }, [activeGroupId, storageKey]);
 
   const toggle = (groupId) => {
-    const next = closed.includes(groupId) ? closed.filter((id) => id !== groupId) : [...closed, groupId];
-    writeClosedGroups(storageKey, next);
-    setClosed(next);
+    setClosed(previous => {
+      const next = previous.includes(groupId) ? previous.filter(id => id !== groupId) : [...previous, groupId];
+      writeClosedGroups(storageKey, next);
+      return next;
+    });
   };
 
   return { closed, toggle };
@@ -218,7 +222,7 @@ export function SidebarNav({
   const isDesktop = useIsDesktop();
   const iconOnly = collapsed && isDesktop;
   const activeGroupId = groups.find((g) => g.items.some((item) => item.active))?.id || null;
-  const { closed, toggle } = useClosedGroups(storageKey, activeGroupId);
+  const { closed, toggle } = useClosedGroups(storageKey, activeGroupId, groups.map(group => group.id));
 
   return (
     <aside

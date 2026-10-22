@@ -59,6 +59,7 @@ export function PanelPageSkeleton({ locale = 'pt-BR', label }) {
     <div
       role="status"
       aria-live="polite"
+      aria-busy="true"
       className="ui-content-enter w-full min-h-[200px] space-y-4 py-2"
     >
       <div className="flex items-center gap-2 font-ui text-prose text-ink-muted">
@@ -69,6 +70,7 @@ export function PanelPageSkeleton({ locale = 'pt-BR', label }) {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
+            aria-hidden="true"
             className="rounded-card border border-ink/10 bg-surface p-4"
           >
             <div className="mb-3 h-3 w-1/3 animate-pulse rounded-control bg-ink/[0.08]" />
@@ -77,7 +79,7 @@ export function PanelPageSkeleton({ locale = 'pt-BR', label }) {
           </div>
         ))}
       </div>
-      <div className="overflow-hidden rounded-card border border-ink/10 bg-surface">
+      <div aria-hidden="true" className="overflow-hidden rounded-card border border-ink/10 bg-surface">
         <div className="border-b border-ink/10 bg-ink/[0.03] px-4 py-3">
           <div className="flex gap-4">
             {[0, 1, 2, 3].map((i) => (

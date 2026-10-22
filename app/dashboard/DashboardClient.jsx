@@ -938,6 +938,154 @@ function DashboardClientContent({
     },
   ].filter(Boolean);
 
+  const panelFilters = (showsCohortChrome ? (
+          <>
+          <div
+            className={cn(
+              'db-filters flex flex-wrap items-end gap-2',
+              filtersExpanded ? 'mb-2' : 'mb-2.5'
+            )}
+            role="group"
+            aria-label={t(locale, 'dashboard.filtersEssentialsAria')}
+          >
+            {showsCompanyPicker ? companyFilterControl({ vacancy: 'all', pipeline: 'all' }) : null}
+            <SelectField
+              value={roster}
+              onChange={(e) => {
+                const v = e.target.value;
+                setRoster(v);
+                pushFilters({ roster: v });
+              }}
+              className={S.select}
+              title={t(locale, 'dashboard.rosterHint')}
+            >
+              <option value="internal">{t(locale, 'dashboard.rosterInternal')}</option>
+              <option value="recruiting">{t(locale, 'dashboard.rosterRecruiting')}</option>
+              <option value={ROSTER_SCOPE.ALUMNI}>{t(locale, 'dashboard.rosterAlumni')}</option>
+              <option value="all">{t(locale, 'dashboard.rosterAll')}</option>
+            </SelectField>
+            <SelectField
+              value={vacancy}
+              onChange={(e) => {
+                const v = e.target.value;
+                setVacancy(v);
+                setPipeline('all');
+                if (isAdmin && v !== 'all') {
+                  const hit = vacancies.find((x) => String(x.id) === v);
+                  if (hit != null && hit.companyId != null) {
+                    setPipeline('all');
+                    applyCompanyFilter(String(hit.companyId), { vacancy: v, pipeline: 'all' });
+                    return;
+                  }
+                }
+                pushFilters({ vacancy: v, pipeline: 'all' });
+              }}
+              className={S.select}
+            >
+              <option value="all">{t(locale, 'dashboard.allVacancies')}</option>
+              {vacancies.map((v) => (
+                <option key={v.id} value={String(v.id)}>
+                  {v.title} {v.status === VACANCY_STATUS.CLOSED ? t(locale, 'dashboard.closed') : ''}
+                </option>
+              ))}
+            </SelectField>
+          </div>
+
+          {filtersExpanded ? (
+          <div
+            className="db-filters mb-2.5 flex flex-wrap items-center gap-2"
+            role="group"
+            aria-label={t(locale, 'dashboard.filtersAdvancedAria')}
+          >
+            <SelectField value={area} onChange={(e) => { const v = e.target.value; setArea(v); setPipeline('all'); pushFilters({ area: v, pipeline: 'all' }); }} className={S.select}>
+              <option value="all">{t(locale, 'dashboard.allAreas')}</option>
+              {areas.map((a) => (
+                <option key={a.key} value={a.key}>
+                  {localizeAreaLabel(a, locale)} ({counts.find((c) => c.key === a.key)?.count ?? 0})
+                </option>
+              ))}
+            </SelectField>
+            <SelectField value={enneagram} onChange={(e) => { const v = e.target.value; setEnneagram(v); pushFilters({ enneagram: v }); }} className={S.select}>
+              <option value="all">{t(locale, 'dashboard.allProfiles')}</option>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((t) => (
+                <option key={t} value={String(t)} title={typeHintTooltip(t, locale)}>
+                  T{t} · {typeData[t].short}
+                </option>
+              ))}
+            </SelectField>
+            {tab !== 'overview' ? (
+            <SelectField value={pipeline} onChange={(e) => { const v = e.target.value; setPipeline(v); pushFilters({ pipeline: v }); }} className={S.select} aria-label={t(locale, 'recruiting.pipelineAll')}>
+              <option value="all">{t(locale, 'recruiting.pipelineAll')}</option>
+              <option value="new">{t(locale, 'recruiting.pipelineNew')}</option>
+              <option value="interview">{t(locale, 'recruiting.pipelineInterview')}</option>
+              <option value="test_completed">{t(locale, 'recruiting.pipelineTestCompleted')}</option>
+              <option value="screening">{t(locale, 'recruiting.pipelineScreening')}</option>
+              <option value="approved">{t(locale, 'recruiting.pipelineApproved')}</option>
+              <option value="rejected">{t(locale, 'recruiting.pipelineRejected')}</option>
+              <option value="archived">{t(locale, 'recruiting.pipelineArchived')}</option>
+            </SelectField>
+            ) : null}
+            <div className="inline-flex h-[38px] items-center gap-1.5 rounded-control border border-ink/12 bg-ink/[0.05] px-3">
+              <span className="whitespace-nowrap font-ui text-prose text-ink/75">{t(locale, 'dashboard.dateFromLabel')}</span>
+              <DateField
+                bare
+                value={dateFrom}
+                onChange={(e) => { const v = e.target.value; setDateFrom(v); pushFilters({ dateFrom: v || null, dateTo: dateTo || null }); }}
+                aria-label={t(locale, 'dashboard.dateFromLabel')}
+                className="min-w-[120px]"
+              />
+              <span className="whitespace-nowrap font-ui text-prose text-ink/75">{t(locale, 'dashboard.dateToLabel')}</span>
+              <DateField
+                bare
+                value={dateTo}
+                onChange={(e) => { const v = e.target.value; setDateTo(v); pushFilters({ dateFrom: dateFrom || null, dateTo: v || null }); }}
+                aria-label={t(locale, 'dashboard.dateToLabel')}
+                className="min-w-[120px]"
+              />
+            </div>
+          </div>
+          ) : null}
+
+          {/* Active filter chips — always visible when set */}
+          {activeChips.length > 0 ? (
+            <div className="mb-5 flex flex-wrap items-center gap-1.5">
+              {activeChips.map((chip) => (
+                <span key={chip.key} className={S.filterChip} title={chip.title}>
+                  {chip.label}
+                  <button
+                    type="button"
+                    onClick={chip.onRemove}
+                    aria-label={chip.title || chip.label}
+                    className="inline-flex cursor-pointer items-center border-none bg-transparent p-0 pl-0.5 leading-none text-brand-600"
+                  >
+                    <Icon name="clear" />
+                  </button>
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="cursor-pointer rounded-full border border-ink/12 bg-transparent px-2.5 py-1 font-ui text-prose text-ink/75"
+              >
+                {t(locale, 'common.clearAll')}
+              </button>
+            </div>
+          ) : (
+            <div className="mb-4" />
+          )}
+          </>
+          ) : showsCompanyPicker ? (
+            <div
+              className="db-filters mb-2.5 flex flex-wrap items-end gap-2"
+              role="group"
+              aria-label={t(locale, 'dashboard.companyFilterLabel')}
+            >
+              {companyFilterControl()}
+            </div>
+          ) : (
+            <div className="mb-3" />
+          ));
+
   return (
     <PipelineExtrasProvider>
     <div className="relative min-h-screen bg-canvas font-ui text-ink">
@@ -1156,154 +1304,7 @@ function DashboardClientContent({
           ) : (
           <ContentEnter animKey={tab}>
           <>
-          {/* Filter row — essentials always on; advanced behind disclosure */}
-          {showsCohortChrome ? (
-          <>
-          <div
-            className={cn(
-              'db-filters flex flex-wrap items-end gap-2',
-              filtersExpanded ? 'mb-2' : 'mb-2.5'
-            )}
-            role="group"
-            aria-label={t(locale, 'dashboard.filtersEssentialsAria')}
-          >
-            {showsCompanyPicker ? companyFilterControl({ vacancy: 'all', pipeline: 'all' }) : null}
-            <SelectField
-              value={roster}
-              onChange={(e) => {
-                const v = e.target.value;
-                setRoster(v);
-                pushFilters({ roster: v });
-              }}
-              className={S.select}
-              title={t(locale, 'dashboard.rosterHint')}
-            >
-              <option value="internal">{t(locale, 'dashboard.rosterInternal')}</option>
-              <option value="recruiting">{t(locale, 'dashboard.rosterRecruiting')}</option>
-              <option value={ROSTER_SCOPE.ALUMNI}>{t(locale, 'dashboard.rosterAlumni')}</option>
-              <option value="all">{t(locale, 'dashboard.rosterAll')}</option>
-            </SelectField>
-            <SelectField
-              value={vacancy}
-              onChange={(e) => {
-                const v = e.target.value;
-                setVacancy(v);
-                setPipeline('all');
-                if (isAdmin && v !== 'all') {
-                  const hit = vacancies.find((x) => String(x.id) === v);
-                  if (hit != null && hit.companyId != null) {
-                    setPipeline('all');
-                    applyCompanyFilter(String(hit.companyId), { vacancy: v, pipeline: 'all' });
-                    return;
-                  }
-                }
-                pushFilters({ vacancy: v, pipeline: 'all' });
-              }}
-              className={S.select}
-            >
-              <option value="all">{t(locale, 'dashboard.allVacancies')}</option>
-              {vacancies.map((v) => (
-                <option key={v.id} value={String(v.id)}>
-                  {v.title} {v.status === VACANCY_STATUS.CLOSED ? t(locale, 'dashboard.closed') : ''}
-                </option>
-              ))}
-            </SelectField>
-          </div>
-
-          {filtersExpanded ? (
-          <div
-            className="db-filters mb-2.5 flex flex-wrap items-center gap-2"
-            role="group"
-            aria-label={t(locale, 'dashboard.filtersAdvancedAria')}
-          >
-            <SelectField value={area} onChange={(e) => { const v = e.target.value; setArea(v); setPipeline('all'); pushFilters({ area: v, pipeline: 'all' }); }} className={S.select}>
-              <option value="all">{t(locale, 'dashboard.allAreas')}</option>
-              {areas.map((a) => (
-                <option key={a.key} value={a.key}>
-                  {localizeAreaLabel(a, locale)} ({counts.find((c) => c.key === a.key)?.count ?? 0})
-                </option>
-              ))}
-            </SelectField>
-            <SelectField value={enneagram} onChange={(e) => { const v = e.target.value; setEnneagram(v); pushFilters({ enneagram: v }); }} className={S.select}>
-              <option value="all">{t(locale, 'dashboard.allProfiles')}</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((t) => (
-                <option key={t} value={String(t)} title={typeHintTooltip(t, locale)}>
-                  T{t} · {typeData[t].short}
-                </option>
-              ))}
-            </SelectField>
-            {tab !== 'overview' ? (
-            <SelectField value={pipeline} onChange={(e) => { const v = e.target.value; setPipeline(v); pushFilters({ pipeline: v }); }} className={S.select} aria-label={t(locale, 'recruiting.pipelineAll')}>
-              <option value="all">{t(locale, 'recruiting.pipelineAll')}</option>
-              <option value="new">{t(locale, 'recruiting.pipelineNew')}</option>
-              <option value="interview">{t(locale, 'recruiting.pipelineInterview')}</option>
-              <option value="test_completed">{t(locale, 'recruiting.pipelineTestCompleted')}</option>
-              <option value="screening">{t(locale, 'recruiting.pipelineScreening')}</option>
-              <option value="approved">{t(locale, 'recruiting.pipelineApproved')}</option>
-              <option value="rejected">{t(locale, 'recruiting.pipelineRejected')}</option>
-              <option value="archived">{t(locale, 'recruiting.pipelineArchived')}</option>
-            </SelectField>
-            ) : null}
-            <div className="inline-flex h-[38px] items-center gap-1.5 rounded-control border border-ink/12 bg-ink/[0.05] px-3">
-              <span className="whitespace-nowrap font-ui text-prose text-ink/75">{t(locale, 'dashboard.dateFromLabel')}</span>
-              <DateField
-                bare
-                value={dateFrom}
-                onChange={(e) => { const v = e.target.value; setDateFrom(v); pushFilters({ dateFrom: v || null, dateTo: dateTo || null }); }}
-                aria-label={t(locale, 'dashboard.dateFromLabel')}
-                className="min-w-[120px]"
-              />
-              <span className="whitespace-nowrap font-ui text-prose text-ink/75">{t(locale, 'dashboard.dateToLabel')}</span>
-              <DateField
-                bare
-                value={dateTo}
-                onChange={(e) => { const v = e.target.value; setDateTo(v); pushFilters({ dateFrom: dateFrom || null, dateTo: v || null }); }}
-                aria-label={t(locale, 'dashboard.dateToLabel')}
-                className="min-w-[120px]"
-              />
-            </div>
-          </div>
-          ) : null}
-
-          {/* Active filter chips — always visible when set */}
-          {activeChips.length > 0 ? (
-            <div className="mb-5 flex flex-wrap items-center gap-1.5">
-              {activeChips.map((chip) => (
-                <span key={chip.key} className={S.filterChip} title={chip.title}>
-                  {chip.label}
-                  <button
-                    type="button"
-                    onClick={chip.onRemove}
-                    aria-label={chip.title || chip.label}
-                    className="inline-flex cursor-pointer items-center border-none bg-transparent p-0 pl-0.5 leading-none text-brand-600"
-                  >
-                    <Icon name="clear" />
-                  </button>
-                </span>
-              ))}
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="cursor-pointer rounded-full border border-ink/12 bg-transparent px-2.5 py-1 font-ui text-prose text-ink/75"
-              >
-                {t(locale, 'common.clearAll')}
-              </button>
-            </div>
-          ) : (
-            <div className="mb-4" />
-          )}
-          </>
-          ) : showsCompanyPicker ? (
-            <div
-              className="db-filters mb-2.5 flex flex-wrap items-end gap-2"
-              role="group"
-              aria-label={t(locale, 'dashboard.companyFilterLabel')}
-            >
-              {companyFilterControl()}
-            </div>
-          ) : (
-            <div className="mb-3" />
-          )}
+          {tab !== 'overview' ? panelFilters : null}
 
           {/* Empty moon only when SSR counted the cohort (team / compatibility).
               Compare / group / leadership skip that COUNT on purpose and have their own empty UI. */}
@@ -1333,6 +1334,7 @@ function DashboardClientContent({
               {tab === 'overview' && can(sessionAuth, CAP.OVERVIEW_VIEW) && (
                 <OverviewTab
                   overview={overviewMetrics}
+                  filterControls={panelFilters}
                   locale={locale}
                   companyId={scopedCompanyId}
                   onboardingProgress={onboardingProgress}
@@ -1590,6 +1592,7 @@ function DashboardClientContent({
               )}
               {tab === 'group' && can(sessionAuth, CAP.GROUP_VIEW) && (
                 <GroupTab
+                  canViewOrganization={canAccessDashboardTab(sessionAuth, 'organization')}
                   results={interactionPeople}
                   groupBase={groupBase}
                   setGroupBaseId={setGroupBaseId}
