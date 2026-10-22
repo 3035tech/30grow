@@ -41,7 +41,10 @@ function formatClimateDate(raw, locale) {
 
 function formatClimateSurveyWhen(survey, locale) {
   if (!survey) return '';
-  const open = formatClimateDate(survey.opensAt || climateSurveyAnchorDate(survey), locale);
+  if (survey.status === CLIMATE_SURVEY_STATUS.DRAFT) return t(locale, 'panel.climate.dateCreated', { d: formatClimateDate(survey.createdAt, locale) });
+  if (survey.opensAt && new Date(survey.opensAt).getTime() > Date.now() && survey.status === CLIMATE_SURVEY_STATUS.OPEN) return t(locale, 'panel.climate.dateScheduled', { d: formatClimateDate(survey.opensAt, locale) });
+  const open = formatClimateDate(survey.opensAt, locale);
+  if (!open) return t(locale, 'panel.climate.dateCreated', { d: formatClimateDate(survey.createdAt, locale) });
   const close = formatClimateDate(survey.closesAt, locale);
   if (open && close && survey.closesAt) {
     return t(locale, 'panel.climate.dateRange', { from: open, to: close });
@@ -92,7 +95,8 @@ function climateSurveyStatusTone(status) {
   return 'neutral';
 }
 
-function ClimateStatusChip({ status, locale }) {
+function ClimateStatusChip({ status, opensAt, locale }) {
+  if (status === CLIMATE_SURVEY_STATUS.OPEN && opensAt && new Date(opensAt).getTime() > Date.now()) return <StatusToneChip tone="info">{t(locale, 'formValidation.climateScheduled')}</StatusToneChip>;
   const key = [
     CLIMATE_SURVEY_STATUS.DRAFT,
     CLIMATE_SURVEY_STATUS.OPEN,
@@ -997,7 +1001,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 font-ui text-sm font-medium text-ink">{s.title}</div>
-                          <ClimateStatusChip status={s.status} locale={locale} />
+                          <ClimateStatusChip status={s.status} opensAt={s.opensAt} locale={locale} />
                         </div>
                         <div className={cn(S.faint, 'mt-1.5')}>
                           {t(locale, 'panel.climate.qCount', { n: s.questionCount || 0 })}
@@ -1060,7 +1064,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <ClimateStatusChip status={detail.status} locale={locale} />
+                          <ClimateStatusChip status={detail.status} opensAt={detail.opensAt} locale={locale} />
                           {detail.sourceSurveyId ? (
                             <span className="font-mono text-2xs text-ink-faint">
                               {t(locale, 'panel.climate.versionOf', { id: detail.sourceSurveyId })}

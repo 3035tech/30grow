@@ -47,7 +47,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
   };
 
   return (
-    <AdminRichFormDrawer open title={titleCasePersonName(row.name)} locale={locale} onClose={onClose}
+    <AdminRichFormDrawer protectChanges={false} open title={titleCasePersonName(row.name)} locale={locale} onClose={onClose}
       maxWidth="760px" eyebrow={t(locale, 'recruiting.candidateDialogEyebrow')}
       headerMeta={<><span>{data?.vacancyTitle}</span><span className="rounded-full bg-brand-500/10 px-2 py-1 text-sm text-brand-600">{stageLabel(row.pipelineStage || 'new')}</span></>}
       footer={<>

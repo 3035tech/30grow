@@ -1,5 +1,6 @@
 'use client';
 
+import { useFormDirty, useUnsavedChanges } from './useUnsavedChanges';
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { t as i18nT } from '../../lib/i18n';
@@ -27,6 +28,9 @@ export function AdminRichFormDrawer({
   backLabel: backLabelOverride = null,
   closeLabel: closeLabelOverride = null,
   eyebrow = null,
+  protectChanges = Boolean(footer),
+  dirty: controlledDirty = null,
+  busy = false,
 }) {
   const titleId = useId();
   const TitleTag = fullPage ? 'h1' : 'h2';
@@ -34,8 +38,11 @@ export function AdminRichFormDrawer({
   const [mounted, setMounted] = useState(false);
   const contentRef = useRef(null);
   const panelRef = useRef(null);
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
+  const detectedDirty = useFormDirty(open && mounted, panelRef, protectChanges && controlledDirty == null);
+  const dirty = controlledDirty ?? detectedDirty;
+  const { requestClose, confirmation } = useUnsavedChanges({ open, dirty, onClose, locale, panelRef, blocked: busy });
+  const closeRef = useRef(requestClose);
+  closeRef.current = requestClose;
 
   useEffect(() => {
     setMounted(true);
@@ -95,6 +102,7 @@ export function AdminRichFormDrawer({
   const closeLabel = closeLabelOverride || (i18nT(locale, 'ui.adminRichFormDrawer.closeProfile'));
 
   const content = (
+    <>
     <div
       className={cn(
         withinShell ? 'w-full bg-canvas' : 'app-dialog-overlay',
@@ -103,7 +111,7 @@ export function AdminRichFormDrawer({
       role="presentation"
       onClick={(e) => {
         if (fullPage || withinShell) return;
-        if (e.target === e.currentTarget) onClose?.();
+        if (e.target === e.currentTarget) requestClose();
       }}
     >
       <div
@@ -122,6 +130,13 @@ export function AdminRichFormDrawer({
             : 'mx-6 my-6 max-h-[92vh] rounded-card shadow-dialog'
         )}
         style={fullPage ? undefined : { width: `min(100%, ${maxWidth})` }}
+        onClickCapture={(event) => {
+          const button = event.target.closest?.('button');
+          const label = button?.textContent?.trim();
+          if (dirty && button && [i18nT(locale, 'panel.common.cancel'), closeLabel, backLabel].includes(label)) {
+            event.preventDefault(); event.stopPropagation(); requestClose();
+          }
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={cn(
@@ -133,7 +148,7 @@ export function AdminRichFormDrawer({
             {fullPage ? (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => requestClose()}
                 aria-label={backLabel}
                 className="mb-3 flex w-fit min-h-touch items-center rounded-control border border-ink/12 bg-transparent px-3 py-1.5 font-ui text-prose text-ink-muted transition-colors hover:bg-ink/[0.04] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35"
               >
@@ -159,7 +174,7 @@ export function AdminRichFormDrawer({
           </div>
           <div className={cn('flex shrink-0 items-start gap-2', fullPage && 'mt-8')}>
             {headerActions}
-            <DialogCloseButton onClick={onClose} locale={locale} label={fullPage ? closeLabel : undefined} />
+            <DialogCloseButton onClick={() => requestClose()} locale={locale} label={fullPage ? closeLabel : undefined} />
           </div>
         </div>
         <div ref={contentRef} className={cn(
@@ -178,6 +193,8 @@ export function AdminRichFormDrawer({
         ) : null}
       </div>
     </div>
+    {confirmation}
+    </>
   );
 
   return withinShell ? content : createPortal(content, document.body);

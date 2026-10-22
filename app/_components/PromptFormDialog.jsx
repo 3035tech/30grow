@@ -1,5 +1,7 @@
 'use client';
 
+import { validateFormFields } from '../../lib/form-validation';
+import { useUnsavedChanges } from './useUnsavedChanges';
 import { SelectField } from './SelectField';
 
 import { Fragment, useEffect, useRef, useState } from 'react';
@@ -81,15 +83,6 @@ function fieldIsDisabled(f, values) {
   return Boolean(f?.disabled);
 }
 
-function fieldHasValue(value) {
-  if (Array.isArray(value)) return value.length > 0;
-  if (typeof value === 'boolean') return value;
-  if (value && typeof value === 'object') {
-    return Boolean(value.file || String(value.url || '').trim());
-  }
-  return String(value ?? '').trim().length > 0;
-}
-
 /** Consecutive fields sharing `row` render in a 2-col grid. */
 function groupFieldsByRow(fields) {
   const groups = [];
@@ -129,6 +122,8 @@ export function PromptFormDialog({
   const [cepHint, setCepHint] = useState('');
   const dialogRef = useRef(null);
   const submitLockRef = useRef(false);
+  const initialValuesRef = useRef({});
+  const { requestClose, confirmation } = useUnsavedChanges({ open, dirty: JSON.stringify(values) !== JSON.stringify(initialValuesRef.current), onClose: onCancel, locale, blocked: submitting || Boolean(uploadBusyKey), panelRef: dialogRef });
   const blobUrlsRef = useRef([]);
   const cepLookupRef = useRef(0);
 
@@ -174,6 +169,7 @@ export function PromptFormDialog({
     setSubmitting(false);
     setSubmitError('');
     setFieldErrors({});
+    initialValuesRef.current = init;
     setValues(init);
     setUploadBusyKey('');
     setUploadError('');
@@ -184,7 +180,7 @@ export function PromptFormDialog({
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => {
-      if (e.key === 'Escape' && !e.defaultPrevented && !submitLockRef.current) onCancel?.();
+      if (e.key === 'Escape' && !e.defaultPrevented && !submitLockRef.current) requestClose();
     };
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -201,7 +197,7 @@ export function PromptFormDialog({
       }
       blobUrlsRef.current = [];
     };
-  }, [open, onCancel]);
+  }, [open, requestClose]);
 
   useEffect(() => {
     if (!open || !mounted) return undefined;
@@ -289,11 +285,6 @@ export function PromptFormDialog({
     }
   });
   const fieldGroups = groupFieldsByRow(visibleFields);
-  const missingRequired = visibleFields.some((f) => {
-    if (!f.required || fieldIsDisabled(f, values)) return false;
-    return !fieldHasValue(values[fieldKeyOf(f)]);
-  });
-
   const renderFieldBlock = (f, inRow = false) => {
     if (f.type === 'boolean') {
       return (
@@ -713,7 +704,7 @@ export function PromptFormDialog({
 
     return (
       <input
-        type={f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : f.type === 'time' ? 'time' : 'text'}
+        type={f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : f.type === 'time' ? 'time' : f.type === 'email' ? 'email' : 'text'}
         value={values[fk] ?? ''}
         onChange={(e) => setField(fk, e.target.value)}
         placeholder={f.placeholder || ''}
@@ -740,15 +731,16 @@ export function PromptFormDialog({
         className={cn('app-dialog-overlay', dialogOverlayClass)}
         role="presentation"
         onClick={(e) => {
-          if (e.target === e.currentTarget && !submitLockRef.current) onCancel?.();
+          if (e.target === e.currentTarget && !submitLockRef.current) requestClose();
         }}
       >
         <form
           ref={dialogRef}
+          noValidate
           onSubmit={async (event) => {
             event.preventDefault();
-            if (submitLockRef.current || uploadBusyKey || missingRequired) return;
-            const errors = Object.fromEntries(visibleFields.map(f => [fieldKeyOf(f), f.validate?.(values[fieldKeyOf(f)], values)]).filter(([, message]) => message));
+            if (submitLockRef.current || uploadBusyKey) return;
+            const errors = validateFormFields(visibleFields, values, locale);
             setFieldErrors(errors);
             if (Object.keys(errors).length) {
               const key = Object.keys(errors)[0];
@@ -758,7 +750,10 @@ export function PromptFormDialog({
             submitLockRef.current = true;
             setSubmitting(true); setSubmitError('');
             try { await onSubmit?.(values); }
-            catch (error) { setSubmitError(error?.message || t(locale, 'panel.common.error')); }
+            catch (error) {
+              if (error?.fieldErrors) { setFieldErrors(error.fieldErrors); const key = Object.keys(error.fieldErrors)[0]; dialogRef.current?.querySelector(`[aria-label="${CSS.escape(fields.find(f => fieldKeyOf(f) === key)?.label || '')}"]`)?.focus(); }
+              setSubmitError(error?.message || t(locale, 'panel.common.error'));
+            }
             finally { submitLockRef.current = false; setSubmitting(false); }
           }}
           onKeyDown={(event) => {
@@ -787,7 +782,7 @@ export function PromptFormDialog({
             >
               {heading}
             </h2>
-            <DialogCloseButton onClick={onCancel} locale={locale} disabled={submitting} className="-mr-2 -mt-1" />
+            <DialogCloseButton onClick={() => requestClose()} locale={locale} disabled={submitting} className="-mr-2 -mt-1" />
           </div>
           {message ? (
             <p className="mb-0 mt-3 text-sm leading-[1.55] text-ink-muted">{message}</p>
@@ -818,15 +813,15 @@ export function PromptFormDialog({
           </fieldset>
           {submitError ? <p role="alert" className="mt-4 rounded-control border border-danger/30 p-3 text-sm text-danger">{submitError}</p> : null}
           <div className="mt-[22px] flex flex-wrap justify-end gap-2.5">
-            <button type="button" onClick={onCancel} className={dialogBtnGhostClass} disabled={submitting || Boolean(uploadBusyKey)}>
+            <button type="button" onClick={() => requestClose()} className={dialogBtnGhostClass} disabled={submitting || Boolean(uploadBusyKey)}>
               {cancelLabel || t(locale, 'panel.common.cancel')}
             </button>
             <button
               type="submit"
-              disabled={submitting || Boolean(uploadBusyKey) || missingRequired}
+              disabled={submitting || Boolean(uploadBusyKey)}
               className={cn(
                 dialogBtnPrimaryClass,
-                (uploadBusyKey || missingRequired) && 'cursor-not-allowed opacity-55'
+                uploadBusyKey && 'cursor-not-allowed opacity-55'
               )}
             >
               {submitting ? t(locale, 'common.loading') : confirmLabel || t(locale, 'panel.common.save')}
@@ -834,6 +829,7 @@ export function PromptFormDialog({
           </div>
         </form>
       </div>
+      {confirmation}
       <CompanyLogoCropDialog
         open={Boolean(cropTarget?.file)}
         file={cropTarget?.file || null}

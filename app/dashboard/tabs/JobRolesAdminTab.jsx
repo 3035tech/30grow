@@ -59,6 +59,8 @@ const emptyForm = () => ({
 });
 
 export function JobRolesAdminTab({ locale, companyId }) {
+  const [formBaseline, setFormBaseline] = useState(JSON.stringify(emptyForm()));
+  const [fieldErrors, setFieldErrors] = useState({});
   const { toast, confirm, notice, promptForm } = useAppFeedback();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -188,18 +190,23 @@ export function JobRolesAdminTab({ locale, companyId }) {
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm());
+    setFormBaseline(JSON.stringify(emptyForm()));
+    setFieldErrors({});
     setDrawerMode('create');
   };
 
   const openEdit = (role) => {
     setEditingId(role.id);
-    setForm({
+    const next = {
       name: role.name || '',
       description: role.description || '',
       rubric: role.rubric && typeof role.rubric === 'object' ? { ...role.rubric } : {},
       marketSalaryMin: role.marketSalaryMin ? salaryToCentsDigits(role.marketSalaryMin) || '' : '',
       marketSalaryMax: role.marketSalaryMax ? salaryToCentsDigits(role.marketSalaryMax) || '' : '',
-    });
+    };
+    setForm(next);
+    setFormBaseline(JSON.stringify(next));
+    setFieldErrors({});
     setDrawerMode('edit');
   };
 
@@ -236,7 +243,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
         if (code === 'RUBRIC_AI_PARSE') {
           throw new Error(t(locale, 'jobRoles.rubricAiParseError'));
         }
-        throw new Error(data?.error || t(locale, 'jobRoles.rubricAiFailed'));
+        throw Object.assign(new Error(data?.error || t(locale, 'jobRoles.rubricAiFailed')), { fieldErrors: data.fieldErrors, errorCode: data.errorCode });
       }
       const rubric = data.rubric && typeof data.rubric === 'object' ? data.rubric : {};
       if (Object.keys(rubric).length === 0) {
@@ -252,6 +259,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
         });
       }
     } catch (err) {
+      if (err.fieldErrors) { setFieldErrors(err.fieldErrors); document.getElementById('job-role-description')?.focus(); }
       toast(err?.message || t(locale, 'jobRoles.rubricAiFailed'), 'error');
     } finally {
       setAiBusy(false);
@@ -275,6 +283,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
       }
     }
 
+    setFieldErrors({});
     setSaving(true);
     try {
       if (drawerMode === 'create') {
@@ -292,7 +301,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data?.errorCode || data?.error || 'create_failed');
+          throw Object.assign(new Error(data?.error || t(locale, 'formValidation.summary')), { fieldErrors: data.fieldErrors, errorCode: data.errorCode });
         }
         toast(t(locale, 'jobRoles.createSuccess'), 'ok');
       } else if (drawerMode === 'edit' && editingId) {
@@ -310,7 +319,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data?.errorCode || data?.error || 'update_failed');
+          throw Object.assign(new Error(data?.error || t(locale, 'formValidation.summary')), { fieldErrors: data.fieldErrors, errorCode: data.errorCode });
         }
         toast(t(locale, 'jobRoles.updateSuccess'), 'ok');
       }
@@ -319,17 +328,20 @@ export function JobRolesAdminTab({ locale, companyId }) {
       setForm(emptyForm());
       await loadRoles();
     } catch (err) {
+      if (err.fieldErrors) {
+        setFieldErrors(err.fieldErrors);
+        const key = Object.keys(err.fieldErrors)[0];
+        document.getElementById(`job-role-${key}`)?.focus();
+      }
       console.error('[JobRolesAdminTab] Save error:', err);
-      const code = err?.message;
+      const code = err?.errorCode || err?.message;
       if (code === 'JOB_ROLE_NAME_EXISTS') {
         toast(t(locale, 'jobRoles.errorNameExists'), 'error');
       } else if (code === 'INVALID_RUBRIC') {
         toast(t(locale, 'jobRoles.errorInvalidRubric'), 'error');
       } else {
         toast(
-          drawerMode === 'create'
-            ? t(locale, 'jobRoles.errorNameRequired')
-            : t(locale, 'panel.common.error'),
+          err?.fieldErrors ? t(locale, 'formValidation.summary') : t(locale, 'panel.common.error'),
           'error'
         );
       }
@@ -574,6 +586,8 @@ export function JobRolesAdminTab({ locale, companyId }) {
 
       <AdminRichFormDrawer
         open={drawerOpen}
+        dirty={JSON.stringify(form) !== formBaseline}
+        busy={saving || aiBusy}
         title={
           drawerMode === 'edit'
             ? t(locale, 'jobRoles.editDrawerTitle')
@@ -612,6 +626,8 @@ export function JobRolesAdminTab({ locale, companyId }) {
         <div className="flex flex-col gap-3.5">
           <FormField label={t(locale, 'jobRoles.nameLabel')}>
             <input
+              id="job-role-name"
+              aria-invalid={Boolean(fieldErrors.name)}
               value={form.name}
               onChange={(e) => setForm((cur) => ({ ...cur, name: e.target.value }))}
               placeholder={t(locale, 'jobRoles.namePlaceholder')}
@@ -620,7 +636,9 @@ export function JobRolesAdminTab({ locale, companyId }) {
             />
           </FormField>
 
-          <FormField as="div" label={t(locale, 'jobRoles.descriptionLabel')}>
+          {fieldErrors.name ? <p role="alert" className="text-sm text-danger">{fieldErrors.name}</p> : null}
+          <FormField as="div" label={t(locale, 'jobRoles.descriptionLabel')} hint={t(locale, 'formValidation.descriptionHint', { count: htmlToPlainText(form.description || '').length })}>
+            <div id="job-role-description" tabIndex={-1}>
             <RichTextEditor
               value={form.description}
               onChange={(html) => setForm((cur) => ({ ...cur, description: html }))}
@@ -628,6 +646,8 @@ export function JobRolesAdminTab({ locale, companyId }) {
               minHeight={100}
               locale={locale}
             />
+            </div>
+            {fieldErrors.description ? <p role="alert" className="text-sm text-danger">{fieldErrors.description}</p> : null}
           </FormField>
 
           <CollapsibleBlock

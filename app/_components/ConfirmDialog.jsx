@@ -22,6 +22,7 @@ export function ConfirmDialog({
   message,
   locale = 'pt-BR',
   danger = false,
+  preferCancel = false,
   confirmLabel,
   cancelLabel,
   onConfirm,
@@ -74,13 +75,13 @@ export function ConfirmDialog({
         </h2>
         <p className="mb-0 mt-3 max-h-[50vh] overflow-y-auto whitespace-pre-line break-words text-sm leading-[1.55] text-ink-muted">{message}</p>
         <div className="mt-[22px] flex justify-end gap-2.5">
-          <button type="button" onClick={onCancel} className={dialogBtnGhostClass}>
+          <button type="button" onClick={onCancel} autoFocus={preferCancel} className={dialogBtnGhostClass}>
             {cancelLabel || t(locale, 'panel.common.cancel')}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            autoFocus
+            autoFocus={!preferCancel}
             className={danger ? cn(dialogBtnSolidClass, 'bg-danger') : dialogBtnPrimaryClass}
           >
             {confirmLabel || t(locale, 'panel.common.confirmAction')}

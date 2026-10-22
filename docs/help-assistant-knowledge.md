@@ -120,3 +120,7 @@ Atualize [`PRODUCT-FEATURES-PROMPT.md`](./PRODUCT-FEATURES-PROMPT.md) quando um 
 Guia `employeeHomeStep1` e `employeeHomeStep7`–`employeeHomeStep9` + FAQ prioritária `faqEmailLifecycle` (pt-BR, en, fr, de). Fonte técnica: [employee-email-lifecycle.md](employee-email-lifecycle.md). A IA deve explicar: pessoal preservado, corporativo opcional na contratação e principal após cadastro, convite automático, pessoal temporário se ainda não há corporativo, revogação dos acessos na troca/saída, retorno ao pessoal no desligamento e cadastro único. Conferir o pessoal de registros antigos antes da saída; não afirmar que a plataforma cria/exclui caixas no provedor.
 
 A seção de acesso agora separa contratação, troca de e-mail, desligamento e isolamento por empresa em passos curtos. A FAQ de multiempresa explicita o acesso global do super admin da plataforma.
+
+### Estabilidade do beta: rascunhos, erros e suporte
+
+`productFeedbackStep3`, `panel.productFeedback.superAdminHint` e `faqProductFeedback` explicam triagem privada, resposta publicada e Meus pedidos de suporte no assistente. Não afirmar que uma nota interna ou mudança de status é resposta ao usuário. O retorno é consultado no aplicativo; não há novo envio automático de e-mail. Rascunhos com alterações pedem confirmação ao fechar; erros de entrada aparecem por campo. Fonte técnica: [beta-stability-five-fixes.md](beta-stability-five-fixes.md).

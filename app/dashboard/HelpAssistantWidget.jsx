@@ -26,7 +26,7 @@ export function HelpAssistantWidget({
   activeTab = null,
   activeSection = null,
 }) {
-  const { promptForm, toast } = useAppFeedback();
+  const { promptForm, toast, notice } = useAppFeedback();
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
@@ -183,6 +183,16 @@ export function HelpAssistantWidget({
     }
   };
 
+  const showSupportRequests = async () => {
+    try {
+      const res = await fetch('/api/admin/product-feedback/mine', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t(locale, 'panel.common.error'));
+      const message = data.items.length ? data.items.map(item => `#${item.id} · ${t(locale, `panel.productFeedback.status.${item.status}`)}\n${item.message}\n${item.publicResponse || t(locale, 'formValidation.supportAwaiting')}`).join('\n\n') : t(locale, 'formValidation.supportEmpty');
+      await notice({ title: t(locale, 'formValidation.supportMine'), message });
+    } catch (error) { toast(error.message || t(locale, 'panel.common.error'), 'error'); }
+  };
+
   return (
     <div className="pointer-events-none fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[100] flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2">
       {open ? (
@@ -284,6 +294,7 @@ export function HelpAssistantWidget({
             </button>
           </div>
 
+          <button type="button" className={S.btnGhost} onClick={() => void showSupportRequests()}>{t(locale, 'formValidation.supportMine')}</button>
           <form
             className="flex gap-2 border-t border-ink/10 p-2.5"
             onSubmit={(e) => {

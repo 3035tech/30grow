@@ -163,8 +163,37 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
     }
   };
 
+  const persistReview = async (row, result) => {
+    const toId = (v) => {
+      const n = parseInt(String(v ?? '').trim(), 10);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    };
+    try {
+      const res = await fetch(`/api/admin/product-feedback/${row.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: result.status,
+          severity: result.severity,
+          moduleKey: result.moduleKey || null,
+          assigneeUserId: toId(result.assigneeUserId),
+          duplicateOfId: toId(result.duplicateOfId),
+          adminNotes: result.adminNotes ?? '',
+          ...(String(result.publicResponse || '').trim() ? { publicResponse: String(result.publicResponse).trim() } : {}),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data?.error || t(locale, 'panel.productFeedback.saveFailed')), { fieldErrors: data.fieldErrors });
+      toast(t(locale, 'panel.productFeedback.saved'), 'ok');
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      throw e;
+    }
+  };
+
   const reviewItem = async (row) => {
-    const result = await promptForm({
+    await promptForm({
+      submit: values => persistReview(row, values),
       title: t(locale, 'panel.productFeedback.reviewTitle'),
       message: `#${row.id} · ${t(locale, `panel.productFeedback.kind.${row.kind}`)}`,
       fields: [
@@ -210,6 +239,13 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
           help: t(locale, 'panel.productFeedback.duplicateOfHint'),
         },
         {
+          key: 'publicResponse',
+          label: t(locale, 'formValidation.supportResponse'),
+          help: t(locale, 'formValidation.supportResponseHint'),
+          type: 'textarea', rows: 4, maxLength: 4000, defaultValue: row.publicResponse || '',
+          validate: (value, values) => ['done', 'dismissed'].includes(values.status) && !String(value || '').trim() ? t(locale, 'formValidation.required') : null,
+        },
+        {
           key: 'adminNotes',
           label: t(locale, 'panel.productFeedback.adminNotes'),
           type: 'textarea',
@@ -219,31 +255,6 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
         },
       ],
     });
-    if (!result) return;
-    const toId = (v) => {
-      const n = parseInt(String(v ?? '').trim(), 10);
-      return Number.isFinite(n) && n > 0 ? n : null;
-    };
-    try {
-      const res = await fetch(`/api/admin/product-feedback/${row.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: result.status,
-          severity: result.severity,
-          moduleKey: result.moduleKey || null,
-          assigneeUserId: toId(result.assigneeUserId),
-          duplicateOfId: toId(result.duplicateOfId),
-          adminNotes: result.adminNotes ?? '',
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || t(locale, 'panel.productFeedback.saveFailed'));
-      toast(t(locale, 'panel.productFeedback.saved'), 'ok');
-      setReloadKey((k) => k + 1);
-    } catch (e) {
-      toast(e?.message || t(locale, 'panel.productFeedback.saveFailed'), 'error');
-    }
   };
 
   const filtersActive = Boolean(
@@ -439,6 +450,8 @@ export function ProductFeedbackAdminTab({ locale = 'pt-BR', navigateDashboard })
                           {t(locale, 'panel.productFeedback.duplicatesCount', { n: row.duplicateCount })}
                         </p>
                       ) : null}
+                      {row.firstTriagedAt ? <p className="text-xs text-ink-muted">{t(locale, 'formValidation.supportTriaged', { date: formatWhen(row.firstTriagedAt) })}</p> : null}
+                      {row.publicResponse ? <p className="whitespace-pre-wrap text-sm text-ink">{t(locale, 'formValidation.supportResponse')}: {row.publicResponse}</p> : null}
                       {row.adminNotes ? (
                         <p className="m-0 mt-1 text-2xs text-ink-faint">
                           {t(locale, 'panel.productFeedback.adminNotes')}: {row.adminNotes}

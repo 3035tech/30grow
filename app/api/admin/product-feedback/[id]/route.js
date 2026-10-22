@@ -13,6 +13,7 @@ const patchBodySchema = z
   .object({
     status: z.enum(/** @type {[string, ...string[]]} */ (PRODUCT_FEEDBACK_STATUSES)).optional(),
     adminNotes: z.string().max(4000).optional(),
+    publicResponse: z.string().trim().min(1).max(4000).optional(),
     severity: z.enum(/** @type {[string, ...string[]]} */ (PRODUCT_FEEDBACK_SEVERITIES)).optional(),
     moduleKey: z.enum(/** @type {[string, ...string[]]} */ (COMPANY_MODULES)).nullable().optional(),
     assigneeUserId: zPositiveInt.nullable().optional(),
@@ -51,8 +52,9 @@ export const PATCH = withAdminApi(
       targetType: 'product_feedback',
       targetId: idParsed.data,
       metadata: {
-        fields: Object.keys(body).filter((k) => body[k] !== undefined && k !== 'adminNotes'),
+        fields: Object.keys(body).filter((k) => body[k] !== undefined && k !== 'adminNotes' && k !== 'publicResponse'),
         notesChanged: body.adminNotes !== undefined,
+        responsePublished: body.publicResponse !== undefined,
       },
       ...auditRequestContext(request),
     });

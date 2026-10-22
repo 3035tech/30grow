@@ -77,7 +77,10 @@ async function main() {
   });
   assert.equal(updated.ok, true);
   assert.equal(updated.item.status, PRODUCT_FEEDBACK_STATUS.REVIEWING);
-  assert.ok(updated.item.firstResponseAt, 'triage stamps the first response');
+  assert.ok(updated.item.firstTriagedAt, 'triage stamps internal activity');
+  assert.equal(updated.item.firstResponseAt, null, 'internal triage is not a reply');
+  const replied = await updateProductFeedback({ query }, { id: created.id, publicResponse: 'Recebemos o pedido e estamos avaliando.' });
+  assert.ok(replied.item.firstResponseAt, 'only a visible reply stamps first response');
 
   // MVP-11: severity, module from tab, SLA, duplicates, summary.
   const bug = await createProductFeedback({ query }, {

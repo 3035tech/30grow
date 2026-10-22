@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
+import { motivatorDimensionLabel } from '../../../lib/ae/motivators-dimensions';
 import { C } from '../../../lib/theme';
 import { Bar, PanelSubNav, S, SortableTh, AdminListPager, AdminListSearch, AdminTableShell, AdminActionsCell, AdminActionsTh, AdminIconButton, AdminPageHeader, AdminCreateButton, AdminViewButton, AdminDeleteButton, clientSortNextDir } from '../dashboard-shared';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
@@ -996,7 +997,7 @@ function AnalyticsPanel({ locale, isAdmin, companyFilter }) {
         <p className="mb-4 text-xs text-ink-muted">{t(locale, 'panel.motivatorsAdmin.analytics.completedCount', { count: data.totalAttempts })}</p>
         {(data.distribution || []).slice(0, 8).map((d) => (
           <div key={d.key} className="mb-2.5 flex items-center gap-2.5">
-            <span className="w-[100px] font-mono text-2xs">{d.key}</span>
+            <span className="w-[100px] font-mono text-2xs">{motivatorDimensionLabel(d.key, locale)}</span>
             <div className="flex-1"><Bar value={d.average} max={maxAvg} color={C.purple} h={6} /></div>
             <span className="text-2xs text-ink-muted">{d.average}</span>
           </div>
@@ -1006,7 +1007,7 @@ function AnalyticsPanel({ locale, isAdmin, companyFilter }) {
         <span className={S.label}>{t(locale, 'panel.motivatorsAdmin.analytics.topMotivators')}</span>
         {(data.topMotivators || []).slice(0, 6).map((row) => (
           <div key={row.key} className="mb-2.5 flex justify-between text-prose">
-            <span>{row.key}</span>
+            <span>{motivatorDimensionLabel(row.key, locale)}</span>
             <span className="text-ink-muted">{row.pct}% ({row.count})</span>
           </div>
         ))}

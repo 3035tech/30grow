@@ -104,8 +104,8 @@ export default function MultiSignalWorkbenchCard({ locale = 'pt-BR', companyId, 
               key={p.id}
               className={cn('rounded-control border px-3 py-2.5', SEV[p.severity] || SEV.info)}
             >
-              <div className="font-mono text-2xs uppercase tracking-wide text-ink-faint">
-                {(p.signals || []).join(' · ')}
+              <div className="font-ui text-xs text-ink-muted">
+                {(p.signals || []).map(signal => t(locale, `formValidation.signal_${signal}`)).join(' · ')}
               </div>
               <p className="mt-1 mb-0 text-prose leading-snug text-ink">
                 {t(locale, `panel.workbench.pattern.${p.id}`)}

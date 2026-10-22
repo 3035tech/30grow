@@ -929,7 +929,9 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
             <span className="min-w-0 break-words">{editingVacancy.title || t(locale, 'recruiting.vacancyTitlePh')}</span>
           </>
         ) : null}
-        onClose={() => void closeVacancyEditor()}
+        dirty={Boolean(editingVacancyBaseline && JSON.stringify(editingVacancy) !== editingVacancyBaseline)}
+        busy={loading}
+        onClose={() => { setEditingVacancy(null); setEditingVacancyBaseline(''); }}
         footer={(
           <>
             <button
