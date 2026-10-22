@@ -1,3 +1,4 @@
+import { loadOperationalSummaries } from '../../lib/people/operational-summary.js';
 import { query, queryRead } from '../../lib/db';
 import { ORG_UNIT, parseOrgUnitFilter } from '../../lib/org-unit-constants.js';
 import { EMPLOYMENT_STATUS } from '../../lib/domain-status.js';
@@ -428,6 +429,7 @@ LEFT JOIN vacancies v ON v.id = ass.vacancy_id
           `SELECT
              ass.id AS "assessmentId",
              c.id AS "candidateId",
+             c.company_id AS "companyId",
              c.full_name AS name,
              ar.key AS "areaKey",
              ar.label AS "areaLabel",
@@ -592,7 +594,8 @@ LEFT JOIN vacancies v ON v.id = ass.vacancy_id
           rubricByAreaKey,
           vacancyRubricByVacancyId,
         };
-        results = pageRes.rows.map((r) => enrichAssessmentDashboardRow(r, enrichCtx));
+        const operational = await loadOperationalSummaries(queryRead, pageRes.rows);
+        results = pageRes.rows.map((r) => ({ ...enrichAssessmentDashboardRow(r, enrichCtx), operational: operational[String(r.candidateId)] || null }));
       }
 
       if (needLeadership) {

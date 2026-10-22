@@ -19,7 +19,8 @@ export async function resolveDashboardAuth() {
     attachCapabilityOverrides(rawPayload),
     rawUserId
       ? queryRead(
-        `SELECT email, display_name AS "displayName",
+        `SELECT (SELECT name FROM companies WHERE id=users.company_id) AS "companyName",
+                email, display_name AS "displayName",
                 onboarding_completed AS "onboardingCompleted",
                 signup_metadata->>'fullName' AS "signupFullName"
          FROM users WHERE id = $1 AND deleted = FALSE LIMIT 1`,
@@ -65,6 +66,7 @@ export async function resolveDashboardAuth() {
     authUser = {
       ...authUser,
       email: row.email,
+      companyName: row.companyName || null,
       displayName: row.displayName,
       signupFirstName: String(row.signupFullName || '').trim().split(/\s+/)[0] || null,
       onboardingCompleted,

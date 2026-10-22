@@ -1,5 +1,7 @@
 'use client';
 
+import { ScoreExplanation } from './ScoreExplanation';
+
 import { useState, useEffect } from 'react';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -74,7 +76,7 @@ export default function HrScoreDisplay({ candidateId, locale, mode = 'compact', 
 
   if (mode === 'compact') {
     return (
-      <div className={cn('inline-flex items-center gap-2', className)}>
+      <div title={t(locale, 'betaPeople.scorehr')} className={cn('inline-flex items-center gap-2', className)}>
         <div
           className={cn(
             'flex h-8 w-16 items-center justify-center rounded-control border font-mono text-sm font-medium',
@@ -110,6 +112,8 @@ export default function HrScoreDisplay({ candidateId, locale, mode = 'compact', 
         </div>
       </div>
 
+      <ScoreExplanation locale={locale} kind="hr" />
+      <ScoreExplanation locale={locale} kind="attention" />
       {/* Breakdown dos sinais */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-ink">{t(locale, 'hrScore.breakdown')}</h4>

@@ -4,6 +4,9 @@ import { readFile } from 'node:fs/promises';
 import crypto from 'node:crypto';
 import vm from 'node:vm';
 import pg from 'pg';
+import { rejectionReasonsSql } from '../../lib/pipeline.js';
+import { candidateTagsSelectSql } from '../../lib/candidate-tags-core.js';
+import { loadOperationalSummaries } from '../../lib/people/operational-summary.js';
 import * as permissions from '../../lib/permissions.js';
 import { ERR, httpStatusForError } from '../../lib/api-error-codes.js';
 import { normalizeCandidateProfile } from '../../lib/candidate-profile.js';
@@ -26,6 +29,7 @@ try {
   let failAfterDp = false;
   const audits = [];
   const deps = {
+    loadOperationalSummaries, rejectionReasonsSql, candidateTagsSelectSql,
     ...permissions, ...auditChanges, ERR, httpStatusForError, EMPLOYMENT_STATUS, WORK_FORMATS, normalizeLocale, normalizeTimeClockOverride, normalizeCandidateProfile, titleCasePersonName, sanitizeRichTextHtml, isRichTextEmpty,
     NextResponse: { json: Response.json }, COOKIE_NAME: 'session',
     cookies: async () => ({ get: () => ({ value: 'synthetic' }) }),

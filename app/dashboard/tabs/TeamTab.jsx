@@ -1,4 +1,7 @@
 'use client';
+
+import { ScoreExplanation } from '../../_components/ScoreExplanation';
+import { PersonOperationalSummary } from '../../_components/PersonOperationalSummary';
 import { CandidateOrgUnit, OrgUnitFilter } from '../../_components/OrgUnitField';
 
 import { SelectField } from '../../_components/SelectField';
@@ -541,6 +544,7 @@ export function TeamTab({
     }
   };
 
+  const peopleRoster = roster === ROSTER_SCOPE.INTERNAL || roster === ROSTER_SCOPE.ALUMNI;
   const sortColumns = [
     { k: 'createdAt', labelKey: 'panel.team.sortDate' },
     { k: 'name', labelKey: 'panel.team.sortName' },
@@ -548,7 +552,7 @@ export function TeamTab({
     { k: 'type', labelKey: 'panel.team.sortProfileType' },
     { k: 'vacancy', labelKey: 'panel.team.sortVacancy' },
     { k: 'pipeline', labelKey: 'recruiting.pipelineShort' },
-  ];
+  ].filter(column => !peopleRoster || column.k === 'name');
 
   /** `silent`: after a save, keep the open person mounted (no skeleton, child blocks keep state). */
   const loadDetail = useCallback(async (candidateId, { silent = false } = {}) => {
@@ -845,12 +849,13 @@ export function TeamTab({
 
   const filtered = results;
   const activeSearch = (search || '').trim();
-  const allSelected = filtered.length > 0 && filtered.every((r) => selectedIds.has(String(r.assessmentId)));
+  const selectable = filtered.filter(r => ![EMPLOYMENT_STATUS.EMPLOYEE, EMPLOYMENT_STATUS.ALUMNI].includes(r.employmentStatus));
+  const allSelected = selectable.length > 0 && selectable.every((r) => selectedIds.has(String(r.assessmentId)));
   const toggleSelectAll = () => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (allSelected) filtered.forEach((r) => next.delete(String(r.assessmentId)));
-      else filtered.forEach((r) => next.add(String(r.assessmentId)));
+      if (allSelected) selectable.forEach((r) => next.delete(String(r.assessmentId)));
+      else selectable.forEach((r) => next.add(String(r.assessmentId)));
       return next;
     });
   };
@@ -1032,7 +1037,7 @@ export function TeamTab({
           value={searchDraft}
           onChange={setSearchDraft}
           onSubmit={commitSearch}
-          placeholder={t(locale, 'dashboard.searchPlaceholder')}
+          placeholder={t(locale, peopleRoster ? 'betaPeople.search' : 'dashboard.searchPlaceholder')}
           label={t(locale, 'panel.team.searchAriaLabel')}
           className="min-w-[12rem] max-w-none grow"
         />
@@ -1066,7 +1071,7 @@ export function TeamTab({
         aria-label={t(locale, 'panel.team.sortAria')}
         className="flex flex-wrap items-center gap-2 rounded-control border border-ink/10 bg-ink/[0.02] px-3.5 py-2.5"
       >
-        <label className="flex cursor-pointer items-center gap-1.5 font-ui text-prose text-ink-muted">
+        {!peopleRoster ? <label className="flex cursor-pointer items-center gap-1.5 font-ui text-prose text-ink-muted">
           <input
             type="checkbox"
             checked={allSelected}
@@ -1075,7 +1080,7 @@ export function TeamTab({
             className="h-3.5 w-3.5 accent-brand-500"
           />
           {t(locale, 'panel.team.all')}
-        </label>
+        </label> : null}
         <span className="font-ui text-prose text-ink/75">
           {t(locale, 'panel.team.sortBy')}
         </span>
@@ -1101,7 +1106,7 @@ export function TeamTab({
         })}
       </div>
 
-      {selectedIds.size > 0 && (
+      {!peopleRoster && selectedIds.size > 0 && (
         <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-brand-500/25 bg-brand-500/[0.04] px-4 py-3">
           <span className="font-ui text-prose text-brand-500">
             {t(locale, 'panel.team.selectedCount', { n: selectedIds.size })}
@@ -1193,6 +1198,7 @@ export function TeamTab({
       ) : null}
       <div className="flex flex-col gap-1.5">
           {filtered.map((r) => {
+        const isInternalRow = [EMPLOYMENT_STATUS.EMPLOYEE, EMPLOYMENT_STATUS.ALUMNI].includes(r.employmentStatus);
         const id = String(r.assessmentId);
         const d = TYPE_DATA[r.topType];
         const isSelected = open === id;
@@ -1211,14 +1217,14 @@ export function TeamTab({
             }}
           >
             <div className="flex items-center gap-3 px-3.5 py-2.5">
-              <input
+              {!peopleRoster && !isInternalRow ? <input
                 type="checkbox"
                 checked={selectedIds.has(id)}
                 onClick={(e) => e.stopPropagation()}
                 onChange={() => toggleSelect(id)}
                 aria-label={t(locale, 'panel.team.selectPersonAria', { name: titleCasePersonName(r.name) })}
                 className="h-4 w-4 shrink-0 cursor-pointer accent-brand-500"
-              />
+              /> : null}
               <button
                 type="button"
                 onClick={() => openPersonDetail(r)}
@@ -1242,7 +1248,7 @@ export function TeamTab({
                       {t(locale, 'recruiting.employmentEmployee')}
                     </StatusToneChip>
                   ) : null}
-                  {createdLabel ? (
+                  {createdLabel && !isInternalRow ? (
                     <span
                       title={t(locale, 'dashboard.teamListDateHelp')}
                       className="font-ui text-prose text-ink/75"
@@ -1251,7 +1257,7 @@ export function TeamTab({
                     </span>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5">
+                {isInternalRow ? <PersonOperationalSummary person={r.operational} candidate={r} locale={locale} compact /> : <div className="flex flex-wrap items-center gap-1.5">
                   <TypeBadge type={r.topType} locale={locale} compact />
                   <span className="hidden 2xl:contents">
                     <NearbyTypeBadges scores={r.scores} topType={r.topType} locale={locale} />
@@ -1269,11 +1275,11 @@ export function TeamTab({
                       </StatusToneChip>
                     ) : null}
                     {showVacancyFit ? (
-                      <StatusToneChip tone="success">
+                      <StatusToneChip tone="success" title={t(locale, 'betaPeople.scoreadherence')}>
                         {t(locale, 'recruiting.vacancyFitShort')}: {r.vacancyFitScore010}/10
                       </StatusToneChip>
                     ) : r.areaFitScore010 !== null && r.areaFitScore010 !== undefined ? (
-                      <StatusToneChip tone="success">
+                      <StatusToneChip tone="success" title={t(locale, 'betaPeople.scoreadherence')}>
                         {t(locale, 'recruiting.areaFitShort')}: {r.areaFitScore010}/10
                       </StatusToneChip>
                     ) : null}
@@ -1286,7 +1292,7 @@ export function TeamTab({
                       locale={locale}
                     />
                   )}
-                </div>
+                </div>}
                 </div>
                 <span className="hidden shrink-0 font-ui text-prose font-medium text-brand-500 sm:inline">{t(locale, 'panel.team.openDetail')}</span>
               </button>
@@ -1488,7 +1494,7 @@ export function TeamTab({
                         ...(isInternalPerson
                           ? [{ id: 'feedback', label: t(locale, 'panel.team.peopleSubTabFeedback') }]
                           : []),
-                        { id: 'journey', label: t(locale, 'panel.team.peopleSubTabJourney') },
+                        { id: 'journey', label: t(locale, 'betaPeople.developmentJourney') },
                         ...(isInternalPerson && canViewCompensation
                           ? [
                               {
@@ -1503,7 +1509,7 @@ export function TeamTab({
                     <ContentEnter animKey={activePeopleSubTab}>
                       {activePeopleSubTab === 'summary' ? (
                         <div className="space-y-4 pb-1">
-                          <IntegratedProfileSynthesis synthesis={detail.people?.decisionBrief?.synthesis} locale={locale} summaryOnly />
+                          <PersonOperationalSummary person={detail.operational} candidate={detail.candidate} locale={locale} />
                           {isInternalPerson ? <>
                             <CandidateOrgUnit key={`${detail.candidate.companyId}-${detail.candidate.id}`} locale={locale} companyId={detail.candidate.companyId} candidateId={detail.candidate.id} onSaved={() => router.refresh()} />
                             <OrgManagerBlock
@@ -1514,7 +1520,11 @@ export function TeamTab({
                               createManagerBusy={createEmployeeBusy}
                             />
                           </> : null}
-                          <PersonDossierBlock locale={locale} candidateId={detail.candidate.id} companyId={detail.candidate.companyId} embedded summaryOnly />
+                          <CollapsibleBlock locale={locale} title={t(locale, 'betaPeople.behavioralReading')} defaultOpen={false}>
+                            <ScoreExplanation locale={locale} />
+                            <IntegratedProfileSynthesis synthesis={detail.people?.decisionBrief?.synthesis} locale={locale} summaryOnly />
+                            <PersonDossierBlock locale={locale} candidateId={detail.candidate.id} companyId={detail.candidate.companyId} embedded summaryOnly />
+                          </CollapsibleBlock>
                         </div>
                       ) : null}
                       {activePeopleSubTab === 'oneOnOne' ? (

@@ -229,7 +229,7 @@ export function OverviewTab({
             <div className="flex flex-col gap-2">
               {(data.attention || []).map((item) => {
                 const pr = PRIORITY_CLASS[item.priority] || PRIORITY_CLASS.low;
-                const nav = item.nav && (item.nav.tab !== 'vacancies' || canOpenVacancies) ? item.nav : null;
+                const nav = item.nav && (!canOpenTab || canOpenTab(item.nav.tab)) ? item.nav : null;
                 return (
                   <button
                     key={item.id}
@@ -253,7 +253,7 @@ export function OverviewTab({
                     </span>
                     {item.days != null ? (
                       <span className="shrink-0 font-mono text-2xs text-ink-faint">
-                        {t(locale, item.daysToday ? 'panel.overview.daysToday' : item.daysUntil ? 'panel.overview.daysUntil' : 'panel.overview.daysAgo', { n: item.days })}
+                        {t(locale, item.daysToday || item.days === 0 ? 'panel.overview.daysToday' : item.overdue ? 'betaPeople.overdueDays' : item.daysUntil ? 'panel.overview.daysUntil' : 'panel.overview.daysAgo', { n: item.days })}
                       </span>
                     ) : null}
                   </button>
@@ -261,6 +261,12 @@ export function OverviewTab({
               })}
             </div>
           )}
+          {(data.attentionOlder || []).length > 0 ? <details className="mt-3 rounded-control border border-ink/12 p-3">
+            <summary className="cursor-pointer text-sm font-medium text-ink">{t(locale, 'betaPeople.olderAttention', { n: data.attentionOlder.length })}</summary>
+            <p className="mt-2 text-xs text-ink-muted">{t(locale, 'betaPeople.olderAttentionHint', { days: data.attentionOldAfterDays || 90 })}</p>
+            <ul className="m-0 list-none space-y-2 p-0">{data.attentionOlder.map(item => <li key={item.id}><button type="button" className={S.btnGhost} onClick={() => item.nav && go(item.nav)} disabled={!item.nav || (canOpenTab && !canOpenTab(item.nav.tab))}>{t(locale, item.titleKey)} · {attentionContext(locale, item)} · {t(locale, 'panel.overview.daysAgo', { n: item.days })}</button></li>)}</ul>
+          </details> : null}
+
         </div>
 
         {companyId ? (

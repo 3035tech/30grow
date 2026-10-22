@@ -122,6 +122,8 @@ export function PeopleManagementPanel({
     }
     if (!candidateId) return null;
     return (
+      <div className="space-y-3">
+      <p className="m-0 text-sm text-ink-muted">{t(locale, 'betaPeople.journeyHint')}</p>
       <HireJourneyBlock
         locale={locale}
         candidateId={candidateId}
@@ -131,6 +133,7 @@ export function PeopleManagementPanel({
         oneOnOnes={oneOnOnes}
         pdiRefresh={pdiRefresh}
       />
+      </div>
     );
   }
 

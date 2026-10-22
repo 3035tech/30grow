@@ -1,5 +1,7 @@
 'use client';
 
+import { CompanyScopeNotice } from '../../_components/CompanyScopeNotice';
+
 import { useListUrlState } from '../hooks/useListUrlState';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -58,7 +60,7 @@ const emptyForm = () => ({
   marketSalaryMax: '',
 });
 
-export function JobRolesAdminTab({ locale, companyId }) {
+export function JobRolesAdminTab({ locale, companyId, companyName }) {
   const [formBaseline, setFormBaseline] = useState(JSON.stringify(emptyForm()));
   const [fieldErrors, setFieldErrors] = useState({});
   const { toast, confirm, notice, promptForm } = useAppFeedback();
@@ -585,6 +587,7 @@ export function JobRolesAdminTab({ locale, companyId }) {
       )}
 
       <AdminRichFormDrawer
+        headerMeta={<CompanyScopeNotice locale={locale} companyId={companyId} companyName={companyName} />}
         open={drawerOpen}
         dirty={JSON.stringify(form) !== formBaseline}
         busy={saving || aiBusy}

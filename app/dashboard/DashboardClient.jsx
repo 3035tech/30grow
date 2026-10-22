@@ -1,5 +1,7 @@
 'use client';
 
+import { CompanyScopeNotice } from '../_components/CompanyScopeNotice';
+
 import { SelectField } from '../_components/SelectField';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -998,6 +1000,13 @@ function DashboardClientContent({
           <DashboardPageTitleContext.Provider value={isPersonFocus || isVacancyDetail ? null : t(locale, getDashboardTabNav(tab).labelKey)}>
           <NavLoadBar active={panelLoading || navPending} />
 
+          {!isPersonFocus && !isVacancyDetail && tab !== 'vacancies' ? <CompanyScopeNotice
+            locale={locale}
+            companyId={scopedCompanyId}
+            companyName={companies.find(c => String(c.id) === String(scopedCompanyId))?.name || (!isAdmin ? sessionAuth?.companyName : null)}
+            global={isAdmin && (['companies', 'users', 'leads', 'product-feedback', 'digital-certificate'].includes(tab) || !scopedCompanyId)}
+          /> : null}
+
           <div className="db-top-row mb-4 flex flex-wrap items-start gap-3">
           {showGlobalSearch ? (
           <div className="relative min-w-0 flex-[1_1_280px] max-sm:order-last max-sm:-ml-14 max-sm:basis-[calc(100%+3.5rem)]">
@@ -1473,7 +1482,7 @@ function DashboardClientContent({
                   }}
                 />
               )}
-              {tab === 'vacancies' && showVacancies && <VacanciesAdminTab canViewOrganization={can(sessionAuth,CAP.TEAM_VIEW)} isAdmin={isAdmin} navigateDashboard={navigateWithOpts} locale={locale} />}
+              {tab === 'vacancies' && showVacancies && <VacanciesAdminTab sessionCompanyId={sessionAuth?.companyId} sessionCompanyName={sessionAuth?.companyName} canViewOrganization={can(sessionAuth,CAP.TEAM_VIEW)} isAdmin={isAdmin} navigateDashboard={navigateWithOpts} locale={locale} />}
               {tab === 'talent-bank' && showVacancies && (
                 <TalentBankAdminTab navigateDashboard={navigateWithOpts} locale={locale} companyId={scopedCompanyId} />
               )}
@@ -1507,7 +1516,7 @@ function DashboardClientContent({
                   currentUserId={sessionAuth?.userId ?? null}
                 />
               )}
-              {tab === 'job-roles' && showJobRoles && <JobRolesAdminTab locale={locale} companyId={scopedCompanyId} />}
+              {tab === 'job-roles' && showJobRoles && <JobRolesAdminTab locale={locale} companyId={scopedCompanyId} companyName={companies.find(c => String(c.id) === String(scopedCompanyId))?.name || sessionAuth?.companyName} />}
               {tab === 'performance-reviews' && showPerformance && <PerformanceReviewsAdminTab locale={locale} companyId={scopedCompanyId} isAdmin={isAdmin} />}
               {tab === 'pdi' && showPdi && (
                 <PdiAdminTab locale={locale} companyId={scopedCompanyId} navigateDashboard={navigateWithOpts} initialSearch={urlParams.get('pdiSearch') || ''} />

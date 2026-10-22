@@ -1,5 +1,7 @@
 'use client';
 
+import { ScoreExplanation } from '../../../_components/ScoreExplanation';
+
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { t } from '../../../../lib/i18n';
@@ -288,6 +290,7 @@ export default function TurnoverRadarCard({ locale, companyId }) {
       </div>
       )}
 
+      <ScoreExplanation locale={locale} kind="attention" />
       {risks.length > 8 ? (
         <div className="mt-4 text-center">
           <Link

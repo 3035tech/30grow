@@ -1,5 +1,7 @@
 'use client';
 
+import { CompanyScopeNotice } from '../../_components/CompanyScopeNotice';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/cn';
@@ -149,7 +151,7 @@ function vacancyEditDraft(v = {}) {
 
 export { VacancyInviteByEmail };
 
-export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganization = true, locale = 'pt-BR' }) {
+export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganization = true, locale = 'pt-BR', sessionCompanyId, sessionCompanyName }) {
   const { confirm, notice, promptForm, toast } = useAppFeedback();
   const urlParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -870,6 +872,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
   const vacancyFormDrawers = (
     <>
       <AdminRichFormDrawer
+        headerMeta={<CompanyScopeNotice locale={locale} companyId={isAdmin ? companyId : sessionCompanyId} companyName={isAdmin ? companies.find(c => String(c.id) === String(companyId))?.name : sessionCompanyName} />}
         open={showCreate}
         title={t(locale, 'recruiting.createVacancyDrawerTitle')}
         locale={locale}
@@ -924,6 +927,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
         locale={locale}
         headerMeta={editingVacancy ? (
           <>
+            <CompanyScopeNotice locale={locale} companyId={editingVacancy.companyId} companyName={editingVacancy.companyName || companies.find(c => String(c.id) === String(editingVacancy.companyId))?.name} />
             <span className="font-mono tabular-nums text-ink-muted">#{editingVacancy.id}</span>
             <span aria-hidden="true">·</span>
             <span className="min-w-0 break-words">{editingVacancy.title || t(locale, 'recruiting.vacancyTitlePh')}</span>

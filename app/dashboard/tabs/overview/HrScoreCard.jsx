@@ -1,5 +1,7 @@
 'use client';
 
+import { ScoreExplanation } from '../../../_components/ScoreExplanation';
+
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { t } from '../../../../lib/i18n';
@@ -140,6 +142,7 @@ export default function HrScoreCard({ locale, companyId, isAdmin }) {
         )}
       </div>
 
+      <ScoreExplanation locale={locale} kind="hr" sampleCount={overall.total} />
       {overall.total === 0 ? (
         <div className={cn('py-8 text-center', S.cardMuted)}>{t(locale, 'hrScore.noScores')}</div>
       ) : (

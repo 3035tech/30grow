@@ -196,6 +196,10 @@ try {
       const r = await request(path, cookie);
       assert.equal(r.status, 200);
       noLeak(r, foreign);
+      if (path === `/api/admin/candidates/${own.personId}`) {
+        assert.equal(r.data.operational.companyName, own.marker);
+        assert.equal(String(r.data.operational.companyId), String(own.id));
+      }
     });
     const foreignPaths = [`/api/admin/candidates/${foreign.personId}`, `/api/admin/candidates/${foreign.personId}/dossier`, `/api/admin/candidates/${foreign.personId}/dp`, `/api/admin/candidates/${foreign.personId}/compensation`, `/api/admin/job-roles/${foreign.roleId}`, `/api/admin/vacancies/${foreign.vacancyId}`, `/api/admin/company-benefits/${foreign.benefitId}`, `/api/admin/dp/leave/${foreign.leaveId}/file?companyId=${foreign.id}`];
     for (const path of foreignPaths) await check(`${identity.label}: foreign ${path}`, async () => {
@@ -284,6 +288,13 @@ try {
     assert.equal(r.status, 200);
     noLeak(r, B);
     assert.ok(r.text.includes(A.marker));
+  });
+  for (const label of ['hrA', 'adminA']) await check(`${label}: overview SSR retains own company context`, async () => {
+    const r = await request(`/dashboard?company=${B.id}&tab=overview`, byLabel[label].cookie);
+    assert.equal(r.status, 200);
+    noLeak(r, B);
+    assert.ok(r.text.includes(A.marker));
+    assert.ok(r.text.includes('Contexto da empresa'));
   });
   const protectedPaths = [`/api/admin/candidates/${A.personId}`, `/api/admin/vacancies/${A.vacancyId}`, `/api/admin/export?company=all`, `/api/admin/dp/leave/export?companyId=${A.id}`, `/api/admin/analytics/export?companyId=${A.id}`, `/api/admin/time-clock/rep/export?companyId=${A.id}&establishmentId=${A.establishmentId}&format=afd&from=2026-10-01&to=2026-10-22`, '/api/admin/users', '/api/admin/companies'];
   const employeeCookie = await login(A.email, true);

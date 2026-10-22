@@ -41,19 +41,18 @@ export function HrScoreBadge({ score, risk, size = 'sm', locale = 'pt-BR' }) {
             ? 'bg-warning/15 text-warning border-warning/30'
             : 'bg-danger/15 text-danger border-danger/30';
 
-  // Prefer risk tone when present (attention signal); else score band.
-  const toneClass =
-    risk && riskColors[risk]
-      ? riskColors[risk]
-      : scoreColor || riskColors.low;
+  // The number uses the score scale; attention keeps its separate icon meaning.
+  const toneClass = scoreColor || riskColors[risk] || riskColors.low;
 
   const riskText = risk ? riskLabel(locale, risk) : '';
-  const title =
+  const valueTitle =
     score != null && risk
       ? `${t(locale, 'hrScore.badgeScoreTitle', { score })} · ${t(locale, 'hrScore.badgeRiskTitle', { risk: riskText })}`
       : score != null
         ? t(locale, 'hrScore.badgeScoreTitle', { score })
         : t(locale, 'hrScore.badgeRiskTitle', { risk: riskText });
+
+  const title = `${valueTitle}. ${t(locale, score != null ? 'betaPeople.scorehr' : 'betaPeople.scoreattention')}${risk && score != null ? ` ${t(locale, 'betaPeople.scoreattention')}` : ''}`;
 
   const riskIcon =
     risk === 'high' ? 'alert' : risk === 'medium' ? 'infoCircle' : risk === 'low' ? 'check' : null;
@@ -73,7 +72,7 @@ export function HrScoreBadge({ score, risk, size = 'sm', locale = 'pt-BR' }) {
         <Icon name={riskIcon} className={iconClass} />
       ) : null}
       {riskIcon && score != null && (risk === 'high' || risk === 'medium') ? (
-        <Icon name={riskIcon} className={cn(iconClass, 'opacity-90')} />
+        <Icon name={riskIcon} className={cn(iconClass, risk === 'high' ? 'text-danger' : 'text-warning')} />
       ) : null}
     </span>
   );

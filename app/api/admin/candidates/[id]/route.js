@@ -1,3 +1,4 @@
+import { loadOperationalSummaries } from '../../../../../lib/people/operational-summary.js';
 import { rejectionReasonsSql } from '../../../../../lib/pipeline';
 import { candidateTagsSelectSql } from '../../../../../lib/candidate-tags-core.js';
 import { NextResponse } from 'next/server';
@@ -145,8 +146,10 @@ export async function GET(request, props) {
     }).catch(() => []),
   ]);
 
+  const operational = await loadOperationalSummaries(queryRead, [{ candidateId: id, companyId: c.rows[0].companyId }]);
   return NextResponse.json({
     candidate: c.rows[0],
+    operational: operational[String(id)] || null,
     assessments: assessmentsWithHistory,
     timeline,
     people,
