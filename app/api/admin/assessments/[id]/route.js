@@ -7,10 +7,10 @@ import { audit } from '../../../../../lib/audit';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error';
 import {
   PIPELINE_STAGE,
-  PIPELINE_STAGE_SET,
   normalizeRejectionReason,
   normalizeStartDate,
 } from '../../../../../lib/pipeline';
+import { resolveRecruitingPipelineStage } from '../../../../../lib/pipeline-templates';
 import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../lib/hire';
 import { canAccessCandidateRecord, isAdminRole } from '../../../../../lib/permissions';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/job-funnel';
@@ -32,19 +32,12 @@ export async function PATCH(request, props) {
 
     const body = await request.json().catch(() => ({}));
     const stage = body.pipelineStage != null ? String(body.pipelineStage).trim() : null;
-    if (stage == null || !PIPELINE_STAGE_SET.has(stage)) {
+    if (!stage) {
       return apiError(request, ERR.INVALID_PIPELINE_STAGE, 400);
     }
 
     const rejectionReason = normalizeRejectionReason(body.rejectionReason ?? body.reason);
     const startDate = normalizeStartDate(body.startDate);
-
-    if (stage === PIPELINE_STAGE.REJECTED && !rejectionReason) {
-      return apiError(request, ERR.REJECTION_REASON_REQUIRED, 400);
-    }
-    if (stage === PIPELINE_STAGE.HIRED && !startDate) {
-      return apiError(request, ERR.START_DATE_REQUIRED, 400);
-    }
 
     const own = await queryRead(
       `SELECT ass.id, ass.pipeline_stage AS "currentStage",
@@ -69,25 +62,36 @@ export async function PATCH(request, props) {
     const candidateId = own.rows[0]?.candidateId;
     const vacancyId = own.rows[0]?.vacancyId;
     const assCompanyId = own.rows[0]?.companyId;
-    const funnelEvent = pipelineStageToFunnelEvent(stage);
+    const resolvedStage = await resolveRecruitingPipelineStage({ companyId: assCompanyId, vacancyId, stageKey: stage });
+    if (!resolvedStage) return apiError(request, ERR.INVALID_PIPELINE_STAGE, 400);
+    const canonicalStage = resolvedStage.canonicalKey;
+
+    if (canonicalStage === PIPELINE_STAGE.REJECTED && !rejectionReason) {
+      return apiError(request, ERR.REJECTION_REASON_REQUIRED, 400);
+    }
+    if (canonicalStage === PIPELINE_STAGE.HIRED && !startDate) {
+      return apiError(request, ERR.START_DATE_REQUIRED, 400);
+    }
+
+    const funnelEvent = pipelineStageToFunnelEvent(canonicalStage);
 
 
     const up = await withTransaction(async db => {
     const result = await db.query(
       `UPDATE assessments SET
          pipeline_stage = $2,
-         rejection_reason = CASE WHEN $2 = '${PIPELINE_STAGE.REJECTED}' THEN $3 ELSE NULL END,
-         start_date = CASE WHEN $2 = '${PIPELINE_STAGE.HIRED}' THEN $4::date ELSE start_date END,
+         rejection_reason = CASE WHEN $6 = '${PIPELINE_STAGE.REJECTED}' THEN $3 ELSE NULL END,
+         start_date = CASE WHEN $6 = '${PIPELINE_STAGE.HIRED}' THEN $4::date ELSE start_date END,
          hired_at = CASE
-           WHEN $2 = '${PIPELINE_STAGE.HIRED}' THEN COALESCE(hired_at, NOW())
+           WHEN $6 = '${PIPELINE_STAGE.HIRED}' THEN COALESCE(hired_at, NOW())
            ELSE hired_at
          END
-       WHERE id = $1 ${!isAdmin ? 'AND company_id = $5' : ''}
+       WHERE id = $1 AND company_id = $5
        RETURNING id, pipeline_stage AS "pipelineStage",
                  rejection_reason AS "rejectionReason",
                  start_date AS "startDate",
                  hired_at AS "hiredAt"`,
-      !isAdmin ? [id, stage, rejectionReason, startDate, companyId] : [id, stage, rejectionReason, startDate]
+      [id, stage, rejectionReason, startDate, assCompanyId, canonicalStage]
     );
 
     await db.query(
@@ -98,13 +102,13 @@ export async function PATCH(request, props) {
         id,
         currentStage,
         stage,
-        stage === PIPELINE_STAGE.REJECTED ? rejectionReason : null,
-        stage === PIPELINE_STAGE.HIRED ? startDate : null,
+        canonicalStage === PIPELINE_STAGE.REJECTED ? rejectionReason : null,
+        canonicalStage === PIPELINE_STAGE.HIRED ? startDate : null,
         payload.userId || null,
       ]
     );
 
-    if (stage === PIPELINE_STAGE.HIRED && candidateId) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
+    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
     return result;
     });
 
@@ -122,18 +126,18 @@ export async function PATCH(request, props) {
       });
     }
 
-    if (stage === PIPELINE_STAGE.HIRED && candidateId) {
+    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) {
       await runCandidateHireEffects({ companyId:assCompanyId,candidateId,startDate });
       if (vacancyId) {
         await query(
           `UPDATE vacancy_candidates SET
-             pipeline_stage = '${PIPELINE_STAGE.HIRED}',
+             pipeline_stage = $4,
              start_date = COALESCE($3::date, start_date),
              hired_at = COALESCE(hired_at, NOW()),
              rejection_reason = NULL,
              updated_at = NOW()
            WHERE vacancy_id = $1 AND candidate_id = $2`,
-          [vacancyId, candidateId, startDate]
+          [vacancyId, candidateId, startDate, stage]
         ).catch(() => {});
         await maybeCloseVacancyIfFilled(vacancyId);
       }
@@ -150,14 +154,14 @@ export async function PATCH(request, props) {
       }
     }
 
-    if (stage === PIPELINE_STAGE.REJECTED && vacancyId && candidateId) {
+    if (canonicalStage === PIPELINE_STAGE.REJECTED && vacancyId && candidateId) {
       await query(
         `UPDATE vacancy_candidates SET
-           pipeline_stage = '${PIPELINE_STAGE.REJECTED}',
+           pipeline_stage = $4,
            rejection_reason = $3,
            updated_at = NOW()
          WHERE vacancy_id = $1 AND candidate_id = $2`,
-        [vacancyId, candidateId, rejectionReason]
+        [vacancyId, candidateId, rejectionReason, stage]
       ).catch(() => {});
     }
 
@@ -168,8 +172,8 @@ export async function PATCH(request, props) {
       targetId: String(id),
       metadata: {
         pipelineStage: stage,
-        rejectionReason: stage === PIPELINE_STAGE.REJECTED ? rejectionReason : undefined,
-        startDate: stage === PIPELINE_STAGE.HIRED ? startDate : undefined,
+        rejectionReason: canonicalStage === PIPELINE_STAGE.REJECTED ? rejectionReason : undefined,
+        startDate: canonicalStage === PIPELINE_STAGE.HIRED ? startDate : undefined,
       },
     });
 

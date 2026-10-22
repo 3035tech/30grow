@@ -11,7 +11,7 @@ import {
   normalizeRejectionReason,
   normalizeStartDate,
 } from '../../../../../../../lib/pipeline';
-import { resolveCompanyPipelineStage } from '../../../../../../../lib/company-pipeline-stages';
+import { resolveRecruitingPipelineStage } from '../../../../../../../lib/pipeline-templates';
 import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../../../lib/hire';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../../../lib/job-funnel';
 import { auditFromRequest } from '../../../../../../../lib/audit';
@@ -78,7 +78,7 @@ export async function PATCH(request, props) {
     if (body.pipelineStage !== undefined) {
       const s = body.pipelineStage == null ? null : String(body.pipelineStage).trim();
       if (s != null) {
-        const resolved = await resolveCompanyPipelineStage(loaded.link.companyId, s);
+        const resolved = await resolveRecruitingPipelineStage({ companyId: loaded.link.companyId, vacancyId, stageKey: s });
         if (!resolved) {
           return apiError(request, ERR.INVALID_PIPELINE_STAGE, 400);
         }
