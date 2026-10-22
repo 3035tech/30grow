@@ -35,7 +35,7 @@ test('PostgreSQL: multiple reasons, legacy backfill, history, constraints and at
     const deps = {
       ...pipeline, ERR, NextResponse: { json: Response.json }, cookies: async () => ({ get: () => ({ value: 'fixture' }) }), COOKIE_NAME: 'session',
       verifySessionWithCapabilities: async () => ({ companyId, userId: null }), canAccessCandidateRecord: () => true, isAdminRole: () => false,
-      CAP: { VACANCIES_MANAGE: 'manage' }, requireCapability: () => true, sanitizeInterviewNotesHtml: (v) => v,
+      CAP: { VACANCIES_MANAGE: 'manage', VACANCIES_VIEW: 'view' }, requireCapability: () => true, sanitizeInterviewNotesHtml: (v) => v,
       query, queryRead: query, withTransaction: async (fn) => { await db.query('SAVEPOINT move'); try { const result=await fn({query}); await db.query('RELEASE SAVEPOINT move'); return result; } catch(e) { await db.query('ROLLBACK TO SAVEPOINT move'); throw e; } },
       apiError: (_, code, status) => Response.json({code},{status}), apiErrorFromResult: (_, result) => Response.json(result,{status:400}),
       resolveRecruitingPipelineStage: async ({ stageKey }) => ({ canonicalKey: stageKey === 'c_rejected' ? 'rejected' : stageKey }),
@@ -68,6 +68,22 @@ test('PostgreSQL: multiple reasons, legacy backfill, history, constraints and at
       assert.equal((await move({pipelineStage:'rejected',rejectionReason:'experience'})).status,200);
       assert.deepEqual((await db.query(`SELECT rejection_reasons FROM ${table} WHERE id=$1`,[id])).rows[0].rejection_reasons,['experience']);
     }
+    const detailApi = await route('app/api/admin/vacancies/[id]/candidates/[candidateId]/route.js');
+    for (const person of candidates) {
+      const response = await detailApi.GET({}, {params:{id:vacancyId,candidateId:person.candidateId}});
+      assert.equal(response.status,200);
+      const data=await response.json();
+      assert.equal(String(data.companyId),String(companyId));
+      assert.ok(data.history.length > 0);
+    }
+    // Imported assessments can predate vacancy_candidates links.
+    await db.query('DELETE FROM vacancy_candidates WHERE id=$1',[candidates[0].linkId]);
+    assert.equal((await detailApi.GET({}, {params:{id:vacancyId,candidateId:candidates[0].candidateId}})).status,200);
+    const unlinkedId=(await db.query("INSERT INTO candidates(company_id,full_name) VALUES($1,'Unlinked fixture') RETURNING id",[companyId])).rows[0].id;
+    assert.equal((await detailApi.GET({}, {params:{id:vacancyId,candidateId:unlinkedId}})).status,404);
+    const otherCompany=(await db.query("INSERT INTO companies(name,slug) VALUES('Other company',$1) RETURNING id",[`other-${suffix}`])).rows[0].id;
+    const otherPerson=(await db.query("INSERT INTO candidates(company_id,full_name) VALUES($1,'Other tenant fixture') RETURNING id",[otherCompany])).rows[0].id;
+    assert.equal((await detailApi.GET({}, {params:{id:vacancyId,candidateId:otherPerson}})).status,404);
     await db.query('SAVEPOINT invalid');
     await assert.rejects(db.query("UPDATE assessments SET rejection_reasons=ARRAY['invented'] WHERE id=$1",[assessmentId]),{code:'23514'});
     await db.query('ROLLBACK TO SAVEPOINT invalid');

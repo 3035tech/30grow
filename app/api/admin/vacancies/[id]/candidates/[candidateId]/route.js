@@ -10,6 +10,7 @@ import {
   PIPELINE_STAGE,
   normalizeRejectionReasons,
   normalizeStartDate,
+  rejectionReasonsSql,
 } from '../../../../../../../lib/pipeline';
 import { resolveRecruitingPipelineStage } from '../../../../../../../lib/pipeline-templates';
 import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../../../lib/hire';
@@ -43,6 +44,57 @@ async function loadLink(request, vacancyId, candidateId, payload) {
     return { error: apiError(request, ERR.UNAUTHORIZED, 401) };
   }
   return { link: r.rows[0] };
+}
+
+/** Details for this candidature only, including legacy assessments without a link row. */
+export async function GET(request, props) {
+  try {
+    const params = await props.params;
+    const cookieStore = await cookies();
+    const payload = await verifySessionWithCapabilities(cookieStore.get(COOKIE_NAME)?.value);
+    if (!requireCapability(payload, CAP.VACANCIES_VIEW)) return apiError(request, ERR.UNAUTHORIZED, 401);
+    const isAdmin = isAdminRole(payload);
+    if (!isAdmin && !payload?.companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
+    const vacancyId = Number(params?.id);
+    const candidateId = Number(params?.candidateId);
+    if (!Number.isSafeInteger(vacancyId) || vacancyId <= 0 || !Number.isSafeInteger(candidateId) || candidateId <= 0) {
+      return apiError(request, ERR.INVALID_PARAMS, 400);
+    }
+    const detail = await query(
+      `SELECT c.id AS "candidateId", v.company_id AS "companyId", v.title AS "vacancyTitle",
+              c.full_name AS name, c.email, c.phone, c.city, c.state,
+              c.professional_summary AS "professionalSummary", vc.interview_notes AS "interviewNotes"
+       FROM vacancies v
+       JOIN candidates c ON c.id = $2 AND c.company_id = v.company_id
+       JOIN companies co ON co.id = v.company_id AND co.deleted = FALSE
+       LEFT JOIN vacancy_candidates vc ON vc.vacancy_id = v.id AND vc.candidate_id = c.id AND vc.company_id = v.company_id
+       WHERE v.id = $1 AND v.deleted = FALSE ${!isAdmin ? 'AND v.company_id = $3' : ''}
+         AND (vc.id IS NOT NULL OR EXISTS (
+           SELECT 1 FROM assessments a WHERE a.vacancy_id = v.id AND a.candidate_id = c.id AND a.company_id = v.company_id
+         ))
+       LIMIT 1`,
+      !isAdmin ? [vacancyId, candidateId, payload.companyId] : [vacancyId, candidateId]
+    );
+    if (!detail.rowCount) return apiError(request, ERR.NOT_FOUND, 404);
+    const history = await query(
+      `SELECT * FROM (
+         SELECT 'assessment:' || h.id AS "eventKey", h.from_stage AS "fromStage", h.to_stage AS "toStage",
+                h.changed_at AS "changedAt", h.reason, ${rejectionReasonsSql('h', 'reason')} AS reasons
+         FROM assessment_pipeline_history h JOIN assessments a ON a.id = h.assessment_id
+         WHERE a.vacancy_id = $1 AND a.candidate_id = $2 AND a.company_id = $3
+         UNION ALL
+         SELECT 'candidate:' || h.id AS "eventKey", h.from_stage AS "fromStage", h.to_stage AS "toStage",
+                h.changed_at AS "changedAt", h.reason, ${rejectionReasonsSql('h', 'reason')} AS reasons
+         FROM vacancy_candidate_pipeline_history h JOIN vacancy_candidates vc ON vc.id = h.vacancy_candidate_id
+         WHERE vc.vacancy_id = $1 AND vc.candidate_id = $2 AND vc.company_id = $3
+       ) events ORDER BY "changedAt" DESC, "eventKey" DESC LIMIT 31`,
+      [vacancyId, candidateId, detail.rows[0].companyId]
+    );
+    return NextResponse.json({ ...detail.rows[0], history: history.rows.slice(0, 30), historyTruncated: history.rows.length > 30 });
+  } catch (error) {
+    console.error(error);
+    return apiError(request, ERR.INTERNAL, 500);
+  }
 }
 
 /** Atualiza anotações da entrevista (HTML) e/ou estágio do funil. */

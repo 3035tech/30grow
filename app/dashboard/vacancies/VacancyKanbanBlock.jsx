@@ -4,7 +4,7 @@ import { CandidateTagsProvider, CandidateTags, CandidateTagFilters } from '../Ca
 import { HorizontalScrollRegion } from '../../_components/HorizontalScrollRegion';
 import { SelectField } from '../../_components/SelectField';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { DisclosureToggle } from '../../_components/CollapsibleBlock';
 import { t } from '../../../lib/i18n';
@@ -16,6 +16,7 @@ import { getKanbanStages } from '../dashboard-shared';
 import { rejectionReasonLabel } from '../pipeline-prompts';
 import { usePipelineExtras } from '../PipelineExtrasContext';
 import { formatRelativeAgo, inviteStatusShort, daysInStage, stageAgingTone } from './vacancy-admin-shared';
+import { VacancyCandidateDialog } from './VacancyCandidateDialog';
 import { VacancyOfferBlock } from './VacancyOfferBlock';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading } from '../../_components/AppLoading';
@@ -49,6 +50,9 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   const [err, setErr] = useState('');
   const [moving, setMoving] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
+  const [selectedCardKey, setSelectedCardKey] = useState(null);
+  const suppressOpenUntil = useRef(0);
+  useEffect(() => { setSelectedCardKey(null); }, [vacancyId]);
   const [dragOverStage, setDragOverStage] = useState(null);
   const [fetchedStages, setFetchedStages] = useState(null);
   const [compact, setCompact] = useState(false);
@@ -136,6 +140,12 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
 
   const cardKey = (r) =>
     r.assessmentId != null ? `a:${r.assessmentId}` : `vc:${r.vacancyCandidateId}`;
+
+  const selectedRow = rows.find((row) => cardKey(row) === selectedCardKey);
+  const openCandidate = (row) => {
+    if (Date.now() < suppressOpenUntil.current || moving === cardKey(row)) return;
+    setSelectedCardKey(cardKey(row));
+  };
 
   const moveTo = async (row, stage) => {
     if ((row.pipelineStage || 'new') === stage) return;
@@ -294,7 +304,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) return toast(data?.error || t(locale, 'panel.common.error'), 'error');
+    if (!response.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
     const owner = workspace.recruiters.find((item) => Number(item.id) === Number(ownerUserId));
     setRows((current) => current.map((item) => cardKey(item) === cardKey(row)
       ? { ...item, ownerUserId, ownerName: owner?.name || null }
@@ -342,6 +352,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
 
   return (
     <div>
+      {selectedRow ? <VacancyCandidateDialog key={`${vacancyId}:${selectedCardKey}`} row={selectedRow} vacancyId={vacancyId} locale={locale} stages={stages} recruiters={workspace.recruiters} workspaceLoading={workspaceLoading} onAssign={assignCandidate} onClose={() => setSelectedCardKey(null)} onPersonClick={onPersonClick} /> : null}
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <span className="font-mono text-xs uppercase tracking-[1.5px] text-ink-muted">
           {t(locale, 'recruiting.pipelineTitle')}
@@ -560,17 +571,32 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                       const rowStage = stageById[r.pipelineStage || 'new'];
                       const aging = stageAgingTone(days, rowStage?.canonicalKey || r.pipelineStage || 'new');
                       return (
-                        <div
+                        <article
                           key={rid}
+                          data-testid="vacancy-candidate-card"
+                          data-candidate-id={r.candidateId}
+                          tabIndex={0}
+                          aria-label={t(locale, 'recruiting.candidateDialogOpen', { name: titleCasePersonName(r.name) })}
+                          title={t(locale, 'recruiting.candidateDialogHint')}
+                          onDoubleClick={(event) => {
+                            if (!event.target.closest('button, a, input, select, textarea, [role="combobox"]')) openCandidate(r);
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+                              event.preventDefault(); openCandidate(r);
+                            }
+                          }}
                           draggable
                           onDragStart={(e) => {
+                            if (e.target.closest('button, a, input, select, textarea, [role="combobox"]')) { e.preventDefault(); return; }
+                            suppressOpenUntil.current = Infinity;
                             setDraggingId(rid);
                             e.dataTransfer.setData('text/plain', rid);
                             e.dataTransfer.effectAllowed = 'move';
                           }}
-                          onDragEnd={() => { setDraggingId(null); setDragOverStage(null); }}
+                          onDragEnd={() => { suppressOpenUntil.current = Date.now() + 300; setDraggingId(null); setDragOverStage(null); }}
                           className={cn(
-                            'cursor-grab select-none rounded-lg border border-ink/12 bg-surface/[0.88] transition-opacity duration-150',
+                            'cursor-grab select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 rounded-lg border border-ink/12 bg-surface/[0.88] transition-opacity duration-150',
                             compact ? 'px-2 py-1.5' : 'px-2.5 py-[9px]',
                             isDragging && 'opacity-40',
                             isBusy && !isDragging && 'opacity-65',
@@ -578,28 +604,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                           )}
                         >
                           <div className="mb-[3px] flex items-start justify-between gap-1">
-                            {r.candidateId && typeof onPersonClick === 'function' ? (
-                              <button
-                                type="button"
-                                className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap border-none bg-transparent p-0 text-left font-ui text-prose text-ink underline-offset-2 hover:underline"
-                                title={t(locale, 'recruiting.openPersonProfile', {
-                                  name: titleCasePersonName(r.name),
-                                })}
-                                aria-label={t(locale, 'recruiting.openPersonProfile', {
-                                  name: titleCasePersonName(r.name),
-                                })}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onPersonClick(r.candidateId);
-                                }}
-                              >
-                                {titleCasePersonName(r.name)}
-                              </button>
-                            ) : (
-                              <div className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-ui text-prose text-ink">
-                                {titleCasePersonName(r.name)}
-                              </div>
-                            )}
+                            <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-ui text-prose text-ink">{titleCasePersonName(r.name)}</span>
                             {days != null && aging ? (
                               <span
                                 className={cn(
@@ -704,20 +709,10 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                               {t(locale, 'recruiting.withNotes')}
                             </div>
                           ) : null}
-                          <label className="mt-2 block">
-                            <span className="sr-only">{t(locale, 'recruiting.candidateOwner')}</span>
-                            <SelectField
-                              value={r.ownerUserId || ''}
-                              onChange={(event) => void assignCandidate(r, event.target.value)}
-                              onClick={(event) => event.stopPropagation()}
-                              className="ui-select min-h-touch w-full rounded-control border border-ink/10 bg-canvas px-2 font-ui text-[11px] text-ink-muted"
-                              aria-label={t(locale, 'recruiting.candidateOwner')}
-                            >
-                              <option value="">{t(locale, 'recruiting.filterUnassigned')}</option>
-                              {workspace.recruiters.map((recruiter) => <option key={recruiter.id} value={recruiter.id}>{recruiter.name}</option>)}
-                            </SelectField>
-                          </label>
-                        </div>
+                          <button type="button" draggable={false} onClick={(event) => { event.stopPropagation(); openCandidate(r); }} className="mt-2 min-h-touch rounded-control text-left font-ui text-xs text-brand-600 underline-offset-2 hover:underline" aria-label={t(locale, 'recruiting.candidateDialogOpen', { name: titleCasePersonName(r.name) })}>
+                            {t(locale, 'recruiting.candidateDialogDetails')}
+                          </button>
+                        </article>
                       );
                     })}
                     {cards.length === 0 && (

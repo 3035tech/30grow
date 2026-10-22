@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
-import { PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate } from '../../lib/pipeline.js';
+import { PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, rejectionReasonsSql } from '../../lib/pipeline.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 async function load(path, deps) {
@@ -30,7 +30,7 @@ async function fixture({ canonicalKey = 'screening', found = true, accessible = 
     query: db, queryRead: db, withTransaction: (fn) => fn({ query: db }),
     audit: async () => {}, auditFromRequest: async () => {},
     ERR, apiError: (_, code, status) => ({ code, status }), apiErrorFromResult: (_, result) => result,
-    PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, sanitizeInterviewNotesHtml: (v) => v,
+    PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, rejectionReasonsSql, sanitizeInterviewNotesHtml: (v) => v,
     resolveRecruitingPipelineStage: async (scope) => { resolutions.push(scope); return found ? { stageKey: scope.stageKey, canonicalKey } : null; },
     pipelineStageToFunnelEvent: (stage) => { events.push(stage); return null; }, scheduleJobFunnelEvent: () => {},
     persistCandidateHire: async (_, data) => { hires.push(data); }, runCandidateHireEffects: async () => {}, maybeCloseVacancyIfFilled: async () => {}, notifyHireOnboardingKit: async () => {},
