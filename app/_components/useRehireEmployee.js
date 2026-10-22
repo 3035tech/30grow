@@ -32,6 +32,12 @@ export function useRehireEmployee({ locale = 'pt-BR', companyId = null } = {}) {
             defaultValue: new Date().toISOString().slice(0, 10),
           },
           {
+            key: 'corporateEmail',
+            type: 'email',
+            label: t(locale, 'recruiting.hireCorporateEmailLabel'),
+            help: t(locale, 'recruiting.hireCorporateEmailHint'),
+          },
+          {
             key: 'sendAccessInvite',
             type: 'boolean',
             label: t(locale, 'panel.rehire.invite'),
@@ -51,6 +57,7 @@ export function useRehireEmployee({ locale = 'pt-BR', companyId = null } = {}) {
             ...(companyId ? { companyId: Number(companyId) } : {}),
             candidateId: Number(candidateId),
             rehireDate: values.rehireDate || null,
+            ...(String(values.corporateEmail || '').trim() ? { corporateEmail: String(values.corporateEmail).trim() } : {}),
             sendAccessInvite: Boolean(values.sendAccessInvite),
             locale,
           }),

@@ -13,10 +13,11 @@ const PipelineExtrasContext = createContext(null);
 
 const FIELD = `${fieldInputClass} w-full font-ui text-sm`;
 
-function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
+function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
   const today = new Date().toISOString().slice(0, 10);
   const [reasons, setReasons] = useState([]);
   const [startDate, setStartDate] = useState(today);
+  const [corporateEmail, setCorporateEmail] = useState('');
   const [error, setError] = useState('');
 
   const title =
@@ -43,7 +44,12 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
       setError(t(locale, 'recruiting.hireStartDateRequired'));
       return;
     }
-    onConfirm({ startDate: normalized });
+    const email = corporateEmail.trim().toLowerCase();
+    if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      setError(t(locale, 'recruiting.hireEmailInvalid'));
+      return;
+    }
+    onConfirm({ startDate: normalized, ...(!bulk && email ? { corporateEmail: email } : {}) });
   };
 
   return (
@@ -91,7 +97,7 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
               </div>
             </fieldset>
           ) : (
-            <FormField
+            <div className="space-y-4"><FormField
               as="div"
               label={t(locale, 'recruiting.startDateLabel')}
               hint={t(locale, 'recruiting.hireDateHint')}
@@ -104,6 +110,10 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
                 aria-label={t(locale, 'recruiting.startDateLabel')}
               />
             </FormField>
+            {!bulk ? <FormField as="div" label={t(locale, 'recruiting.hireCorporateEmailLabel')} hint={t(locale, 'recruiting.hireCorporateEmailHint')}>
+              <input type="email" autoComplete="off" maxLength={254} value={corporateEmail} onChange={event => setCorporateEmail(event.target.value)} className={FIELD} aria-label={t(locale, 'recruiting.hireCorporateEmailLabel')} />
+            </FormField> : <p className="text-sm text-ink-muted">{t(locale, 'recruiting.hireBulkEmailHint')}</p>}
+            </div>
           )}
         </div>
 
@@ -137,7 +147,7 @@ export function PipelineExtrasProvider({ children }) {
 
   // Accepts either a canonical key (preferred) or a resolved stage object with
   // `canonicalKey`. Custom stages carry their canonical from the Kanban rows.
-  const requestPipelineExtras = useCallback((locale, stageOrCanonical) => {
+  const requestPipelineExtras = useCallback((locale, stageOrCanonical, { bulk = false } = {}) => {
     const canonical =
       stageOrCanonical && typeof stageOrCanonical === 'object'
         ? (stageOrCanonical.canonicalKey || stageOrCanonical.id)
@@ -147,7 +157,7 @@ export function PipelineExtrasProvider({ children }) {
     }
     return new Promise((resolve) => {
       resolveRef.current = resolve;
-      setState({ locale, mode: canonical });
+      setState({ locale, mode: canonical, bulk });
     });
   }, []);
 
@@ -160,6 +170,7 @@ export function PipelineExtrasProvider({ children }) {
         <PipelineExtrasDialog
           locale={state.locale}
           mode={state.mode}
+          bulk={state.bulk}
           onConfirm={(payload) => close(payload)}
           onCancel={() => close(null)}
         />

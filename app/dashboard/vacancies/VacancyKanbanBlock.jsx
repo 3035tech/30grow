@@ -157,6 +157,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
     // Optimistic column move; restored from `row` if the PATCH fails.
     setRows((prev) => prev.map((r) => (cardKey(r) === key ? { ...r, pipelineStage: stage } : r)));
     try {
+      let access = null;
       if (row.pendingTest || !row.assessmentId) {
         const res = await fetch(
           `/api/admin/vacancies/${encodeURIComponent(vacancyId)}/candidates/${encodeURIComponent(row.candidateId)}`,
@@ -168,10 +169,12 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
         );
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
+        access = data.access;
         setRows((prev) =>
           prev.map((r) => (cardKey(r) === key ? {
             ...r,
             pipelineStage: stage,
+            email: extras.corporateEmail || r.email,
             rejectionReason: data.rejectionReason ?? null,
             rejectionReasons: data.rejectionReasons ?? [],
             startDate: data.startDate ?? extras.startDate ?? r.startDate,
@@ -185,16 +188,19 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
+        access = data.access;
         setRows((prev) =>
           prev.map((r) => (cardKey(r) === key ? {
             ...r,
             pipelineStage: stage,
+            email: extras.corporateEmail || r.email,
             rejectionReason: data.rejectionReason ?? null,
             rejectionReasons: data.rejectionReasons ?? [],
             startDate: data.startDate ?? extras.startDate ?? r.startDate,
           } : r))
         );
       }
+      if (access?.inviteSent === false) toast(t(locale, 'recruiting.hireInviteFailed'), 'warning');
       onStageChanged?.();
     } catch (e) {
       setRows((prev) => prev.map((r) => (cardKey(r) === key ? { ...r, pipelineStage: row.pipelineStage } : r)));

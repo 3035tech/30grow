@@ -10,6 +10,7 @@ import { checkRateLimit } from '../../../../../lib/rate-limit.js';
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),
   candidateId: zPositiveInt,
+  corporateEmail: z.string().trim().email().max(254).optional().nullable(),
   rehireDate: z.string().trim().max(10).optional().nullable(),
   sendAccessInvite: z.boolean().optional().default(false),
   locale: zLocale.optional(),
@@ -40,6 +41,7 @@ export const POST = withAdminApi(
       companyId,
       candidateId: body.candidateId,
       rehireDate: body.rehireDate || null,
+      corporateEmail: body.corporateEmail || null,
       rehiredByUserId: payload.userId || null,
       sendAccessInvite: Boolean(body.sendAccessInvite),
       locale: body.locale || 'pt-BR',

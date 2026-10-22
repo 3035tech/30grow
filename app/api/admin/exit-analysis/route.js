@@ -1,3 +1,4 @@
+import { audit } from '../../../../lib/audit.js';
 import { NextResponse } from 'next/server';
 import { getSessionPayload, getManagerScope, CAP, requireCapability } from '../../../../lib/ae/require-admin.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
@@ -54,7 +55,7 @@ export async function POST(request) {
       return apiError(request, ERR.COMPANY_REQUIRED, 400);
     }
 
-    const { candidateId, exitDate, exitType, exitReason, notes } = body;
+    const { candidateId, exitDate, exitType, exitReason, notes, personalEmail } = body;
     if (!candidateId) {
       return apiError(request, ERR.MISSING_CANDIDATE_ID, 400);
     }
@@ -66,10 +67,13 @@ export async function POST(request) {
       exitType,
       exitReason,
       notes,
+      personalEmail,
       createdByUserId: payload.userId,
     });
 
     if (!result.ok) {
+      if (result.errorCode === ERR.INVALID_EMAIL) return apiError(request, ERR.INVALID_EMAIL, 400);
+      if (result.errorCode === ERR.EMAIL_TAKEN) return apiError(request, ERR.EMAIL_TAKEN, 409);
       if (result.errorCode === 'CANDIDATE_NOT_FOUND') {
         return apiError(request, ERR.CANDIDATE_NOT_FOUND, 404);
       }
@@ -82,6 +86,7 @@ export async function POST(request) {
       return apiError(request, ERR.EXIT_RECORD_FAILED, 500);
     }
 
+    await audit({ actorUserId: payload.userId || null, companyId, action: 'employee.exit', targetType: 'candidate', targetId: String(candidateId), metadata: { previousEmail: result.previousEmail || null, contactSource: 'personal_email', portalAccessRevoked: true } });
     return NextResponse.json({ ok: true, exitRecord: result.exitRecord }, { status: 201 });
   } catch (err) {
     console.error('POST /api/admin/exit-analysis error:', err);

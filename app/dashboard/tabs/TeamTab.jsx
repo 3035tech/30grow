@@ -706,6 +706,7 @@ export function TeamTab({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
+      if (data.access?.inviteSent === false) toast(t(locale, 'recruiting.hireInviteFailed'), 'warning');
       router.refresh();
       await reloadDetailSilently();
     } catch (e) {
@@ -802,7 +803,7 @@ export function TeamTab({
 
   const applyBulk = async () => {
     if (selectedIds.size === 0 || !bulkStage) return;
-    const extras = await requestPipelineExtras(locale, bulkStage);
+    const extras = await requestPipelineExtras(locale, bulkStage, { bulk: true });
     if (extras == null) return;
     setBulkBusy(true);
     setBulkMsg('');
@@ -813,19 +814,20 @@ export function TeamTab({
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pipelineStage: bulkStage, ...extras }),
-        }).then((res) => res.ok, () => false)
+        }).then(async (res) => ({ ok: res.ok, access: (await res.json().catch(() => ({}))).access }), () => ({ ok: false }))
       );
-      const failed = ids.filter((_, i) => !outcomes[i]);
+      const failed = ids.filter((_, i) => !outcomes[i].ok);
       if (failed.length) {
         // No refresh here: it would reset the selection. Show applied stages locally and
         // keep only the failed rows selected so the manager can retry them.
-        const applied = Object.fromEntries(ids.filter((_, i) => outcomes[i]).map((id) => [id, bulkStage]));
+        const applied = Object.fromEntries(ids.filter((_, i) => outcomes[i].ok).map((id) => [id, bulkStage]));
         setStageOverrides((prev) => ({ ...prev, ...applied }));
         setSelectedIds(new Set(failed));
         setBulkMsgIsError(true);
         setBulkMsg(t(locale, 'panel.team.bulkUpdateError'));
         return;
       }
+      if (outcomes.some(outcome => outcome.access?.inviteSent === false)) toast(t(locale, 'recruiting.hireInviteFailed'), 'warning');
       setSelectedIds(new Set());
       setBulkMsgIsError(false);
       setBulkMsg(t(locale, 'panel.team.bulkUpdatedCount', { n: ids.length }));

@@ -20,7 +20,7 @@ export async function GET(request) {
     }
 
     const res = await queryRead(
-      `SELECT i.id, i.candidate_name AS "candidateName", i.candidate_email AS "candidateEmail",
+      `SELECT i.id, i.candidate_name AS "candidateName", CASE WHEN i.candidate_id IS NULL THEN i.candidate_email ELSE cand.email END AS "candidateEmail",
               i.candidate_id AS "candidateId", i.company_id AS "companyId",
               i.status, i.expires_at AS "expiresAt",
               d.slug AS "definitionSlug", d.name AS "definitionName",
@@ -32,7 +32,7 @@ export async function GET(request) {
        FROM ae_invites i
        JOIN ae_definitions d ON d.id = i.definition_id
        JOIN companies c ON c.id = i.company_id
-       LEFT JOIN candidates cand ON cand.id = i.candidate_id
+       LEFT JOIN candidates cand ON cand.id = i.candidate_id AND cand.company_id = i.company_id
        WHERE i.token = $1 AND c.deleted = FALSE AND d.active = TRUE
        LIMIT 1`,
       [token]

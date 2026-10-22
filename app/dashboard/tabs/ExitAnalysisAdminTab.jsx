@@ -130,6 +130,12 @@ export function ExitAnalysisAdminTab({ locale = 'pt-BR', companyId, isAdmin }) {
           minChars: 1,
         },
         {
+          name: 'personalEmail',
+          type: 'email',
+          label: i18nT(locale, 'panel.dp.personalEmail'),
+          help: i18nT(locale, 'recruiting.exitPersonalEmailHint'),
+        },
+        {
           name: 'exitDate',
           label: t('formExitDate'),
           type: 'date',
@@ -176,6 +182,7 @@ export function ExitAnalysisAdminTab({ locale = 'pt-BR', companyId, isAdmin }) {
         body: JSON.stringify(
           withCompanyBody({
             candidateId,
+            personalEmail: result.personalEmail || null,
             exitDate: result.exitDate,
             exitType: result.exitType,
             exitReason: result.exitReason,

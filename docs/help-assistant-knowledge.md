@@ -114,3 +114,7 @@ Atualize [`PRODUCT-FEATURES-PROMPT.md`](./PRODUCT-FEATURES-PROMPT.md) quando um 
 - `AGENTS.md` § Pós-implementação
 - `.cursor/skills/dev-test-validate/gates.md` § Final validation
 - `lib/help-assistant.js`, `lib/help-sections.js`, `HelpAssistantWidget.jsx`
+
+### E-mails da candidatura, contratação e desligamento
+
+Guia `employeeHomeStep1` + FAQ prioritária `faqEmailLifecycle` (pt-BR, en, fr, de). Fonte técnica: [employee-email-lifecycle.md](employee-email-lifecycle.md). A IA deve explicar: pessoal preservado, corporativo opcional na contratação e principal após cadastro, convite automático, pessoal temporário se ainda não há corporativo, revogação dos acessos na troca/saída, retorno ao pessoal no desligamento e cadastro único. Conferir o pessoal de registros antigos antes da saída; não afirmar que a plataforma cria/exclui caixas no provedor.

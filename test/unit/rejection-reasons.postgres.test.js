@@ -33,7 +33,7 @@ test('PostgreSQL: multiple reasons, legacy backfill, history, constraints and at
       return db.query(sql, values);
     };
     const deps = {
-      ...pipeline, ERR, NextResponse: { json: Response.json }, cookies: async () => ({ get: () => ({ value: 'fixture' }) }), COOKIE_NAME: 'session',
+      ...pipeline, localeFromRequest: () => 'pt-BR', ERR, NextResponse: { json: Response.json }, cookies: async () => ({ get: () => ({ value: 'fixture' }) }), COOKIE_NAME: 'session',
       verifySessionWithCapabilities: async () => ({ companyId, userId: null }), canAccessCandidateRecord: () => true, isAdminRole: () => false,
       CAP: { VACANCIES_MANAGE: 'manage', VACANCIES_VIEW: 'view' }, requireCapability: () => true, sanitizeInterviewNotesHtml: (v) => v,
       query, queryRead: query, withTransaction: async (fn) => { await db.query('SAVEPOINT move'); try { const result=await fn({query}); await db.query('RELEASE SAVEPOINT move'); return result; } catch(e) { await db.query('ROLLBACK TO SAVEPOINT move'); throw e; } },

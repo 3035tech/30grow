@@ -1,3 +1,4 @@
+import { candidateContact } from '../../../../../../../../lib/candidate-contact';
 import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
@@ -35,11 +36,12 @@ export async function POST(request, props) {
     }
 
     const inv = await queryRead(
-      `SELECT ci.id, ci.token, ci.candidate_name AS "candidateName", ci.candidate_email AS "candidateEmail",
+      `SELECT ci.id, ci.candidate_id AS "candidateId", ci.company_id AS "inviteCompanyId", ci.token, ci.candidate_name AS "candidateName", CASE WHEN ci.candidate_id IS NULL THEN ci.candidate_email ELSE person.email END AS "candidateEmail",
               ci.status, ci.reminder_count AS "reminderCount",
               v.id AS "vacancyId", v.title AS "vacancyTitle", v.status AS "vacancyStatus", v.company_id AS "companyId",
               c.name AS "companyName"
        FROM candidate_invites ci
+       LEFT JOIN candidates person ON person.id=ci.candidate_id AND person.company_id=ci.company_id
        JOIN vacancies v ON v.id = ci.vacancy_id AND v.deleted = FALSE
        JOIN companies c ON c.id = v.company_id AND c.deleted = FALSE
        WHERE ci.id = $1 AND ci.vacancy_id = $2
@@ -59,6 +61,11 @@ export async function POST(request, props) {
       return apiError(request, ERR.INVITE_NOT_PENDING, 400);
     }
 
+    if (row.candidateId == null) {
+      const contact = await candidateContact(queryRead, { companyId: row.inviteCompanyId, email: row.candidateEmail });
+      if (contact) row.candidateEmail = contact.email;
+    }
+    if (!row.candidateEmail) return apiError(request, ERR.CANDIDATE_NO_EMAIL, 400);
     const base = publicAppUrl(request);
     if (!base) {
       return apiError(request, ERR.APP_URL_MISSING, 500);

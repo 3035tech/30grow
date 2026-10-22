@@ -1,3 +1,4 @@
+import { candidateContact } from '../../../../lib/candidate-contact';
 import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { query, queryRead } from '../../../../lib/db';
@@ -30,11 +31,12 @@ export async function POST(request) {
     }
 
     const pending = await queryRead(
-      `SELECT ci.id, ci.token, ci.candidate_name AS "candidateName", ci.candidate_email AS "candidateEmail",
+      `SELECT ci.id, ci.candidate_id AS "candidateId", ci.company_id AS "inviteCompanyId", ci.token, ci.candidate_name AS "candidateName", CASE WHEN ci.candidate_id IS NULL THEN ci.candidate_email ELSE person.email END AS "candidateEmail",
               ci.reminder_count AS "reminderCount", ci.sent_at AS "sentAt", ci.last_reminder_at AS "lastReminderAt",
               v.id AS "vacancyId", v.title AS "vacancyTitle", v.status AS "vacancyStatus",
               c.name AS "companyName"
        FROM candidate_invites ci
+       LEFT JOIN candidates person ON person.id=ci.candidate_id AND person.company_id=ci.company_id
        JOIN vacancies v ON v.id = ci.vacancy_id AND v.deleted = FALSE AND v.status = 'open'
        JOIN companies c ON c.id = v.company_id AND c.deleted = FALSE
        WHERE ci.status IN ('sent', 'opened')
@@ -51,6 +53,11 @@ export async function POST(request) {
 
     for (const row of pending.rows) {
       try {
+        if (row.candidateId == null) {
+          const contact = await candidateContact(queryRead, { companyId: row.inviteCompanyId, email: row.candidateEmail });
+          if (contact) row.candidateEmail = contact.email;
+        }
+        if (!row.candidateEmail) continue;
         const linkToken = await ensureActiveVacancyLinkToken(row.vacancyId);
         const challengeUrl = `${base}/v/${linkToken}?invite=${encodeURIComponent(row.token)}`;
         const { subject, text, html } = buildCandidateChallengeInviteMail({

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../lib/auth';
 import { query, queryRead, withTransaction } from '../../../../../lib/db';
 import { audit } from '../../../../../lib/audit';
-import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error';
+import { apiError, apiErrorFromResult, localeFromRequest, ERR } from '../../../../../lib/api-error';
 import {
   PIPELINE_STAGE,
   normalizeRejectionReasons,
@@ -78,6 +78,7 @@ export async function PATCH(request, props) {
     const funnelEvent = pipelineStageToFunnelEvent(canonicalStage);
 
 
+    let hireResult = null;
     const up = await withTransaction(async db => {
     const result = await db.query(
       `UPDATE assessments SET
@@ -112,7 +113,7 @@ export async function PATCH(request, props) {
       ]
     );
 
-    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
+    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true});
     if (vacancyId && candidateId) {
       await db.query(
         `UPDATE vacancy_candidates SET rejection_reasons = $3::text[],
@@ -139,7 +140,8 @@ export async function PATCH(request, props) {
     }
 
     if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) {
-      await runCandidateHireEffects({ companyId:assCompanyId,candidateId,startDate });
+      const hireEffects = await runCandidateHireEffects({ companyId:assCompanyId,candidateId,startDate,...hireResult,locale:localeFromRequest(request) });
+      up.access = hireEffects?.access ?? null;
       if (vacancyId) {
         await query(
           `UPDATE vacancy_candidates SET
@@ -190,8 +192,9 @@ export async function PATCH(request, props) {
       },
     });
 
-    return NextResponse.json(up.rows[0]);
+    return NextResponse.json({ ...up.rows[0], access: up.access ?? null });
   } catch (e) {
+    if ((e)?.code === '23505' && String((e)?.constraint || '').includes('email')) return apiError(request, ERR.EMAIL_TAKEN, 409);
     if (Object.values(ERR).includes(e?.code)) return apiErrorFromResult(request,{errorCode:e.code});
     console.error(e);
     return apiError(request, ERR.INTERNAL, 500);

@@ -1,3 +1,4 @@
+import { candidateContact } from '../../../../../../lib/candidate-contact';
 import crypto from 'crypto';
 import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabilities';
 import { NextResponse } from 'next/server';
@@ -39,7 +40,7 @@ export async function POST(request, props) {
 
     const body = await request.json().catch(() => ({}));
     const candidateName = String(body.candidateName || body.name || '').trim();
-    const candidateEmail = String(body.candidateEmail || body.email || '')
+    let candidateEmail = String(body.candidateEmail || body.email || '')
       .trim()
       .toLowerCase();
 
@@ -79,6 +80,9 @@ export async function POST(request, props) {
       return apiError(request, ERR.VACANCY_CLOSED, 400);
     }
 
+    const contact = await candidateContact(query, { companyId: row.companyId, email: candidateEmail });
+    if (contact) candidateEmail = contact.email;
+    if (!candidateEmail) return apiError(request, ERR.CANDIDATE_NO_EMAIL, 400);
     const base = publicAppUrl(request);
     if (!base) {
       return apiError(request, ERR.APP_URL_MISSING, 500);
@@ -91,10 +95,10 @@ export async function POST(request, props) {
 
     const ins = await query(
       `INSERT INTO candidate_invites (
-         vacancy_id, company_id, candidate_name, candidate_email, token, status, created_by_user_id, expires_at
-       ) VALUES ($1, $2, $3, $4, $5, 'sent', $6, NOW() + INTERVAL '30 days')
+         vacancy_id, company_id, candidate_name, candidate_email, token, status, created_by_user_id, expires_at, candidate_id
+       ) VALUES ($1, $2, $3, $4, $5, 'sent', $6, NOW() + INTERVAL '30 days', $7)
        RETURNING id`,
-      [row.id, row.companyId, candidateName, candidateEmail, inviteToken, createdBySql]
+      [row.id, row.companyId, candidateName, candidateEmail, inviteToken, createdBySql, contact?.id ?? null]
     );
     const inviteId = ins.rows[0]?.id;
     const challengeUrl = `${base}/v/${linkToken}?invite=${encodeURIComponent(inviteToken)}`;

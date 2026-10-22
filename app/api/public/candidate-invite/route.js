@@ -25,7 +25,7 @@ export async function GET(request) {
          ci.company_id AS "companyId",
          ci.candidate_id AS "candidateId",
          ci.candidate_name AS "candidateName",
-         ci.candidate_email AS "candidateEmail",
+         CASE WHEN ci.candidate_id IS NULL THEN ci.candidate_email ELSE cand.email END AS "candidateEmail",
          ci.status,
          ci.expires_at AS "expiresAt",
          ci.vacancy_id AS "vacancyId",
@@ -38,7 +38,7 @@ export async function GET(request) {
        FROM candidate_invites ci
        JOIN vacancies v ON v.id = ci.vacancy_id
        JOIN companies co ON co.id = ci.company_id
-       LEFT JOIN candidates cand ON cand.id = ci.candidate_id
+       LEFT JOIN candidates cand ON cand.id = ci.candidate_id AND cand.company_id = ci.company_id
        WHERE ci.token = $1
          AND v.deleted = FALSE
          AND co.deleted = FALSE

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../lib/auth';
 import { query, withTransaction } from '../../../../../../../lib/db';
 import { sanitizeInterviewNotesHtml } from '../../../../../../../lib/sanitize-html';
-import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error';
+import { apiError, apiErrorFromResult, localeFromRequest, ERR } from '../../../../../../../lib/api-error';
 import { CAP, isAdminRole, requireCapability } from '../../../../../../../lib/permissions';
 import {
   PIPELINE_STAGE,
@@ -154,6 +154,7 @@ export async function PATCH(request, props) {
     const isRejectedCanonical = stageCanonical === PIPELINE_STAGE.REJECTED;
     const isHiredCanonical = stageCanonical === PIPELINE_STAGE.HIRED;
 
+    let hireResult = null;
     const upd = await withTransaction(async db => {
     const updated = await db.query(
       `UPDATE vacancy_candidates
@@ -194,7 +195,7 @@ export async function PATCH(request, props) {
       ]
     );
 
-    if (isHiredCanonical) await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId});
+    if (isHiredCanonical) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true});
     if (body.pipelineStage !== undefined && stage != null) {
       await db.query(
         `INSERT INTO vacancy_candidate_pipeline_history
@@ -220,7 +221,8 @@ export async function PATCH(request, props) {
     }
 
     if (isHiredCanonical) {
-      await runCandidateHireEffects({ companyId:loaded.link.companyId,candidateId,startDate });
+      const hireEffects = await runCandidateHireEffects({ companyId:loaded.link.companyId,candidateId,startDate,...hireResult,locale:localeFromRequest(request) });
+      upd.access = hireEffects?.access ?? null;
       await maybeCloseVacancyIfFilled(vacancyId);
       await notifyHireOnboardingKit(query, {
         companyId: loaded.link.companyId,
@@ -253,9 +255,11 @@ export async function PATCH(request, props) {
     return NextResponse.json({
       ...upd.rows[0],
       fullName: loaded.link.fullName,
-      email: loaded.link.email,
+      email: hireResult?.emailAccess?.currentEmail || loaded.link.email,
+      access: upd.access ?? null,
     });
   } catch (error) {
+    if ((error)?.code === '23505' && String((error)?.constraint || '').includes('email')) return apiError(request, ERR.EMAIL_TAKEN, 409);
     if (Object.values(ERR).includes(error?.code)) return apiErrorFromResult(request,{errorCode:error.code});
     console.error(error);
     return apiError(request, ERR.INTERNAL, 500);

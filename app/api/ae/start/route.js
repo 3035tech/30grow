@@ -40,10 +40,11 @@ export async function POST(request) {
     return await withTransaction(async (client) => {
     const query = (text, values) => client.query(text, values);
     const inv = await query(
-      `SELECT i.id, i.company_id AS "companyId", i.definition_id AS "definitionId",
+      `SELECT i.id, i.candidate_id AS "candidateId", LOWER(TRIM(person.email)) AS "currentEmail", i.company_id AS "companyId", i.definition_id AS "definitionId",
               i.candidate_name AS "inviteName", LOWER(TRIM(i.candidate_email)) AS "inviteEmail",
               i.status, i.expires_at AS "expiresAt", d.slug AS "definitionSlug", d.version
        FROM ae_invites i
+       LEFT JOIN candidates person ON person.id=i.candidate_id AND person.company_id=i.company_id
        JOIN ae_definitions d ON d.id = i.definition_id
        JOIN companies c ON c.id = i.company_id
        WHERE i.token = $1 AND c.deleted = FALSE AND d.active = TRUE
@@ -60,7 +61,7 @@ export async function POST(request) {
     if (invite.status === 'cancelled' || invite.status === 'completed') {
       return apiError(request, ERR.INVITE_NOT_AVAILABLE, 403);
     }
-    if (invite.inviteEmail !== email) {
+    if (invite.inviteEmail !== email && invite.currentEmail !== email) {
       return apiError(request, ERR.INVITE_EMAIL_MISMATCH, 400);
     }
 
@@ -72,6 +73,7 @@ export async function POST(request) {
 
     const cand = await upsertCandidate({
       companyId: invite.companyId,
+      candidateId: invite.candidateId ?? null,
       fullName: name || invite.inviteName,
       email,
     });

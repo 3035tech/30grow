@@ -29,7 +29,7 @@ async function fixture({ canonicalKey = 'screening', found = true, accessible = 
     canAccessCandidateRecord: () => true, isAdminRole: () => admin, requireCapability: () => true, CAP: { VACANCIES_MANAGE: 'manage' },
     query: db, queryRead: db, withTransaction: (fn) => fn({ query: db }),
     audit: async () => {}, auditFromRequest: async () => {},
-    ERR, apiError: (_, code, status) => ({ code, status }), apiErrorFromResult: (_, result) => result,
+    localeFromRequest: () => 'pt-BR', ERR, apiError: (_, code, status) => ({ code, status }), apiErrorFromResult: (_, result) => result,
     PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, rejectionReasonsSql, sanitizeInterviewNotesHtml: (v) => v,
     resolveRecruitingPipelineStage: async (scope) => { resolutions.push(scope); return found ? { stageKey: scope.stageKey, canonicalKey } : null; },
     pipelineStageToFunnelEvent: (stage) => { events.push(stage); return null; }, scheduleJobFunnelEvent: () => {},
@@ -78,6 +78,13 @@ for (const [kind, path, params] of [
     const f = await fixture({ found: false });
     assert.equal((await move(f, { pipelineStage: 'c_other_company' })).code, ERR.INVALID_PIPELINE_STAGE);
     assert.equal(f.calls.some((c) => /UPDATE|INSERT/.test(c.sql)), false);
+  });
+  test(`${kind}: hire carries the optional corporate email into the atomic hire`, async () => {
+    const f = await fixture({ canonicalKey: 'hired' });
+    const result = await move(f, { pipelineStage: 'hired', startDate: '2026-10-22', corporateEmail: 'work@example.test' });
+    assert.equal(result.status, 200);
+    assert.equal(f.hires[0].corporateEmail, 'work@example.test');
+    assert.equal(f.hires[0].inviteAccess, true);
   });
   for (const [canonicalKey, code] of [['hired', ERR.START_DATE_REQUIRED], ['rejected', ERR.REJECTION_REASON_REQUIRED]]) {
     test(`${kind}: custom ${canonicalKey} keeps required transition fields`, async () => {

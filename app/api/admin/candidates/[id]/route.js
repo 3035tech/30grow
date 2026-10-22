@@ -380,7 +380,7 @@ export async function PATCH(request, props) {
     const previousEmail = String(previous.rows[0].email || '').toLowerCase();
     if (nextEmail && nextEmail !== previousEmail) {
       const revoked = await revokeEmployeeAccessForEmailChange(db, { candidateId: id, companyId: previous.rows[0].companyId });
-      result.emailChange = { companyId: previous.rows[0].companyId, from: previousEmail, revoked };
+      result.emailChange = { companyId: previous.rows[0].companyId, from: previousEmail, revoked, inviteIfMissing: previous.rows[0].employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE };
     }
     return result;
   }).catch((error) => {
@@ -407,6 +407,7 @@ export async function PATCH(request, props) {
       candidateId: id,
       companyId: up.emailChange.companyId,
       revoked: up.emailChange.revoked,
+      inviteIfMissing: up.emailChange.inviteIfMissing,
       previousEmail: up.emailChange.from,
       locale: localeFromRequest(request),
     });

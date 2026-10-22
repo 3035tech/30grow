@@ -1,3 +1,4 @@
+import { candidateContact } from '../../../../../../../lib/candidate-contact';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../../../lib/db';
 import { CAP, getManagerScope, getSessionPayload, publicAppUrl, requireCapability } from '../../../../../../../lib/ae/require-admin';
@@ -13,9 +14,10 @@ async function loadInvite(id, { isAdmin, companyId }) {
     params.push(companyId);
   }
   const res = await query(
-    `SELECT i.id, i.candidate_name AS "candidateName", i.candidate_email AS "candidateEmail",
+    `SELECT i.id, i.candidate_id AS "candidateId", i.company_id AS "inviteCompanyId", i.candidate_name AS "candidateName", CASE WHEN i.candidate_id IS NULL THEN i.candidate_email ELSE person.email END AS "candidateEmail",
             i.token, i.status, c.name AS "companyName"
      FROM ae_invites i
+     LEFT JOIN candidates person ON person.id=i.candidate_id AND person.company_id=i.company_id
      JOIN companies c ON c.id = i.company_id
      WHERE i.id = $1 ${scope}
      LIMIT 1`,
@@ -41,6 +43,11 @@ export async function POST(request, props) {
       return apiError(request, ERR.INVITE_NOT_PENDING, 400);
     }
 
+    if (invite.candidateId == null) {
+      const contact = await candidateContact(query, { companyId: invite.inviteCompanyId, email: invite.candidateEmail });
+      if (contact) invite.candidateEmail = contact.email;
+    }
+    if (!invite.candidateEmail) return apiError(request, ERR.CANDIDATE_NO_EMAIL, 400);
     const base = publicAppUrl(request);
     if (!base) return apiError(request, ERR.APP_URL_MISSING, 500);
 
