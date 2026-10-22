@@ -3,7 +3,7 @@ import {
   mobileEmployeeBearerToken,
 } from '../../../../../../../lib/mobile-employee-session.js';
 import { employeeReceiptResponse } from '../../../../../../../lib/rep/employee-api.js';
-import { apiError, ERR } from '../../../../../../../lib/api-error.js';
+import { apiError, ERR, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
 export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
@@ -12,6 +12,6 @@ export async function GET(request) {
       await authenticateMobileEmployee(mobileEmployeeBearerToken(request)),
     );
   } catch {
-    return apiError(request, ERR.INTERNAL, 500);
+    return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }

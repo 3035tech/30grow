@@ -124,3 +124,5 @@ A seção de acesso agora separa contratação, troca de e-mail, desligamento e 
 ### Estabilidade do beta: rascunhos, erros e suporte
 
 `productFeedbackStep3`, `panel.productFeedback.superAdminHint` e `faqProductFeedback` explicam triagem privada, resposta publicada e Meus pedidos de suporte no assistente. Não afirmar que uma nota interna ou mudança de status é resposta ao usuário. O retorno é consultado no aplicativo; não há novo envio automático de e-mail. Rascunhos com alterações pedem confirmação ao fechar; erros de entrada aparecem por campo. Fonte técnica: [beta-stability-five-fixes.md](beta-stability-five-fixes.md).
+
+Certificado digital: a seção `digitalCertificate` do Guia está vinculada à tela `digital-certificate` e ao contexto do assistente. Explica o escopo global exclusivo do superadministrador, teste antes de salvar, renovação e acompanhamento da validade. Arquivo A1 e senha devem ser informados somente no formulário próprio, nunca no chat ou no suporte.

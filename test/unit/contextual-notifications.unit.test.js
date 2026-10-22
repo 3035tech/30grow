@@ -30,8 +30,9 @@ test('closed target mapping preserves IDs and never exposes URLs/tokens or incor
   assert.equal(target.mobileNotificationTarget({ type: EMPLOYEE_NOTIF.FEEDBACK_REQUESTED, payload: { requestId: 'https://evil.example' } }), null);
 });
 
-async function setup(session) {
+async function setup(session, preferredLocale = 'pt-BR') {
   const calls = [];
+  const profileCalls = [];
   const route = await moduleAt('../../app/api/mobile/v1/employee/notifications/route.js', {
     NextResponse: { json: (body, options) => ({ body, ...options }) }, z,
     apiError: (_request, code, status) => ({ code, status }), apiErrorFromResult: (_request, result) => result,
@@ -42,8 +43,15 @@ async function setup(session) {
     mobilePushDestinationFor: () => 'today',
     normalizeMobilePushDestinations: (list) => (Array.isArray(list) ? list : []),
     resolveMobilePushDestination: (preferred) => preferred,
-    mobileNotificationTarget: target.mobileNotificationTarget, t: (_locale, key) => key,
-  }); return { route, calls };
+    mobileNotificationTarget: target.mobileNotificationTarget, t: (locale, key) => `${locale}:${key}`,
+    normalizeLocale: (locale) => locale,
+    getEmployeeProfile: async (_db, options) => {
+      profileCalls.push(options);
+      assert.equal(options.companyId, session?.companyId);
+      assert.equal(options.candidateId, session?.candidateId);
+      return { ok: true, person: { preferredLocale } };
+    },
+  }); return { route, calls, profileCalls };
 }
 test('legacy destination remains compatible; opt-in page/targets are tenant-scoped and no-store', async () => {
   for (const companyId of [1, 2]) {
@@ -58,12 +66,20 @@ test('legacy destination remains compatible; opt-in page/targets are tenant-scop
     assert.ok(calls.every((call) => call.companyId === companyId && call.candidateId === companyId * 10));
   }
 });
+test('notification copy uses the authenticated employee profile locale', async () => {
+  const { route, profileCalls } = await setup({ companyId: 2, candidateId: 20 }, 'en');
+  const result = await route.GET({ url: 'https://example.com/notifications?context=1' });
+  assert.equal(result.body.items[0].title, 'en:title');
+  assert.equal(result.body.items[0].body, 'en:body');
+  assert.equal(profileCalls.length, 1);
+});
 test('anonymous/invalid/duplicate/tenant-injected requests fail before data access', async () => {
   assert.equal((await (await setup(null)).route.GET({})).status, 401);
-  const { route, calls } = await setup({ companyId: 1, candidateId: 10 });
+  const { route, calls, profileCalls } = await setup({ companyId: 1, candidateId: 10 });
   for (const query of ['page=0', 'page=10001', 'page=1&page=2', 'companyId=2', 'context=2', 'page=1.5']) assert.equal((await route.GET({ url: `https://example.com/notifications?${query}` })).status, 400);
   for (const body of [{}, { id: 1, companyId: 2 }, { id: 1, markAll: true }]) assert.equal((await route.PATCH({ url: 'https://example.com/notifications', json: async () => body })).status, 400);
   assert.equal(calls.length, 0);
+  assert.equal(profileCalls.length, 0);
 });
 test('domain pagination SQL binds employee and company; deterministic ordering and filtered counts', async () => {
   const calls = [];

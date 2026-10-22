@@ -70,3 +70,16 @@ Não foram ocultadas, desativadas nem corrigidas como parte desta entrega. Devem
 Há 107 rotas que ainda usam guards legados. Todas as operações administrativas declaradas foram testadas sem sessão; isso não transforma cada combinação de módulo, relação, filtro e papel em uma prova exaustiva. A matriz autenticada acima cobre as superfícies e os cenários descritos. Não equivale a pentest externo, auditoria integral de todos os módulos, RLS no PostgreSQL nem validação de arquivos privados por conteúdo. Primeiro acesso assistido, e-mails, backup/restore, leitor de tela e aparelhos físicos continuam nos demais critérios do beta.
 
 Rollback da imagem não exige reversão de dados/migration, mas reintroduziria os dois defeitos de autorização; preferir correção para frente. As sessões são hidratadas com a linha atual do usuário, sem criar tokens globais ou elevar privilégios para realizar esta validação.
+
+## Atualização — resolução das oito falhas anteriores
+
+Os oito itens da seção anterior foram corrigidos na sequência desta auditoria. A suíte geral agora executa **539 testes com zero falhas**, incluindo três novas provas de locale das notificações, ajuda de certificado e marcadores de preço. O gate de segurança mantém 78 aprovações e a regressão offline, 40.
+
+- Notificações: mocks do perfil/locale atualizados; consultas de perfil e notificações continuam vinculadas ao colaborador autenticado, e entradas inválidas não consultam os dados.
+- Troca de empresa: o teste de credenciais verifica obrigatórios no envio, em conformidade com o formulário atual; não exige mais a implementação antiga de botão desabilitado.
+- Certificado digital: ajuda contextual, artigo próprio no Guia e fonte do assistente, com título, propósito e três passos nos quatro catálogos completos.
+- Idiomas: preços completados em inglês/francês/alemão; completadas também as 251 chaves ausentes em cada catálogo francês/alemão. Valores de cobrança não foram alterados. As traduções incrementais preservam os marcadores e os textos já existentes; os novos textos comerciais e termos de posicionamento foram conferidos.
+- Expectativas regionais: alinhadas ao plano e aos textos públicos atuais, preservando as diferenças entre Portugal, Espanha e América Latina.
+- Recibos móveis: status interno usa `HTTP_STATUS.INTERNAL_SERVER_ERROR`.
+
+Não foram removidos ou desativados testes para obter este resultado. `npm run test:unit` foi incluído no CI e no build Docker, para que a suíte geral também bloqueie futuras publicações. A paridade de chaves continua exigida e ganhou verificação dos marcadores dos textos comerciais. Esta atualização encerra as oito pendências registradas acima; os demais limites de cobertura da auditoria de isolamento continuam válidos.

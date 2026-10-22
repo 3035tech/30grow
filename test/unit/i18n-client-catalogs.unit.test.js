@@ -43,3 +43,17 @@ describe('i18n client catalogs', () => {
     assert.match(layout, /<I18nBoot locales=\{\[locale, DEFAULT_LOCALE\]\}>/);
   });
 });
+
+it('keeps commercial interpolation markers intact in every full catalog', () => {
+  const keys = ['faq5Q', 'faq5A', 'faq6Q', 'faq6A', 'usageNote', 'launchTitle', 'launchBody', 'launchSignupNote', 'launchCta', 'plansTitle', 'plansLead', 'firstTierRange', 'annualTierNote', 'customTierNote', 'quoteCta', 'featuresIncluded'];
+  const markers = value => (value.match(/\{\w+\}/g) || []).sort();
+  for (const key of keys) {
+    const expected = markers(messages['pt-BR'].pricing[key]);
+    for (const locale of ['en', 'fr-FR', 'de-DE']) {
+      const value = messages[locale].pricing[key];
+      assert.equal(typeof value, 'string', `${locale}: pricing.${key}`);
+      assert.ok(value.trim());
+      assert.deepEqual(markers(value), expected, `${locale}: pricing.${key}`);
+    }
+  }
+});

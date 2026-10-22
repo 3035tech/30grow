@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
+import { validateFormFields } from '../../lib/form-validation.js';
 
 function source(path) {
   return readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
@@ -35,10 +36,15 @@ describe('employee company switch contract', () => {
     assert.match(topBar, /window\.location\.assign\('\/employee'\)/);
   });
 
-  it('keeps required credentials in the dialog until they are filled', () => {
-    const dialog = source('app/_components/PromptFormDialog.jsx');
-    assert.match(dialog, /const missingRequired = visibleFields\.some/);
-    assert.match(dialog, /disabled=\{(?:submitting \|\| )?Boolean\(uploadBusyKey\) \|\| missingRequired\}/);
-    assert.match(dialog, /aria-required=\{Boolean\(f\.required\)\}/);
+  it('validates missing credentials on submit and accepts completed credentials', () => {
+    const fields = [
+      { key: 'password', type: 'password', required: true },
+      { key: 'totp', required: true },
+    ];
+    const missing = validateFormFields(fields, { password: '', totp: '' }, 'pt-BR');
+    assert.deepEqual(Object.keys(missing), ['password', 'totp']);
+    const partial = validateFormFields(fields, { password: 'LocalTest!2026', totp: '' }, 'pt-BR');
+    assert.deepEqual(Object.keys(partial), ['totp']);
+    assert.deepEqual(validateFormFields(fields, { password: 'LocalTest!2026', totp: '123456' }, 'pt-BR'), {});
   });
 });

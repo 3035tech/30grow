@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: General unit regression gate
+        run: npm run test:unit
+
       - name: Security regression gate
         run: npm run test:security
 
