@@ -703,12 +703,6 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                             </div>
                           ) : null}
                           <label className="mt-2 block">
-                            <span className="sr-only">{t(locale, 'recruiting.moveStage')}</span>
-                            <SelectField value={r.pipelineStage || 'new'} disabled={isBusy} onChange={event => void moveTo(r, event.target.value)} aria-label={t(locale, 'recruiting.moveStage')} className="ui-select min-h-touch w-full text-xs">
-                              {stages.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
-                            </SelectField>
-                          </label>
-                          <label className="mt-2 block">
                             <span className="sr-only">{t(locale, 'recruiting.candidateOwner')}</span>
                             <SelectField
                               value={r.ownerUserId || ''}
