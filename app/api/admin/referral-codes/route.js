@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../lib/auth';
 import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/permissions';
 import { createReferralCode, listReferralCodes } from '../../../../lib/referral-codes';
 
 /**
@@ -18,7 +18,7 @@ export async function GET(request) {
     return apiError(request, ERR.UNAUTHORIZED, 401);
   }
 
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = isAdmin
     ? Number(request.nextUrl.searchParams.get('companyId') || payload?.companyId) || null
     : payload?.companyId ?? null;
@@ -50,7 +50,7 @@ export async function POST(request) {
     return apiError(request, ERR.UNAUTHORIZED, 401);
   }
 
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const body = await request.json().catch(() => ({}));
   const companyId = isAdmin
     ? Number(body.companyId || payload?.companyId)

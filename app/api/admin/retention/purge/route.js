@@ -4,14 +4,14 @@ import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../lib/auth';
 import { audit } from '../../../../../lib/audit';
 import { apiError, ERR } from '../../../../../lib/api-error';
-import { CAP, requireCapability, isAdminRole } from '../../../../../lib/permissions';
+import { CAP, requireCapability, isSuperAdminPayload } from '../../../../../lib/permissions';
 import { purgeExpiredAssessmentsAndOrphans } from '../../../../../lib/retention';
 
 export async function POST(request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   const payload = await verifySessionWithCapabilities(token);
-  if (!isAdminRole(payload) || !requireCapability(payload, CAP.USERS_MANAGE)) return apiError(request, ERR.UNAUTHORIZED, 401);
+  if (!isSuperAdminPayload(payload) || !requireCapability(payload, CAP.USERS_MANAGE)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
   const { searchParams } = new URL(request.url);
   const body = await request.json().catch(() => ({}));

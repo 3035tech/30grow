@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../lib/auth.js';
 import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
-import { CAP, isAdminRole, requireCapability } from '../../../../lib/permissions.js';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/permissions.js';
 import { queryRead } from '../../../../lib/db.js';
 import { getPlaybooksForTab } from '../../../../lib/persona-playbook-progress.js';
 
@@ -19,7 +19,7 @@ export async function GET(request) {
       return apiError(request, ERR.UNAUTHORIZED, 401);
     }
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

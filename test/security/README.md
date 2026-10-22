@@ -40,3 +40,11 @@ O script usa `-I` (não falha o CI por alertas médios/baixos); revise o relató
 | Sanitizer HTML | `full-regression.js` → `lib/sanitize-html` |
 
 Detalhe das mudanças: `docs/security-hardening-2026-08.md`.
+
+## Isolamento por empresa e perfil (beta)
+
+A matriz HTTP local está em `test/dtov/tenant-permissions.http.test.js` e o contrato
+compartilhado em `test/unit/tenant-scope.unit.test.js`. Preparação, resultados,
+correções, limites e pendências anteriores estão em
+[`docs/tenant-permissions-audit-2026-10-22.md`](../../docs/tenant-permissions-audit-2026-10-22.md).
+A execução exige `TENANT_AUDIT=1` e fixa banco e aplicação em localhost.

@@ -51,8 +51,8 @@ export const GET = withAdminApi(
       return NextResponse.json({ ok: true, pool: result.pool });
     }
     const data = await listLeaveRequests({ query }, {
-      companyId,
       ...q,
+      companyId,
     });
     return NextResponse.json(data);
   }

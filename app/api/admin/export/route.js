@@ -11,7 +11,7 @@ import {
   parseRosterScope,
 } from '../../../../lib/assessment-filters';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { canAccessAnalysisData, isAdminRole } from '../../../../lib/permissions';
+import { canAccessAnalysisData, isSuperAdminPayload } from '../../../../lib/permissions';
 import {
   assessmentsCsvStream,
   exportMaxRows,
@@ -24,7 +24,7 @@ export async function GET(request) {
   const payload = await verifySessionWithCapabilities(token);
   const allowed = canAccessAnalysisData(payload);
   if (!allowed) return apiError(request, ERR.UNAUTHORIZED, 401);
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

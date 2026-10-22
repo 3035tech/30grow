@@ -45,7 +45,7 @@ test('email lifecycle: hire → corporate contact → exit → personal contact 
     const deps = {
       candidateContact, query, queryRead: query,
       NextResponse: { json: Response.json }, cookies: async () => ({ get: () => ({ value: 'fixture-session' }) }), COOKIE_NAME: 'session',
-      verifySessionWithCapabilities: async () => ({ companyId: sessionCompanyId }), requireCapability: () => true, isAdminRole: () => false, CAP: { VACANCIES_MANAGE: 'manage' },
+      verifySessionWithCapabilities: async () => ({ companyId: sessionCompanyId }), requireCapability: () => true, isSuperAdminPayload: () => false, CAP: { VACANCIES_MANAGE: 'manage' },
       ensureActiveVacancyLinkToken: async () => 'fixture-vacancy-link', publicAppUrl: () => 'https://email-test.example',
       enqueueTransactionalMail: (await import('../../lib/mail.js')).enqueueTransactionalMail,
       buildCandidateChallengeInviteMail: () => ({ subject: 'Fixture reminder', text: 'Fixture only' }),

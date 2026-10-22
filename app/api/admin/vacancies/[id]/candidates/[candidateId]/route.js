@@ -5,7 +5,7 @@ import { COOKIE_NAME } from '../../../../../../../lib/auth';
 import { query, withTransaction } from '../../../../../../../lib/db';
 import { sanitizeInterviewNotesHtml } from '../../../../../../../lib/sanitize-html';
 import { apiError, apiErrorFromResult, localeFromRequest, ERR } from '../../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../lib/permissions';
 import {
   PIPELINE_STAGE,
   normalizeRejectionReasons,
@@ -19,7 +19,7 @@ import { auditFromRequest } from '../../../../../../../lib/audit';
 
 
 async function loadLink(request, vacancyId, candidateId, payload) {
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return { error: apiError(request, ERR.UNAUTHORIZED, 401) };
 
@@ -53,7 +53,7 @@ export async function GET(request, props) {
     const cookieStore = await cookies();
     const payload = await verifySessionWithCapabilities(cookieStore.get(COOKIE_NAME)?.value);
     if (!requireCapability(payload, CAP.VACANCIES_VIEW)) return apiError(request, ERR.UNAUTHORIZED, 401);
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     if (!isAdmin && !payload?.companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
     const vacancyId = Number(params?.id);
     const candidateId = Number(params?.candidateId);

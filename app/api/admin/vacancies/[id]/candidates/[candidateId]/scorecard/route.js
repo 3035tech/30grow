@@ -4,7 +4,7 @@ import { COOKIE_NAME } from '../../../../../../../../lib/auth';
 import { verifySessionWithCapabilities } from '../../../../../../../../lib/user-capabilities';
 import { query } from '../../../../../../../../lib/db';
 import { apiError, localeFromRequest, ERR } from '../../../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/permissions';
 import {
   draftScorecardItemsFromBrief,
   getInterviewScorecard,
@@ -13,7 +13,7 @@ import {
 import { buildInterviewQuestions } from '../../../../../../../../lib/people/decision-brief';
 
 async function loadVacancyScope(request, vacancyId, payload) {
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return { error: apiError(request, ERR.UNAUTHORIZED, 401) };
   const params = [vacancyId];

@@ -3,7 +3,7 @@ import { apiError, ERR } from '../../../../../lib/api-error.js';
 import {
   getSessionPayload,
   getManagerScope,
-  isAdminRole,
+  isSuperAdminPayload,
   CAP,
   requireCapability,
 } from '../../../../../lib/ae/require-admin.js';
@@ -23,7 +23,7 @@ export async function GET(request) {
     const scope = getManagerScope(payload);
     if (!scope.authorized) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const { searchParams } = new URL(request.url);
 
     let companyId;

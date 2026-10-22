@@ -5,7 +5,7 @@ import { COOKIE_NAME } from '../../../../../../../lib/auth';
 import { query, queryRead, withTransaction } from '../../../../../../../lib/db';
 import { audit } from '../../../../../../../lib/audit';
 import { apiError, ERR } from '../../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../lib/permissions';
 
 
 export async function DELETE(request, props) {
@@ -16,7 +16,7 @@ export async function DELETE(request, props) {
     const payload = await verifySessionWithCapabilities(session);
     if (!requireCapability(payload, CAP.VACANCIES_MANAGE)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

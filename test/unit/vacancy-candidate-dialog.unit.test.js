@@ -9,7 +9,7 @@ async function fixture({ authorized = true, companyId = 3, admin = false, found 
   const calls = [];
   const deps = {
     ...pipeline, localeFromRequest: () => 'pt-BR', ERR, NextResponse: { json: Response.json }, COOKIE_NAME: 'session', cookies: async () => ({ get: () => ({ value: 'fixture' }) }),
-    verifySessionWithCapabilities: async () => ({ companyId }), requireCapability: () => authorized, CAP: { VACANCIES_VIEW: 'view', VACANCIES_MANAGE: 'manage' }, isAdminRole: () => admin,
+    verifySessionWithCapabilities: async () => ({ companyId }), requireCapability: () => authorized, CAP: { VACANCIES_VIEW: 'view', VACANCIES_MANAGE: 'manage' }, isSuperAdminPayload: () => admin,
     query: async (sql, values) => { calls.push({sql,values}); return calls.length === 1 ? {rowCount:found?1:0,rows:found?[{companyId:3,candidateId:12,interviewNotes:'Saved notes'}]:[]} : {rowCount:events.length,rows:events}; },
     withTransaction: () => { throw new Error('GET must never write'); }, sanitizeInterviewNotesHtml: (x) => x,
     apiError: (_,code,status) => Response.json({code},{status}), apiErrorFromResult: () => {}, resolveRecruitingPipelineStage: () => {},

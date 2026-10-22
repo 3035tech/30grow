@@ -2,7 +2,7 @@ import { queryRead } from '../../../../../lib/db.js';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import {
   getSessionPayload,
-  isAdminRole,
+  isSuperAdminPayload,
   CAP,
   requireAnyCapability,
 } from '../../../../../lib/ae/require-admin.js';
@@ -43,7 +43,7 @@ export async function GET(request, props) {
     }
 
     const candidate = candidateRes.rows[0];
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
 
     // Tenant check
     if (!isAdmin && String(candidate.companyId) !== String(payload.companyId)) {

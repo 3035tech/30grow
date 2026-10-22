@@ -11,7 +11,7 @@ import {
   sqlWhere,
 } from '../../../../lib/assessment-filters';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { canAccessAnalysisData, isAdminRole } from '../../../../lib/permissions';
+import { canAccessAnalysisData, isSuperAdminPayload } from '../../../../lib/permissions';
 
 const BASE_JOIN = `
 FROM assessments ass
@@ -29,7 +29,7 @@ export async function GET(request) {
   const payload = await verifySessionWithCapabilities(token);
   if (!canAccessAnalysisData(payload)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

@@ -3,13 +3,13 @@ import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../../lib/auth';
 import { query, queryRead } from '../../../../../../../../lib/db';
 import { apiError, ERR } from '../../../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/permissions';
 import { verifySessionWithCapabilities } from '../../../../../../../../lib/user-capabilities';
 import { updateCandidateOffer, mapOffer } from '../../../../../../../../lib/people/candidate-offer';
 import { audit } from '../../../../../../../../lib/audit';
 
 async function loadScope(request, vacancyId, candidateId, payload) {
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return { error: apiError(request, ERR.UNAUTHORIZED, 401) };
 

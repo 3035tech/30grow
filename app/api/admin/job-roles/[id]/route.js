@@ -1,7 +1,7 @@
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import {
   getSessionPayload,
-  isAdminRole,
+  isSuperAdminPayload,
   CAP,
   requireCapability,
 } from '../../../../../lib/ae/require-admin.js';
@@ -19,7 +19,7 @@ export async function GET(request, props) {
       return apiError(request, ERR.UNAUTHORIZED, 401);
     }
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const id = parseInt(params.id, 10);
 
     if (isNaN(id)) {
@@ -58,7 +58,7 @@ export async function PATCH(request, props) {
       return apiError(request, ERR.UNAUTHORIZED, 401);
     }
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const id = parseInt(params.id, 10);
 
     if (isNaN(id)) {
@@ -131,7 +131,7 @@ export async function DELETE(request, props) {
       return apiError(request, ERR.UNAUTHORIZED, 401);
     }
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const id = parseInt(params.id, 10);
 
     if (isNaN(id)) {

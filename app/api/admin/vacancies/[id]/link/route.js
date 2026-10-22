@@ -5,13 +5,13 @@ import { COOKIE_NAME } from '../../../../../../lib/auth';
 import { query } from '../../../../../../lib/db';
 import crypto from 'node:crypto';
 import { apiError, ERR } from '../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
 
 
 async function authorizeVacancyLink(payload, vacancyId) {
   if (!vacancyId) return { errorCode: ERR.INVALID_VACANCY, status: 400 };
 
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
 
   if (!isAdmin && !companyId) return { errorCode: ERR.UNAUTHORIZED, status: 401 };

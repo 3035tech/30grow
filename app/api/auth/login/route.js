@@ -102,7 +102,7 @@ export async function POST(request) {
     const res = await loadUserForLogin(email);
 
     const row0 = res.rows[0];
-    const companyBlocked = row0?.role !== 'admin' && row0?.companyId && row0?.companyDeleted;
+    const companyBlocked = row0?.companyId && row0?.companyDeleted;
     if (res.rowCount === 0 || !row0?.active || row0?.userDeleted || companyBlocked) {
       await new Promise((r) => setTimeout(r, 500));
       return apiError(request, ERR.INVALID_CREDENTIALS, 401);

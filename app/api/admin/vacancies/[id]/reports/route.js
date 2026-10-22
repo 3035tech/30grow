@@ -9,7 +9,7 @@ import {
   loadVacancyReportSource,
 } from '../../../../../../lib/vacancy-report';
 import { apiError, ERR } from '../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
 import { loadCompanyInternalNucleus } from '../../../../../../lib/people/company-nucleus.js';
 import { buildShortlistCompositionRisks } from '../../../../../../lib/shortlist-composition-risks.js';
 import { queryRead } from '../../../../../../lib/db.js';
@@ -34,7 +34,7 @@ export async function GET(request, props) {
     const payload = await verifySessionWithCapabilities(session);
     if (!requireCapability(payload, CAP.VACANCIES_VIEW)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 
@@ -130,7 +130,7 @@ export async function POST(request, props) {
     const payload = await verifySessionWithCapabilities(session);
     if (!requireCapability(payload, CAP.VACANCIES_MANAGE)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

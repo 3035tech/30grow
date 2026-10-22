@@ -1,7 +1,7 @@
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import {
   getSessionPayload,
-  isAdminRole,
+  isSuperAdminPayload,
   CAP,
   requireCapability,
 } from '../../../../../lib/ae/require-admin.js';
@@ -24,7 +24,7 @@ export async function POST(request) {
 
     const body = await request.json();
     const candidateId = parseInt(body.candidateId, 10);
-    const companyId = isAdminRole(payload)
+    const companyId = isSuperAdminPayload(payload)
       ? parseInt(body.companyId)
       : parseInt(payload.companyId);
     const limit = body.limit ? parseInt(body.limit) : 100;
@@ -40,7 +40,7 @@ export async function POST(request) {
       if (candidateRes.rowCount === 0) return apiError(request, ERR.NOT_FOUND, 404);
 
       const candidate = candidateRes.rows[0];
-      if (!isAdminRole(payload) && String(candidate.companyId) !== String(payload.companyId)) {
+      if (!isSuperAdminPayload(payload) && String(candidate.companyId) !== String(payload.companyId)) {
         return apiError(request, ERR.UNAUTHORIZED, 401);
       }
 

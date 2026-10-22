@@ -6,7 +6,7 @@ import { query } from '../../../../../../../../lib/db';
 import { createAndQueueMotivatorsInvite } from '../../../../../../../../lib/ae/create-motivators-invite';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../lib/rate-limit';
 import { apiError, localeFromRequest, ERR } from '../../../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/permissions';
 import { publicAppUrl } from '../../../../../../../../lib/ae/require-admin';
 
 /**
@@ -23,7 +23,7 @@ export async function POST(request, props) {
       return apiError(request, ERR.UNAUTHORIZED, 401);
     }
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

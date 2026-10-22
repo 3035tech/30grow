@@ -10,7 +10,7 @@ import { enqueueTransactionalMail } from '../../../../../../lib/mail';
 import { buildCandidateChallengeInviteMail } from '../../../../../../lib/candidate-challenge-invite-mail';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit';
 import { apiError, localeFromRequest, ERR } from '../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
 import { publicAppUrl } from '../../../../../../lib/ae/require-admin';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,7 +23,7 @@ export async function POST(request, props) {
     const payload = await verifySessionWithCapabilities(session);
     if (!requireCapability(payload, CAP.VACANCIES_MANAGE)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

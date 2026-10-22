@@ -1,3 +1,4 @@
+import { isSuperAdminPayload } from '../../../lib/permissions.js';
 import { NextResponse } from 'next/server';
 import { queryRead } from '../../../lib/db';
 import { COOKIE_NAME } from '../../../lib/auth';
@@ -64,7 +65,7 @@ export async function GET(request) {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   const payload = await verifySessionWithCapabilities(token);
 
-  if (!payload || payload?.role !== 'admin') {
+  if (!isSuperAdminPayload(payload)) {
     return apiError(request, ERR.UNAUTHORIZED, 401);
   }
 

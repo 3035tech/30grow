@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../lib/auth';
 import { updateReportShareMeta } from '../../../../../../../lib/vacancy-report';
 import { apiError, ERR } from '../../../../../../../lib/api-error';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../lib/permissions';
 
 /** PATCH — atualiza título e/ou parecer de um relatório ainda ativo (snapshot permanece congelado). */
 export async function PATCH(request, props) {
@@ -15,7 +15,7 @@ export async function PATCH(request, props) {
     const payload = await verifySessionWithCapabilities(session);
     if (!requireCapability(payload, CAP.VACANCIES_MANAGE)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

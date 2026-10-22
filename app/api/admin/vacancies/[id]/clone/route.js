@@ -5,7 +5,7 @@ import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabi
 import { query } from '../../../../../../lib/db';
 import { apiError, localeFromRequest, ERR } from '../../../../../../lib/api-error';
 import { audit } from '../../../../../../lib/audit';
-import { CAP, isAdminRole, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
 import { cloneVacancy } from '../../../../../../lib/vacancy-clone';
 import { ensureActiveVacancyLinkToken } from '../../../../../../lib/vacancy-link';
 
@@ -20,7 +20,7 @@ export async function POST(request, props) {
       return apiError(request, ERR.UNAUTHORIZED, 401);
     }
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

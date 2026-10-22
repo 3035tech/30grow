@@ -12,7 +12,7 @@ import { titleCasePersonName } from '../../../../../lib/person-name';
 import { buildCandidateTimeline } from '../../../../../lib/hire';
 import { buildCandidatePeopleBrief } from '../../../../../lib/people/candidate-people-brief';
 import { isRichTextEmpty, sanitizeRichTextHtml } from '../../../../../lib/sanitize-html';
-import { CAP, requireAnyCapability, canAccessCandidateRecord, isAdminRole } from '../../../../../lib/permissions';
+import { CAP, requireAnyCapability, canAccessCandidateRecord, isSuperAdminPayload } from '../../../../../lib/permissions';
 import { upsertDpProfile } from '../../../../../lib/people/employee-dp.js';
 import { listCandidateOverdueLms } from '../../../../../lib/lms.js';
 import { normalizeLocale } from '../../../../../lib/i18n.js';
@@ -27,7 +27,7 @@ export async function GET(request, props) {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   const payload = await verifySessionWithCapabilities(token);
   if (!canAccessCandidateRecord(payload)) return apiError(request, ERR.UNAUTHORIZED, 401);
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 
@@ -160,7 +160,7 @@ export async function PATCH(request, props) {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   const payload = await verifySessionWithCapabilities(token);
   if (!canAccessCandidateRecord(payload)) return apiError(request, ERR.UNAUTHORIZED, 401);
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 
@@ -448,7 +448,7 @@ export async function DELETE(request, props) {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   const payload = await verifySessionWithCapabilities(token);
   if (!canAccessCandidateRecord(payload)) return apiError(request, ERR.UNAUTHORIZED, 401);
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

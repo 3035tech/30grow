@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../../../lib/admin-api.js';
-import { CAP, isAdminRole } from '../../../../../../../../lib/permissions.js';
+import { CAP, isSuperAdminPayload } from '../../../../../../../../lib/permissions.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../../../../lib/api-error.js';
 import {
   ensureInterviewPrepLink,
@@ -43,7 +43,7 @@ export const GET = withAdminApi(
       payload.companyId,
       vacancyId,
       candidateId,
-      isAdminRole(payload)
+      isSuperAdminPayload(payload)
     );
     if (!row) {
       return apiError(request, ERR.NOT_FOUND, httpStatusForError(ERR.NOT_FOUND));
@@ -73,7 +73,7 @@ export const POST = withAdminApi(
       payload.companyId,
       vacancyId,
       candidateId,
-      isAdminRole(payload)
+      isSuperAdminPayload(payload)
     );
     if (!row) {
       return apiError(request, ERR.NOT_FOUND, httpStatusForError(ERR.NOT_FOUND));

@@ -10,7 +10,7 @@ import { getTypeData, localizeAreaLabel } from '../../lib/i18n-data';
 import { typeHintTooltip } from '../../lib/type-en';
 import { t } from '../../lib/i18n';
 import { useLocale } from '../../lib/useLocale';
-import { CAP, can, canAccessDashboardTab, isAdminRole, isSuperAdminPayload } from '../../lib/permissions';
+import { CAP, can, canAccessDashboardTab, isSuperAdminPayload } from '../../lib/permissions';
 import { VACANCY_STATUS, ROSTER_SCOPE } from '../../lib/domain-status.js';
 import { cn } from '../../lib/cn';
 import { managerLoginUrl } from '../../lib/manager-client-session';
@@ -375,7 +375,7 @@ function DashboardClientContent({
     }
   };
 
-  const isAdmin = isAdminRole(sessionAuth);
+  const isAdmin = isSuperAdminPayload(sessionAuth);
   /** Admin without company on the user row: use the panel company filter (not "all"). */
   const scopedCompanyId =
     company && company !== 'all'

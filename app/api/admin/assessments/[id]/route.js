@@ -12,7 +12,7 @@ import {
 } from '../../../../../lib/pipeline';
 import { resolveRecruitingPipelineStage } from '../../../../../lib/pipeline-templates';
 import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../lib/hire';
-import { canAccessCandidateRecord, isAdminRole } from '../../../../../lib/permissions';
+import { canAccessCandidateRecord, isSuperAdminPayload } from '../../../../../lib/permissions';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/job-funnel';
 
 export async function PATCH(request, props) {
@@ -23,7 +23,7 @@ export async function PATCH(request, props) {
     const payload = await verifySessionWithCapabilities(session);
     if (!canAccessCandidateRecord(payload)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 
@@ -209,7 +209,7 @@ export async function DELETE(request, props) {
     const payload = await verifySessionWithCapabilities(session);
     if (!canAccessCandidateRecord(payload)) return apiError(request, ERR.UNAUTHORIZED, 401);
 
-    const isAdmin = isAdminRole(payload);
+    const isAdmin = isSuperAdminPayload(payload);
     const companyId = payload?.companyId ?? null;
     if (!isAdmin && !companyId) return apiError(request, ERR.UNAUTHORIZED, 401);
 

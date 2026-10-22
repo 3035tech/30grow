@@ -26,7 +26,7 @@ async function fixture({ canonicalKey = 'screening', found = true, accessible = 
   const deps = {
     NextResponse: { json: (body) => ({ status: 200, body }) }, cookies: async () => ({ get: () => ({ value: 'session' }) }), COOKIE_NAME: 'session',
     verifySessionWithCapabilities: async () => ({ userId: 7, companyId: admin ? null : 3 }),
-    canAccessCandidateRecord: () => true, isAdminRole: () => admin, requireCapability: () => true, CAP: { VACANCIES_MANAGE: 'manage' },
+    canAccessCandidateRecord: () => true, isSuperAdminPayload: () => admin, requireCapability: () => true, CAP: { VACANCIES_MANAGE: 'manage' },
     query: db, queryRead: db, withTransaction: (fn) => fn({ query: db }),
     audit: async () => {}, auditFromRequest: async () => {},
     localeFromRequest: () => 'pt-BR', ERR, apiError: (_, code, status) => ({ code, status }), apiErrorFromResult: (_, result) => result,

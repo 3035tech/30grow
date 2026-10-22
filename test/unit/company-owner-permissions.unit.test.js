@@ -57,7 +57,7 @@ describe('company owner permissions', () => {
   it('keeps hr-score recalculation and cache metrics tenant-safe', () => {
     assert.match(
       source('app/api/admin/hr-score/recalculate/route.js'),
-      /isAdminRole\(payload\)\s*\?\s*parseInt\(body\.companyId\)\s*:\s*parseInt\(payload\.companyId\)/
+      /isSuperAdminPayload\(payload\)\s*\?\s*parseInt\(body\.companyId\)\s*:\s*parseInt\(payload\.companyId\)/
     );
     assert.match(source('app/api/admin/hr-score/cache-metrics/route.js'), /isSuperAdminPayload\(payload\)/);
   });

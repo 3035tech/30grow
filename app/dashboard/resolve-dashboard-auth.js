@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { verifyToken, COOKIE_NAME } from '../../lib/auth';
 import { queryRead } from '../../lib/db';
 import { normalizeLocale } from '../../lib/i18n';
-import { isAdminRole, isManagerRole, isSuperAdminPayload } from '../../lib/permissions';
+import { isManagerRole, isSuperAdminPayload } from '../../lib/permissions';
 import { attachCapabilityOverrides } from '../../lib/user-capabilities';
 
 /**
@@ -28,7 +28,7 @@ export async function resolveDashboardAuth() {
       : null,
   ]);
   if (!isManagerRole(payload)) redirect('/login');
-  const isAdmin = isAdminRole(payload);
+  const isAdmin = isSuperAdminPayload(payload);
   const companyId = payload?.companyId ?? null;
   const locale = normalizeLocale(payload?.locale);
   if (!isAdmin && !companyId) redirect('/login');
