@@ -97,22 +97,39 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
               </div>
             </fieldset>
           ) : (
-            <div className="space-y-4"><FormField
-              as="div"
-              label={t(locale, 'recruiting.startDateLabel')}
-              hint={t(locale, 'recruiting.hireDateHint')}
-            >
-              <DateField
-                id="pipeline-hire-date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className={FIELD}
-                aria-label={t(locale, 'recruiting.startDateLabel')}
-              />
-            </FormField>
-            {!bulk ? <FormField as="div" label={t(locale, 'recruiting.hireCorporateEmailLabel')} hint={t(locale, 'recruiting.hireCorporateEmailHint')}>
-              <input type="email" autoComplete="off" maxLength={254} value={corporateEmail} onChange={event => setCorporateEmail(event.target.value)} className={FIELD} aria-label={t(locale, 'recruiting.hireCorporateEmailLabel')} />
-            </FormField> : <p className="text-sm text-ink-muted">{t(locale, 'recruiting.hireBulkEmailHint')}</p>}
+            <div className="space-y-4">
+              <FormField
+                as="div"
+                label={t(locale, 'recruiting.startDateLabel')}
+                hint={t(locale, 'recruiting.hireDateHint')}
+              >
+                <DateField
+                  id="pipeline-hire-date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className={FIELD}
+                  aria-label={t(locale, 'recruiting.startDateLabel')}
+                />
+              </FormField>
+              {!bulk ? (
+                <FormField
+                  as="div"
+                  label={t(locale, 'recruiting.hireCorporateEmailLabel')}
+                  hint={t(locale, 'recruiting.hireCorporateEmailHint')}
+                >
+                  <input
+                    type="email"
+                    autoComplete="off"
+                    maxLength={254}
+                    value={corporateEmail}
+                    onChange={(event) => setCorporateEmail(event.target.value)}
+                    className={FIELD}
+                    aria-label={t(locale, 'recruiting.hireCorporateEmailLabel')}
+                  />
+                </FormField>
+              ) : (
+                <p className="text-sm text-ink-muted">{t(locale, 'recruiting.hireBulkEmailHint')}</p>
+              )}
             </div>
           )}
         </div>

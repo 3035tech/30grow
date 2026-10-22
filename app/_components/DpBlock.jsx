@@ -1037,7 +1037,9 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
               <ProfileInfo label={t(locale, 'panel.dp.rg')}>{profile.rg}</ProfileInfo>
             </ProfileSection>
             <ProfileSection title={i18nT(locale, 'ui.dpBlock.contact')}>
-              <ProfileInfo className="lg:col-span-2" breakAll label={t(locale, readOnly ? 'panel.dp.personalEmail' : 'panel.dp.corporateEmail')}>{candidate?.email}</ProfileInfo>
+              {!readOnly ? (
+                <ProfileInfo className="lg:col-span-2" breakAll label={t(locale, 'panel.dp.accessEmail')}>{candidate?.email}</ProfileInfo>
+              ) : null}
               <ProfileInfo className="lg:col-span-2" breakAll label={t(locale, 'panel.dp.personalEmail')}>{candidate?.personalEmail}</ProfileInfo>
               <ProfileInfo label={t(locale, 'panel.dp.mobile')}>{candidate?.phone ? formatPhoneBr(candidate.phone) : null}</ProfileInfo>
               <ProfileInfo label={t(locale, 'panel.dp.addressPostal')}>{profile.addressPostal ? formatCepBr(profile.addressPostal) : null}</ProfileInfo>

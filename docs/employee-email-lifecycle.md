@@ -26,7 +26,7 @@ Deploy gradual é compatível com o schema atual em Dublin e AWS. Rollback de c�
 
 ## Guia, FAQ e IA
 
-`panel.help.employeeHomeStep1` é a fonte indexada pela IA. `panel.helpAssist.faqEmailLifecycle` e a entrada prioritária em `lib/help-assistant.js` respondem dúvidas específicas sem chamar o modelo. Conteúdo disponível em pt-BR, inglês, francês e alemão.
+`panel.help.employeeHomeStep1` e os passos 7–9 são as fontes indexadas pela IA. `panel.helpAssist.faqEmailLifecycle` e a entrada prioritária em `lib/help-assistant.js` respondem dúvidas específicas sem chamar o modelo. Conteúdo disponível em pt-BR, inglês, francês e alemão.
 
 ## Validação
 
@@ -39,3 +39,5 @@ Deploy gradual é compatível com o schema atual em Dublin e AWS. Rollback de c�
 A chave de unicidade do contato principal é `(company_id, LOWER(email))`, não o e-mail global. O cenário X → Y → Z usa três IDs distintos em `candidates`. X mantém sua candidatura/reprovação e avaliações; Y mantém o período como colaborador e desligamento; Z mantém nova candidatura/contratação. A mudança de contato e credenciais em Y/Z não altera X. Nenhuma avaliação, nota, documento, salário, vínculo ou histórico é importado entre empresas por este fluxo. Os próprios dados cadastrais também são independentes hoje; não se introduz cadastro global compartilhado nesta entrega.
 
 O teste PostgreSQL reproduz o mesmo e-mail pessoal nas três empresas, reprovação em X, contratação e desligamento três anos depois em Y, contratação em Z, IDs distintos e resolução de contato limitada à empresa. A FAQ `faqCandidateTenancy` e o Guia explicam essa separação para a IA. Isso prova este fluxo; não substitui a auditoria integral de autorização de todos os módulos do SaaS antes do beta.
+
+O super admin da plataforma pode consultar dados de todas as empresas para operação do SaaS. Esse perfil global fica reservado ao proprietário do 30Grow; contas dos clientes devem usar os perfis de RH/Direção/proprietário da empresa. O teste do cenário não certifica todas as permissões do produto.

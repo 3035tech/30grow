@@ -17,7 +17,7 @@ for (const [locale, question, personal, exit] of [
     assert.ok(faq.answer.includes(exit));
     const chunk = buildHelpChunks(locale).find(chunk => chunk.section === 'employeeHome');
     assert.ok(chunk.body.includes(personal));
-    assert.ok(chunk.body.includes(exit));
+    assert.ok(chunk.body.toLowerCase().includes(exit.toLowerCase()));
     assert.notEqual(t(locale, 'recruiting.hireCorporateEmailLabel'), 'recruiting.hireCorporateEmailLabel');
   });
 }

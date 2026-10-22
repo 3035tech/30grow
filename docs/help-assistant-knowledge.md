@@ -117,4 +117,6 @@ Atualize [`PRODUCT-FEATURES-PROMPT.md`](./PRODUCT-FEATURES-PROMPT.md) quando um 
 
 ### E-mails da candidatura, contratação e desligamento
 
-Guia `employeeHomeStep1` + FAQ prioritária `faqEmailLifecycle` (pt-BR, en, fr, de). Fonte técnica: [employee-email-lifecycle.md](employee-email-lifecycle.md). A IA deve explicar: pessoal preservado, corporativo opcional na contratação e principal após cadastro, convite automático, pessoal temporário se ainda não há corporativo, revogação dos acessos na troca/saída, retorno ao pessoal no desligamento e cadastro único. Conferir o pessoal de registros antigos antes da saída; não afirmar que a plataforma cria/exclui caixas no provedor.
+Guia `employeeHomeStep1` e `employeeHomeStep7`–`employeeHomeStep9` + FAQ prioritária `faqEmailLifecycle` (pt-BR, en, fr, de). Fonte técnica: [employee-email-lifecycle.md](employee-email-lifecycle.md). A IA deve explicar: pessoal preservado, corporativo opcional na contratação e principal após cadastro, convite automático, pessoal temporário se ainda não há corporativo, revogação dos acessos na troca/saída, retorno ao pessoal no desligamento e cadastro único. Conferir o pessoal de registros antigos antes da saída; não afirmar que a plataforma cria/exclui caixas no provedor.
+
+A seção de acesso agora separa contratação, troca de e-mail, desligamento e isolamento por empresa em passos curtos. A FAQ de multiempresa explicita o acesso global do super admin da plataforma.
