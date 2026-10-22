@@ -9,10 +9,11 @@ import {
 } from '../../../../../lib/rubric-ai.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
 import { z } from '../../../../../lib/validate.js';
+import { jobRoleAiDescriptionSchema } from '../../../../../lib/job-role-description.js';
 
 const bodySchema = z.object({
   name: z.string().trim().min(2).max(200),
-  description: z.string().trim().max(4000).optional().nullable().default(''),
+  description: jobRoleAiDescriptionSchema.optional().nullable().default(''),
   locale: z.string().trim().max(16).optional(),
 });
 

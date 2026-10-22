@@ -3,6 +3,7 @@ import { apiError, ERR } from '../../../../lib/api-error.js';
 import { CAP } from '../../../../lib/ae/require-admin.js';
 import { z, zPositiveInt, zQueryBool } from '../../../../lib/validate.js';
 import { listCompanyJobRoles, createJobRole } from '../../../../lib/job-roles.js';
+import { jobRoleDescriptionSchema } from '../../../../lib/job-role-description.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),
@@ -12,7 +13,7 @@ const listQuerySchema = z.object({
 const createBodySchema = z.object({
   companyId: zPositiveInt.optional(),
   name: z.string().trim().min(1).max(200),
-  description: z.string().trim().max(4000).optional().nullable(),
+  description: jobRoleDescriptionSchema.optional().nullable(),
   rubric: z.record(z.coerce.number()).optional().default({}),
   marketSalaryMin: z.union([z.string(), z.number()]).optional().nullable(),
   marketSalaryMax: z.union([z.string(), z.number()]).optional().nullable(),
