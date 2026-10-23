@@ -49,6 +49,7 @@ export async function POST(request) {
     if (!challengeVersion) return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, 401);
     return await buildEmployeeLoginResponse({
       sv: challengeVersion,
+      rememberMe: challenge.rememberMe === true,
       candidateId: challenge.candidateId,
       companyId: challenge.companyId,
       email: verified.person.email,

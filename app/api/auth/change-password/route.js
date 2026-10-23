@@ -1,3 +1,4 @@
+import { webSessionMaxAge } from '../../../../lib/session-ttl.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
@@ -70,8 +71,9 @@ export async function POST(request) {
       companyId: session.companyId ?? null,
       locale: session.locale || 'pt-BR',
       sv,
+      rememberUntil: session.rememberUntil,
     }),
-    sessionCookieOptions({ maxAge: MAX_AGE })
+    sessionCookieOptions({ maxAge: webSessionMaxAge(session, MAX_AGE) })
   );
   return response;
 }

@@ -1,3 +1,4 @@
+import { webSessionMaxAge } from '../../../../lib/session-ttl.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME, MAX_AGE, signToken, sessionCookieOptions } from '../../../../lib/auth';
@@ -18,7 +19,7 @@ export async function PATCH(request) {
   await query(`UPDATE users SET locale = $2 WHERE id = $1 AND deleted = FALSE`, [payload.userId, locale]);
 
   const response = NextResponse.json({ ok: true, locale });
-  const opts = sessionCookieOptions({ maxAge: MAX_AGE });
+  const opts = sessionCookieOptions({ maxAge: webSessionMaxAge(payload, MAX_AGE) });
 
   response.cookies.set(
     COOKIE_NAME,
@@ -28,6 +29,7 @@ export async function PATCH(request) {
       companyId: payload.companyId ?? null,
       locale,
       sv: payload.sv,
+      rememberUntil: payload.rememberUntil,
     }),
     opts
   );

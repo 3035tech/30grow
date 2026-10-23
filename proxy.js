@@ -75,7 +75,8 @@ function withDetectedLocaleCookie(request, response) {
  */
 async function applySessionSlide(response, kind, payload) {
   try {
-    if (!shouldSlideSession(payload?.exp)) return;
+    // Remembered logins have a fixed 30-day deadline; activity cannot extend it.
+    if (Number.isSafeInteger(payload?.rememberUntil) || !shouldSlideSession(payload?.exp)) return;
     if (kind === 'manager') {
       const token = await signManagerTokenEdge(payload);
       if (!token) return;

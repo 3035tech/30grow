@@ -187,6 +187,37 @@ try {
     await check(`${identity.label}: real login`, async () => assert.ok(identity.cookie));
   }
   const byLabel = Object.fromEntries(identities.map(x => [x.label, x]));
+  for (const [employee,email,ttl] of [[false,byLabel.hrA.email,28800],[true,A.email,43200]]) {
+    await check(`${employee?'employee':'manager'}: remember choice controls signed expiry and cookie duration`, async()=>{
+      for(const rememberMe of [false,true]) {
+        const r=await request(employee?'/api/auth/employee/login':'/api/auth/login','','POST',{email,password,rememberMe});
+        assert.equal(r.status,200);
+        const name=employee?'team30_employee_session':'team30_session';
+        const setCookie=r.headers.getSetCookie().find(value=>value.startsWith(name+'='));
+        assert.ok(setCookie.includes('HttpOnly'));assert.match(setCookie,/SameSite=lax/i);
+        const token=setCookie.split(';')[0].split('=')[1];
+        const claims=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString());
+        const maxAge=Number(setCookie.match(/Max-Age=(\d+)/i)?.[1]);
+        if(rememberMe){
+          assert.ok(claims.exp-claims.iat>=2591995&&claims.exp-claims.iat<=2592000);
+          assert.ok(maxAge>=2591995&&maxAge<=2592000);
+        } else {
+          assert.equal(claims.exp-claims.iat,ttl);assert.equal(maxAge,ttl);
+        }
+        if(rememberMe)assert.equal(claims.exp,claims.rememberUntil);
+        else assert.equal(claims.rememberUntil,undefined);
+        const cookie=setCookie.split(';')[0];
+        assert.equal((await request(employee?'/api/employee/home':'/api/me',cookie)).status,200);
+        if(!employee&&rememberMe){
+          const updated=await request('/api/me/locale',cookie,'PATCH',{locale:'pt-BR'});assert.equal(updated.status,200);
+          const next=updated.headers.getSetCookie().find(value=>value.startsWith(name+'='));
+          const renewed=JSON.parse(Buffer.from(next.split(';')[0].split('=')[1].split('.')[1],'base64url').toString());
+          assert.equal(renewed.exp,claims.exp,'locale changes cannot restart the 30-day period');
+        }
+      }
+    });
+  }
+
   await check('superadmin: access invite resolves the employee company without a selected company', async () => {
     const r = await request(`/api/admin/candidates/${A.personId}/employee-access`, byLabel.super.cookie, 'POST', {locale:'pt-BR'});
     assert.equal(r.status,200);assert.equal(r.data.ok,true);

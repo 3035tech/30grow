@@ -19,7 +19,7 @@ async function routeFor(payload) {
     licenseWithBilling:async()=>{reads++;return {number:'private-number',expiresAt:'private-end'};},
     apiError:(_req,code,status)=>Response.json({errorCode:code},{status}), ERR:{UNAUTHORIZED:'UNAUTHORIZED',USER_NOT_FOUND:'USER_NOT_FOUND'},
   };
-  for (const name of ['hashPassword','signToken','verifyPassword','sessionCookieOptions','normalizeLocale','httpStatusForError','bumpSessionVersion','checkRateLimit','clientIpFromRequest','roleMayUse2Fa','verifyTotpCode','auditFromRequest','enqueueTransactionalMail','isMailConfigured','buildManagerEmailChangedMail']) deps[name]=()=>{throw Error('unexpected '+name);};
+  for (const name of ['webSessionMaxAge','hashPassword','signToken','verifyPassword','sessionCookieOptions','normalizeLocale','httpStatusForError','bumpSessionVersion','checkRateLimit','clientIpFromRequest','roleMayUse2Fa','verifyTotpCode','auditFromRequest','enqueueTransactionalMail','isMailConfigured','buildManagerEmailChangedMail']) deps[name]=()=>{throw Error('unexpected '+name);};
   const context=vm.createContext({console});
   const module=new vm.SourceTextModule(await readFile('app/api/me/route.js','utf8'),{context});
   await module.link(()=>new vm.SyntheticModule(Object.keys(deps),function(){for(const [key,value] of Object.entries(deps))this.setExport(key,value);},{context}));

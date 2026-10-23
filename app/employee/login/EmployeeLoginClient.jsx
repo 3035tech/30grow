@@ -26,6 +26,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
   const [mode, setMode] = useState('login'); // login | forgot | magic
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [requires2fa, setRequires2fa] = useState(false);
@@ -146,6 +147,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
         body: JSON.stringify({
           email,
           password,
+          rememberMe,
           locale,
           ...captchaPayload(),
         }),
@@ -183,6 +185,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pickToken,
+          rememberMe,
           candidateId,
           locale,
           ...captchaPayload(),
@@ -347,6 +350,8 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
               disabled={busy}
             />
           </FormField>
+
+
           {turnstileRequired && turnstileSiteKey ? (
             <TurnstileField
               siteKey={turnstileSiteKey}
@@ -454,6 +459,11 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
               />
             </FormField>
           ) : null}
+
+          {mode === 'login' ? <label className="flex min-h-touch cursor-pointer items-start gap-3 text-sm text-ink">
+            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} disabled={busy} className="mt-1 h-4 w-4 accent-brand-700" />
+            <span>{t(locale, 'login.rememberMe')}<span className="mt-1 block text-xs leading-5 text-ink-muted">{t(locale, 'login.rememberMeHint')}</span></span>
+          </label> : null}
 
           {turnstileRequired && turnstileSiteKey ? (
             <TurnstileField

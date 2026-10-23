@@ -1,3 +1,4 @@
+import { webSessionMaxAge } from '../../../lib/session-ttl.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME, MAX_AGE, hashPassword, signToken, verifyPassword, sessionCookieOptions } from '../../../lib/auth';
@@ -32,8 +33,9 @@ function setSessionCookies(response, payload, locale) {
       companyId: payload.companyId ?? null,
       locale,
       sv: payload.sv,
+      rememberUntil: payload.rememberUntil,
     }),
-    sessionCookieOptions({ maxAge: MAX_AGE })
+    sessionCookieOptions({ maxAge: webSessionMaxAge(payload, MAX_AGE) })
   );
   response.cookies.set(LOCALE_COOKIE, locale, {
     httpOnly: false,

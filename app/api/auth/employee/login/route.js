@@ -23,7 +23,7 @@ async function failDelay() {
   await new Promise((r) => setTimeout(r, FAIL_DELAY_MS));
 }
 
-async function finishLogin(request, result, locale) {
+async function finishLogin(request, result, locale, rememberMe) {
   if (result.requires2fa) {
     return NextResponse.json({
       ok: true,
@@ -31,6 +31,7 @@ async function finishLogin(request, result, locale) {
       challengeToken: await signEmployee2faChallenge({
         candidateId: result.candidateId,
         companyId: result.companyId,
+        rememberMe,
       }),
     });
   }
@@ -41,6 +42,7 @@ async function finishLogin(request, result, locale) {
     email: result.email,
     locale,
     fullName: result.fullName,
+    rememberMe,
     request,
   });
 }
@@ -76,7 +78,7 @@ export async function POST(request) {
         await failDelay();
         return apiError(request, ERR.UNAUTHORIZED, 401);
       }
-      return finishLogin(request, picked, locale);
+      return finishLogin(request, picked, locale, body.rememberMe === true);
     }
 
     const email = String(body.email || '').trim().toLowerCase();
@@ -116,7 +118,7 @@ export async function POST(request) {
       });
     }
 
-    return finishLogin(request, result, locale);
+    return finishLogin(request, result, locale, body.rememberMe === true);
   } catch (err) {
     if (err?.code === '42P01' || err?.code === '42703') {
       return apiError(request, ERR.SCHEMA_NOT_INITIALIZED, 503);

@@ -131,11 +131,11 @@ export async function POST(request) {
       return NextResponse.json({
         ok: true,
         requires2fa: true,
-        challengeToken: await sign2faChallenge(u.id),
+        challengeToken: await sign2faChallenge(u.id, { rememberMe: body.rememberMe === true }),
       });
     }
 
-    return buildManagerLoginResponse(u);
+    return buildManagerLoginResponse(u, { rememberMe: body.rememberMe === true });
   } catch (error) {
     console.error('Erro no login:', error);
     return apiError(request, ERR.INTERNAL, 500);

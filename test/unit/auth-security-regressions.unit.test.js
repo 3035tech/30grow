@@ -149,11 +149,12 @@ for (const [path, manager] of [['app/api/auth/2fa/verify/route.js', true], ['app
       NextResponse: { json: body => body }, ERR, httpStatusForError: () => 401,
       apiError: (_request, code, status) => ({ code, status }),
       checkRateLimit: async () => ({ ok: true }), clientIpFromRequest: () => 'ip', verifyTurnstileToken: async () => ({ ok: true }),
-      verify2faChallenge: async () => 7, verifyEmployee2faChallenge: async () => ({ candidateId: 8, companyId: 9 }),
+      verify2faChallenge: async (_token, options) => options?.withSessionOptions ? { userId: 7, rememberMe: true } : 7,
+      verifyEmployee2faChallenge: async () => ({ candidateId: 8, companyId: 9, rememberMe: true }),
       verify2faLogin: async () => ({ ok: true }), verifyEmployee2faLogin: async () => ({ ok: true, person: { email: 'employee@example.com' } }),
       consumeSecondFactorChallenge: async () => consumed ? 2 : false, normalizeLocale: () => 'pt-BR',
       query: async (_sql, args) => { queries.push(args); return { rowCount: 1, rows: [{ id: 7, sessionVersion: args[1] }] }; },
-      buildManagerLoginResponse: row => { sessions.push(row); return { status: 200 }; },
+      buildManagerLoginResponse: (row, options) => { sessions.push({ ...row, ...options }); return { status: 200 }; },
       buildEmployeeLoginResponse: opts => { sessions.push(opts); return { status: 200 }; },
     });
     const request = { json: async () => ({ challengeToken: 'token', code: '123456' }) };
@@ -162,6 +163,7 @@ for (const [path, manager] of [['app/api/auth/2fa/verify/route.js', true], ['app
     consumed = true;
     assert.equal((await api.POST(request)).status, 200);
     assert.equal(manager ? sessions[0].sessionVersion : sessions[0].sv, 2);
+    assert.equal(sessions[0].rememberMe, true, 'persistence comes from the authenticated challenge');
     if (manager) assert.deepEqual(Array.from(queries[0]), [7, 2]);
   });
 }

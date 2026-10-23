@@ -27,7 +27,8 @@ export async function POST(request) {
       return apiError(request, ERR.TURNSTILE_FAILED, httpStatusForError(ERR.TURNSTILE_FAILED));
     }
 
-    const userId = await verify2faChallenge(body.challengeToken);
+    const challenge = await verify2faChallenge(body.challengeToken, { withSessionOptions: true });
+    const userId = challenge?.userId;
     if (!userId) {
       return apiError(request, ERR.TWO_FA_CHALLENGE_INVALID, httpStatusForError(ERR.TWO_FA_CHALLENGE_INVALID));
     }
@@ -65,7 +66,7 @@ export async function POST(request) {
       return apiError(request, ERR.INVALID_CREDENTIALS, 401);
     }
 
-    return buildManagerLoginResponse(res.rows[0]);
+    return buildManagerLoginResponse(res.rows[0], { rememberMe: challenge.rememberMe });
   } catch (err) {
     console.error('POST 2fa verify', err);
     return apiError(request, ERR.INTERNAL, 500);

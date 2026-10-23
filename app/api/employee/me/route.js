@@ -1,3 +1,5 @@
+import { webSessionMaxAge } from '../../../../lib/session-ttl.js';
+import { EMPLOYEE_SESSION_MAX_AGE } from '../../../../lib/employee-auth-constants.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db.js';
@@ -59,9 +61,10 @@ export async function PATCH(request) {
       email: result.person.email || session.email,
       locale,
       sv: session.sv,
+      rememberUntil: session.rememberUntil,
     });
     const jar = await cookies();
-    jar.set(EMPLOYEE_COOKIE_NAME, jwt, employeeSessionCookieOptions());
+    jar.set(EMPLOYEE_COOKIE_NAME, jwt, employeeSessionCookieOptions({ maxAge: webSessionMaxAge(session, EMPLOYEE_SESSION_MAX_AGE) }));
     jar.set(LOCALE_COOKIE, locale, {
       httpOnly: false,
       secure: sessionCookieSecure(),

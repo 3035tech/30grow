@@ -17,6 +17,7 @@ function LoginForm() {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -78,7 +79,7 @@ function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, turnstileToken: turnstileToken || undefined }),
+        body: JSON.stringify({ email, password, rememberMe, turnstileToken: turnstileToken || undefined }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -359,6 +360,10 @@ function LoginForm() {
                   onKeyDown={(e) => e.key === 'Enter' && login()}
                 />
               </FormField>
+              <label className="flex min-h-touch cursor-pointer items-start gap-3 text-sm text-ink">
+                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} disabled={loading} className="mt-1 h-4 w-4 accent-brand-700" />
+                <span>{t(locale, 'login.rememberMe')}<span className="mt-1 block text-xs leading-5 text-ink-muted">{t(locale, 'login.rememberMeHint')}</span></span>
+              </label>
             </>
           )}
         </div>
