@@ -44,6 +44,12 @@ test('manager and employee JWTs retain default TTL or fixed remembered expiry wh
       assert.equal(verifyEmployeeToken(sign(remembered)).rememberUntil,remembered.rememberUntil);
       assert.equal((await verifyEmployeeTokenEdge(sign(remembered))).rememberUntil,remembered.rememberUntil);
     }
+    const realNow = Date.now;
+    let clock = realNow();
+    try {
+      Date.now = () => { clock += 1000; return clock; };
+      assert.equal(jwt.decode(sign(remembered)).exp, remembered.rememberUntil, 'crossing a second while signing cannot extend the deadline');
+    } finally { Date.now = realNow; }
   }
 });
 
