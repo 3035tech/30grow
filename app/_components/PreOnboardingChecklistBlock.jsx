@@ -9,6 +9,7 @@ import { EmptyState } from './EmptyState';
 import { AppLoading, ContentEnter } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';
 import { StatusToneChip } from './StatusToneChip';
+import { CollapsibleBlock } from './CollapsibleBlock';
 import { MeterBar } from './MeterBar';
 
 const CALL_KEYS = new Set(['rh_onboarding_call', 'manager_onboarding']);
@@ -46,6 +47,9 @@ export function PreOnboardingChecklistBlock({ locale, candidateId, employmentSta
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(true);
+  const allDone = items.length > 0 && items.every(item => item.status === 'done' || item.status === 'skipped');
+  useEffect(() => { setExpanded(!allDone); }, [candidateId, allDone]);
 
   const load = useCallback(async () => {
     if (!candidateId || employmentStatus !== EMPLOYMENT_STATUS.EMPLOYEE) {
@@ -173,7 +177,7 @@ export function PreOnboardingChecklistBlock({ locale, candidateId, employmentSta
 
   return (
     <section className={cn(S.cardTight, 'mt-3')} aria-label={t(locale, 'panel.preOnboarding.sectionAria')}>
-      <h3 className={cn(S.cardSection, 'mb-0')}>{t(locale, 'panel.preOnboarding.title')}</h3>
+      <CollapsibleBlock locale={locale} title={t(locale, 'panel.preOnboarding.title')} bordered={false} open={expanded} onOpenChange={setExpanded} titleClassName={S.cardSection} headerAside={items.length ? <StatusToneChip tone={allDone ? 'success' : 'neutral'}>{t(locale, 'panel.preOnboarding.progress', { done: doneCount, total: items.length })}</StatusToneChip> : null}>
       <p className={cn(S.muted, 'm-0 mt-1 text-prose')}>{t(locale, 'panel.preOnboarding.hint')}</p>
       {items.length > 0 ? (
         <div className="mt-2">
@@ -293,6 +297,7 @@ export function PreOnboardingChecklistBlock({ locale, candidateId, employmentSta
           </ul>
         </ContentEnter>
       )}
+      </CollapsibleBlock>
     </section>
   );
 }

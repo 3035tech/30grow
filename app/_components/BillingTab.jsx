@@ -74,6 +74,7 @@ export function BillingTab({ locale, role, companyId, companyName, onLicenseChan
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
+  const paymentNeedsAttention = ['past_due', 'unpaid', 'incomplete'].includes(data?.status);
   const hasSubscription = Boolean(data?.subscriptionId) && !['canceled', 'incomplete_expired'].includes(data?.status);
   const currentPlan = data?.planKey === LAUNCH_PRICE.key ? LAUNCH_PRICE : data?.plans?.find(plan => plan.key === data.planKey);
   return (
@@ -94,10 +95,10 @@ export function BillingTab({ locale, role, companyId, companyName, onLicenseChan
             {[[copy('status'), copy(`status_${data.status}`)], [copy('employeeCount'), data.employeeCount], [copy(hasSubscription ? 'nextDate' : 'trialEnds'), date(hasSubscription ? data.periodEnd : data.trialEndsAt)]].map(([label, value]) => <div key={label}><dt className="text-sm text-ink-muted">{label}</dt><dd className="m-0 mt-2 font-semibold text-ink">{value}</dd></div>)}
           </dl>
           {!data.access && !hasSubscription ? <InlineCallout tone="warning">{copy('trialExpired')}</InlineCallout> : null}
-          {['past_due', 'unpaid', 'incomplete'].includes(data.status) ? <InlineCallout tone="warning">{copy('paymentAttention')}</InlineCallout> : null}
+          {paymentNeedsAttention ? <InlineCallout tone="warning">{copy('paymentAttention')}</InlineCallout> : null}
           {data.cancelAtPeriodEnd ? <InlineCallout tone="info">{copy('cancellation')}</InlineCallout> : null}
           {data.scheduled ? <InlineCallout tone="info">{copy('scheduled')}</InlineCallout> : null}
-          {data.canOpenPortal ? <button type="button" className={`${S.btnPrimary} mt-5 w-full sm:w-auto`} disabled={busy} onClick={() => open('portal')}>{copy('manage')}</button> : null}
+          {data.canOpenPortal ? <button type="button" className={`${S.btnPrimary} mt-5 w-full sm:w-auto`} disabled={busy} onClick={() => open('portal')}>{copy(paymentNeedsAttention ? 'recoverPayment' : 'manage')}</button> : null}
           {hasSubscription && ['active', 'trialing', 'past_due'].includes(data.status) ? <div className="mt-4">
             {data.cancelAtPeriodEnd ? <button type="button" className={S.btnGhost} disabled={busy} onClick={() => updateCancellation(false)}>{copy('resume')}</button> : <button type="button" className={S.btnGhost} disabled={busy} onClick={() => setCancelConfirm(true)}>{copy('cancel')}</button>}
             {cancelConfirm ? <div className="mt-4 rounded-control border border-warning/30 p-4">
@@ -134,7 +135,7 @@ export function BillingTab({ locale, role, companyId, companyName, onLicenseChan
       {!platform && data ? <section className={panelClass}>
         <h2 className="m-0 text-lg font-semibold">{copy('invoices')}</h2>
         {data.invoicesUnavailable ? <p role="status">{copy('invoiceUnavailable')}</p> : null}
-        {!data.invoices.length ? <p className="mb-0 mt-4 rounded-control border border-dashed border-ink/15 p-5 text-sm leading-6 text-ink-muted">{copy('noInvoices')}</p> : <ul className="mb-0 mt-4 list-none divide-y divide-ink/10 p-0">{data.invoices.map(invoice => <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm"><div><p className="m-0 font-semibold">{invoice.number || copy('invoice')} · {money(invoice.amount, invoice.currency)}</p><p className="mb-0 mt-1 text-ink-muted">{date(invoice.createdAt)} · {copy(`status_${invoice.status}`)}</p></div>{invoice.url ? <a href={invoice.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-touch items-center text-brand-700 underline-offset-4 hover:underline">{copy('openInvoice')}</a> : null}</li>)}</ul>}
+        {data.invoicesUnavailable ? null : !data.invoices.length ? <p className="mb-0 mt-4 rounded-control border border-dashed border-ink/15 p-5 text-sm leading-6 text-ink-muted">{copy('noInvoices')}</p> : <ul className="mb-0 mt-4 list-none divide-y divide-ink/10 p-0">{data.invoices.map(invoice => <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm"><div><p className="m-0 font-semibold">{invoice.number || copy('invoice')} · {money(invoice.amount, invoice.currency)}</p><p className="mb-0 mt-1 text-ink-muted">{date(invoice.createdAt)} · {copy(`status_${invoice.status}`)}</p></div>{invoice.url ? <a href={invoice.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-touch items-center text-brand-700 underline-offset-4 hover:underline">{copy(invoice.status === 'open' ? 'payInvoice' : 'openInvoice')}</a> : null}</li>)}</ul>}
       </section> : null}
     </div>
   );

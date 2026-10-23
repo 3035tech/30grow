@@ -6,7 +6,7 @@ function fixture(patch={}) {
   const billing={managed:true,trialEndsAt:'2025-02-01T00:00:00Z',subscriptionId:'sub_fixture',status:'active',planKey:'brl_small_monthly',periodEnd:'2028-01-01T00:00:00Z',cancelAtPeriodEnd:false,livemode:false,...patch};
   return{configured:true,employeeCount:18,currency:'brl',access:true,scheduled:false,launchAvailable:false,canOpenPortal:true,invoices:[],plans:BILLING_PLANS.filter(p=>p.currency==='brl').map(p=>({...p,eligible:true})),...billing,...patch,license:companyLicenseSummary({licenseNumber:'7',licenseStartsAt:'2025-01-01T00:00:00Z',licenseExpiresAt:'2025-02-01T00:00:00Z',licenseExpired:true,licenseOfferTier:'trial',licenseTrialDays:30},billing)};
 }
-for(const width of [1440,390]) test(`paid subscription updates existing profile license at ${width}px`,async({page})=>{
+for(const width of [1440,390]) test(`paid subscription updates existing profile license at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});
  await page.route('**/api/admin/billing?*',route=>route.fulfill({json:fixture()}));
  await page.goto('/billing');
@@ -18,7 +18,7 @@ for(const width of [1440,390]) test(`paid subscription updates existing profile 
  await expect(page.getByRole('button',{name:'Ver assinatura',exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Alterar plano no Stripe'})).toBeHidden();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
- await page.screenshot({path:`/private/tmp/grow-billing-profile-${width}.png`,fullPage:true});
+ await page.screenshot({path:testInfo.outputPath(`billing-profile-${width}.png`),fullPage:true});
 });
 test('checkout submits company, approved plan and launch selection; no card data enters Grow',async({page})=>{
  await page.route('**/api/admin/billing?*',route=>route.fulfill({json:fixture({subscriptionId:null,status:'none',planKey:null,trialEndsAt:'2028-01-01T00:00:00Z',launchAvailable:true,canOpenPortal:false})}));
@@ -56,4 +56,14 @@ test('scheduled subscription cancellation requires confirmation and refreshes th
  await page.getByRole('button',{name:'Manter assinatura ativa',exact:true}).click();
  await expect(page.getByRole('button',{name:'Cancelar no fim do período',exact:true})).toBeVisible();
  expect(cancelBody.cancel).toBe(false);
+});
+
+for(const status of ['past_due','unpaid','incomplete']) test(`owner can recover a ${status} payment through the Stripe portal`,async({page})=>{
+ let body;
+ await page.route('**/api/admin/billing?*',route=>route.fulfill({json:fixture({status,access:false,invoices:[{id:'in_open',number:'INV-ABERTA',status:'open',currency:'brl',amount:14900,createdAt:'2026-01-01T00:00:00Z',url:'https://invoice.stripe.com/test-open'}]})}));
+ await page.route('**/api/admin/billing/portal',route=>{body=route.request().postDataJSON();return route.fulfill({json:{url:'https://billing.stripe.com/test-recovery'}});});
+ await page.route('https://billing.stripe.com/test-recovery',route=>route.fulfill({contentType:'text/html; charset=utf-8',body:'<h1>Portal de regularização de teste</h1>'}));
+ await page.goto('/billing');await expect(page.getByRole('link',{name:'Pagar fatura',exact:true})).toHaveAttribute('href','https://invoice.stripe.com/test-open');
+ await page.getByRole('button',{name:'Atualizar cartão ou pagar fatura',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Portal de regularização de teste',exact:true})).toBeVisible();expect(body).toEqual({companyId:7});
 });

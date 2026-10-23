@@ -43,6 +43,7 @@ function formatMeetingDate(value, locale) {
 export function PeopleManagementPanel({
   locale,
   candidateId,
+  companyId,
   people,
   onRefresh,
   employmentStatus = null,
@@ -317,7 +318,7 @@ export function PeopleManagementPanel({
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locale }),
+          body: JSON.stringify({ locale, ...(companyId ? { companyId: Number(companyId) } : {}) }),
         }
       );
       const data = await res.json().catch(() => ({}));

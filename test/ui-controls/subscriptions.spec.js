@@ -40,14 +40,14 @@ test('annual proportional refunds use the server preview and remain separate fro
  await dialog.getByRole('checkbox').check();await dialog.getByRole('button',{name:'Confirmar operação',exact:true}).click();await expect(dialog).toBeHidden();
  expect(bodies[0].amount).toBe(34567);expect(bodies[0].basis).toBe('annual');expect(bodies[0].reason).toBe('annual_early_termination');expect(bodies[0].kind).toBe('refund');expect(bodies[0].requestedAt).toBeTruthy();
 });
-test('financial tables and dialogs remain contained on mobile',async({page})=>{
+test('financial tables and dialogs remain contained on mobile',async({page},testInfo)=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.getByRole('button',{name:'Encerrar assinatura agora',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Encerrar assinatura agora',exact:true});
  await expect(dialog.getByText('Não apaga dados',{exact:false})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.screenshot({path:'/private/tmp/30grow-superadmin-mobile.png',fullPage:true});
+ await page.screenshot({path:testInfo.outputPath('subscriptions-mobile.png'),fullPage:true});
 });
 
 test('partial refunds explain invalid amounts beside the field and require renewed confirmation',async({page})=>{

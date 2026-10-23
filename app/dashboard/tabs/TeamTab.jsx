@@ -1414,6 +1414,7 @@ export function TeamTab({
                 ) : null}
                 {!detailLoading && detailMatchesOpen ? (
                   <PeopleManagementPanel
+                          companyId={detail.candidate.companyId}
                     key={`context-${detail.candidate.id}`}
                     locale={locale}
                     candidateId={detail.candidate.id}
@@ -1529,6 +1530,7 @@ export function TeamTab({
                       ) : null}
                       {activePeopleSubTab === 'oneOnOne' ? (
                         <PeopleManagementPanel
+                          companyId={detail.candidate.companyId}
                           locale={locale}
                           candidateId={detail.candidate.id}
                           people={detail.people}
@@ -1547,6 +1549,7 @@ export function TeamTab({
                       ) : null}
                       {activePeopleSubTab === 'journey' ? (
                         <PeopleManagementPanel
+                          companyId={detail.candidate.companyId}
                           locale={locale}
                           candidateId={detail.candidate.id}
                           people={detail.people}

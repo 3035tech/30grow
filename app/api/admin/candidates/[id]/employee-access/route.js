@@ -18,21 +18,25 @@ export const POST = withAdminApi(
   {
     cap: CAP.TEAM_VIEW,
     body: bodySchema,
-    companyFrom: 'body',
+    requireCompany: false,
     logLabel: 'employee access POST',
   },
-  async ({ request, payload, companyId, body, params }) => {
+  async ({ request, payload, scope, body, params }) => {
     const candidateId = parseInt(String(params?.id || ''), 10);
     if (!Number.isFinite(candidateId)) {
       return apiErrorFromResult(request, { ok: false, errorCode: ERR.NOT_FOUND });
     }
     const owned = await query(
-      `SELECT id, email, employment_status AS "employmentStatus"
-       FROM candidates WHERE id = $1 AND company_id = $2 LIMIT 1`,
-      [candidateId, companyId]
+      `SELECT id, email, company_id AS "companyId", employment_status AS "employmentStatus"
+       FROM candidates WHERE id = $1 AND ($2::integer IS NULL OR company_id = $2) LIMIT 1`,
+      [candidateId, scope.isAdmin ? null : scope.companyId]
     );
     if (owned.rowCount === 0) {
       return apiErrorFromResult(request, { ok: false, errorCode: ERR.NOT_FOUND });
+    }
+    const companyId = owned.rows[0].companyId;
+    if (body.companyId != null && Number(body.companyId) !== Number(companyId)) {
+      return apiErrorFromResult(request, { ok: false, errorCode: ERR.FORBIDDEN });
     }
     if (owned.rows[0].employmentStatus !== EMPLOYMENT_STATUS.EMPLOYEE) {
       return apiErrorFromResult(request, { ok: false, errorCode: ERR.INVALID_DATA });
@@ -49,6 +53,7 @@ export const POST = withAdminApi(
     }
     await audit({
       actorUserId: payload.userId || null,
+      companyId,
       action: 'employee.access_invite',
       targetType: 'candidate',
       targetId: String(candidateId),

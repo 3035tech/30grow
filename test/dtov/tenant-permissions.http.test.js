@@ -187,6 +187,21 @@ try {
     await check(`${identity.label}: real login`, async () => assert.ok(identity.cookie));
   }
   const byLabel = Object.fromEntries(identities.map(x => [x.label, x]));
+  await check('superadmin: access invite resolves the employee company without a selected company', async () => {
+    const r = await request(`/api/admin/candidates/${A.personId}/employee-access`, byLabel.super.cookie, 'POST', {locale:'pt-BR'});
+    assert.equal(r.status,200);assert.equal(r.data.ok,true);
+  });
+  await check('tenant cannot invite another company employee or override the employee company', async () => {
+    assert.equal((await request(`/api/admin/candidates/${B.personId}/employee-access`,byLabel.hrA.cookie,'POST',{locale:'pt-BR'})).status,404);
+    assert.equal((await request(`/api/admin/candidates/${A.personId}/employee-access`,byLabel.super.cookie,'POST',{companyId:B.id})).status,403);
+  });
+  await check('authorized RH can update corporate email while recruiting-only access stays forbidden', async () => {
+    const personal=`email-lifecycle-${stamp}@example.test`,corporate=`corporate-${stamp}@example.test`;
+    const person=await one("INSERT INTO candidates(company_id,full_name,email,personal_email,employment_status) VALUES($1,'Synthetic email test',$2,$2,'employee') RETURNING id",[A.id,personal]);
+    const denied=await request(`/api/admin/candidates/${person.id}`,byLabel.limitedA.cookie,'PATCH',{email:corporate});assert.ok([401,403].includes(denied.status));
+    const allowed=await request(`/api/admin/candidates/${person.id}`,byLabel.hrA.cookie,'PATCH',{email:corporate});assert.equal(allowed.status,200);
+    assert.deepEqual(await one('SELECT email,personal_email FROM candidates WHERE id=$1',[person.id]),{email:corporate,personal_email:personal});
+  });
   for (const identity of identities.filter(x=>x.company)) await check(`${identity.label}: global subscriptions are forbidden even for account owners`,async()=>{
     assert.equal((await request('/api/admin/billing/companies',identity.cookie)).status,403);
     assert.equal((await request(`/api/admin/billing/operations?companyId=${A.id}&invoiceId=in_notowned`,identity.cookie)).status,403);

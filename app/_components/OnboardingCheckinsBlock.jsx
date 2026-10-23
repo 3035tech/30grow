@@ -11,6 +11,7 @@ import { RichTextView } from './RichTextView';
 import { isRichTextEmpty } from '../../lib/sanitize-html';
 import { EMPLOYMENT_STATUS } from '../../lib/domain-status.js';
 import { StatusToneChip } from './StatusToneChip';
+import { CollapsibleBlock } from './CollapsibleBlock';
 import { MeterBar } from './MeterBar';
 
 const OUTCOME_TONE = Object.freeze({
@@ -36,6 +37,9 @@ export function OnboardingCheckinsBlock({
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(true);
+  const allDone = items.length > 0 && items.every(item => item.status === 'done' || item.status === 'skipped');
+  useEffect(() => { setExpanded(!allDone); }, [candidateId, allDone]);
 
   const load = useCallback(async () => {
     if (!candidateId || employmentStatus !== EMPLOYMENT_STATUS.EMPLOYEE) {
@@ -234,7 +238,7 @@ export function OnboardingCheckinsBlock({
 
   return (
     <section className={cn(S.cardTight, 'mt-3')} aria-label={t(locale, 'panel.onboarding.sectionAria')}>
-      <h3 className={cn(S.cardSection, 'mb-0')}>{t(locale, 'panel.onboarding.title')}</h3>
+      <CollapsibleBlock locale={locale} title={t(locale, 'panel.onboarding.title')} bordered={false} open={expanded} onOpenChange={setExpanded} titleClassName={S.cardSection} headerAside={items.length ? <StatusToneChip tone={allDone ? 'success' : 'neutral'}>{t(locale, 'panel.onboarding.progress', { done: doneCount, total: items.length })}</StatusToneChip> : null}>
       <p className={cn(S.muted, 'm-0 mt-1 text-prose')}>{t(locale, 'panel.onboarding.hint')}</p>
       {items.length > 0 ? (
         <div className="mt-2">
@@ -387,6 +391,7 @@ export function OnboardingCheckinsBlock({
           </ul>
         </ContentEnter>
       )}
+      </CollapsibleBlock>
     </section>
   );
 }

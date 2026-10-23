@@ -328,7 +328,7 @@ export async function PATCH(request, props) {
     if (!isAdmin && String(previous.rows[0].companyId) !== String(companyId)) return { errorCode: ERR.UNAUTHORIZED, status: 401 };
     const employeeRecord = [EMPLOYMENT_STATUS.EMPLOYEE, EMPLOYMENT_STATUS.ALUMNI].includes(previous.rows[0].employmentStatus);
     if (nextEmail && employeeRecord && nextEmail !== String(previous.rows[0].email || '').toLowerCase()
-      && !requireAnyCapability(payload, [CAP.DP_VIEW, CAP.TEAM_VIEW])) {
+      && !isAdmin && !requireAnyCapability(payload, [CAP.DP_VIEW, CAP.TEAM_VIEW])) {
       return { errorCode: ERR.EMPLOYEE_EMAIL_CHANGE_FORBIDDEN, status: httpStatusForError(ERR.EMPLOYEE_EMAIL_CHANGE_FORBIDDEN) };
     }
     const oldFormat = previous.rows[0].workFormat || null;

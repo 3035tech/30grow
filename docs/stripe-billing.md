@@ -129,3 +129,21 @@ Rollback: retornar ao código anterior preservando tabelas e histórico financei
 Produção usa `grow30_app` sem DDL. A migration 169 foi aplicada pela conexão administrativa no pgAdmin; `scripts/grant-billing-admin-runtime.sql` concede somente SELECT/INSERT/UPDATE nas operações e SELECT/INSERT no histórico, com USAGE da sequência. DELETE/TRUNCATE das novas tabelas e UPDATE do histórico não são concedidos ao runtime. A aplicação não recebeu CREATE nem REFERENCES nas tabelas existentes. A migration foi aplicada também no banco `team` de homologação, com checksum de licenças preservado em ambos.
 
 O valor confirmado na interface é obrigatório em todos os tipos de reembolso e precisa coincidir com o saldo/cálculo atual do servidor; uma prévia desatualizada é recusada. Cancelamentos com resposta desconhecida são apenas reconciliados, sem reaplicar uma ordem antiga sobre uma decisão posterior do dono. Se o resultado não puder ser comprovado, o histórico exige conferência no Stripe.
+
+## Sandbox permanente de desenvolvimento
+
+O secret `/homolog/30grow/stripe`, em `us-west-2`, guarda exclusivamente a configuração da conta `30grow sandbox`. Produção mantém `/prod/30grow/stripe`. O catálogo de seis preços, portal e a assinatura do webhook existente foram reunidos no secret de homologação, sem rotacionar a assinatura nem alterar a chave live.
+
+`npm run dev` carrega esse secret usando a sessão do AWS CLI (`aws login`), recusa chave live e remove variáveis Stripe herdadas antes de aplicar a configuração de teste. Usa Webpack como o build. O script recusa `NODE_ENV=production` e bancos remotos; aceita localhost e aliases locais de Docker. O endereço de retorno é local e acompanha `-p/--port`. Não escreve credenciais no `.env` nem no repositório. Isso configura o processo local; o deploy de Dublin precisa receber separadamente os valores de homologação no seu gerenciador de ambiente.
+
+`npm run test:stripe:sandbox` é uma prova externa explícita, fora do CI automático. Usa apenas clientes fictícios sem e-mail e relógio de teste Stripe, sem o banco da aplicação. A execução de 23/10/2026 passou em dez contratos: preço, parâmetros reais de Checkout com termos obrigatórios, primeiro pagamento, portal, cancelamento/retomada, renovação recusada, recuperação com outro cartão, reembolso parcial idempotente, saldo restante e encerramento. Os clientes fictícios e o relógio foram removidos ao final. Essa prova não certifica o formulário de Checkout no navegador nem a entrega ponta a ponta do webhook em Dublin.
+
+A prova externa identificou que a API `2026-09-30.endive` recusa `payment_method_types` ao criar Checkout. O contrato passou com `allowed_payment_method_types: ['card']`, também descrito no SDK instalado; mantém a seleção restrita a cartões entre os meios dinamicamente elegíveis. Há asserção no teste de integração offline para impedir a reintrodução do parâmetro antigo.
+
+## Recuperação de cartão e fatura
+
+O dono da conta continua acessando Perfil → Billing quando os demais módulos estão restritos por pagamento. Em `past_due`, `unpaid` e `incomplete`, o CTA é “Atualizar cartão ou pagar fatura”, direcionando ao portal Stripe existente, que habilita atualização de meio de pagamento e histórico. Fatura em aberto mostra “Pagar fatura”. Alterar o cartão não significa que uma fatura já foi quitada: acesso e situação só acompanham o estado confirmado pelo provedor. Outras contas da empresa não recebem acesso ao billing do dono.
+
+## Gates de entrega
+
+AWS e GitHub executam integração financeira e ciclo de empresa em PostgreSQL isolado, build e contratos HTTP de tenants antes de publicar imagens. GitHub também exige UI de billing/assinaturas e ajustes de RH. Capturas de teste usam `testInfo.outputPath`, compatível com Linux; a primeira execução do gate revelou os antigos caminhos locais `/private/tmp`, que foram corrigidos. Nenhuma chave Stripe é exigida no CI offline.

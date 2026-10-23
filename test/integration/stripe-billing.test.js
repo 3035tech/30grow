@@ -36,6 +36,7 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
       expire:async id=>{sessions.get(id).status='expired';return sessions.get(id);},
       create:async(params,opts)=>{
         if(!idempotency.has(opts.idempotencyKey)){
+          assert.deepEqual(Array.from(params.allowed_payment_method_types),['card']);assert.equal(params.payment_method_types,undefined);
           const id='cs_test_'+(++createdSessions);
           const session={id,status:'open',livemode:false,mode:'subscription',url:'https://checkout.stripe.com/'+id,customer:params.customer,client_reference_id:params.client_reference_id,expires_at:params.expires_at,metadata:params.metadata,params};
           sessions.set(id,session);idempotency.set(opts.idempotencyKey,session);

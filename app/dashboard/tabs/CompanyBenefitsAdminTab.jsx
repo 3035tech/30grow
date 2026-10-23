@@ -62,10 +62,7 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
 
   const typeOptions = BENEFIT_TYPES.map((value) => ({ value, label: t(value) }));
 
-  const categorySelectOptions = [
-    { value: '', label: t('formCategoryNone') },
-    ...categories.map((cat) => ({ value: String(cat.id), label: cat.name })),
-  ];
+
 
   useEffect(() => {
     loadCategories();
@@ -130,14 +127,6 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
         minHeight: 120,
       },
       {
-        name: 'categoryId',
-        label: t('formCategoryLabel'),
-        type: 'select',
-        required: false,
-        value: benefit?.categoryId != null ? String(benefit.categoryId) : '',
-        options: categorySelectOptions,
-      },
-      {
         name: 'benefitType',
         label: t('formTypeLabel'),
         type: 'select',
@@ -148,11 +137,7 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
     ];
   }
 
-  function parseCategoryId(raw) {
-    if (raw === '' || raw == null) return null;
-    const n = Number(raw);
-    return Number.isFinite(n) && n > 0 ? n : null;
-  }
+
 
   async function handleCreateCategory() {
     const result = await promptForm({
@@ -259,7 +244,6 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
           withCompanyBody({
             name: result.name,
             description: result.description,
-            categoryId: parseCategoryId(result.categoryId),
             benefitType: result.benefitType,
           })
         ),
@@ -291,7 +275,6 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
           withCompanyBody({
             name: result.name,
             description: result.description,
-            categoryId: parseCategoryId(result.categoryId),
             benefitType: result.benefitType,
           })
         ),

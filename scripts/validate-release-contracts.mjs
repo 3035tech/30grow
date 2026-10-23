@@ -17,7 +17,7 @@ try {
   await run(process.execPath,['--experimental-vm-modules','--test','test/integration/stripe-billing.test.js','test/integration/company-lifecycle.test.js'],{BILLING_TEST_PG_PORT:'55447'});
   await run('npm',['run','build'],{NODE_OPTIONS:'--max-old-space-size=6144'});
   await run(process.execPath,['test/dtov/tenant-permissions.http.test.js'],{TENANT_AUDIT:'1'});
-  if(process.argv.includes('--ui')) await run('npx',['--no-install','playwright','test','--config','test/ui-controls/playwright.config.js','subscriptions.spec.js','billing.spec.js']);
+  if(process.argv.includes('--ui')) await run('npx',['--no-install','playwright','test','--config','test/ui-controls/playwright.config.js','subscriptions.spec.js','billing.spec.js','hr-feedback.spec.js']);
 } catch(error) {
   failed=true;console.error('Release contract gate failed:',error.message);
 } finally {
