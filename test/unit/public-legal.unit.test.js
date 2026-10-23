@@ -4,6 +4,8 @@ import { describe, it } from 'node:test';
 import {
   PRIVACY_CONTACT_EMAIL,
   PUBLIC_LEGAL_VERSION,
+  PUBLIC_TERMS_VERSION,
+  CANCELLATION_POLICY_PATH,
   buildPublicLegalMetadata,
   getPublicLegalDocument,
 } from '../../lib/public-legal.js';
@@ -23,6 +25,26 @@ describe('public legal documents', () => {
     }
     assert.match(PRIVACY_CONTACT_EMAIL, /@/);
     assert.match(PUBLIC_LEGAL_VERSION, /^\d{4}\.\d{2}$/);
+  });
+
+  it('publishes the approved cancellation policy without an extra first-charge guarantee', () => {
+    for (const locale of ['pt-BR', 'en']) {
+      const terms = getPublicLegalDocument('terms', locale);
+      const privacy = getPublicLegalDocument('privacy', locale);
+      assert.ok(terms.common.version.includes(PUBLIC_TERMS_VERSION));
+      assert.ok(!privacy.common.version.includes(PUBLIC_TERMS_VERSION));
+      const sections = terms.document.sections;
+      const ids = sections.filter(s => s.id).map(s => s.id);
+      assert.equal(new Set(ids).size, ids.length);
+      for (const id of ['assinaturas', 'cancelamento-e-reembolso', 'reembolsos', 'solicitar-reembolso']) assert.ok(ids.includes(id));
+      const refunds = sections.find(s => s.id === 'reembolsos').paragraphs.join(' ');
+      assert.match(refunds, /7 (dias|days)/);
+      assert.doesNotMatch(refunds, /garantia comercial|commercial guarantee/i);
+      assert.match(refunds, /proporcional|proportional/);
+      assert.match(sections.find(s => s.id === 'solicitar-reembolso').paragraphs.join(' '), /contact@3035tech.com/);
+      assert.match(terms.common.contactLabel, /Atendimento|Support/);
+    }
+    assert.equal(CANCELLATION_POLICY_PATH, '/terms#cancelamento-e-reembolso');
   });
 
   it('keeps legal pages indexable with their own canonical URL', () => {

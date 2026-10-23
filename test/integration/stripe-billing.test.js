@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
 import * as catalog from '../../lib/billing/catalog.js';
 import * as stripeModule from '../../lib/billing/stripe.js';
+import * as publicLegal from '../../lib/public-legal.js';
 
 const port=Number(process.env.BILLING_TEST_PG_PORT);
 test('Stripe billing migration, retries, tenant isolation and founder concurrency', {skip: !port}, async t => {
@@ -59,7 +60,7 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
     const context=vm.createContext({console,process:{env},Date,Buffer,URL,Math,Number,Set,Map});
     const module=new vm.SourceTextModule(await readFile(new URL('../../'+file,import.meta.url),'utf8'),{context});
     await module.link(specifier=>{
-      const exports=specifier==='node:crypto'?{randomUUID}:specifier.includes('db.js')?db:specifier.includes('catalog.js')?fakeCatalog:specifier.includes('stripe.js')?fakeStripe:specifier.includes('license.js')?{loadCompanyLicense:async()=>null}:specifier.includes('sync.js')?syncApi:null;
+      const exports=specifier==='node:crypto'?{randomUUID}:specifier.includes('public-legal.js')?publicLegal:specifier.includes('db.js')?db:specifier.includes('catalog.js')?fakeCatalog:specifier.includes('stripe.js')?fakeStripe:specifier.includes('license.js')?{loadCompanyLicense:async()=>null}:specifier.includes('sync.js')?syncApi:null;
       if(!exports)throw new Error('Unexpected dependency '+specifier);
       return new vm.SyntheticModule(Object.keys(exports),function(){for(const[k,v]of Object.entries(exports))this.setExport(k,v);},{context});
     });await module.evaluate();return module.namespace;
@@ -101,6 +102,11 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
       const again=await accounts.startCheckout({...fresh,planKey:'brl_small_monthly'});
       assert.equal(result.url,again.url);assert.equal(createdCustomers,1);assert.equal(createdSessions,1);
       assert.ok([...sessions.values()][0].params.subscription_data.trial_end>Math.floor(Date.now()/1000));
+      const params = [...sessions.values()][0].params;
+      assert.equal(params.consent_collection.terms_of_service, 'required');
+      assert.equal(params.metadata.terms_version, publicLegal.PUBLIC_TERMS_VERSION);
+      assert.equal(params.metadata.initiated_by_user_id, String(fresh.userId));
+      assert.match(params.custom_text.terms_of_service_acceptance.message, /terms#cancelamento-e-reembolso/);
       await assert.rejects(sync.confirmCheckout(legacy.companyId,'cs_test_1'),{code:'NOT_FOUND'});
     });
     const firstSub=complete('cs_test_1');

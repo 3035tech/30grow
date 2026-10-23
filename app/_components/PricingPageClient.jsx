@@ -77,6 +77,9 @@ export default function PricingPageClient({ locale: initialLocale, headerCopyByL
             <Link href="/privacy" className="text-ink-muted no-underline hover:text-ink">
               {t(locale, 'pricing.footerPrivacy')}
             </Link>
+            <Link href="/terms#cancelamento-e-reembolso" className="text-ink-muted no-underline hover:text-ink">
+              {t(locale, 'billing.policies')}
+            </Link>
             <Link href="/terms" className="text-ink-muted no-underline hover:text-ink">
               {t(locale, 'pricing.footerTerms')}
             </Link>
