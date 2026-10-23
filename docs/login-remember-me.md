@@ -9,3 +9,7 @@ O cookie continua HttpOnly, SameSite=Lax e Secure em HTTPS. Nenhuma senha é arm
 Não há alteração de schema. O campo rememberUntil existe apenas no JWT assinado. O rollback exige invalidar as sessões longas, pois versões antigas renovam sessões sem reconhecer esse limite: antes de retornar ao código anterior, incrementar session_version dos usuários e colaboradores afetados ou aguardar a expiração de todas as sessões longas. Nunca reutilizar um cookie revogado.
 
 Validação: contratos de JWT padrão e persistente, limite absoluto, reemissão, preferência assinada no 2FA, testes HTTP de cookie/perfil e testes de interface nos dois acessos. Os testes usam dados sintéticos e não alteram senhas de usuários reais.
+
+## Código de verificação
+
+Nos logins de gestor e colaborador, o código TOTP usa seis posições numéricas. Digitar avança o foco; Backspace e setas permitem corrigir; colar o código completo preenche as posições. O sexto dígito envia automaticamente uma única tentativa. Durante a verificação, os campos ficam bloqueados. Código inválido limpa as posições e retorna o foco ao início. As verificações de desafio, expiração, uso único e CAPTCHA no servidor continuam iguais.

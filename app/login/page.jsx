@@ -9,6 +9,7 @@ import { useLocale } from '../../lib/useLocale';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';
 import { AuthShell } from '../_components/AuthShell';
+import { VerificationCodeInput } from '../_components/VerificationCodeInput';
 import { FormField } from '../_components/FormField';
 import { InlineCallout } from '../_components/InlineCallout';
 import TurnstileField from '../_components/TurnstileField';
@@ -105,8 +106,10 @@ function LoginForm() {
     }
   };
 
-  const verify2fa = async () => {
-    if (!twoFaCode.trim() || !challengeToken) return;
+  const verify2fa = async (completedCode) => {
+    const code = typeof completedCode === 'string' ? completedCode : twoFaCode;
+    if (loading || !/^\d{6}$/.test(code)) return;
+    if (!challengeToken) return;
     setLoading(true);
     setError('');
     setTurnstileError(false);
@@ -122,7 +125,7 @@ function LoginForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challengeToken,
-          code: twoFaCode.trim(),
+          code,
           turnstileToken: turnstileToken || undefined,
         }),
       });
@@ -136,6 +139,7 @@ function LoginForm() {
           router.push(redirect);
         }
       } else {
+        if (data.errorCode === 'TOTP_INVALID') setTwoFaCode('');
         setError(data.errorCode ? errorMessage(locale, data.errorCode, data.error) : data.error || t(locale, 'login.connectionError'));
       }
     } catch {
@@ -310,16 +314,8 @@ function LoginForm() {
             </>
           ) : requires2fa ? (
             <FormField htmlFor="login-2fa-code" label={t(locale, 'login.twoFaCode')}>
-              <input
-                id="login-2fa-code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                className={cn(S.input, error && 'border-danger')}
-                value={twoFaCode}
-                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                onKeyDown={(e) => e.key === 'Enter' && verify2fa()}
-                maxLength={6}
-              />
+              <VerificationCodeInput id="login-2fa-code" label={t(locale, 'login.twoFaCode')}
+                value={twoFaCode} onChange={setTwoFaCode} onComplete={verify2fa} disabled={loading} invalid={Boolean(error)} />
             </FormField>
           ) : mode === 'forgot' ? (
             <FormField htmlFor="login-email" label={t(locale, 'login.email')}>

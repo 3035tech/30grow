@@ -8,6 +8,7 @@ import { useLocale } from '../../../lib/useLocale';
 import { cn } from '../../../lib/cn';
 import { S } from '../../dashboard/dashboard-shared';
 import { AuthShell } from '../../_components/AuthShell';
+import { VerificationCodeInput } from '../../_components/VerificationCodeInput';
 import { FormField } from '../../_components/FormField';
 import { InlineCallout } from '../../_components/InlineCallout';
 import { SegmentedControl } from '../../_components/SegmentedControl';
@@ -108,7 +109,9 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
     router.replace('/employee');
   };
 
-  const verify2fa = async () => {
+  const verify2fa = async (completedCode) => {
+    const code = typeof completedCode === 'string' ? completedCode : twoFaCode;
+    if (busy || !/^\d{6}$/.test(code)) return;
     if (!ensureCaptcha()) return;
     setBusy(true);
     setFormError('');
@@ -118,13 +121,16 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challengeToken,
-          code: twoFaCode,
+          code,
           locale,
           ...captchaPayload(),
         }),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || t(locale, 'login.twoFaVerifying'));
+      if (!res.ok) {
+        if (json?.errorCode === 'TOTP_INVALID') setTwoFaCode('');
+        throw new Error(json?.error || t(locale, 'login.twoFaVerifying'));
+      }
       setRequires2fa(false);
       setChallengeToken('');
       router.replace('/employee');
@@ -336,19 +342,9 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
       ) : requires2fa ? (
         <div className="flex flex-col gap-3">
           <FormField label={t(locale, 'login.twoFaCode')}>
-            <input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              className={cn(S.input, 'w-full', formError && 'border-danger')}
-              value={twoFaCode}
-              onChange={(e) => {
-                setTwoFaCode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                if (formError) setFormError('');
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && verify2fa()}
-              maxLength={6}
-              disabled={busy}
-            />
+            <VerificationCodeInput id="employee-2fa-code" label={t(locale, 'login.twoFaCode')}
+              value={twoFaCode} onChange={code => { setTwoFaCode(code); if (formError) setFormError(''); }}
+              onComplete={verify2fa} disabled={busy} invalid={Boolean(formError)} />
           </FormField>
 
 
