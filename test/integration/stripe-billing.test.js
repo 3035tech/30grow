@@ -10,6 +10,7 @@ import { Pool } from 'pg';
 import * as catalog from '../../lib/billing/catalog.js';
 import * as stripeModule from '../../lib/billing/stripe.js';
 import * as publicLegal from '../../lib/public-legal.js';
+import * as errorCodes from '../../lib/api-error-codes.js';
 
 const port=Number(process.env.BILLING_TEST_PG_PORT);
 test('Stripe billing migration, retries, tenant isolation and founder concurrency', {skip: !port}, async t => {
@@ -52,15 +53,33 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
     invoices:{list:async()=>({data:[]})},
     billingPortal:{configurations:{create:async params=>{portalParams=params;return{id:'bpc_target'};}},sessions:{create:async params=>{portalParams={...portalParams,session:params};return{url:'https://billing.stripe.com/test'};}}}
   };
+  const invoices=new Map(),payments=new Map(),charges=new Map(),intents=new Map(),refunds=new Map();
+  let refundCalls=0,loseRefundResponse=false,denyRefund=false,loseCancellationResponse=false;
+  stripe.invoices.retrieve=async id=>invoices.get(id);
+  stripe.invoicePayments={list:async({invoice})=>({data:payments.get(invoice)||[],has_more:false})};
+  stripe.charges={retrieve:async id=>charges.get(id)};
+  stripe.paymentIntents={retrieve:async id=>intents.get(id)};
+  stripe.refunds={list:({charge})=>({async *[Symbol.asyncIterator](){for(const r of refunds.values())if(r.charge===charge)yield r;}}),retrieve:async id=>refunds.get(id),create:async(params,opts)=>{
+    refundCalls++;
+    if(denyRefund){const e=new Error('permission denied');e.type='StripePermissionError';throw e;}
+    let r=idempotency.get(opts.idempotencyKey);
+    if(!r){r={id:'re_fixture_'+refundCalls,charge:params.charge,amount:params.amount,currency:charges.get(params.charge).currency,status:'pending',created:Math.floor(Date.now()/1000),metadata:params.metadata};refunds.set(r.id,r);idempotency.set(opts.idempotencyKey,r);}
+    if(loseRefundResponse){loseRefundResponse=false;const e=new Error('lost response');e.type='StripeConnectionError';throw e;}
+    return r;
+  }};
+  const updateSubscription=stripe.subscriptions.update;
+  stripe.subscriptions.update=async(...args)=>{const result=await updateSubscription(...args);if(loseCancellationResponse){loseCancellationResponse=false;throw new Error('lost cancellation response');}return result;};
+  stripe.subscriptions.cancel=async(id,params)=>{assert.equal(params.invoice_now,false);assert.equal(params.prorate,false);subscriptions.get(id).status='canceled';return subscriptions.get(id);};
+  stripe.subscriptionSchedules.cancel=async(id,params)=>{assert.equal(params.invoice_now,false);assert.equal(params.prorate,false);const schedule=schedules.get(id);schedule.status='canceled';[...subscriptions.values()].find(x=>x.schedule===id).status='canceled';return schedule;};
   const fakeStripe={...stripeModule,getStripe:()=>stripe,stripeMode:()=>false,billingBaseUrl:()=>env.APP_URL,
     checkedPrice:async(_stripe,plan)=>{const value=prices[env[plan.env]];if(!value||value.unit_amount!==plan.amount)throw new stripeModule.BillingError('BILLING_PRICE_INVALID',503);return value;}};
   const fakeCatalog={...catalog,priceId:plan=>env[plan.env]||'',planForPrice:id=>[...catalog.BILLING_PLANS,catalog.LAUNCH_PRICE].find(plan=>env[plan.env]===id)||null};
-  let syncApi;
+  let syncApi,refundApi;
   async function load(file){
     const context=vm.createContext({console,process:{env},Date,Buffer,URL,Math,Number,Set,Map});
     const module=new vm.SourceTextModule(await readFile(new URL('../../'+file,import.meta.url),'utf8'),{context});
     await module.link(specifier=>{
-      const exports=specifier==='node:crypto'?{randomUUID}:specifier.includes('public-legal.js')?publicLegal:specifier.includes('db.js')?db:specifier.includes('catalog.js')?fakeCatalog:specifier.includes('stripe.js')?fakeStripe:specifier.includes('license.js')?{loadCompanyLicense:async()=>null}:specifier.includes('sync.js')?syncApi:null;
+      const exports=specifier==='node:crypto'?{randomUUID}:specifier.includes('api-error-codes.js')?errorCodes:specifier.includes('public-legal.js')?publicLegal:specifier.includes('db.js')?db:specifier.includes('catalog.js')?fakeCatalog:specifier.includes('stripe.js')?fakeStripe:specifier.includes('refunds.js')?refundApi:specifier.includes('license.js')?{loadCompanyLicense:async()=>null}:specifier.includes('sync.js')?syncApi:null;
       if(!exports)throw new Error('Unexpected dependency '+specifier);
       return new vm.SyntheticModule(Object.keys(exports),function(){for(const[k,v]of Object.entries(exports))this.setExport(k,v);},{context});
     });await module.evaluate();return module.namespace;
@@ -79,7 +98,7 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
   }
   const event=(sub,type='customer.subscription.updated',id='evt_'+randomUUID())=>({id,type,livemode:false,created:Math.floor(Date.now()/1000),data:{object:sub}});
   try{
-    await db.query(`CREATE TABLE schema_migrations(name TEXT PRIMARY KEY);CREATE TABLE companies(id SERIAL PRIMARY KEY,name TEXT NOT NULL,active BOOLEAN DEFAULT TRUE,deleted BOOLEAN DEFAULT FALSE);CREATE TABLE users(id SERIAL PRIMARY KEY,company_id INTEGER REFERENCES companies(id),email TEXT,signup_source TEXT,created_at TIMESTAMPTZ DEFAULT now());CREATE TABLE candidates(id SERIAL PRIMARY KEY,company_id INTEGER REFERENCES companies(id),employment_status TEXT);`);
+    await db.query(`CREATE TABLE schema_migrations(name TEXT PRIMARY KEY);CREATE TABLE companies(id SERIAL PRIMARY KEY,name TEXT NOT NULL,active BOOLEAN DEFAULT TRUE,deleted BOOLEAN DEFAULT FALSE);CREATE TABLE users(id SERIAL PRIMARY KEY,company_id INTEGER REFERENCES companies(id),email TEXT,signup_source TEXT,created_at TIMESTAMPTZ DEFAULT now());CREATE TABLE candidates(id SERIAL PRIMARY KEY,company_id INTEGER REFERENCES companies(id),employment_status TEXT);ALTER TABLE companies ADD COLUMN signup_creator_user_id INTEGER REFERENCES users(id);`);
     for(const file of ['122_company_early_access_license.sql','125_company_trial_terms.sql'])await db.query(await readFile(new URL('../../migrations/'+file,import.meta.url),'utf8'));
     const legacy=await company();
     const before=(await db.query('SELECT * FROM company_licenses WHERE company_id=$1',[legacy.companyId])).rows[0];
@@ -94,6 +113,9 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
       assert.equal((await db.query('SELECT managed FROM company_billing_terms WHERE company_id=$1',[fresh.companyId])).rows[0].managed,true);
       await assert.rejects(db.query("INSERT INTO company_billing_accounts(company_id,livemode,status) VALUES($1,FALSE,'fake')",[fresh.companyId]),{code:'23514'});
     });
+    const operationMigration=await readFile(new URL('../../migrations/169_billing_admin_operations.sql',import.meta.url),'utf8');
+    await db.query(operationMigration);await db.query(operationMigration);
+    refundApi=await load('lib/billing/refunds.js');
     const sync=syncApi=await load('lib/billing/sync.js'),accounts=await load('lib/billing/accounts.js');
     await t.test('lost Stripe responses and repeated clicks reuse a durable checkout',async()=>{
       failSessionOnce=true;
@@ -213,6 +235,65 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
       const row=(await db.query('SELECT * FROM company_billing_accounts WHERE company_id=$1',[foreign.companyId])).rows[0];
       assert.equal(row.plan_key,null);
       assert.equal(catalog.billingAccess({managed:true,status:row.status,periodEnd:row.period_end,knownPlan:Boolean(row.plan_key)}),false);
+    });
+    await t.test('admin refunds recover provider timeouts, prevent duplicate money movement and preserve licenses',async()=>{
+      const admin=await load('lib/billing/admin.js');
+      const tenant=await company();await accounts.startCheckout({...tenant,planKey:'brl_small_annual'});
+      const session=[...sessions.values()].find(x=>x.client_reference_id===String(tenant.companyId));
+      const sub=complete(session.id,{status:'active'});await sync.confirmCheckout(tenant.companyId,session.id);
+      const now=Math.floor(Date.now()/1000),start=now-180*86400,end=now+185*86400;
+      const invoice={id:'in_admin_fixture',number:'INV-1',customer:session.customer,livemode:false,status:'paid',amount_paid:149000,currency:'brl',created:start,billing_reason:'subscription_cycle',parent:{subscription_details:{subscription:sub.id}},lines:{data:[{pricing:{price_details:{price:'price_brl_small_annual'}},period:{start,end}}],has_more:false}};
+      invoices.set(invoice.id,invoice);
+      charges.set('ch_admin_fixture',{id:'ch_admin_fixture',customer:session.customer,livemode:false,paid:true,captured:true,amount:149000,currency:'brl'});
+      intents.set('pi_admin_fixture',{id:'pi_admin_fixture',customer:session.customer,livemode:false,latest_charge:'ch_admin_fixture'});
+      payments.set(invoice.id,[{id:'inpay_fixture',amount_paid:149000,payment:{type:'payment_intent',payment_intent:'pi_admin_fixture'}}]);
+      const account=(await db.query('SELECT * FROM company_billing_accounts WHERE company_id=$1',[tenant.companyId])).rows[0];
+      const preview=await refundApi.refundPreview(db,stripe,account,invoice.id);
+      assert.equal(preview.available,149000);assert.ok(preview.proportional>70000&&preview.proportional<80000);
+      await assert.rejects(refundApi.refundPreview(db,stripe,{...account,customer_id:'cus_foreign'},invoice.id),{code:'NOT_FOUND'});
+      const input={companyId:tenant.companyId,actorUserId:tenant.userId,requestId:randomUUID(),invoiceId:invoice.id,basis:'partial',amount:1234,reason:'customer_request',note:'Test only'};
+      await assert.rejects(refundApi.prepareRefund({...input,requestId:randomUUID(),basis:'full',amount:149001}),{code:'BILLING_REFUND_AMOUNT'});
+      const op=await refundApi.prepareRefund(input);loseRefundResponse=true;
+      await assert.rejects(refundApi.executeRefund(op.id),{code:'BILLING_OPERATION_PENDING'});
+      assert.equal((await db.query('SELECT status FROM billing_admin_operations WHERE id=$1',[op.id])).rows[0].status,'processing');
+      await assert.rejects(refundApi.prepareRefund({...input,amount:1500}),{code:'BILLING_OPERATION_CONFLICT'});
+      const recovered=await Promise.all([refundApi.executeRefund(op.id),refundApi.executeRefund(op.id)]);
+      assert.equal(recovered[0].status,'pending');assert.equal(refundCalls,1);
+      const refund=refunds.get(recovered[0].stripe_refund_id);refund.status='succeeded';
+      const delivered=event(refund,'refund.updated');await sync.processBillingEvent(delivered);await sync.processBillingEvent(delivered);
+      assert.equal((await db.query('SELECT status FROM billing_admin_operations WHERE id=$1',[op.id])).rows[0].status,'succeeded');
+      const rejected=await refundApi.prepareRefund({...input,requestId:randomUUID(),amount:500});denyRefund=true;
+      await assert.rejects(refundApi.executeRefund(rejected.id),{code:'BILLING_REFUND_REJECTED'});denyRefund=false;
+      assert.equal((await db.query('SELECT status FROM billing_admin_operations WHERE id=$1',[rejected.id])).rows[0].status,'failed');
+      const stale=await refundApi.prepareRefund({...input,requestId:randomUUID(),amount:500});await db.query("UPDATE billing_admin_operations SET created_at=now()-interval '24 hours' WHERE id=$1",[stale.id]);
+      assert.equal((await refundApi.executeRefund(stale.id)).status,'needs_review');
+      const annualPreview=await refundApi.refundPreview(db,stripe,account,invoice.id);
+      const annual=await refundApi.prepareRefund({...input,requestId:randomUUID(),basis:'annual',amount:annualPreview.proportional,requestedAt:annualPreview.requestedAt,reason:'annual_early_termination'});
+      assert.ok(annual.amount>70000&&annual.amount<80000);await refundApi.executeRefund(annual.id);
+      await assert.rejects(refundApi.prepareRefund({...input,requestId:randomUUID(),basis:'annual',reason:'annual_early_termination'}));
+      const beforeCalls=refundCalls;
+      const cancelInput={companyId:tenant.companyId,actorUserId:tenant.userId,requestId:randomUUID(),kind:'cancel_renewal',reason:'customer_request',note:''};
+      await admin.performBillingOperation(cancelInput);await admin.performBillingOperation(cancelInput);assert.equal(sub.cancel_at_period_end,true);
+      await admin.performBillingOperation({...cancelInput,requestId:randomUUID(),kind:'resume_renewal'});assert.equal(sub.cancel_at_period_end,false);
+      const uncertain={...cancelInput,requestId:randomUUID()};loseCancellationResponse=true;
+      await assert.rejects(admin.performBillingOperation(uncertain),{code:'BILLING_OPERATION_PENDING'});
+      await sync.setSubscriptionCancellation(tenant.companyId,false); // a later owner decision
+      await db.query("UPDATE billing_admin_operations SET updated_at=now()-interval '2 minutes' WHERE id=$1",[uncertain.requestId]);
+      assert.equal((await admin.performBillingOperation(uncertain)).status,'needs_review');
+      assert.equal(sub.cancel_at_period_end,false,'uncertain old cancellation must not override a newer owner decision');
+      const license=(await db.query('SELECT * FROM company_licenses WHERE company_id=$1',[tenant.companyId])).rows[0];
+      await admin.performBillingOperation({...cancelInput,requestId:randomUUID(),kind:'terminate'});assert.equal(sub.status,'canceled');assert.equal(refundCalls,beforeCalls);
+      assert.deepEqual((await db.query('SELECT * FROM company_licenses WHERE company_id=$1',[tenant.companyId])).rows[0],license);
+      const journalBefore=(await db.query('SELECT count(*)::int AS n FROM billing_admin_operation_events')).rows[0].n;
+      await db.query(operationMigration);assert.equal((await db.query('SELECT count(*)::int AS n FROM billing_admin_operation_events')).rows[0].n,journalBefore);
+      const countsSql='SELECT (SELECT count(*) FROM company_licenses) AS licenses,(SELECT count(*) FROM company_billing_accounts) AS accounts';
+      const before=(await db.query(countsSql)).rows[0];const customersBefore=createdCustomers;
+      const listing=await admin.listBillingCompanies({q:'Billing',page:1,pageSize:20});assert.ok(listing.total>0);
+      const details=await admin.billingCompanyDetails(tenant.companyId);assert.ok(details.history.length>0);
+      assert.deepEqual((await db.query(countsSql)).rows[0],before);assert.equal(createdCustomers,customersBefore);
+      const remaining=await refundApi.refundPreview(db,stripe,account,invoice.id);assert.equal(remaining.available,149000-1234-500-annual.amount);
+      const full=await refundApi.prepareRefund({...input,requestId:randomUUID(),basis:'full',amount:remaining.available});await refundApi.executeRefund(full.id);
+      assert.equal((await refundApi.refundPreview(db,stripe,account,invoice.id)).available,0);
     });
   }finally{await pool.end();await root.query(`DROP SCHEMA ${schema} CASCADE`);await root.end();}
 });

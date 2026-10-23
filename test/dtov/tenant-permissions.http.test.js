@@ -187,6 +187,17 @@ try {
     await check(`${identity.label}: real login`, async () => assert.ok(identity.cookie));
   }
   const byLabel = Object.fromEntries(identities.map(x => [x.label, x]));
+  for (const identity of identities.filter(x=>x.company)) await check(`${identity.label}: global subscriptions are forbidden even for account owners`,async()=>{
+    assert.equal((await request('/api/admin/billing/companies',identity.cookie)).status,403);
+    assert.equal((await request(`/api/admin/billing/operations?companyId=${A.id}&invoiceId=in_notowned`,identity.cookie)).status,403);
+    assert.equal((await request('/api/admin/billing/operations',identity.cookie,'POST',{companyId:A.id,requestId:'4bdd07bf-94bc-4cbc-9961-580a6367f1fa',kind:'terminate',confirmed:true,reason:'customer_request',note:''})).status,403);
+  });
+  await check('platform superadmin can read subscriptions without creating licenses or Stripe customers',async()=>{
+    const counts=await one('SELECT (SELECT count(*) FROM company_licenses) AS licenses,(SELECT count(*) FROM company_billing_accounts) AS accounts');
+    const result=await request('/api/admin/billing/companies',byLabel.super.cookie);assert.equal(result.status,200);
+    assert.deepEqual(await one('SELECT (SELECT count(*) FROM company_licenses) AS licenses,(SELECT count(*) FROM company_billing_accounts) AS accounts'),counts);
+  });
+
   for (const identity of identities.filter(x => x.company)) {
     const owner = identity.label === 'ownerA';
     await check(`${identity.label}: billing belongs to account creator`, async () => {

@@ -129,6 +129,10 @@ const CompatTab = dynamic(
   () => import('./tabs/CompatTab').then((m) => ({ default: m.CompatTab })),
   { loading: () => <TabLoadingFallback /> }
 );
+const SubscriptionsAdminTab = dynamic(
+  () => import('./tabs/SubscriptionsAdminTab').then(m => ({default:m.SubscriptionsAdminTab})),
+  {loading: () => <TabLoadingFallback />}
+);
 const CompaniesAdminTab = dynamic(
   () => import('./tabs/CompaniesAdminTab').then((m) => ({ default: m.CompaniesAdminTab })),
   { loading: () => <TabLoadingFallback /> }
@@ -905,6 +909,7 @@ function DashboardClientContent({
     [DASHBOARD_NAV_SECTION.ADMINISTRATION]: [
       showUsers && { id: 'users', icon: 'users', label: t(locale, 'dashboard.users') },
       showCompanies && { id: 'companies', icon: 'companies', label: t(locale, 'dashboard.companies') },
+      isSuperAdminPayload(sessionAuth) && {id:'subscriptions',icon:'list',label:t(locale,'billingAdmin.title')},
       showLeads && { id: 'leads', icon: 'users', label: t(locale, 'dashboard.leads') },
       showProductFeedback && { id: 'product-feedback', icon: 'feedbackInfo', label: t(locale, 'dashboard.productFeedback') },
       isSuperAdminPayload(sessionAuth) && {id:'digital-certificate', icon:'list', label:t(locale,'digitalCertificate.title')},
@@ -1152,7 +1157,7 @@ function DashboardClientContent({
             locale={locale}
             companyId={scopedCompanyId}
             companyName={companies.find(c => String(c.id) === String(scopedCompanyId))?.name || (!isAdmin ? sessionAuth?.companyName : null)}
-            global={isAdmin && (['companies', 'users', 'leads', 'product-feedback', 'digital-certificate'].includes(tab) || !scopedCompanyId)}
+            global={isAdmin && (['companies', 'users', 'leads', 'subscriptions', 'product-feedback', 'digital-certificate'].includes(tab) || !scopedCompanyId)}
           /> : null}
 
           <div className="db-top-row mb-4 flex flex-wrap items-start gap-3">
@@ -1503,6 +1508,7 @@ function DashboardClientContent({
               {tab === 'whistleblowing' && showWhistleblowing && (
                 <WhistleblowingAdminTab locale={locale} companyId={scopedCompanyId} />
               )}
+              {tab === 'subscriptions' && isSuperAdminPayload(sessionAuth) && <SubscriptionsAdminTab locale={locale} />}
               {tab === 'companies' && showCompanies && (
                 <CompaniesAdminTab
                   navigateDashboard={navigateWithOpts}

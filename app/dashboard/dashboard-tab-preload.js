@@ -20,6 +20,7 @@ const TAB_CHUNKS = {
   motivators: () => import('./tabs/MotivatorsAdminTab'),
   climate: () => import('./tabs/ClimateTab'),
   whistleblowing: () => import('./tabs/WhistleblowingAdminTab'),
+  subscriptions: () => import('./tabs/SubscriptionsAdminTab'),
   companies: () => import('./tabs/CompaniesAdminTab'),
   users: () => import('./tabs/UsersAdminTab'),
   leads: () => import('./tabs/LeadsAdminTab'),
