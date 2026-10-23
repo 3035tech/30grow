@@ -15,7 +15,10 @@ export function VerificationCodeInput({ id, label, value, onChange, onComplete, 
 
   useEffect(() => {
     setDigits(current => current.join('') === value ? current : slots(value));
-    if (!value) focus(0);
+    if (!value) {
+      inputs.current[0]?.focus();
+      inputs.current[0]?.select();
+    }
   }, [value]);
 
   function focus(index) {
@@ -47,7 +50,7 @@ export function VerificationCodeInput({ id, label, value, onChange, onComplete, 
     update(next, Math.min(start + numbers.length, LENGTH - 1));
   }
 
-  return <div role="group" aria-label={label} className="flex w-full gap-2">
+  return <div role="group" aria-label={label} aria-busy={disabled} className="flex w-full gap-2">
     {digits.map((digit, index) => <input
       key={index}
       ref={element => { inputs.current[index] = element; }}

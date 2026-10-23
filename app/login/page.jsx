@@ -243,7 +243,7 @@ function LoginForm() {
         </>
       )}
       intro={requires2fa
-        ? t(locale, 'login.twoFaIntro')
+        ? t(locale, 'login.twoFaAutoIntro')
         : !mustChangePassword
           ? t(locale, mode === 'forgot' ? 'login.forgotIntro' : 'login.intro')
           : null}
@@ -379,7 +379,7 @@ function LoginForm() {
           type="button"
           className={cn(S.btnPrimary, 'mb-4 min-h-touch w-full justify-center', loading && 'opacity-60')}
           onClick={primaryAction}
-          disabled={loading}
+          disabled={loading || (requires2fa && twoFaCode.length !== 6)}
         >
           {loading
             ? (requires2fa

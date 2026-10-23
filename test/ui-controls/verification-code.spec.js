@@ -18,6 +18,8 @@ for(const employee of [false,true])test(`${employee?'employee':'manager'}: six p
  const group=page.getByRole('group',{name:'Código',exact:true});
  const digits=group.getByRole('textbox');
  await expect(digits).toHaveCount(6);
+ await expect(page.getByText(/verificação é automática/)).toBeVisible();
+ await expect(page.getByRole('button',{name:/Confirmar/})).toBeDisabled();
  await digits.nth(0).focus();
  await digits.nth(0).press('a');
  await expect(digits.nth(0)).toHaveValue('');
@@ -26,6 +28,7 @@ for(const employee of [false,true])test(`${employee?'employee':'manager'}: six p
    await expect(digits.nth(i+1)).toBeFocused();
  }
  await expect.poll(()=>codes.length).toBe(0);
+ await expect(page.getByRole('button',{name:/Confirmar/})).toBeDisabled();
  await digits.nth(5).press('Backspace');
  await expect(digits.nth(4)).toBeFocused();
  await expect(digits.nth(4)).toHaveValue('');

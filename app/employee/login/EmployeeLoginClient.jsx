@@ -278,7 +278,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
   const pickingCompany = Boolean(pickToken && companies.length > 0);
 
   const modeHint = requires2fa
-    ? t(locale, 'login.twoFaIntro')
+    ? t(locale, 'login.twoFaAutoIntro')
     : pickingCompany
       ? t(locale, 'employeeHome.pickCompanyHint')
       : mode === 'forgot'
