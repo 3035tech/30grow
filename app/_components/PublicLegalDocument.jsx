@@ -6,6 +6,7 @@ import { PRIVACY_CONTACT_EMAIL } from '../../lib/public-legal.js';
 export function PublicLegalDocument({ copy }) {
   const relatedHref = copy.kind === 'privacy' ? '/terms' : '/privacy';
   const relatedLabel = copy.kind === 'privacy' ? copy.common.terms : copy.common.privacy;
+  const shortcuts = copy.kind === 'terms' ? copy.document.sections.filter(section => section.id) : [];
 
   return (
     <div className="min-h-screen bg-canvas font-ui text-ink">
@@ -26,7 +27,12 @@ export function PublicLegalDocument({ copy }) {
               <h1 className="mb-0 mt-4 font-display text-4xl font-semibold leading-tight tracking-[-0.025em] text-ink sm:text-5xl">{copy.document.title}</h1>
               <p className="mb-0 mt-4 max-w-3xl text-base leading-7 text-ink-muted">{copy.document.intro}</p>
               <p className="mb-0 mt-5 font-mono text-xs text-ink-faint">{copy.common.version}</p>
-              {copy.kind === 'terms' ? <a href="#cancelamento-e-reembolso" className="mt-4 inline-flex min-h-touch items-center text-sm font-semibold text-brand-700 underline underline-offset-4">{copy.common.cancellation}</a> : null}
+              {shortcuts.length ? <nav aria-label={copy.common.quickLinks} className="mt-6 border-t border-ink/8 pt-5">
+                <p className="m-0 text-xs font-semibold text-ink-muted">{copy.common.quickLinks}</p>
+                <ul className="mb-0 mt-3 flex list-none flex-wrap gap-2 p-0">
+                  {shortcuts.map(section => <li key={section.id}><a href={`#${section.id}`} className="inline-flex min-h-touch items-center rounded-control border border-ink/10 px-3 py-2 text-sm font-medium text-brand-700 no-underline hover:border-brand-300 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">{section.title.replace(/^\d+\.\s*/, '')}</a></li>)}
+                </ul>
+              </nav> : null}
             </header>
 
             <div className="grid gap-10 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1fr)_220px]">

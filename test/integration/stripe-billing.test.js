@@ -109,6 +109,16 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
       assert.match(params.custom_text.terms_of_service_acceptance.message, /terms#cancelamento-e-reembolso/);
       await assert.rejects(sync.confirmCheckout(legacy.companyId,'cs_test_1'),{code:'NOT_FOUND'});
     });
+    await t.test('hosted acceptance matches the Brazilian or international offer',async()=>{
+      const account={company_id:fresh.companyId,customer_id:'cus_fixture',checkout_created_at:new Date().toISOString()};
+      for (const [planKey,pattern] of [['brl_small_monthly',/Li e aceito/],['usd_company_monthly',/I agree to the/]]) {
+        const params=accounts.checkoutParams({...account,checkout_plan_key:planKey},fresh.userId);
+        assert.equal(params.consent_collection.terms_of_service,'required');
+        assert.equal(params.metadata.terms_version,publicLegal.PUBLIC_TERMS_VERSION);
+        assert.match(params.custom_text.terms_of_service_acceptance.message,pattern);
+        assert.match(params.custom_text.terms_of_service_acceptance.message,/terms#cancelamento-e-reembolso/);
+      }
+    });
     const firstSub=complete('cs_test_1');
     await t.test('callback verifies ownership; webhook reconciliation is idempotent and order independent',async()=>{
       await sync.confirmCheckout(fresh.companyId,'cs_test_1');
