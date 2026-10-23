@@ -34,7 +34,8 @@ describe('module hardening', () => {
     assert.match(dpFile, /dp\.document\.file_removed/);
 
     const companies = source('app/api/admin/companies/[id]/route.js');
-    assert.match(companies, /UPDATE companies SET deleted = TRUE, active = FALSE/);
+    assert.match(companies, /await archiveCompany\(companyId\)/);
+    assert.match(source('lib/company-lifecycle.js'), /UPDATE companies SET deleted=TRUE,active=FALSE/);
     assert.match(companies, /company\.soft_delete/);
   });
 

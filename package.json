@@ -42,13 +42,14 @@
     "test:full": "node test/dtov/full-regression.js",
     "test:full:offline": "node test/dtov/full-regression.js --offline",
     "test:unit": "node --experimental-vm-modules --test test/unit/*.unit.test.js",
-    "test:security": "node --experimental-vm-modules --test test/unit/module-hardening.unit.test.js test/unit/dp-file-security.unit.test.js test/unit/employee-session-security.unit.test.js test/unit/storage-cache-security.unit.test.js test/unit/private-attachment-response.unit.test.js test/unit/session-slide.test.js test/unit/auth-security-regressions.unit.test.js test/unit/security-perimeter.unit.test.js test/unit/redis-connection.unit.test.js test/unit/tenant-scope.unit.test.js",
+    "test:security": "node --experimental-vm-modules --test test/unit/module-hardening.unit.test.js test/unit/dp-file-security.unit.test.js test/unit/employee-session-security.unit.test.js test/unit/storage-cache-security.unit.test.js test/unit/private-attachment-response.unit.test.js test/unit/session-slide.test.js test/unit/auth-security-regressions.unit.test.js test/unit/security-perimeter.unit.test.js test/unit/redis-connection.unit.test.js test/unit/tenant-scope.unit.test.js test/unit/session-schema-security.unit.test.js",
     "test:full:dtov": "DTOV=1 node test/dtov/full-regression.js",
     "test:http": "node test/dtov/http-smoke.js",
     "test:browser": "playwright test",
     "test:browser:install": "playwright install chromium",
     "stripe:configure": "node --env-file=.env scripts/configure-stripe.mjs",
-    "test:billing": "node --experimental-vm-modules --test test/unit/stripe-billing.unit.test.js test/unit/company-license.unit.test.js test/unit/pricing-currency.unit.test.js"
+    "test:billing": "node --experimental-vm-modules --test test/unit/stripe-billing.unit.test.js test/unit/company-license.unit.test.js test/unit/pricing-currency.unit.test.js",
+    "test:release": "node scripts/validate-release-contracts.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",

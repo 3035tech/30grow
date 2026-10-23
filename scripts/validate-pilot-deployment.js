@@ -31,6 +31,23 @@ async function check(path, { headers = {}, expect = 200, requireRequestId = fals
 await check('/login');
 await check('/jobs');
 
+// Verify the HTML and the exact hashed assets it references agree after deploy.
+// Fetch public pages only; never submit signup or create users.
+for (const path of ['/login', '/signup']) {
+  const page = await fetch(baseUrl + path, { signal: AbortSignal.timeout(15000), headers: { 'Cache-Control': 'no-cache' } });
+  if (!page.ok) throw new Error(`${path}: HTTP ${page.status}`);
+  const markup = await page.text();
+  const assets = [...new Set([...markup.matchAll(/<script\b[^>]*\bsrc="([^" ]+)"/g)].map(match => match[1]).filter(src => src.startsWith('/_next/static/')))];
+  if (!assets.length) throw new Error(`${path}: no application scripts found`);
+  for (const asset of assets) {
+    const response = await fetch(baseUrl + asset, { signal: AbortSignal.timeout(15000) });
+    if (!response.ok || !/javascript/.test(response.headers.get('content-type') || '')) throw new Error(`${path}: invalid script ${asset} (HTTP ${response.status})`);
+    await response.body?.cancel();
+  }
+  console.log(`ok ${path}: ${assets.length} application scripts`);
+}
+
+
 if (healthToken) {
   await check('/api/health/status', {
     headers: { authorization: `Bearer ${healthToken}` },

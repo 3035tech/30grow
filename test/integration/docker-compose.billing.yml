@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: grow_billing_test
+      POSTGRES_DB: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - '127.0.0.1:55447:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U grow_billing_test -d postgres']
+      interval: 2s
+      timeout: 3s
+      retries: 30

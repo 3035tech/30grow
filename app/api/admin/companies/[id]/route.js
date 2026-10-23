@@ -3,6 +3,8 @@ import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilit
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../lib/auth';
 import { query } from '../../../../../lib/db';
+import { archiveCompany, withCompanyDeactivation } from '../../../../../lib/company-lifecycle.js';
+import { BillingError } from '../../../../../lib/billing/stripe.js';
 import { audit } from '../../../../../lib/audit';
 import { apiError, ERR } from '../../../../../lib/api-error';
 import { CAP, requireCapability } from '../../../../../lib/permissions';
@@ -104,7 +106,7 @@ export async function PATCH(request, props) {
 
     let up;
     try {
-      up = await query(
+      const update = db => db.query(
         `UPDATE companies
          SET name = $2, slug = $3, active = $4, website = $5, about_html = $6,
              public_profile_enabled = $7, anniversary_date = $8::date,
@@ -127,6 +129,7 @@ export async function PATCH(request, props) {
           nextAiLimit,
         ]
       );
+      up = active === false ? await withCompanyDeactivation(companyId, update) : await update({ query });
     } catch (err) {
       if (err?.code === '23505') return apiError(request, ERR.SLUG_TAKEN, 409);
       if (err?.code === '42703') {
@@ -153,6 +156,8 @@ export async function PATCH(request, props) {
       anniversaryDate: anniversaryToSql(row.anniversaryDate),
     });
   } catch (err) {
+    if (err instanceof BillingError) return apiError(request, err.code, err.status);
+    if (err?.type?.startsWith('Stripe')) return apiError(request, ERR.BILLING_UNAVAILABLE, 503);
     console.error('PATCH /api/admin/companies/[id] error:', err);
     return apiError(request, ERR.INTERNAL_ERROR, 500);
   }
@@ -173,29 +178,7 @@ export async function DELETE(request, props) {
     const companyId = raw ? parseInt(String(raw), 10) : NaN;
     if (!Number.isFinite(companyId)) return apiError(request, ERR.INVALID_COMPANY, 400);
 
-    const cur = await query(`SELECT id FROM companies WHERE id = $1 AND deleted = FALSE LIMIT 1`, [
-      companyId,
-    ]);
-    if (cur.rowCount === 0) return apiError(request, ERR.NOT_FOUND, 404);
-
-    await query(
-      `UPDATE company_links SET active = FALSE, rotated_at = NOW() WHERE company_id = $1 AND active = TRUE`,
-      [companyId]
-    );
-    await query(
-      `UPDATE vacancy_links vl
-       SET active = FALSE, rotated_at = NOW()
-       FROM vacancies v
-       WHERE vl.vacancy_id = v.id AND v.company_id = $1 AND vl.active = TRUE`,
-      [companyId]
-    );
-    await query(`UPDATE vacancies SET deleted = TRUE WHERE company_id = $1 AND deleted = FALSE`, [
-      companyId,
-    ]);
-    await query(
-      `UPDATE companies SET deleted = TRUE, active = FALSE WHERE id = $1 AND deleted = FALSE RETURNING id`,
-      [companyId]
-    );
+    await archiveCompany(companyId);
 
     await audit({
       actorUserId: payload.userId || null,
@@ -207,6 +190,8 @@ export async function DELETE(request, props) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
+    if (err instanceof BillingError) return apiError(request, err.code, err.status);
+    if (err?.type?.startsWith('Stripe')) return apiError(request, ERR.BILLING_UNAVAILABLE, 503);
     console.error('DELETE /api/admin/companies/[id] error:', err);
     return apiError(request, ERR.INTERNAL_ERROR, 500);
   }
