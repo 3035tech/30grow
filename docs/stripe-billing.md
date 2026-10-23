@@ -40,7 +40,7 @@ A oferta usa um preço de R$ 99 e uma Subscription Schedule: a primeira fase ter
 - `POST /api/webhooks/stripe`: público, assinado com `STRIPE_WEBHOOK_SECRET`, corpo bruto. Só responde sucesso após commit. Falha transitória responde 503 para nova entrega. Eventos duplicados não repetem o efeito; eventos antigos reconciliam o estado atual no Stripe sob lock da conta.
 - `/dashboard/billing/return`: confirmação visível e retorno a Perfil → Assinatura.
 
-Administrador, direção e RH podem gerenciar a cobrança. Não-admin usa sempre a empresa da sessão, independentemente do `companyId` recebido. POSTs exigem `Origin` igual ao `APP_URL` configurado, inclusive atrás do proxy.
+Somente o dono da empresa (identidade canônica `companies.signup_creator_user_id`) pode consultar licença, cobrança, faturas e avisos de inadimplência ou gerenciar a assinatura. Ter papel admin, direção ou RH não concede esse acesso. O superadministrador da plataforma mantém acesso operacional global. Não-admin usa sempre a empresa da sessão, independentemente do `companyId` recebido. POSTs exigem `Origin` igual ao `APP_URL` configurado, inclusive atrás do proxy.
 
 A troca de faixa de uma assinatura com oferta programada requer suporte comercial nesta versão. O próprio cliente pode cancelar, reativar, trocar cartão e consultar faturas. Reembolsos são operados pelo responsável no painel Stripe, não por um botão do cliente no Grow. Não há Pix/boleto recorrente neste primeiro fluxo: o checkout usa cartão. Impostos automáticos não são habilitados sem definição fiscal da conta.
 
@@ -74,7 +74,7 @@ A troca de faixa de uma assinatura com oferta programada requer suporte comercia
 
 ## Produção
 
-Produção ainda não tem empresas, conforme informado pelo responsável. Não migrar dados demonstrativos de homologação para produção. Repetir o provisionamento com chave live da conta correta, `APP_URL` de produção e `--live` explícito; IDs e signing secret são distintos. O script recusa mutação live sem `--live`. Checkout live exige também `STRIPE_BILLING_ENFORCE=true`.
+Produção já contém empresas e dados reais. Preservar suas licenças e condições anteriores; a ativação não faz cobrança retroativa nem escolhe um dono automaticamente para empresas legadas. Não migrar dados demonstrativos de homologação para produção. Repetir o provisionamento com chave live da conta correta, `APP_URL` de produção e `--live` explícito; IDs e signing secret são distintos. O script recusa mutação live sem `--live`. Checkout live exige também `STRIPE_BILLING_ENFORCE=true`.
 
 Ativação da conta, dados bancários, exigências de verificação, e-mails de cobrança, regras de recuperação de pagamentos e tributação devem ser concluídos pelo titular no Stripe antes de receber pagamentos reais. O código não aceita termos ou altera dados bancários automaticamente.
 

@@ -53,7 +53,7 @@ let portal = configurations.data.find(c => c.active && c.metadata?.app === '30gr
 const portalSettings = { business_profile: { headline: '30Grow — assinatura e pagamentos' }, features: {
   customer_update: { enabled: true, allowed_updates: ['address', 'tax_id'] },
   invoice_history: { enabled: true }, payment_method_update: { enabled: true },
-  subscription_cancel: { enabled: true, mode: 'at_period_end', cancellation_reason: { enabled: false } },
+  subscription_cancel: { enabled: true, mode: 'at_period_end', cancellation_reason: { enabled: false, options: ['too_expensive', 'missing_features', 'unused', 'other'] } },
   // Plan changes use a server-validated, target-only portal configuration.
   subscription_update: { enabled: false },
 }, metadata: { app: '30grow', purpose: 'manage' } };

@@ -216,3 +216,13 @@ CDN dedicado, autoscaling, PgBouncer/RDS Proxy, réplicas, Redis separado, parti
 3. **Semana 3:** MVP-04 e MVP-05.
 4. **Piloto:** MVP-07, MVP-08, MVP-09 e MVP-10 conforme atrito observado.
 5. **Após uso real:** MVP-11; avaliar gatilhos de MVP-12–MVP-16.
+
+## Fila — “Lembrar de mim” no login (23/10/2026)
+
+Solicitado pelo responsável após a integração Stripe: opção explícita e desmarcada por padrão no login para manter o acesso no dispositivo.
+
+- Proposta de duração: sessão comum de 8 horas (comportamento atual); opção marcada com validade persistente de até 30 dias. Esses prazos são uma proposta de produto a validar conforme risco e perfis, não um padrão universal de mercado.
+- Avaliar o fluxo de gestores e o portal de colaboradores, que podem usar identidades/cookies diferentes. Decidir expiração absoluta e por inatividade, sem renovação indefinida.
+- Preservar 2FA, revogação no logout, troca de senha, desativação e mudança de permissões; cookies HttpOnly, Secure e SameSite. Não manter a opção em dispositivos compartilhados por padrão.
+- Aceite: prazo exibido de forma clara; comportamento distinto com/sem opção; sessão lembrada sobrevive a fechar o navegador quando permitido; logout/revogação invalidam o acesso; fluxos de recuperação continuam funcionando.
+- Estado: em fila, sem alteração de autenticação nesta entrega de Stripe.

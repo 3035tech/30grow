@@ -42,6 +42,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
   const [companyName, setCompanyName] = useState('');
   const [companyId, setCompanyId] = useState(null);
   const [license, setLicense] = useState(null);
+  const [billingAllowed, setBillingAllowed] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -95,7 +96,8 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
       setRole(u.role || '');
       setCompanyName(u.companyName || '');
       setCompanyId(u.companyId ?? null);
-      setLicense(data.license || null);
+      setBillingAllowed(u.canManageBilling === true);
+      setLicense(u.canManageBilling === true ? data.license || null : null);
       setProfileLoaded(true);
       const hasCompany = Number.isSafeInteger(Number(u.companyId)) && Number(u.companyId) > 0;
       const [modRes] = await Promise.all([
@@ -297,7 +299,8 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
     }
   };
 
-  const hasBillingSection = ['admin', 'direction', 'hr'].includes(role);
+  const hasBillingSection = billingAllowed;
+  const visibleProfileSection = profileSection === 'billing' && !hasBillingSection ? 'account' : profileSection;
   const emailDirty = email.trim().toLowerCase() !== savedEmail.trim().toLowerCase();
   const emailReauthMissing =
     emailDirty && (twoFaStatus !== 'ready' || !emailReauthPassword || (twoFaEnabled && emailReauthTotp.length !== 6));
@@ -323,10 +326,10 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
         ) : (
           <ContentEnter animKey="profile-ready">
             <div className="mt-5">
-              {companyName ? <CompanyLicenseSummary license={license} locale={locale} onManage={() => setProfileSection('billing')} /> : null}
+              {hasBillingSection && companyName ? <CompanyLicenseSummary license={license} locale={locale} onManage={() => setProfileSection('billing')} /> : null}
               <PanelSubNav
                 ariaLabel={t(locale, 'dashboard.profileSectionsAria')}
-                active={profileSection}
+                active={visibleProfileSection}
                 onChange={setProfileSection}
                 tabs={[
                   { id: 'account', label: t(locale, 'dashboard.profileSectionAccount') },
@@ -341,7 +344,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
               />
 
               <ContentEnter animKey={profileSection}>
-                {profileSection === 'account' ? (
+                {visibleProfileSection === 'account' ? (
                   <section className={panelClass} role="tabpanel">
                     <div className={panelHeaderClass}>
                       <h2 className="m-0 font-ui text-base font-semibold text-ink">
@@ -397,7 +400,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                   </section>
                 ) : null}
 
-                {canEditCompanyModules && profileSection === 'modules' ? (
+                {canEditCompanyModules && visibleProfileSection === 'modules' ? (
                   <section className={panelClass} role="tabpanel">
                     <div className={panelHeaderClass}>
                       <h2 className="m-0 font-ui text-base font-semibold text-ink">
@@ -439,7 +442,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                   </section>
                 ) : null}
 
-                {hasBillingSection && profileSection === 'billing' ? (
+                {hasBillingSection && visibleProfileSection === 'billing' ? (
                   <BillingTab
                     locale={locale}
                     role={role}
@@ -450,7 +453,7 @@ export function ProfileTab({ locale, onLocaleChange, onProfileSaved }) {
                   />
                 ) : null}
 
-                {profileSection === 'security' ? (
+                {visibleProfileSection === 'security' ? (
                   <div className="flex flex-col gap-4" role="tabpanel">
                     <section className={panelClass}>
                       <div className={panelHeaderClass}>

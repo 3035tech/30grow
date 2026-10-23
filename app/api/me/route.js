@@ -6,6 +6,7 @@ import { LOCALE_COOKIE, normalizeLocale } from '../../../lib/i18n';
 import { apiError, ERR, httpStatusForError } from '../../../lib/api-error';
 import { bumpSessionVersion, verifySessionWithCapabilities } from '../../../lib/session';
 import { checkRateLimit, clientIpFromRequest } from '../../../lib/rate-limit';
+import { canManageBilling } from '../../../lib/billing/catalog.js';
 import { licenseWithBilling } from '../../../lib/billing/license';
 import { roleMayUse2Fa } from '../../../lib/manager-2fa';
 import { verifyTotpCode } from '../../../lib/totp';
@@ -64,8 +65,9 @@ export async function GET(request) {
   );
   if (res.rowCount === 0) return apiError(request, ERR.USER_NOT_FOUND, 404);
 
-  const { licenseNumber, licenseStartsAt, licenseExpiresAt, licenseExpired, ...user } = res.rows[0];
-  return NextResponse.json({ user, license: await licenseWithBilling(res.rows[0], user.companyId) }, {
+  const { licenseNumber, licenseStartsAt, licenseExpiresAt, licenseExpired, licenseOfferTier, licenseTrialDays, ...user } = res.rows[0];
+  const owner = canManageBilling(payload);
+  return NextResponse.json({ user: { ...user, canManageBilling: owner }, license: owner ? await licenseWithBilling(res.rows[0], user.companyId) : null }, {
     headers: { 'Cache-Control': 'private, no-store' },
   });
 }

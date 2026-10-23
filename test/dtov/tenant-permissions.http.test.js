@@ -187,6 +187,18 @@ try {
     await check(`${identity.label}: real login`, async () => assert.ok(identity.cookie));
   }
   const byLabel = Object.fromEntries(identities.map(x => [x.label, x]));
+  for (const identity of identities.filter(x => x.company)) {
+    const owner = identity.label === 'ownerA';
+    await check(`${identity.label}: billing belongs to account creator`, async () => {
+      const me = await request('/api/me', identity.cookie);
+      assert.equal(me.status, 200);
+      assert.equal(me.data.user.canManageBilling, owner);
+      if (!owner) assert.equal(me.data.license, null);
+      const billing = await request('/api/admin/billing', identity.cookie);
+      assert.equal(billing.status, owner ? 200 : 403);
+    });
+  }
+
   for (const identity of identities.filter(x => x.company && !x.label.startsWith('limited'))) {
     const own = identity.company,
       foreign = own === A ? B : A,

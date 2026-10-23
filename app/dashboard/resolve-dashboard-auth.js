@@ -43,7 +43,7 @@ export async function resolveDashboardAuth() {
     // source of truth as admin API authorization.
     companyModules: Array.isArray(payload?.companyModules) ? payload.companyModules : null,
     companyOwner: payload?.companyOwner === true,
-    billingRestricted: payload?.billingRestricted === true,
+    accessRestricted: payload?.billingRestricted === true,
     locale,
     email: null,
     displayName: null,

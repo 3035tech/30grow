@@ -16,7 +16,7 @@ test('headcount boundaries and approved annual pricing', () => {
     assert.equal(fitsPlan(plan, max + 1), false);
   }
   assert.equal(BILLING_PLANS.find(p => p.key === 'brl_small_annual').amount,149000);
-  assert.equal(canManageBilling({ role:'direction',companyId:1 }),true);
+  assert.equal(canManageBilling({ role:'direction',companyId:1,companyOwner:true }),true);
   assert.equal(canManageBilling({ role:'employee',companyId:1 }),false);
 });
 test('managed access does not trust redirects, canceled subscriptions or unknown prices', () => {
@@ -73,4 +73,16 @@ test('webhook verifies exact raw bytes, rejects invalid/replayed signatures befo
   const expired=stripe.webhooks.generateTestHeaderString({payload:raw,secret:env.STRIPE_WEBHOOK_SECRET,timestamp:1});
   assert.equal((await send(raw,expired)).status,400);
   assert.equal(processed,1);
+});
+
+test('only the company owner and platform super-admin manage billing', () => {
+  for (const role of ['hr', 'direction', 'admin']) {
+    assert.equal(canManageBilling({role,companyId:7}),false,`${role} without ownership`);
+    assert.equal(canManageBilling({role,companyId:7,companyOwner:true}),true,`${role} owner`);
+    assert.deepEqual([...resolveCapabilities({role,companyId:7,billingRestricted:true})],[CAP.PROFILE_SELF]);
+    assert.deepEqual([...resolveCapabilities({role,companyId:7,accessRestricted:true})],[CAP.PROFILE_SELF]);
+  }
+  assert.equal(canManageBilling({role:'admin',companyId:null}),true);
+  for (const role of ['employee','candidate']) assert.equal(canManageBilling({role,companyId:7,companyOwner:true}),false);
+  assert.equal(canManageBilling({role:'hr',companyOwner:true}),false);
 });

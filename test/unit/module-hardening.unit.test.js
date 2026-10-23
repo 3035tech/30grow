@@ -278,8 +278,8 @@ describe('module hardening', () => {
     for (const section of ['account', 'modules', 'security']) {
       assert.match(profile, new RegExp(`'${section}'`));
     }
-    assert.match(profile, /profileSection === 'account'/);
-    assert.match(profile, /profileSection === 'security'/);
+    assert.match(profile, /visibleProfileSection === 'account'/);
+    assert.match(profile, /visibleProfileSection === 'security'/);
     assert.match(profile, /maxHeightClass="max-h-none"/);
     assert.match(profile, /className=\{cn\(dashS\.btnPrimary, 'w-full sm:w-auto'\)\}/);
   });
