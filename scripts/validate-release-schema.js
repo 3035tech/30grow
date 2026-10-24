@@ -20,6 +20,8 @@ const migrationsDir = path.join(root, 'migrations');
 const pendingBundlePath = path.join(root, 'scripts', 'scripts-banco-pendentes.sql');
 
 const REQUIRED_SCHEMA = Object.freeze({
+  company_post_attachments: ['id','company_id','post_id','upload_id','object_key','file_name','content_type','byte_size','deleted'],
+  company_kudo_reactions: ['company_id','kudo_id','candidate_id','emoji','updated_at'],
   company_billing_terms: ['company_id', 'managed', 'trial_ends_at'],
   company_billing_accounts: ['company_id', 'livemode', 'customer_id', 'subscription_id', 'status', 'plan_key', 'checkout_attempt'],
   billing_launch_redemptions: ['company_id', 'livemode', 'slot', 'redeemed', 'subscription_id'],

@@ -22,6 +22,8 @@ import {
   AdminViewButton,
   S,
 } from '../dashboard-shared';
+import { CompanyPostEditor } from '../../_components/CompanyPostEditor';
+import { CompanyPostAttachments } from '../../_components/CompanyPostAttachments';
 import { t } from '../../../lib/i18n';
 import { formatDisplayDateTime } from '../../../lib/format-display-date';
 import { htmlToPlainText } from '../../../lib/sanitize-html';
@@ -31,8 +33,9 @@ import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/Admi
  * B-2712 posts + B-2716 kudos moderation (one tab).
  */
 export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
-  const { confirm, promptForm, toast } = useAppFeedback();
+  const { confirm, toast } = useAppFeedback();
   const [viewing, setViewing] = useState(null);
+  const [editing, setEditing] = useState(null);
   const [posts, setPosts] = useState([]);
   const [kudos, setKudos] = useState([]);
   const [postsTotal, setPostsTotal] = useState(0);
@@ -92,74 +95,8 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
     load();
   }, [load]);
 
-  async function createPost() {
-    const values = await promptForm({
-      title: t(locale, 'panel.companyFeed.createPost'),
-      fields: [
-        { name: 'title', label: t(locale, 'panel.companyFeed.fieldTitle'), required: true, maxLength: 200 },
-        { name: 'bodyHtml', label: t(locale, 'panel.companyFeed.fieldBody'), type: 'richText' },
-      ],
-      confirmLabel: t(locale, 'panel.companyFeed.publish'),
-    });
-    if (!values) return;
-    const res = await fetch('/api/admin/company-feed/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        companyId: companyId || undefined,
-        title: values.title,
-        bodyHtml: values.bodyHtml || '',
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) {
-      toast(t(locale, 'panel.companyFeed.saveError'), 'error');
-      return;
-    }
-    toast(t(locale, 'panel.companyFeed.postCreated'), 'ok');
-    setQ('');
-    setQDraft('');
-    if (page === 1) load();
-    else setPage(1);
-  }
-
-  async function editPost(post) {
-    const values = await promptForm({
-      title: t(locale, 'panel.companyFeed.editPost'),
-      fields: [
-        {
-          name: 'title',
-          label: t(locale, 'panel.companyFeed.fieldTitle'),
-          required: true,
-          maxLength: 200,
-          defaultValue: post.title,
-        },
-        {
-          name: 'bodyHtml',
-          label: t(locale, 'panel.companyFeed.fieldBody'),
-          type: 'richText',
-          defaultValue: post.bodyHtml || '',
-        },
-      ],
-      confirmLabel: t(locale, 'panel.common.save'),
-    });
-    if (!values) return;
-    const res = await fetch(`/api/admin/company-feed/posts/${post.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        companyId: companyId || undefined,
-        title: values.title,
-        bodyHtml: values.bodyHtml || '',
-      }),
-    });
-    if (!res.ok) {
-      toast(t(locale, 'panel.companyFeed.saveError'), 'error');
-      return;
-    }
-    toast(t(locale, 'panel.companyFeed.postUpdated'), 'ok');
-    load();
-  }
+  function createPost() { setEditing({post:null}); }
+  function editPost(post) { setEditing({post}); }
 
   function viewSections() {
     if (!viewing) return [];
@@ -168,6 +105,7 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
       return [
         {
           key: 'post',
+          content: <CompanyPostAttachments postId={row.id} files={row.attachments || []} locale={locale} admin companyId={companyId} />,
           fields: [
             { key: 'author', label: t(locale, 'panel.companyFeed.colAuthor'), value: row.authorName },
             { key: 'when', label: t(locale, 'panel.companyFeed.colWhen'), value: formatDisplayDateTime(row.createdAt, locale) },
@@ -423,6 +361,8 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
           )}
         </CollapsibleBlock>
       </div>
+      {editing ? <CompanyPostEditor key={editing.post?.id || 'new'} post={editing.post} companyId={companyId} locale={locale}
+        onClose={() => setEditing(null)} onSaved={() => { const isEdit=Boolean(editing.post);setEditing(null);toast(t(locale,isEdit?'panel.companyFeed.postUpdated':'panel.companyFeed.postCreated'),'ok');setQ('');setQDraft('');if(page===1)load();else setPage(1); }} /> : null}
       <AdminRecordViewDrawer
         open={Boolean(viewing)}
         title={

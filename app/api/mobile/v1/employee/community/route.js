@@ -23,7 +23,7 @@ async function auth(request) { return authenticateMobileEmployee(mobileEmployeeB
 async function load(session, { postsPage = 1, kudosPage = 1, kudoId } = {}) {
   const [feed, kudos, colleagues] = await Promise.all([
     listCompanyPosts(null, { companyId: session.companyId, page: postsPage, pageSize: FEED_PAGE_SIZE }),
-    listCompanyKudos(null, { companyId: session.companyId, page: kudoId ? 1 : kudosPage, pageSize: KUDOS_PAGE_SIZE, ...(kudoId ? { kudoId } : {}) }),
+    listCompanyKudos(null, { companyId: session.companyId, viewerCandidateId: session.candidateId, page: kudoId ? 1 : kudosPage, pageSize: KUDOS_PAGE_SIZE, ...(kudoId ? { kudoId } : {}) }),
     searchEmployeeColleagues(null, { companyId: session.companyId, excludeCandidateId: session.candidateId, limit: COLLEAGUE_LIMIT }),
   ]);
   if (!feed.ok) return feed;

@@ -187,6 +187,14 @@ try {
     await check(`${identity.label}: real login`, async () => assert.ok(identity.cookie));
   }
   const byLabel = Object.fromEntries(identities.map(x => [x.label, x]));
+  const foreignPost=await one("INSERT INTO company_posts(company_id,title,body_html) VALUES($1,'Private notice tenant B','Secret body') RETURNING id",[B.id]);
+  const foreignFile=await one("INSERT INTO company_post_attachments(company_id,post_id,upload_id,object_key,file_name,content_type,byte_size) VALUES($1,$2,gen_random_uuid(),$3,'private-tenant-B.pdf','application/pdf',10) RETURNING id",[B.id,foreignPost.id,`companies/${B.id}/company-posts/${foreignPost.id}/synthetic-file.pdf`]);
+  await check('notice attachments: foreign tenant and limited manager cannot download files',async()=>{
+    const path=`/api/admin/company-feed/posts/${foreignPost.id}/attachments/${foreignFile.id}?companyId=${B.id}`;
+    const foreign=await request(path,byLabel.hrA.cookie);assert.equal(foreign.status,404);assert.ok(!foreign.text.includes('private-tenant-B'));
+    assert.equal((await request(path,byLabel.limitedA.cookie)).status,403);
+  });
+
   for (const [employee,email,ttl] of [[false,byLabel.hrA.email,28800],[true,A.email,43200]]) {
     await check(`${employee?'employee':'manager'}: remember choice controls signed expiry and cookie duration`, async()=>{
       for(const rememberMe of [false,true]) {
@@ -367,6 +375,26 @@ try {
   });
   const protectedPaths = [`/api/admin/candidates/${A.personId}`, `/api/admin/vacancies/${A.vacancyId}`, `/api/admin/export?company=all`, `/api/admin/dp/leave/export?companyId=${A.id}`, `/api/admin/analytics/export?companyId=${A.id}`, `/api/admin/time-clock/rep/export?companyId=${A.id}&establishmentId=${A.establishmentId}&format=afd&from=2026-10-01&to=2026-10-22`, '/api/admin/users', '/api/admin/companies'];
   const employeeCookie = await login(A.email, true);
+  await check('kudo reactions: employee changes own reaction, foreign tenant cannot read or mutate it',async()=>{
+    const colleague=await one("INSERT INTO candidates(company_id,full_name,email,employment_status) VALUES($1,'Synthetic colleague',$2,'employee') RETURNING id",[A.id,`reaction-colleague-${stamp}@example.test`]);
+    const kudo=await one("INSERT INTO company_kudos(company_id,from_candidate_id,to_candidate_id,message) VALUES($1,$2,$3,'Synthetic recognition tenant A') RETURNING id",[A.id,A.personId,colleague.id]);
+    const path=`/api/employee/kudos/${kudo.id}/reactions`;
+    for(const emoji of ['👍','❤️']){
+      const r=await request(path,employeeCookie,'PUT',{emoji});assert.equal(r.status,200);assert.equal(r.data.reactions.length,1);assert.equal(r.data.reactions[0].emoji,emoji);assert.equal(r.data.reactions[0].mine,true);
+    }
+    const otherCookie=await login(B.email,true);
+    for(const method of ['GET','PUT','DELETE'])assert.equal((await request(path,otherCookie,method,method==='PUT'?{emoji:'👏'}:undefined)).status,404);
+    assert.equal((await request(path,'','PUT',{emoji:'👏'})).status,401);
+    const names=await request(path,employeeCookie);assert.equal(names.status,200);assert.ok(names.data.people.some(p=>p.fullName===A.marker));assert.ok(!names.text.includes(A.email));
+    assert.equal((await request(path,employeeCookie,'PUT',{emoji:'bad'})).status,400);
+    for(let i=0;i<2;i++)assert.equal((await request(path,employeeCookie,'DELETE')).status,200);
+    await db.query('UPDATE company_kudos SET deleted=true WHERE id=$1',[kudo.id]);
+    assert.equal((await request(path,employeeCookie,'GET')).status,404);
+  });
+  await check('notice attachments: employee cannot download a foreign company file',async()=>{
+    assert.equal((await request(`/api/employee/feed/${foreignPost.id}/attachments/${foreignFile.id}`,employeeCookie)).status,404);
+  });
+
   await check('employee: own authenticated portal works', async () => assert.equal((await request('/api/employee/home', employeeCookie)).status, 200));
   for (const [label, cookie] of [['anonymous', ''], ['employee', employeeCookie], ['limited', byLabel.limitedA.cookie]]) for (const path of protectedPaths) await check(`${label}: deny ${path}`, async () => denied(await request(path, cookie)));
   for (const identity of identities.filter(x => ['hrA', 'directionA', 'limitedA'].includes(x.label))) for (const path of ['/api/admin/users', '/api/admin/companies', '/api/admin/product-feedback']) await check(`${identity.label}: platform/owner-only ${path}`, async () => denied(await request(path, identity.cookie)));

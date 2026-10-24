@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { EmptyState } from './EmptyState';
+import { CompanyPostAttachments } from './CompanyPostAttachments';
+import { KudoReactions } from './KudoReactions';
 import { RichTextView } from './RichTextView';
 import { useAppFeedback } from './AppFeedback';
 import { S } from '../dashboard/dashboard-shared';
@@ -70,6 +72,7 @@ export function EmployeeFeedPanel({
                 <RichTextView html={p.bodyHtml} />
               </div>
             ) : null}
+            <CompanyPostAttachments postId={p.id} files={p.attachments || []} locale={locale} />
           </li>
         ))}
       </ul>
@@ -218,6 +221,7 @@ export function EmployeeKudosPanel({
                 {k.createdAt ? ` · ${formatDisplayDateTime(k.createdAt, locale)}` : ''}
               </p>
               <p className="font-ui text-prose text-ink">{k.message}</p>
+              <KudoReactions kudoId={k.id} initialReactions={k.reactions} locale={locale} />
             </li>
           ))}
         </ul>

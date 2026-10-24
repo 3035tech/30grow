@@ -45,7 +45,7 @@ test('colleague search: strict input, bounded page, no email and authenticated t
 });
 test('shared colleague query retains web defaults and applies parameterized stable offset/search', async () => {
   const calls = [];
-  const domain = await moduleAt('../../lib/company-kudos.js', { asDb: (db) => db, query: null, ERR, ...domainStatus });
+  const domain = await moduleAt('../../lib/company-kudos.js', { loadKudoReactionSummaries: async () => new Map(), asDb: (db) => db, query: null, ERR, ...domainStatus });
   const db = { query: async (sql, values) => { calls.push({ sql, values }); return { rows: [] }; } };
   await domain.searchEmployeeColleagues(db, { companyId: 2, excludeCandidateId: 20 });
   assert.deepEqual([...calls[0].values], [2, 20, 20, 0]);

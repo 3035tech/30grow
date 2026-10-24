@@ -20,6 +20,7 @@ export async function GET(request) {
     const pageSize = parseInt(url.searchParams.get('pageSize') || '15', 10);
     const result = await listCompanyKudos(null, {
       companyId: session.companyId,
+      viewerCandidateId: session.candidateId,
       page: Number.isFinite(page) ? page : 1,
       pageSize: Number.isFinite(pageSize) ? pageSize : 15,
     });
