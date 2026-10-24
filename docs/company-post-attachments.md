@@ -54,6 +54,9 @@ do rollback, pois isso destruiria os vínculos dos arquivos já publicados.
 - Dois testes de interface passaram, incluindo falha parcial e nova tentativa.
 - 668 verificações HTTP de permissões passaram, incluindo acessos cruzados.
 
-A aplicação da migration nos ambientes e a prova de armazenamento real ainda
-dependem de restabelecer os acessos à AWS e ao PostgreSQL. Os testes locais não
-certificam essas configurações de infraestrutura.
+As migrations 170 e 171 foram conferidas e registradas em Dublin (`team`) e
+produção (`grow30`) em 24/10/2026. Em Dublin, a aplicação transacional conferiu
+a preservação integral dos cinco avisos e 18 kudos existentes. Em produção,
+o operador executou o SQL e a conferência posterior validou tabelas, restrições
+e permissões de `grow30_app`; o registro foi completado em `schema_migrations`.
+A operação real de upload no armazenamento não foi certificada por esses testes.

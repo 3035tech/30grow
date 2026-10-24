@@ -51,3 +51,9 @@ desligamento e moderação. Os testes de interface verificam o fluxo mobile e um
 falha de rede seguida de nova tentativa explícita.
 
 Nenhuma configuração AWS é necessária para implementar ou testar esta funcionalidade.
+
+Em 24/10/2026, migrations 170 e 171 registradas e verificadas em Dublin
+(`team`) e produção (`grow30`), incluindo permissões da conta de execução.
+O acabamento do portal foi validado em cinco casos de interface e no build: foco
+após reagir, fechamento por Escape, anúncios acessíveis, falhas de rede e
+tamanho legível dos anexos em B/KB/MB.
