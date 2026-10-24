@@ -1,0 +1,537 @@
+{
+  "date": "2026-10-24",
+  "scope": "30-team: aplicação web e backend Next.js; não inclui o repositório do app nativo",
+  "method": "npm outdated; npm view <package>@latest; npm audit; npm audit --omit=dev; package.json/package-lock.json; guias primários",
+  "runtimeAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "fullAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 3,
+    "high": 0,
+    "critical": 0,
+    "total": 3
+  },
+  "packages": [
+    {
+      "name": "@aws-sdk/client-s3",
+      "group": "dependencies",
+      "declared": "^3.1116.0",
+      "installed": "3.1116.0",
+      "latest": "3.1156.0",
+      "wanted": "3.1156.0",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Atualizar coordenadamente com client-secrets-manager e validar downloads privados/uploads com mocks e homologação.",
+      "latestMetadata": {
+        "version": "3.1156.0",
+        "engines": {
+          "node": ">=20.0.0"
+        },
+        "repository.url": "git+https://github.com/aws/aws-sdk-js-v3.git"
+      }
+    },
+    {
+      "name": "@aws-sdk/client-secrets-manager",
+      "group": "dependencies",
+      "declared": "^3.1116.0",
+      "installed": "3.1116.0",
+      "latest": "3.1156.0",
+      "wanted": "3.1156.0",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Atualizar coordenadamente com client-s3; validar carregamento de configurações sem expor credenciais.",
+      "latestMetadata": {
+        "version": "3.1156.0",
+        "engines": {
+          "node": ">=20.0.0"
+        },
+        "repository.url": "git+https://github.com/aws/aws-sdk-js-v3.git"
+      }
+    },
+    {
+      "name": "@sentry/nextjs",
+      "group": "dependencies",
+      "declared": "10.75.2",
+      "installed": "10.75.2",
+      "latest": "11.9.0",
+      "wanted": "10.75.2",
+      "status": "Migração de major",
+      "recommendation": "Migração para v11: revisar entry point /config, opções descontinuadas e inicialização client/server/edge; testar captura sem dados pessoais.",
+      "latestMetadata": {
+        "version": "11.9.0",
+        "engines": {
+          "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
+        },
+        "peerDependencies": {
+          "next": "^14.0 || ^15.0.0-rc.0 || ^16.0.0-0"
+        },
+        "repository.url": "git://github.com/getsentry/sentry-javascript.git"
+      }
+    },
+    {
+      "name": "@signpdf/placeholder-pdf-lib",
+      "group": "dependencies",
+      "declared": "^3.3.0",
+      "installed": "3.3.0",
+      "latest": "4.0.0",
+      "wanted": "3.4.0",
+      "status": "Migração de major",
+      "recommendation": "Manter os três pacotes @signpdf na mesma linha; alvo intermediário compatível 3.4.0. V4 exige validação separada de documentos assinados.",
+      "latestMetadata": {
+        "version": "4.0.0",
+        "engines": {
+          "node": ">=22",
+          "yarn": ">=1.22.18"
+        },
+        "peerDependencies": {
+          "pdf-lib": "^1.17.1"
+        },
+        "repository.url": "git+https://github.com/vbuch/node-signpdf.git"
+      }
+    },
+    {
+      "name": "@signpdf/signpdf",
+      "group": "dependencies",
+      "declared": "^3.3.0",
+      "installed": "3.3.0",
+      "latest": "4.0.0",
+      "wanted": "3.4.0",
+      "status": "Migração de major",
+      "recommendation": "Alvo intermediário compatível 3.4.0; v4 requer prova de assinatura e verificação de PDF com certificado de teste.",
+      "latestMetadata": {
+        "version": "4.0.0",
+        "engines": {
+          "node": ">=22"
+        },
+        "repository.url": "git+https://github.com/vbuch/node-signpdf.git"
+      }
+    },
+    {
+      "name": "@signpdf/utils",
+      "group": "dependencies",
+      "declared": "^3.3.0",
+      "installed": "3.3.0",
+      "latest": "4.0.0",
+      "wanted": "3.4.0",
+      "status": "Migração de major",
+      "recommendation": "Atualizar coordenadamente com os demais @signpdf; alvo intermediário 3.4.0.",
+      "latestMetadata": {
+        "version": "4.0.0",
+        "engines": {
+          "node": ">=22",
+          "yarn": ">=1.22.18"
+        },
+        "repository.url": "git+https://github.com/vbuch/node-signpdf.git"
+      }
+    },
+    {
+      "name": "bcryptjs",
+      "group": "dependencies",
+      "declared": "^2.4.3",
+      "installed": "2.4.3",
+      "latest": "3.0.3",
+      "wanted": "2.4.3",
+      "status": "Migração de major",
+      "recommendation": "Migrar com prova de comparação dos hashes legados e login; não redefinir senhas dos usuários.",
+      "latestMetadata": {
+        "version": "3.0.3",
+        "repository.url": "git+https://github.com/dcodeIO/bcrypt.js.git"
+      }
+    },
+    {
+      "name": "fflate",
+      "group": "dependencies",
+      "declared": "^0.8.3",
+      "installed": "0.8.3",
+      "latest": "0.8.3",
+      "wanted": "0.8.3",
+      "status": "Em dia",
+      "recommendation": "Sem atualização disponível na tag latest.",
+      "latestMetadata": {
+        "version": "0.8.3",
+        "repository.url": "git+https://github.com/101arrowz/fflate.git"
+      }
+    },
+    {
+      "name": "ioredis",
+      "group": "dependencies",
+      "declared": "^6.0.0",
+      "installed": "6.0.0",
+      "latest": "6.0.0",
+      "wanted": "6.0.0",
+      "status": "Em dia",
+      "recommendation": "Sem atualização disponível na tag latest.",
+      "latestMetadata": {
+        "version": "6.0.0",
+        "engines": {
+          "node": ">=20.0.0"
+        },
+        "repository.url": "git+https://github.com/redis/ioredis.git"
+      }
+    },
+    {
+      "name": "jose",
+      "group": "dependencies",
+      "declared": "^6.2.9",
+      "installed": "6.2.9",
+      "latest": "6.2.13",
+      "wanted": "6.2.13",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Executar gates de JWT, sessões, expiração e autenticação em duas etapas.",
+      "latestMetadata": {
+        "version": "6.2.13",
+        "repository.url": "git+https://github.com/panva/jose.git"
+      }
+    },
+    {
+      "name": "jsonwebtoken",
+      "group": "dependencies",
+      "declared": "^9.0.2",
+      "installed": "9.0.3",
+      "latest": "9.0.3",
+      "wanted": "9.0.3",
+      "status": "Em dia",
+      "recommendation": "Sem atualização disponível na tag latest.",
+      "latestMetadata": {
+        "version": "9.0.3",
+        "engines": {
+          "npm": ">=6",
+          "node": ">=12"
+        },
+        "repository.url": "git+https://github.com/auth0/node-jsonwebtoken.git"
+      }
+    },
+    {
+      "name": "next",
+      "group": "dependencies",
+      "declared": "16.4.2",
+      "installed": "16.4.2",
+      "latest": "16.4.3",
+      "wanted": "16.4.2",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Atualizar em conjunto com eslint-config-next; conferir guias instalados e validar build, rotas e autenticação.",
+      "latestMetadata": {
+        "version": "16.4.3",
+        "engines": {
+          "node": ">=20.9.0"
+        },
+        "peerDependencies": {
+          "sass": "^1.3.0",
+          "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "@playwright/test": "^1.51.1",
+          "@opentelemetry/api": "^1.1.0",
+          "babel-plugin-react-compiler": "*"
+        },
+        "repository.url": "git+https://github.com/vercel/next.js.git"
+      }
+    },
+    {
+      "name": "nodemailer",
+      "group": "dependencies",
+      "declared": "10.1.4",
+      "installed": "10.1.4",
+      "latest": "10.2.1",
+      "wanted": "10.1.4",
+      "status": "Atualização compatível a validar",
+      "recommendation": "10.1.4 já aplicada e testada para corrigir os alertas de runtime; 10.2.1 é a versão latest, ainda não homologada aqui.",
+      "latestMetadata": {
+        "version": "10.2.1",
+        "engines": {
+          "node": ">=20.0.0"
+        },
+        "repository.url": "git+https://github.com/nodemailer/nodemailer.git"
+      }
+    },
+    {
+      "name": "pdf-lib",
+      "group": "dependencies",
+      "declared": "^1.17.1",
+      "installed": "1.17.1",
+      "latest": "1.17.1",
+      "wanted": "1.17.1",
+      "status": "Em dia",
+      "recommendation": "Sem atualização disponível na tag latest.",
+      "latestMetadata": {
+        "version": "1.17.1",
+        "repository.url": "git+https://github.com/Hopding/pdf-lib.git"
+      }
+    },
+    {
+      "name": "pdf-parse",
+      "group": "dependencies",
+      "declared": "^1.1.1",
+      "installed": "1.1.1",
+      "latest": "2.4.5",
+      "wanted": "1.1.4",
+      "status": "Migração de major",
+      "recommendation": "A importação atual usa pdf-parse/lib/pdf-parse.js em lib/candidate-cv.js. V2 muda a API; testar PDFs reais anonimizados, extração e liberação de recursos. Alvo intermediário 1.1.4.",
+      "latestMetadata": {
+        "version": "2.4.5",
+        "engines": {
+          "node": ">=20.16.0 <21 || >=22.3.0"
+        },
+        "repository.url": "git+https://github.com/mehmet-kozan/pdf-parse.git"
+      }
+    },
+    {
+      "name": "pg",
+      "group": "dependencies",
+      "declared": "^8.23.0",
+      "installed": "8.23.0",
+      "latest": "8.23.1",
+      "wanted": "8.23.1",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Executar integração PostgreSQL, transações e isolamento entre empresas.",
+      "latestMetadata": {
+        "version": "8.23.1",
+        "engines": {
+          "node": ">= 16.0.0"
+        },
+        "peerDependencies": {
+          "pg-native": ">=3.0.1"
+        },
+        "repository.url": "git://github.com/brianc/node-postgres.git"
+      }
+    },
+    {
+      "name": "qrcode",
+      "group": "dependencies",
+      "declared": "^1.5.4",
+      "installed": "1.5.4",
+      "latest": "1.5.4",
+      "wanted": "1.5.4",
+      "status": "Em dia",
+      "recommendation": "Sem atualização disponível na tag latest.",
+      "latestMetadata": {
+        "version": "1.5.4",
+        "engines": {
+          "node": ">=10.13.0"
+        },
+        "repository.url": "git://github.com/soldair/node-qrcode.git"
+      }
+    },
+    {
+      "name": "react",
+      "group": "dependencies",
+      "declared": "19.3.0",
+      "installed": "19.3.0",
+      "latest": "19.3.1",
+      "wanted": "19.3.0",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Atualizar junto com react-dom; verificar compatibilidade declarada do Next e regressão de interface.",
+      "latestMetadata": {
+        "version": "19.3.1",
+        "engines": {
+          "node": ">=0.10.0"
+        },
+        "repository.url": "git+https://github.com/react/react.git"
+      }
+    },
+    {
+      "name": "react-dom",
+      "group": "dependencies",
+      "declared": "19.3.0",
+      "installed": "19.3.0",
+      "latest": "19.3.1",
+      "wanted": "19.3.0",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Manter a mesma versão do React.",
+      "latestMetadata": {
+        "version": "19.3.1",
+        "peerDependencies": {
+          "react": "^19.3.1"
+        },
+        "repository.url": "git+https://github.com/react/react.git"
+      }
+    },
+    {
+      "name": "recharts",
+      "group": "dependencies",
+      "declared": "^2.15.0",
+      "installed": "2.15.0",
+      "latest": "3.10.1",
+      "wanted": "2.15.4",
+      "status": "Migração de major",
+      "recommendation": "Alvo intermediário 2.15.4; v3 altera APIs e exige regressão visual dos gráficos, tooltip e legenda.",
+      "latestMetadata": {
+        "version": "3.10.1",
+        "engines": {
+          "node": ">=18"
+        },
+        "peerDependencies": {
+          "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+          "react-is": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+          "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+        },
+        "repository.url": "git+https://github.com/recharts/recharts.git"
+      }
+    },
+    {
+      "name": "signature_pad",
+      "group": "dependencies",
+      "declared": "^5.1.4",
+      "installed": "5.1.4",
+      "latest": "5.1.4",
+      "wanted": "5.1.4",
+      "status": "Em dia",
+      "recommendation": "Sem atualização disponível na tag latest.",
+      "latestMetadata": {
+        "version": "5.1.4",
+        "repository.url": "git+https://github.com/szimek/signature_pad.git"
+      }
+    },
+    {
+      "name": "stripe",
+      "group": "dependencies",
+      "declared": "^23.0.0",
+      "installed": "23.0.0",
+      "latest": "23.0.1",
+      "wanted": "23.0.1",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Revalidar contratos de assinatura, webhook idempotente e reembolso em sandbox.",
+      "latestMetadata": {
+        "version": "23.0.1",
+        "engines": {
+          "node": ">=20"
+        },
+        "peerDependencies": {
+          "@types/node": ">=20"
+        },
+        "repository.url": "git+https://github.com/stripe/stripe-node.git"
+      }
+    },
+    {
+      "name": "zod",
+      "group": "dependencies",
+      "declared": "4.6.6",
+      "installed": "4.6.6",
+      "latest": "4.6.7",
+      "wanted": "4.6.6",
+      "status": "Atualização compatível a validar",
+      "recommendation": "4.6.6 já aplicada e testada para corrigir a vulnerabilidade alta; 4.6.7 é o próximo patch disponível, ainda não homologado aqui.",
+      "latestMetadata": {
+        "version": "4.6.7",
+        "repository.url": "git+https://github.com/colinhacks/zod.git"
+      }
+    },
+    {
+      "name": "@playwright/test",
+      "group": "devDependencies",
+      "declared": "^1.62.1",
+      "installed": "1.62.1",
+      "latest": "1.64.1",
+      "wanted": "1.64.1",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Atualizar pacote e binários dos navegadores juntos; executar os testes de interface na mesma versão no CI.",
+      "latestMetadata": {
+        "version": "1.64.1",
+        "engines": {
+          "node": ">=20"
+        },
+        "repository.url": "git+https://github.com/microsoft/playwright.git"
+      }
+    },
+    {
+      "name": "autoprefixer",
+      "group": "devDependencies",
+      "declared": "^10.5.4",
+      "installed": "10.5.4",
+      "latest": "10.6.1",
+      "wanted": "10.6.1",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Atualização dentro da major atual; executar os gates afetados antes de adotar.",
+      "latestMetadata": {
+        "version": "10.6.1",
+        "engines": {
+          "node": "^10 || ^12 || >=14"
+        },
+        "peerDependencies": {
+          "postcss": "^8.1.0"
+        },
+        "repository.url": "git+https://github.com/postcss/autoprefixer.git"
+      }
+    },
+    {
+      "name": "eslint",
+      "group": "devDependencies",
+      "declared": "9.39.5",
+      "installed": "9.39.5",
+      "latest": "10.13.0",
+      "wanted": "9.39.5",
+      "status": "Migração de major",
+      "recommendation": "V10 exige revisão de configuração/plugins e requisitos de Node. Primeiro formalizar um comando de lint no projeto.",
+      "latestMetadata": {
+        "version": "10.13.0",
+        "engines": {
+          "node": "^20.19.0 || ^22.13.0 || >=24"
+        },
+        "peerDependencies": {
+          "jiti": "*"
+        },
+        "repository.url": "git+https://github.com/eslint/eslint.git"
+      }
+    },
+    {
+      "name": "eslint-config-next",
+      "group": "devDependencies",
+      "declared": "16.4.2",
+      "installed": "16.4.2",
+      "latest": "16.4.3",
+      "wanted": "16.4.2",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Manter alinhado à versão de Next.js.",
+      "latestMetadata": {
+        "version": "16.4.3",
+        "peerDependencies": {
+          "eslint": ">=9.0.0",
+          "typescript": ">=3.3.1"
+        },
+        "repository.url": "git+https://github.com/vercel/next.js.git"
+      }
+    },
+    {
+      "name": "postcss",
+      "group": "devDependencies",
+      "declared": "^8.5.26",
+      "installed": "8.5.26",
+      "latest": "8.5.31",
+      "wanted": "8.5.31",
+      "status": "Atualização compatível a validar",
+      "recommendation": "Revisar também o override de PostCSS dentro de Next, hoje fixado em 8.5.28.",
+      "latestMetadata": {
+        "version": "8.5.31",
+        "engines": {
+          "node": "^10 || ^12 || >=14"
+        },
+        "repository.url": "git+https://github.com/postcss/postcss.git"
+      }
+    },
+    {
+      "name": "tailwindcss",
+      "group": "devDependencies",
+      "declared": "^3.4.19",
+      "installed": "3.4.19",
+      "latest": "4.3.3",
+      "wanted": "3.4.19",
+      "status": "Migração de major",
+      "recommendation": "Há alerta transitivo moderado. Planejar v4 como migração de CSS/PostCSS, tokens e suporte a navegadores; não forçar parser de outra major na cadeia v3.",
+      "latestMetadata": {
+        "version": "4.3.3",
+        "repository.url": "https://github.com/tailwindlabs/tailwindcss.git"
+      }
+    }
+  ],
+  "transitiveFixes": [
+    {
+      "name": "fast-uri",
+      "before": "3.1.8",
+      "after": "3.1.9"
+    }
+  ]
+}
