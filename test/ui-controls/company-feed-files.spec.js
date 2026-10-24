@@ -17,6 +17,7 @@ test('publish files, retry without duplicate notice or attachment, and view priv
   return route.fulfill({json:{ok:true,posts,total:posts.length}});
  });
  await page.goto('/company-feed');
+ await expect(page.getByRole('region',{name:'Mural do colaborador'}).getByText('68 B',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:/Novo aviso/}).first().click();
  const dialog=page.getByRole('dialog',{name:'Novo aviso'});
  await dialog.getByRole('textbox',{name:'Título',exact:true}).fill('Comunicado da empresa');

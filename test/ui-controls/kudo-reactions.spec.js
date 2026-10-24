@@ -11,9 +11,12 @@ test('react, replace, inspect names and remove on mobile without duplicating a k
  await page.goto('/kudo-reactions');
  await page.getByRole('button',{name:'Reagir',exact:true}).click();await page.getByRole('button',{name:'Amei',exact:true}).click();
  await expect(page.getByRole('button',{name:'Amei · 1'})).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByRole('button',{name:'Reagir',exact:true})).toBeFocused();
+ await expect(page.getByRole('status')).toHaveText('Reação atualizada.');
  await page.getByRole('button',{name:'Ver quem reagiu',exact:true}).click();await expect(page.getByText('❤️ Ana',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Aplausos · 2'}).click();await expect(page.getByRole('button',{name:'Amei · 1'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Aplausos · 3'})).toHaveAttribute('aria-pressed','true');
  await page.getByRole('button',{name:'Aplausos · 3'}).click();await expect(page.getByRole('button',{name:'Aplausos · 2'})).toHaveAttribute('aria-pressed','false');
+ await expect(page.getByRole('status')).toHaveText('Reação removida.');
  expect(mutations).toEqual(['PUT','PUT','DELETE']);
  await page.getByRole('button',{name:'Reagir',exact:true}).click();
  await expect(page.getByRole('group',{name:'Escolher reação'})).toBeVisible();
@@ -29,4 +32,15 @@ test('failed mutation preserves counts and permits an explicit retry',async({pag
  await expect(page.getByText('Não foi possível atualizar as reações. Tente novamente.')).toBeVisible();
  await expect(page.getByRole('button',{name:'Aplausos · 2'})).toHaveAttribute('aria-pressed','false');
  await page.getByRole('button',{name:'Aplausos · 2'}).click();await expect(page.getByRole('button',{name:'Aplausos · 3'})).toHaveAttribute('aria-pressed','true');expect(calls).toBe(2);
+});
+
+test('picker supports keyboard dismissal and reactor-load failures keep existing counts',async({page})=>{
+ await page.route('**/api/employee/kudos/7/reactions*',route=>route.fulfill({status:503,json:{ok:false}}));
+ await page.goto('/kudo-reactions');
+ const trigger=page.getByRole('button',{name:'Reagir',exact:true});
+ await trigger.click();await expect(page.getByRole('button',{name:'Curtir',exact:true})).toBeFocused();
+ await page.keyboard.press('Escape');await expect(page.getByRole('group',{name:'Escolher reação'})).toHaveCount(0);await expect(trigger).toBeFocused();
+ await page.getByRole('button',{name:'Ver quem reagiu',exact:true}).click();
+ await expect(page.getByText('Não foi possível carregar quem reagiu. Tente novamente.')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Aplausos · 2'})).toBeVisible();
 });

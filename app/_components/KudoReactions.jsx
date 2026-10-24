@@ -19,16 +19,30 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
   const [busy, setBusy] = useState(false);
   const [loadingPeople, setLoadingPeople] = useState(false);
   const mutationInFlight = useRef(false);
+  const reactButtonRef = useRef(null);
+  const pickerRef = useRef(null);
+  const restoreFocus = useRef(false);
+  const [announcement, setAnnouncement] = useState('');
   const pickerId = useId();
   const peopleId = useId();
   const endpoint = `/api/employee/kudos/${kudoId}/reactions`;
   const label = key => t(locale, `employeeHome.${key}`);
 
   useEffect(() => { setReactions(initialReactions); }, [initialReactions]);
+  useEffect(() => {
+    if (pickerOpen) pickerRef.current?.querySelector('button')?.focus();
+  }, [pickerOpen]);
+  useEffect(() => {
+    if (!busy && restoreFocus.current) {
+      restoreFocus.current = false;
+      reactButtonRef.current?.focus();
+    }
+  }, [busy]);
 
   async function react(emoji) {
     if (mutationInFlight.current) return;
     mutationInFlight.current = true;
+    setAnnouncement('');
     setBusy(true);
     try {
       const remove = reactions.some(reaction => reaction.emoji === emoji && reaction.mine);
@@ -43,10 +57,12 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
       setPickerOpen(false);
       setPeopleOpen(false);
       setPeople([]);
+      setAnnouncement(label(remove ? 'kudosReactionRemoved' : 'kudosReactionUpdated'));
     } catch {
       toast(label('kudosReactionError'), 'error');
     } finally {
       mutationInFlight.current = false;
+      restoreFocus.current = true;
       setBusy(false);
     }
   }
@@ -62,14 +78,15 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
       setHasMore(data.hasMore);
       setPeopleOpen(true);
     } catch {
-      toast(label('kudosReactionError'), 'error');
+      toast(label('kudosReactorsLoadError'), 'error');
     } finally {
       setLoadingPeople(false);
     }
   }
 
   return (
-    <div className="mt-3" aria-busy={busy}>
+    <div className="mt-3" aria-busy={busy || loadingPeople}>
+      <span className="sr-only" role="status">{announcement}</span>
       <div className="flex flex-wrap items-center gap-2">
         {KUDO_REACTION_EMOJIS.map((emoji, index) => {
           const reaction = reactions.find(item => item.emoji === emoji);
@@ -83,9 +100,9 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
             </button>
           );
         })}
-        <button type="button" className={cn(S.btnGhost, 'min-h-touch')} disabled={busy || loadingPeople}
+        <button ref={reactButtonRef} type="button" className={cn(S.btnGhost, 'min-h-touch')} disabled={busy || loadingPeople}
           aria-expanded={pickerOpen} aria-controls={pickerId} onClick={() => setPickerOpen(open => !open)}>
-          <span aria-hidden="true">😊 </span>{label('kudosReact')}
+          <span aria-hidden="true">😊 </span>{busy ? t(locale, 'panel.common.loading') : label('kudosReact')}
         </button>
         {reactions.length > 0 ? (
           <button type="button" className={cn(S.btnGhost, 'min-h-touch')} disabled={busy || loadingPeople}
@@ -96,7 +113,15 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
         ) : null}
       </div>
       {pickerOpen ? (
-        <div id={pickerId} role="group" aria-label={label('kudosChooseReaction')} className="mt-2 flex flex-wrap gap-1 rounded-xl border border-line bg-surface p-2">
+        <div ref={pickerRef} id={pickerId} role="group" aria-label={label('kudosChooseReaction')}
+          onKeyDown={event => {
+            if (event.key === 'Escape' && !busy) {
+              event.preventDefault();
+              event.stopPropagation();
+              setPickerOpen(false);
+              reactButtonRef.current?.focus();
+            }
+          }} className="mt-2 flex flex-wrap gap-1 rounded-xl border border-line bg-surface p-2">
           {KUDO_REACTION_EMOJIS.map((emoji, index) => (
             <button key={emoji} type="button" className={cn(S.btnGhost, 'min-h-touch min-w-touch text-xl')}
               disabled={busy || loadingPeople} aria-label={label(`kudosReaction${index}`)}
