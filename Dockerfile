@@ -1,11 +1,12 @@
+ARG NODE_VERSION=22.23.4
 # ── Stage 1: deps ────────────────────────────────────────────────────────────
-FROM docker.io/library/node:22-alpine AS deps
+FROM docker.io/library/node:${NODE_VERSION}-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # ── Stage 2: builder ─────────────────────────────────────────────────────────
-FROM docker.io/library/node:22-alpine AS builder
+FROM docker.io/library/node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -19,7 +20,7 @@ RUN npm run test:unit && npm run test:security
 RUN npm run build
 
 # ── Stage 3: runner ──────────────────────────────────────────────────────────
-FROM docker.io/library/node:22-alpine AS runner
+FROM docker.io/library/node:${NODE_VERSION}-alpine AS runner
 RUN apk add --no-cache openssl
 WORKDIR /app
 

@@ -24,11 +24,14 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Lint regression gate
+        run: npm run lint
 
       - name: General unit regression gate
         run: npm run test:unit
@@ -80,7 +83,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: '.nvmrc'
           cache: npm
       - name: Install dependencies
         run: npm ci

@@ -1,0 +1,924 @@
+{
+  "app/_components/AdminRichFormDrawer.jsx": {
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/AssessmentFlow.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    },
+    "react-hooks/purity": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    },
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "app/_components/BenefitAssignmentsBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/BillingReturnClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/BillingTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/BrCitySelect.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/CalibrationBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/CandidateCvBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/CompanyLogoCropDialog.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/CompensationBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/CompetencyCatalogBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/CompetencyCategoriesBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/ConfirmActionDialog.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/ConfirmDialog.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/ContextualTooltip.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/ContinuousFeedbackBlock.jsx": {
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/DarkModeProvider.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/DashboardTopBarMenus.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/DateField.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/DevelopmentPlansBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/DpBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeDpSection.jsx": {
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeFeedKudosSections.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/EmployeeFormalReviewsSection.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeHourBankSection.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeNavContext.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeShell.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeSurveysSection.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeTimeClockHistory.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeTimeClockMirrors.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeTimeClockSection.jsx": {
+    "react-hooks/refs": {
+      "count": 2
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EmployeeVariablePaySection.jsx": {
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/EntitySearchSelect.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/FieldTeamWorkspace.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/FormalCompetencyReviewsBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/FormalReviewResultsBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/GoogleLandingAnalytics.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/HourBankAdminBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/KudoReactions.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/LmsMediaPlayer.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    }
+  },
+  "app/_components/LoadingStates.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/MotivatorsFlow.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/OkrBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/OkrHierarchyBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/OnboardingCheckinsBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/OnboardingTour.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/OnboardingWizard.jsx": {
+    "react-hooks/preserve-manual-memoization": {
+      "count": 2
+    }
+  },
+  "app/_components/OrgChartBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/OrgManagerBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/OrgUnitField.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/PeopleManagementPanel.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/PerformanceReviewBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/PersonDossierBlock.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/PersonaPlaybookCard.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/PreOnboardingChecklistBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/PreOnboardingTemplateBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/ProfileTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/PromptFormDialog.jsx": {
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/PublicVacancyPosting.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/RepEmployeeTools.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/SalaryMapBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/SelectField.jsx": {
+    "react-hooks/purity": {
+      "count": 1
+    }
+  },
+  "app/_components/SidebarNav.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/SignaturePadField.jsx": {
+    "react-hooks/immutability": {
+      "count": 2
+    },
+    "react-hooks/refs": {
+      "count": 1
+    }
+  },
+  "app/_components/SystemNoticeModal.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/TeamPulseBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/TimeClockAdminBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/TimeClockClosureSummaryDrawer.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    }
+  },
+  "app/_components/TimeClockClosuresBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/TimeClockHolidaysBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/TimeClockMirror.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/TimeClockOperations.jsx": {
+    "react-hooks/purity": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/TimeClockReadiness.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/TimeClockRequestsBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/_components/TimeClockScheduleBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/TimeClockWorkspace.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    },
+    "react-hooks/use-memo": {
+      "count": 1
+    }
+  },
+  "app/_components/TotpQrCode.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/UndoToast.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/VacancyInterviewSlotsBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/VacationPoolBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/VariablePayInboxBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/VerificationCodeInput.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/_components/useUnsavedChanges.jsx": {
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/DashboardClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 16
+    }
+  },
+  "app/dashboard/PsychosocialRisksBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/VacancyClientReportBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    }
+  },
+  "app/dashboard/VacancyInterviewCandidates.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/dashboard-shared.jsx": {
+    "react-hooks/immutability": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/AiUsageAdminPanel.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/AnalyticsTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/AuditAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/ClimateTab.jsx": {
+    "react-hooks/purity": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/tabs/CompaniesAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    }
+  },
+  "app/dashboard/tabs/CompanyFeedAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/CompareTab.jsx": {
+    "react-hooks/preserve-manual-memoization": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/tabs/CompareTabLoader.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/CompensationAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/DigitalCertificateAdminTab.jsx": {
+    "react-hooks/purity": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/DpAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    }
+  },
+  "app/dashboard/tabs/ExitAnalysisAdminTab.jsx": {
+    "react-hooks/immutability": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/GroupTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/HelpTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/JobRolesAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/LeadsAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/LmsAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 4
+    }
+  },
+  "app/dashboard/tabs/MotivatorsAdminTab.jsx": {
+    "react-hooks/refs": {
+      "count": 2
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 5
+    }
+  },
+  "app/dashboard/tabs/NineBoxBlock.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/OnboardingFunnelAdminPanel.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/OverviewTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/tabs/PdiAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/PerformanceReviewsAdminTab.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    }
+  },
+  "app/dashboard/tabs/ProductFeedbackAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/SubscriptionsAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/SuccessionAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/TalentBankAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/tabs/TeamBehavioralIntelBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/tabs/TeamTab.jsx": {
+    "react-hooks/immutability": {
+      "count": 1
+    },
+    "react-hooks/preserve-manual-memoization": {
+      "count": 1
+    },
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 5
+    }
+  },
+  "app/dashboard/tabs/UsersAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/VacanciesAdminTab.jsx": {
+    "react-hooks/immutability": {
+      "count": 1
+    },
+    "react-hooks/preserve-manual-memoization": {
+      "count": 2
+    },
+    "react-hooks/refs": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 8
+    }
+  },
+  "app/dashboard/tabs/WhistleblowingAdminTab.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/overview/BirthdaysCard.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/overview/CultureInsightsCard.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/tabs/overview/ExitInsightsCard.jsx": {
+    "react-hooks/immutability": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/HireReadinessBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/InterviewPrepBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/InterviewScorecardBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/PipelineStagesEditor.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/PipelineTemplatesManager.jsx": {
+    "react-hooks/purity": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/VacancyCandidateDialog.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/VacancyFitDecisionStrip.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/VacancyInvitesBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/VacancyKanbanBlock.jsx": {
+    "react-hooks/purity": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/dashboard/vacancies/VacancyReferralBlock.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/dashboard/vacancies/VacancyRubricEditor.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/employee/EmployeeHomeClient.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/employee/enter/EmployeeEnterClient.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/employee/field/EmployeeFieldClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/employee/lms/EmployeeLmsClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    }
+  },
+  "app/employee/lms/certificate/EmployeeLmsCertificateClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/employee/pdi/EmployeePdiClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "app/employee/profile/EmployeeProfileClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "app/login/page.jsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 3
+    }
+  },
+  "app/prep/[token]/InterviewPrepClient.jsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "test/dtov/p0-upload-race.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/integration/stripe-billing.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/analytics-scheduled-reports.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/auth-security-regressions.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/billing-admin-security.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/billing-profile-privacy.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/company-post-file-http.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/contextual-notifications.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/dashboard-load-errors.unit.test.cjs": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/employee-dp-home.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/employee-session-security.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/mobile-community-pagination.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/mobile-final-flows.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/mobile-home-company.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/mobile-motivators.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/mobile-one-on-one.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/mobile-postal-address.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/mobile-time-requests.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/remember-me.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/storage-cache-security.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/stripe-billing.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/support-response.postgres.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/tenant-scope.unit.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "test/unit/vacancy-link.pg.test.js": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  }
+}

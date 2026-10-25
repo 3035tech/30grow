@@ -25,7 +25,7 @@ export function FormalReviewResultsBlock({ candidateId, locale = 'pt-BR', onPdiC
     return () => controller.abort();
   }, [candidateId, reload]);
 
-  async function useResult(result, item) {
+  async function handleUseResult(result, item) {
     const values = await promptForm({
       title: i18nT(locale, 'ui.formalReviewResultsBlock.createADevelopmentGoal'),
       fields: [
@@ -72,7 +72,7 @@ export function FormalReviewResultsBlock({ candidateId, locale = 'pt-BR', onPdiC
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 sm:flex-col sm:items-end">
           <p className={`m-0 ${S.cardMuted}`}>{i18nT(locale, 'ui.formalReviewResultsBlock.average')} <span className={`${S.cardMetric} text-ink`}>{item.average == null ? '—' : `${item.average.toLocaleString(locale, { maximumFractionDigits: 2 })}/5`}</span></p>
-          <button type="button" className={S.btnGhost} disabled={busy} onClick={() => useResult(result, item)}>{i18nT(locale, 'ui.formalReviewResultsBlock.useInPdi')}</button>
+          <button type="button" className={S.btnGhost} disabled={busy} onClick={() => handleUseResult(result, item)}>{i18nT(locale, 'ui.formalReviewResultsBlock.useInPdi')}</button>
         </div>
       </li>)}</ul>
     </details>)}

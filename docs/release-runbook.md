@@ -4,6 +4,32 @@ Procedimento mínimo para homologação e produção. O schema canônico vive em
 
 Operação, alertas, restore, SMTP e S3: `docs/pilot-operations-runbook.md`.
 
+## Runtime e manutenção de dependências
+
+O projeto usa Node 22.23.4, definido em `.nvmrc`, no CI e no argumento
+`NODE_VERSION` do Dockerfile. Usar `nvm use` (ou configurar a mesma versão no
+gerenciador local) antes de instalar dependências e executar os gates. Atualizar
+essas referências em conjunto quando o patch do Node mudar.
+
+`npm run lint` usa a configuração oficial Next/Core Web Vitals. O arquivo
+`eslint-suppressions.json` registra a dívida preexistente por arquivo/regra:
+302 erros em 167 arquivos na adoção inicial. Não é uma aprovação desses erros.
+Erros acima da contagem por arquivo/regra e erros em arquivos novos bloqueiam
+o CI; 89 avisos permanecem visíveis. O baseline compara contagens, não a
+identidade de cada ocorrência; revisar mudanças nas áreas com dívida.
+Consultar `npm run --silent lint:inventory` para obter o inventário JSON,
+incluindo mensagens suprimidas. Ao corrigir o legado, executar
+`npm run lint -- --prune-suppressions`. Não regenerar o baseline para aceitar
+regressões novas.
+
+Dependabot abre PRs semanais de npm, Docker e GitHub Actions. Next/React e os
+SDKs AWS têm grupos próprios para versões compatíveis. Mudanças de major são
+revisadas em entregas separadas; não há merge automático. Uma PR de Docker que
+altere o Node precisa atualizar também `.nvmrc` e o requisito em `package.json`.
+
+Pendências consolidadas e critérios de conclusão:
+`docs/pendencias-consolidadas-2026-10-24.html`.
+
 ## Antes do deploy
 
 1. Confirmar backup recente e restaurável do PostgreSQL.
