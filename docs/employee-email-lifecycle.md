@@ -1,5 +1,14 @@
 # E-mails na jornada da pessoa
 
+## Aceitação registrada em 24/10/2026
+
+O teste `test/unit/employee-email-lifecycle.postgres.test.js` passou com
+PostgreSQL real isolado e SMTP simulado. Conferiu contratação, contato
+corporativo, desligamento, retorno ao pessoal e recontratação. O mesmo pessoal
+em empresas diferentes manteve cadastros e históricos privados separados.
+Nenhum e-mail real foi enviado; a entrega externa depende de um destinatário
+de teste autorizado e continua como etapa separada de aceitação.
+
 ## Regra de uso
 
 - Candidatura: e-mail pessoal.

@@ -4,7 +4,7 @@
  * Run only against DTOV; synthetic records remain for diagnosis until DTOV reset.
  */
 import { test, expect as baseExpect } from '@playwright/test';
-import { dismissManagerOnboarding, fillLogin, uniqueCandidateEmail, html5DragAndDrop } from './fixtures.js';
+import { dismissManagerOnboarding, fillLogin, uniqueCandidateEmail, html5DragAndDrop, clickSidebarItem } from './fixtures.js';
 
 // Local Next dev compiles each first-visited route on demand.
 const expect = baseExpect.configure({ timeout: 60_000 });
@@ -19,7 +19,7 @@ async function logout(page) {
   if (await devBadge.isVisible()) await devBadge.click();
   await page.getByRole('button', { name: 'Sair', exact: true }).click();
   await page.getByRole('button', { name: 'Encerrar sessão', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Email', exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'E-mail', exact: true })).toBeVisible();
 }
 async function login(page, credentials) {
   await page.goto('/login');
@@ -43,13 +43,12 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
   await test.step('Create a company and select only the necessary modules', async () => {
     await login(page, { email: process.env.DTOV_ADMIN_EMAIL || 'admin@3035tech.com', password: process.env.DTOV_ADMIN_PASSWORD || 'TroqueEstaSenha123!' });
     await dismissManagerOnboarding(page);
-    await page.getByRole('button', { name: 'Administração', exact: true }).click();
-    await page.getByRole('button', { name: 'Empresas', exact: true }).click();
+    await clickSidebarItem(page.locator('#dashboard-sidebar'), /^Administração(?: · \d+)?$/, 'Empresas');
     await page.getByRole('button', { name: 'Nova empresa', exact: true }).first().click();
     await expect(page.getByRole('button', { name: 'Criar', exact: true })).toBeDisabled();
     await page.getByRole('textbox', { name: 'Nome da empresa', exact: true }).fill(companyName);
     await page.getByRole('button', { name: 'Só núcleo', exact: true }).click();
-    await page.getByRole('checkbox', { name: 'Recrutamento Vagas, funil, talent bank e links públicos', exact: true }).check();
+    await page.getByRole('checkbox', { name: /^Recrutamento Vagas, funil, banco de talentos e links públicos$/ }).check();
     await page.getByRole('checkbox', { name: 'Cargos Papéis, rubrica e faixa de mercado', exact: true }).check();
     const saved = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/admin/companies');
     await page.getByRole('button', { name: 'Criar', exact: true }).click();
@@ -64,7 +63,7 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
   await test.step('Create an HR manager with empty optional overrides and verify role defaults', async () => {
     await page.getByRole('button', { name: 'Usuários', exact: true }).click();
     await page.getByRole('button', { name: 'Novo usuário', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Email', exact: true }).fill(manager.email);
+    await page.getByRole('dialog').getByRole('textbox', { name: 'E-mail', exact: true }).fill(manager.email);
     await page.getByRole('textbox', { name: 'Senha (deixe vazio = convidar por e-mail)', exact: true }).fill(manager.password);
     await choose(page, 'Company ID (obrigatório para hr/direction)', `${companyName} (#${companyId})`);
     await page.getByRole('button', { name: 'Continuar', exact: true }).click();
@@ -77,16 +76,15 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await logout(page);
     await login(page, manager);
     await dismissManagerOnboarding(page);
-    await page.locator('#dashboard-sidebar').getByRole('button', { name: 'Pessoas', exact: true }).click();
+    await clickSidebarItem(page.locator('#dashboard-sidebar'), /^Pessoas(?: · \d+)?$/, 'Equipe');
     await expect(page.locator('#dashboard-sidebar').getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Administração', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Recrutamento', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Administração(?: · \d+)?$/ })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^Recrutamento(?: · \d+)?$/ })).toBeVisible();
   });
   let assessmentLink, publicLink;
   const sidebar = page.locator('#dashboard-sidebar');
   await test.step('Create a role and publish its vacancy from empty states', async () => {
-    await sidebar.getByRole('button', { name: 'Recrutamento', exact: true }).click();
-    await sidebar.getByRole('button', { name: 'Cargos', exact: true }).click();
+    await clickSidebarItem(sidebar, /^Recrutamento(?: · \d+)?$/, 'Cargos');
     await expect(page.getByText('Nenhum cargo cadastrado', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Novo cargo', exact: true }).first().click();
     await expect(page.getByRole('button', { name: 'Criar', exact: true })).toBeDisabled();
@@ -99,7 +97,7 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await expect(page.getByText('Nenhuma vaga ainda.', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Nova vaga', exact: true }).first().click();
     await expect(page.getByRole('button', { name: 'Criar', exact: true })).toBeDisabled();
-    await choose(page, 'Cargos (opcional)', roleName);
+    await choose(page, 'Cargo base (opcional) A vaga herda a rubrica T1–T9 do cargo.', roleName);
     await expect(page.getByText('Prévia da rubrica do cargo', { exact: true })).toBeVisible();
     await page.getByRole('textbox', { name: 'Título da vaga', exact: true }).fill(roleName);
     await page.getByRole('textbox', { name: 'Resumo da vaga, requisitos-chave, modelo de trabalho…', exact: true }).fill('Vaga sintética local para validar candidatura, avaliação e contratação.');
@@ -180,8 +178,8 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await page.getByRole('button', { name: 'Expandir', exact: true }).last().click();
     await expect(page.getByRole('textbox', { name: 'Anotações da entrevista…', exact: true })).toHaveText(decision);
     await page.getByRole('tab', { name: 'Pipeline', exact: true }).click();
-    await expect(page.locator('.kanban-scroll div[draggable="true"]')).toHaveCount(1);
-    const card = page.locator('.kanban-scroll div[draggable="true"]');
+    const card = page.getByTestId('vacancy-candidate-card');
+    await expect(card).toHaveCount(1);
     const column = (label) => page.locator('.kanban-scroll > div > div').filter({
       has: page.locator('.sticky').filter({ hasText: label }),
     });
@@ -190,7 +188,7 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await html5DragAndDrop(card, column('Aprovado'));
     await expect(column('Aprovado')).toContainText(candidateName);
     await html5DragAndDrop(card, column('Contratado'));
-    await expect(page.getByRole('dialog', { name: 'Data de início', exact: true })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Confirmar contratação', exact: true })).toBeVisible();
     await page.getByRole('dialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
     await expect(column('Aprovado')).toContainText(candidateName);
     await html5DragAndDrop(card, column('Contratado'));
@@ -201,11 +199,11 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
   });
 
   await test.step('Find exactly the same hired person in Team after reload', async () => {
-    await sidebar.getByRole('button', { name: 'Equipe', exact: true }).click();
+    await clickSidebarItem(sidebar, /^Pessoas(?: · \d+)?$/, 'Equipe');
     await expect(page).toHaveURL(/tab=team/);
     const person = page.getByRole('button', { name: `Abrir: ${candidateName}`, exact: true });
     await expect(person).toHaveCount(1);
-    await expect(person).toContainText('Pipeline: Contratado');
+    await expect(person).toContainText('colaborador');
     await person.click();
     await expect(page.getByText(candidateEmail, { exact: true })).toBeVisible();
     await page.reload();

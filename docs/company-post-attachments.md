@@ -59,4 +59,21 @@ produção (`grow30`) em 24/10/2026. Em Dublin, a aplicação transacional confe
 a preservação integral dos cinco avisos e 18 kudos existentes. Em produção,
 o operador executou o SQL e a conferência posterior validou tabelas, restrições
 e permissões de `grow30_app`; o registro foi completado em `schema_migrations`.
-A operação real de upload no armazenamento não foi certificada por esses testes.
+
+## Identidade gerenciada e armazenamento real
+
+Em 24/10/2026, o preflight de produção identificou que o backend exigia chaves
+permanentes mesmo com uma task role ECS válida. O adaptador passa a aceitar o
+provedor renovável do SDK quando o ambiente fornece identidade ECS ou EKS.
+Endpoints S3 compatíveis continuam exigindo credenciais explícitas completas;
+um bucket isolado ou um perfil AWS local não habilita o armazenamento.
+
+A política `30grow-s3-object-storage` da role `30grow-ecs-task` recebeu acesso
+Get/Put/Delete em `companies/*/company-posts/*`, preservando os recursos anteriores.
+O gerador `scripts/render-s3-iam-policy.mjs` contém a mesma regra.
+
+Um task de preflight executou o adaptador corrigido com a role real: gravou e
+leu os mesmos bytes de um arquivo fictício, confirmou HTTP 403 sem autenticação
+e removeu o objeto ao final. Não foram criados avisos nem enviados comunicados.
+Esse teste comprova a conexão privada com S3; upload, visualização e remoção pela
+interface publicada permanecem como aceitação separada após a publicação.

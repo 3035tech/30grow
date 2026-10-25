@@ -147,3 +147,36 @@ O dono da conta continua acessando Perfil → Billing quando os demais módulos 
 ## Gates de entrega
 
 AWS e GitHub executam integração financeira e ciclo de empresa em PostgreSQL isolado, build e contratos HTTP de tenants antes de publicar imagens. GitHub também exige UI de billing/assinaturas e ajustes de RH. Capturas de teste usam `testInfo.outputPath`, compatível com Linux; a primeira execução do gate revelou os antigos caminhos locais `/private/tmp`, que foram corrigidos. Nenhuma chave Stripe é exigida no CI offline.
+
+## Webhook de Dublin — configuração e prova de entrega
+
+Em 24/10/2026 (25/10 UTC), foi confirmada a ausência do Secret Kubernetes
+`apps/grow30-stripe`. O deployment `grow30-backend` já referenciava suas chaves
+como opcionais, portanto o pod iniciava sem a configuração Stripe e o endpoint
+retornava `503 not_configured`. O operador criou o Secret com a chave sandbox
+existente e o segredo de assinatura do endpoint e reiniciou o deployment.
+Nenhuma credencial foi adicionada ao repositório.
+
+Conferência externa em `https://team.3035service.com/api/webhooks/stripe`:
+
+- POST sem assinatura: `400 invalid_signature`, confirmando que o endpoint
+  exige autenticação da entrega e deixou de retornar erro de configuração.
+- Reenvio pelo próprio Stripe sandbox do evento sintético
+  `evt_3UTlPy5kjgLrzQCZ0Bt7nnLF` (`refund.created`, purpose
+  `automated_sandbox_contract`): `200`, estado `Delivered / Recovered`.
+- Primeira resposta: `ignored: true`, pois o pagamento de teste não estava
+  vinculado a uma conta de billing no banco de Dublin.
+- Segundo reenvio do mesmo evento: `200`, `duplicate: true`.
+
+Isso comprova configuração, assinatura, transporte e deduplicação persistida.
+Não comprova pagamento ou atualização da licença de uma empresa: esse fluxo
+ponta a ponta continua como validação separada. Nenhum reembolso ou pagamento
+novo foi executado neste teste; apenas reenviada a notificação de um reembolso
+sintético preexistente. Entregas antigas ainda com erro não foram reenviadas em lote.
+
+O checkout também exige `STRIPE_PORTAL_CONFIGURATION_ID`. A configuração sandbox
+existente foi conferida pela API: ativa e com atualização de cartão habilitada.
+O operador recebeu o comando para adicionar somente esse ID ao mesmo Secret,
+preservando as duas credenciais, e reiniciar `grow30-backend`. A confirmação dessa
+etapa e o checkout de uma empresa fictícia ainda estão pendentes; a recuperação
+do webhook, isoladamente, não certifica que o checkout esteja configurado.

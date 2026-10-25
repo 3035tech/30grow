@@ -32,6 +32,7 @@ const policy = {
             'companies/*',
             'companies/*/dp-docs/*',
             'companies/*/lms/*',
+            'companies/*/company-posts/*',
             'image/logo/companies/*',
           ],
         },
@@ -44,6 +45,7 @@ const policy = {
       Resource: [
         `${objectArn}/dp-docs/*`,
         `${objectArn}/lms/*`,
+        `${objectArn}/company-posts/*`,
         `${bucketArn}/image/logo/companies/*`,
       ],
     },
