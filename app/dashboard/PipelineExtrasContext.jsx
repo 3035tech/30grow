@@ -143,7 +143,9 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
           <p className="mb-2 mt-1 text-sm text-ink-muted">{t(locale, 'onboardingStages.help')}</p>
           <CheckboxGroupControl label={t(locale, 'onboardingStages.title')} options={onboardingStageOptions(locale, t)}
             value={onboardingStages} onChange={setOnboardingStages}
-            selectAllLabel={t(locale, 'onboardingStages.selectAll')} clearAllLabel={t(locale, 'onboardingStages.clearAll')} />
+            selectAllLabel={t(locale, 'onboardingStages.selectAll')} clearAllLabel={t(locale, 'onboardingStages.clearAll')}
+            selectionSummary={(n, total) => t(locale, 'onboardingStages.summary', { n, total })}
+            emptySelectionLabel={t(locale, 'onboardingStages.empty')} />
         </section> : null}
 
         {error ? (

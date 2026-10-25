@@ -451,7 +451,8 @@ export function PromptFormDialog({
     if (f.type === 'checkboxGroup') {
       return <CheckboxGroupControl label={f.label} options={f.options || []}
         value={Array.isArray(values[fk]) ? values[fk] : []} onChange={value => setField(fk, value)}
-        selectAllLabel={f.selectAllLabel} clearAllLabel={f.clearAllLabel} />;
+        selectAllLabel={f.selectAllLabel} clearAllLabel={f.clearAllLabel}
+        selectionSummary={f.selectionSummary} emptySelectionLabel={f.emptySelectionLabel} />;
     }
 
     if (f.type === 'select') {

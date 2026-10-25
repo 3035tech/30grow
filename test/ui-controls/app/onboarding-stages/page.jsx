@@ -12,6 +12,7 @@ function Controls() {
     key: 'onboardingStages', type: 'checkboxGroup', label: t('pt-BR', 'onboardingStages.title'),
     help: t('pt-BR', 'onboardingStages.help'), defaultValue: [...ONBOARDING_STAGES], options: onboardingStageOptions('pt-BR', t),
     selectAllLabel: t('pt-BR', 'onboardingStages.selectAll'), clearAllLabel: t('pt-BR', 'onboardingStages.clearAll'),
+    selectionSummary: (n, total) => t('pt-BR', 'onboardingStages.summary', { n, total }), emptySelectionLabel: t('pt-BR', 'onboardingStages.empty'),
   }] }));
   return <main className="p-4"><button onClick={direct}>Incluir colaborador</button>
     <button onClick={async () => setResult(await requestPipelineExtras('pt-BR', 'hired'))}>Contratar</button>

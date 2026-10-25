@@ -341,6 +341,8 @@ export function TeamTab({
           label: t(locale, 'onboardingStages.title'), help: t(locale, 'onboardingStages.help'),
           defaultValue: [...ONBOARDING_STAGES], options: onboardingStageOptions(locale, t),
           selectAllLabel: t(locale, 'onboardingStages.selectAll'), clearAllLabel: t(locale, 'onboardingStages.clearAll'),
+          selectionSummary: (n, total) => t(locale, 'onboardingStages.summary', { n, total }),
+          emptySelectionLabel: t(locale, 'onboardingStages.empty'),
         },
         {
           key: 'sendAccessInvite',
