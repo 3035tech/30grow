@@ -1,3 +1,4 @@
+import { normalizeOnboardingStages } from '../../../../../lib/onboarding-stage-selection.js';
 import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
@@ -31,6 +32,8 @@ export async function PATCH(request, props) {
     if (!id) return apiError(request, ERR.INVALID_ID, 400);
 
     const body = await request.json().catch(() => ({}));
+    const onboardingStages = normalizeOnboardingStages(body.onboardingStages);
+    if (onboardingStages === null) return apiError(request, ERR.INVALID_PARAMS, 400);
     const stage = body.pipelineStage != null ? String(body.pipelineStage).trim() : null;
     if (!stage) {
       return apiError(request, ERR.INVALID_PIPELINE_STAGE, 400);
@@ -113,7 +116,7 @@ export async function PATCH(request, props) {
       ]
     );
 
-    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true});
+    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true,onboardingStages});
     if (vacancyId && candidateId) {
       await db.query(
         `UPDATE vacancy_candidates SET rejection_reasons = $3::text[],
@@ -185,6 +188,7 @@ export async function PATCH(request, props) {
       targetType: 'assessment',
       targetId: String(id),
       metadata: {
+        onboardingStages,
         pipelineStage: stage,
         rejectionReasons,
         rejectionReason: canonicalStage === PIPELINE_STAGE.REJECTED ? rejectionReason : undefined,

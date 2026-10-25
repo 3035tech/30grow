@@ -1,3 +1,4 @@
+import { normalizeOnboardingStages } from '../../../../../../../lib/onboarding-stage-selection.js';
 import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
@@ -114,6 +115,8 @@ export async function PATCH(request, props) {
     if (loaded.error) return loaded.error;
 
     const body = await request.json().catch(() => ({}));
+    const onboardingStages = normalizeOnboardingStages(body.onboardingStages);
+    if (onboardingStages === null) return apiError(request, ERR.INVALID_PARAMS, 400);
     if (body.interviewNotes === undefined && body.notes === undefined && body.pipelineStage === undefined) {
       return apiError(request, ERR.NOTHING_TO_UPDATE, 400);
     }
@@ -195,7 +198,7 @@ export async function PATCH(request, props) {
       ]
     );
 
-    if (isHiredCanonical) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true});
+    if (isHiredCanonical) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true,onboardingStages});
     if (body.pipelineStage !== undefined && stage != null) {
       await db.query(
         `INSERT INTO vacancy_candidate_pipeline_history
@@ -244,6 +247,7 @@ export async function PATCH(request, props) {
       targetType: 'vacancy_candidate',
       targetId: loaded.link.id,
       metadata: {
+        onboardingStages,
         vacancyId: Number(vacancyId),
         candidateId: Number(candidateId),
         pipelineStage: stage ?? currentStage,

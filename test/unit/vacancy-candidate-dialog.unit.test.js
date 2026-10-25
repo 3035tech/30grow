@@ -1,3 +1,4 @@
+import { normalizeOnboardingStages } from '../../lib/onboarding-stage-selection.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -8,6 +9,7 @@ import { ERR } from '../../lib/api-error-codes.js';
 async function fixture({ authorized = true, companyId = 3, admin = false, found = true, events = [] } = {}) {
   const calls = [];
   const deps = {
+    normalizeOnboardingStages,
     ...pipeline, localeFromRequest: () => 'pt-BR', ERR, NextResponse: { json: Response.json }, COOKIE_NAME: 'session', cookies: async () => ({ get: () => ({ value: 'fixture' }) }),
     verifySessionWithCapabilities: async () => ({ companyId }), requireCapability: () => authorized, CAP: { VACANCIES_VIEW: 'view', VACANCIES_MANAGE: 'manage' }, isSuperAdminPayload: () => admin,
     query: async (sql, values) => { calls.push({sql,values}); return calls.length === 1 ? {rowCount:found?1:0,rows:found?[{companyId:3,candidateId:12,interviewNotes:'Saved notes'}]:[]} : {rowCount:events.length,rows:events}; },

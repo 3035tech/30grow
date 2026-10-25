@@ -13,13 +13,14 @@ const compose=['compose','-p','30grow-billing-gate','-f','test/integration/docke
 let failed=false;
 try {
   await run('npm',['run','dtov:reset']);
+  await run(process.execPath,['--test','test/integration/onboarding-stage-choices.test.js'],{ONBOARDING_STAGES_TEST:'1'});
   await run(process.execPath,['--test','test/integration/company-post-files.test.js'],{POST_FILES_TEST:'1'});
   await run(process.execPath,['--test','test/integration/kudo-reactions.test.js'],{KUDO_REACTIONS_TEST:'1'});
   await run('docker',[...compose,'up','-d','--wait']);
   await run(process.execPath,['--experimental-vm-modules','--test','test/integration/stripe-billing.test.js','test/integration/company-lifecycle.test.js'],{BILLING_TEST_PG_PORT:'55447'});
   await run('npm',['run','build'],{NODE_OPTIONS:'--max-old-space-size=6144'});
   await run(process.execPath,['test/dtov/tenant-permissions.http.test.js'],{TENANT_AUDIT:'1'});
-  if(process.argv.includes('--ui')) await run('npx',['--no-install','playwright','test','--config','test/ui-controls/playwright.config.js','subscriptions.spec.js','billing.spec.js','hr-feedback.spec.js','remember-me.spec.js','verification-code.spec.js','company-feed-files.spec.js','kudo-reactions.spec.js']);
+  if(process.argv.includes('--ui')) await run('npx',['--no-install','playwright','test','--config','test/ui-controls/playwright.config.js','subscriptions.spec.js','billing.spec.js','hr-feedback.spec.js','remember-me.spec.js','verification-code.spec.js','company-feed-files.spec.js','kudo-reactions.spec.js','onboarding-stages.spec.js']);
 } catch(error) {
   failed=true;console.error('Release contract gate failed:',error.message);
 } finally {

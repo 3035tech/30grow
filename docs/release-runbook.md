@@ -69,3 +69,48 @@ env POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=55432 POSTGRES_DB=enneagram_dtov \
   npm run db:validate-schema
 npm run dtov:down
 ```
+## Seleção de etapas na inclusão do colaborador — 25/10/2026
+
+O cadastro direto na Equipe e a confirmação de contratação permitem escolher
+checklist de chegada, D30, D60 e D90. Marcar significa realizar; desmarcar dispensa
+a etapa. Há ações Marcar todas e Desmarcar todas. Todas começam marcadas, mantendo
+o comportamento anterior. Documentos e cursos permanecem gerenciados separadamente.
+
+A migration 172 adiciona `employee_onboarding_stage_choices`: domínio fixo de
+quatro etapas, decisão booleana, autor/data, chave por empresa/pessoa/etapa e FK
+composta para impedir vínculos entre empresas. A decisão é persistida junto da
+contratação, antes dos efeitos posteriores ao commit. As tarefas dispensadas usam
+o estado existente `skipped`, sem serem contadas como pendências ou atrasos.
+Novos itens de checklist também respeitam a escolha de dispensar a chegada.
+
+Aplicar 172 antes de publicar a interface. Em 25/10/2026 foi aplicada e registrada
+em Dublin (`team`) pelo pgAdmin web e em produção (`grow30`) pelo pgAdmin nativo.
+Ambos retornaram zero decisões preexistentes, acesso do runtime válido e um
+registro em `schema_migrations`. Não foram alteradas tarefas de colaboradores
+existentes. A reaplicação local preservou as escolhas e a FK recusou outra empresa.
+
+Provas: 567 testes unitários; cinco integrações com PostgreSQL real, incluindo
+dispensa total, seleção parcial, reaplicação, isolamento e rollback; 34 testes
+de interface, incluindo seleção nas larguras 390/1440 e os checklists anteriores; build.
+A passagem do mesmo candidato para colaborador também foi validada com preservação
+do histórico, convite SMTP simulado, definição de senha e login corporativo.
+
+Para rollback, preservar tabela e tarefas dispensadas. A versão anterior ignora
+as escolhas ao criar tarefas futuras; suspender novas inclusões que precisem
+dessas dispensas até retornar à versão que suporta a seleção. Não remover dados
+para retornar o código. As escolhas desta entrega são feitas na inclusão; os
+controles individuais de Pular/Reabrir já existentes continuam disponíveis.
+
+## Auditoria da passagem candidato → colaborador — 25/10/2026
+
+O fluxo explícito de contratação preservou o ID e as notas, separou pessoal e
+corporativo, emitiu convite SMTP simulado e permitiu definir senha e autenticar
+no corporativo; login pelo pessoal e por outra empresa foram recusados. A troca
+de e-mail na ficha não altera `employment_status`.
+
+Foi reproduzida uma diferença no cadastro direto: informar o mesmo e-mail de
+um candidato reaproveita o ID e o torna colaborador, mas não preenche
+`personal_email`. Não tratar esse caminho genérico como a conversão recomendada
+sem esclarecer os dois contatos. Recomenda-se ação explícita na ficha do candidato,
+por ID/empresa, reunindo vínculo, admissão, contatos, etapas e convite. Essa ação
+ainda é proposta de produto, não foi implementada nesta entrega.

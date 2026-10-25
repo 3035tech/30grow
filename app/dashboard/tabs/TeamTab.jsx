@@ -1,5 +1,7 @@
 'use client';
 
+import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../lib/onboarding-stage-selection.js';
+
 import { ScoreExplanation } from '../../_components/ScoreExplanation';
 import { PersonOperationalSummary } from '../../_components/PersonOperationalSummary';
 import { CandidateOrgUnit, OrgUnitFilter } from '../../_components/OrgUnitField';
@@ -335,6 +337,12 @@ export function TeamTab({
           defaultValue: new Date().toISOString().slice(0, 10),
         },
         {
+          key: 'onboardingStages', type: 'checkboxGroup',
+          label: t(locale, 'onboardingStages.title'), help: t(locale, 'onboardingStages.help'),
+          defaultValue: [...ONBOARDING_STAGES], options: onboardingStageOptions(locale, t),
+          selectAllLabel: t(locale, 'onboardingStages.selectAll'), clearAllLabel: t(locale, 'onboardingStages.clearAll'),
+        },
+        {
           key: 'sendAccessInvite',
           type: 'boolean',
           label: t(locale, 'panel.team.addEmployeeInvite'),
@@ -355,6 +363,7 @@ export function TeamTab({
           email: String(values.email || '').trim().toLowerCase(),
           startDate: values.startDate || null,
           sendAccessInvite: Boolean(values.sendAccessInvite),
+          onboardingStages: values.onboardingStages,
           locale,
         }),
       });

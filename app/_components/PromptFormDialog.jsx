@@ -3,6 +3,7 @@
 import { validateFormFields } from '../../lib/form-validation';
 import { useUnsavedChanges } from './useUnsavedChanges';
 import { SelectField } from './SelectField';
+import { CheckboxGroupControl } from './CheckboxGroupControl';
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -216,14 +217,6 @@ export function PromptFormDialog({
   const hasWideFields = fields.some(
     (f) => f.type === 'richText' || f.type === 'tags' || f.type === 'entitySearch'
   );
-
-  const toggleCheck = (key, value) => {
-    setValues((prev) => {
-      const cur = Array.isArray(prev[key]) ? prev[key] : [];
-      const next = cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value];
-      return { ...prev, [key]: next };
-    });
-  };
 
   const setField = (key, value) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -456,31 +449,9 @@ export function PromptFormDialog({
     }
 
     if (f.type === 'checkboxGroup') {
-      return (
-        <div
-          role="group"
-          aria-label={f.label}
-          className="prompt-checkbox-grid mt-2 grid max-h-[220px] grid-cols-2 gap-x-3 gap-y-2 overflow-y-auto rounded-control border border-ink/12 bg-ink/[0.03] px-3 py-2.5"
-        >
-          {(f.options || []).map((opt) => {
-            const checked = Array.isArray(values[fk]) && values[fk].includes(opt.value);
-            return (
-              <label
-                key={opt.value}
-                className="flex cursor-pointer items-center gap-2 font-ui text-sm text-ink"
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleCheck(fk, opt.value)}
-                  className={dialogCheckboxClass}
-                />
-                {opt.label}
-              </label>
-            );
-          })}
-        </div>
-      );
+      return <CheckboxGroupControl label={f.label} options={f.options || []}
+        value={Array.isArray(values[fk]) ? values[fk] : []} onChange={value => setField(fk, value)}
+        selectAllLabel={f.selectAllLabel} clearAllLabel={f.clearAllLabel} />;
     }
 
     if (f.type === 'select') {

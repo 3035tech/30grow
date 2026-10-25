@@ -6,6 +6,7 @@ import { z, zLocale, zPositiveInt } from '../../../../lib/validate.js';
 import { createEmployeeDirect } from '../../../../lib/hire.js';
 import { audit } from '../../../../lib/audit.js';
 import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { ONBOARDING_STAGES } from '../../../../lib/onboarding-stage-selection.js';
 
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),
@@ -13,6 +14,7 @@ const bodySchema = z.object({
   email: z.string().trim().email().max(254),
   startDate: z.string().trim().max(10).optional().nullable(),
   sendAccessInvite: z.boolean().optional().default(false),
+  onboardingStages: z.array(z.enum(ONBOARDING_STAGES)).max(4).refine(stages => new Set(stages).size === stages.length).optional(),
   locale: zLocale.optional(),
 });
 
@@ -44,6 +46,7 @@ export const POST = withAdminApi(
       startDate: body.startDate || null,
       createdByUserId: payload.userId || null,
       sendAccessInvite: Boolean(body.sendAccessInvite),
+      onboardingStages: body.onboardingStages,
       locale: body.locale || 'pt-BR',
     });
     if (!result.ok) {
@@ -60,6 +63,7 @@ export const POST = withAdminApi(
         startDate: result.startDate,
         inviteSent: result.inviteSent,
         inviteErrorCode: result.inviteErrorCode || null,
+        onboardingStages: body.onboardingStages || null,
       },
     });
 

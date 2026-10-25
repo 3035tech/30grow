@@ -1,5 +1,8 @@
 'use client';
 
+import { CheckboxGroupControl } from '../_components/CheckboxGroupControl';
+import { ONBOARDING_STAGES, onboardingStageOptions } from '../../lib/onboarding-stage-selection.js';
+
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { REJECTION_REASONS, normalizeStartDate } from '../../lib/pipeline';
 import { t } from '../../lib/i18n';
@@ -18,6 +21,7 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
   const [reasons, setReasons] = useState([]);
   const [startDate, setStartDate] = useState(today);
   const [corporateEmail, setCorporateEmail] = useState('');
+  const [onboardingStages, setOnboardingStages] = useState([...ONBOARDING_STAGES]);
   const [error, setError] = useState('');
 
   const title =
@@ -49,7 +53,7 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
       setError(t(locale, 'recruiting.hireEmailInvalid'));
       return;
     }
-    onConfirm({ startDate: normalized, ...(!bulk && email ? { corporateEmail: email } : {}) });
+    onConfirm({ startDate: normalized, onboardingStages, ...(!bulk && email ? { corporateEmail: email } : {}) });
   };
 
   return (
@@ -133,6 +137,14 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
             </div>
           )}
         </div>
+
+        {mode !== 'rejected' ? <section className="mt-5" aria-label={t(locale, 'onboardingStages.title')}>
+          <h3 className="m-0 text-sm font-medium text-ink">{t(locale, 'onboardingStages.title')}</h3>
+          <p className="mb-2 mt-1 text-sm text-ink-muted">{t(locale, 'onboardingStages.help')}</p>
+          <CheckboxGroupControl label={t(locale, 'onboardingStages.title')} options={onboardingStageOptions(locale, t)}
+            value={onboardingStages} onChange={setOnboardingStages}
+            selectAllLabel={t(locale, 'onboardingStages.selectAll')} clearAllLabel={t(locale, 'onboardingStages.clearAll')} />
+        </section> : null}
 
         {error ? (
           <p role="alert" className="mb-0 mt-3 font-mono text-xs text-danger">{error}</p>

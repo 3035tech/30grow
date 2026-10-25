@@ -1,3 +1,4 @@
+import { normalizeOnboardingStages } from '../../lib/onboarding-stage-selection.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -24,6 +25,7 @@ async function fixture({ canonicalKey = 'screening', found = true, accessible = 
     return { rowCount: 1, rows: [{ id: 42, pipelineStage: sql.includes('UPDATE assessments') ? args[1] : args[5], rejectionReasons: sql.includes('UPDATE assessments') ? args[6] : args[10] }] };
   };
   const deps = {
+    normalizeOnboardingStages,
     NextResponse: { json: (body) => ({ status: 200, body }) }, cookies: async () => ({ get: () => ({ value: 'session' }) }), COOKIE_NAME: 'session',
     verifySessionWithCapabilities: async () => ({ userId: 7, companyId: admin ? null : 3 }),
     canAccessCandidateRecord: () => true, isSuperAdminPayload: () => admin, requireCapability: () => true, CAP: { VACANCIES_MANAGE: 'manage' },
@@ -85,6 +87,21 @@ for (const [kind, path, params] of [
     assert.equal(result.status, 200);
     assert.equal(f.hires[0].corporateEmail, 'work@example.test');
     assert.equal(f.hires[0].inviteAccess, true);
+  });
+  test(`${kind}: selected onboarding stages reach the atomic hire, including an empty selection`, async () => {
+    for (const stages of [[], ['arrival', 'd90']]) {
+      const f = await fixture({ canonicalKey: 'hired' });
+      const result = await move(f, { pipelineStage: 'hired', startDate: '2026-10-22', onboardingStages: stages });
+      assert.equal(result.status, 200);
+      assert.deepEqual(Array.from(f.hires[0].onboardingStages), stages);
+    }
+  });
+  test(`${kind}: invalid onboarding stages cannot mutate the pipeline`, async () => {
+    for (const stages of [null, ['d30', 'd30'], ['other_company_stage'], 'd30']) {
+      const f = await fixture({ canonicalKey: 'hired' });
+      assert.equal((await move(f, { pipelineStage: 'hired', startDate: '2026-10-22', onboardingStages: stages })).status, 400);
+      assert.equal(f.calls.some(call => /UPDATE|INSERT/.test(call.sql)), false);
+    }
   });
   for (const [canonicalKey, code] of [['hired', ERR.START_DATE_REQUIRED], ['rejected', ERR.REJECTION_REASON_REQUIRED]]) {
     test(`${kind}: custom ${canonicalKey} keeps required transition fields`, async () => {
