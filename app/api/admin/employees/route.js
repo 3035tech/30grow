@@ -7,12 +7,15 @@ import { createEmployeeDirect } from '../../../../lib/hire.js';
 import { audit } from '../../../../lib/audit.js';
 import { checkRateLimit } from '../../../../lib/rate-limit.js';
 import { ONBOARDING_STAGES } from '../../../../lib/onboarding-stage-selection.js';
+import { normalizeStartDate } from '../../../../lib/pipeline.js';
 
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),
   fullName: z.string().trim().min(1).max(200),
   email: z.string().trim().email().max(254),
-  startDate: z.string().trim().max(10).optional().nullable(),
+  personalEmail: z.string().trim().email().max(254).optional().nullable(),
+  startDate: z.string().trim().max(10).refine(value => !value || Boolean(normalizeStartDate(value))).optional().nullable(),
+  entryMode: z.enum(['new_hire','existing_employee']).default('new_hire'),
   sendAccessInvite: z.boolean().optional().default(false),
   onboardingStages: z.array(z.enum(ONBOARDING_STAGES)).max(4).refine(stages => new Set(stages).size === stages.length).optional(),
   locale: zLocale.optional(),
@@ -43,6 +46,8 @@ export const POST = withAdminApi(
       companyId,
       fullName: body.fullName,
       email: body.email,
+      personalEmail: body.personalEmail,
+      entryMode: body.entryMode,
       startDate: body.startDate || null,
       createdByUserId: payload.userId || null,
       sendAccessInvite: Boolean(body.sendAccessInvite),
@@ -64,6 +69,7 @@ export const POST = withAdminApi(
         inviteSent: result.inviteSent,
         inviteErrorCode: result.inviteErrorCode || null,
         onboardingStages: body.onboardingStages || null,
+        entryMode: body.entryMode,
       },
     });
 

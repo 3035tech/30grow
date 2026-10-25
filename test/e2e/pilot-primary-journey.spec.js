@@ -188,18 +188,46 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await html5DragAndDrop(card, column('Aprovado'));
     await expect(column('Aprovado')).toContainText(candidateName);
     await html5DragAndDrop(card, column('Contratado'));
-    await expect(page.getByRole('dialog', { name: 'Confirmar contratação', exact: true })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Registrar contratação em andamento', exact: true })).toBeVisible();
     await page.getByRole('dialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
     await expect(column('Aprovado')).toContainText(candidateName);
     await html5DragAndDrop(card, column('Contratado'));
-    await page.getByRole('dialog').getByRole('button', { name: 'Confirmar', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Registrar no funil', exact: true }).click();
     await expect(column('Contratado')).toContainText(candidateName);
     await page.reload();
     await expect(column('Contratado')).toContainText(candidateName);
+    await card.dblclick();
+    const candidateDialog = page.getByRole('dialog', { name: candidateName, exact: true });
+    await expect(candidateDialog).toContainText('A pessoa continua candidata');
+    const admissionInfo = page.waitForResponse(r => r.request().method() === 'GET' && /\/candidates\/\d+\/admission$/.test(new URL(r.url()).pathname));
+    await candidateDialog.getByRole('button', { name: 'Ativar como colaborador', exact: true }).click();
+    const infoResponse = await admissionInfo;
+    const info = await infoResponse.json();
+    expect(info.person.employmentStatus).toBe('candidate');
+    expect(info.person.email).toBe(candidateEmail);
+    expect(info.person).not.toHaveProperty('password_hash');
+    const payload = { companyId, personalEmail: candidateEmail, startDate: new Date().toISOString().slice(0,10), startedWorking: true, onboardingStages: [], sendAccessInvite: false };
+    const unconfirmed = await page.request.post(infoResponse.url(), { data: {...payload, startedWorking: false} });
+    expect(unconfirmed.status()).toBe(400);
+    const otherCompany = await page.request.post(infoResponse.url(), { data: {...payload, companyId: Number(companyId)+1} });
+    expect(otherCompany.status()).toBe(404);
+    const anonymous = await context.browser().newContext();
+    try { expect((await anonymous.request.get(infoResponse.url())).status()).toBe(401); }
+    finally { await anonymous.close(); }
+    const admission = page.getByRole('dialog', { name: `Ativar ${candidateName} como colaborador`, exact: true });
+    await expect(admission.getByRole('textbox', { name: 'E-mail pessoal', exact: true })).toHaveValue(candidateEmail);
+    await admission.getByRole('checkbox', { name: 'Confirmo que esta pessoa já iniciou o trabalho na empresa.', exact: true }).check();
+    const activated = page.waitForResponse(r => r.request().method() === 'POST' && /\/candidates\/\d+\/admission$/.test(new URL(r.url()).pathname));
+    await admission.getByRole('button', { name: 'Ativar vínculo de colaborador', exact: true }).click();
+    const response = await activated;
+    expect(response.ok()).toBeTruthy();
+    expect((await response.json()).employmentStatus).toBe('employee');
+    await expect(page).toHaveURL(/tab=team/);
   });
 
   await test.step('Find exactly the same hired person in Team after reload', async () => {
-    await clickSidebarItem(sidebar, /^Pessoas(?: · \d+)?$/, 'Equipe');
+    await expect(page.getByText('Colaborador ativo', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Voltar para equipe', exact: true }).click();
     await expect(page).toHaveURL(/tab=team/);
     const person = page.getByRole('button', { name: `Abrir: ${candidateName}`, exact: true });
     await expect(person).toHaveCount(1);
@@ -210,4 +238,32 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await expect(page.getByText(candidateEmail, { exact: true })).toHaveCount(1);
     await testInfo.attach('hired-person', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
   });
+  await test.step('Include a current employee with corporate email only and dispense integration', async () => {
+    await page.goto(`/dashboard?tab=team&company=${companyId}`);
+    await page.getByRole('button', { name: 'Incluir colaborador', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Incluir colaborador', exact: true });
+    const workEmail = uniqueCandidateEmail('current-worker');
+    await dialog.getByRole('textbox', { name: 'Nome completo', exact: true }).fill(`Colaborador Atual ${stamp}`);
+    await dialog.getByRole('textbox', { name: 'E-mail corporativo (opcional)', exact: true }).fill(workEmail);
+    await expect(dialog.getByRole('textbox', { name: 'E-mail pessoal (opcional)', exact: true })).toHaveValue('');
+    await dialog.getByRole('checkbox', { name: 'Já trabalha nesta empresa', exact: true }).check();
+    await expect(dialog.getByRole('status')).toContainText('0 de 4 etapas selecionadas.');
+    await dialog.getByLabel('Data real de admissão', { exact: true }).click();
+    const year = page.getByRole('textbox', { name: 'Ano', exact: true });
+    await year.fill('2020'); await year.press('Tab');
+    const date = `2020-${String(new Date().getMonth()+1).padStart(2,'0')}-01`;
+    await page.locator(`[data-day="${date}"]`).click();
+    await dialog.getByRole('checkbox', { name: 'Confirmo que esta pessoa já iniciou o trabalho na empresa.', exact: true }).check();
+    const saved = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/admin/employees');
+    await dialog.getByRole('button', { name: 'Incluir', exact: true }).click();
+    const response = await saved;
+    expect(response.ok()).toBeTruthy();
+    const result = await response.json();
+    const state = await page.request.get(`/api/admin/candidates/${result.candidateId}/admission`);
+    expect(state.ok()).toBeTruthy();
+    const { person } = await state.json();
+    expect(person.employmentStatus).toBe('employee'); expect(person.email).toBe(workEmail);
+    expect(person.personalEmail).toBeNull(); expect(person.startDate).toBe(date);
+  });
+
 });

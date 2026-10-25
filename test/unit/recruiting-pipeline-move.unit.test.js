@@ -81,20 +81,18 @@ for (const [kind, path, params] of [
     assert.equal((await move(f, { pipelineStage: 'c_other_company' })).code, ERR.INVALID_PIPELINE_STAGE);
     assert.equal(f.calls.some((c) => /UPDATE|INSERT/.test(c.sql)), false);
   });
-  test(`${kind}: hire carries the optional corporate email into the atomic hire`, async () => {
+  test(`${kind}: hired records a future plan without activating employment or sending invitations`, async () => {
     const f = await fixture({ canonicalKey: 'hired' });
-    const result = await move(f, { pipelineStage: 'hired', startDate: '2026-10-22', corporateEmail: 'work@example.test' });
+    const result = await move(f, { pipelineStage: 'hired', startDate: '2099-10-22', corporateEmail: 'work@example.test', onboardingStages: [] });
     assert.equal(result.status, 200);
-    assert.equal(f.hires[0].corporateEmail, 'work@example.test');
-    assert.equal(f.hires[0].inviteAccess, true);
+    assert.equal(f.hires.length, 0);
+    assert.equal(result.body.access, null);
+    assert.equal(f.calls.some(call => /UPDATE candidates\s+SET|employee_onboarding|employee_pre_onboarding/i.test(call.sql)), false);
   });
-  test(`${kind}: selected onboarding stages reach the atomic hire, including an empty selection`, async () => {
-    for (const stages of [[], ['arrival', 'd90']]) {
-      const f = await fixture({ canonicalKey: 'hired' });
-      const result = await move(f, { pipelineStage: 'hired', startDate: '2026-10-22', onboardingStages: stages });
-      assert.equal(result.status, 200);
-      assert.deepEqual(Array.from(f.hires[0].onboardingStages), stages);
-    }
+  test(`${kind}: a hiring forecast date can be omitted`, async () => {
+    const f = await fixture({ canonicalKey: 'hired' });
+    assert.equal((await move(f, { pipelineStage: 'hired' })).status, 200);
+    assert.equal(f.hires.length, 0);
   });
   test(`${kind}: invalid onboarding stages cannot mutate the pipeline`, async () => {
     for (const stages of [null, ['d30', 'd30'], ['other_company_stage'], 'd30']) {
@@ -103,7 +101,7 @@ for (const [kind, path, params] of [
       assert.equal(f.calls.some(call => /UPDATE|INSERT/.test(call.sql)), false);
     }
   });
-  for (const [canonicalKey, code] of [['hired', ERR.START_DATE_REQUIRED], ['rejected', ERR.REJECTION_REASON_REQUIRED]]) {
+  for (const [canonicalKey, code] of [['rejected', ERR.REJECTION_REASON_REQUIRED]]) {
     test(`${kind}: custom ${canonicalKey} keeps required transition fields`, async () => {
       const f = await fixture({ canonicalKey });
       assert.equal((await move(f, { pipelineStage: `c_${canonicalKey}` })).code, code);

@@ -43,7 +43,7 @@ export function VacancyKanbanBlock(props) {
   );
 }
 
-function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, onPersonClick = null, onStageChanged = null, companyStages = null, companyId = null }) {
+function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, onPersonClick = null, onStageChanged = null, companyStages = null, companyId = null, canAdmitCandidate = false }) {
   const [rows, setRows] = useState([]);
   const [rankingMeta, setRankingMeta] = useState({ total: 0, truncated: false });
   const [loading, setLoading] = useState(true);
@@ -174,7 +174,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
           prev.map((r) => (cardKey(r) === key ? {
             ...r,
             pipelineStage: stage,
-            email: extras.corporateEmail || r.email,
+            email: data.email || r.email,
             rejectionReason: data.rejectionReason ?? null,
             rejectionReasons: data.rejectionReasons ?? [],
             startDate: data.startDate ?? extras.startDate ?? r.startDate,
@@ -193,7 +193,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
           prev.map((r) => (cardKey(r) === key ? {
             ...r,
             pipelineStage: stage,
-            email: extras.corporateEmail || r.email,
+            email: data.email || r.email,
             rejectionReason: data.rejectionReason ?? null,
             rejectionReasons: data.rejectionReasons ?? [],
             startDate: data.startDate ?? extras.startDate ?? r.startDate,
@@ -358,7 +358,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
 
   return (
     <div>
-      {selectedRow ? <VacancyCandidateDialog key={`${vacancyId}:${selectedCardKey}`} row={selectedRow} vacancyId={vacancyId} locale={locale} stages={stages} recruiters={workspace.recruiters} workspaceLoading={workspaceLoading} onAssign={assignCandidate} onClose={() => setSelectedCardKey(null)} onPersonClick={onPersonClick} /> : null}
+      {selectedRow ? <VacancyCandidateDialog canAdmitCandidate={canAdmitCandidate} key={`${vacancyId}:${selectedCardKey}`} row={selectedRow} vacancyId={vacancyId} locale={locale} stages={stages} recruiters={workspace.recruiters} workspaceLoading={workspaceLoading} onAssign={assignCandidate} onClose={() => setSelectedCardKey(null)} onPersonClick={onPersonClick} /> : null}
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <span className="font-mono text-xs uppercase tracking-[1.5px] text-ink-muted">
           {t(locale, 'recruiting.pipelineTitle')}

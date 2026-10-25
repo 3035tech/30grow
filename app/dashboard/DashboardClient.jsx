@@ -1491,7 +1491,7 @@ function DashboardClientContent({
               )}
               {tab === 'vacancies' && showVacancies && <VacanciesAdminTab sessionCompanyId={sessionAuth?.companyId} sessionCompanyName={sessionAuth?.companyName} canViewOrganization={can(sessionAuth,CAP.TEAM_VIEW)} isAdmin={isAdmin} navigateDashboard={navigateWithOpts} locale={locale} />}
               {tab === 'talent-bank' && showVacancies && (
-                <TalentBankAdminTab navigateDashboard={navigateWithOpts} locale={locale} companyId={scopedCompanyId} />
+                <TalentBankAdminTab canAdmitCandidate={can(sessionAuth,CAP.TEAM_VIEW)} navigateDashboard={navigateWithOpts} locale={locale} companyId={scopedCompanyId} />
               )}
               {tab === 'motivators' && showMotivators && (
                 <MotivatorsAdminTab isAdmin={isAdmin} companies={companies} locale={locale} />

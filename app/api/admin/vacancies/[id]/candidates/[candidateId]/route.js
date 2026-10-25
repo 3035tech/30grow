@@ -14,7 +14,6 @@ import {
   rejectionReasonsSql,
 } from '../../../../../../../lib/pipeline';
 import { resolveRecruitingPipelineStage } from '../../../../../../../lib/pipeline-templates';
-import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../../../lib/hire';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../../../lib/job-funnel';
 import { auditFromRequest } from '../../../../../../../lib/audit';
 
@@ -63,7 +62,7 @@ export async function GET(request, props) {
     }
     const detail = await query(
       `SELECT c.id AS "candidateId", v.company_id AS "companyId", v.title AS "vacancyTitle",
-              c.full_name AS name, c.email, c.phone, c.city, c.state,
+              c.full_name AS name, c.email, c.phone, c.city, c.state, c.employment_status AS "employmentStatus",
               c.professional_summary AS "professionalSummary", vc.interview_notes AS "interviewNotes"
        FROM vacancies v
        JOIN candidates c ON c.id = $2 AND c.company_id = v.company_id
@@ -148,16 +147,13 @@ export async function PATCH(request, props) {
       if (stageCanonical === PIPELINE_STAGE.REJECTED && !rejectionReason) {
         return apiError(request, ERR.REJECTION_REASON_REQUIRED, 400);
       }
-      if (stageCanonical === PIPELINE_STAGE.HIRED && !startDate) {
-        return apiError(request, ERR.START_DATE_REQUIRED, 400);
-      }
+      if (stageCanonical === PIPELINE_STAGE.HIRED && body.startDate && !startDate) return apiError(request, ERR.INVALID_DATA, 400);
     }
 
     const currentStage = loaded.link.pipelineStage || null;
     const isRejectedCanonical = stageCanonical === PIPELINE_STAGE.REJECTED;
     const isHiredCanonical = stageCanonical === PIPELINE_STAGE.HIRED;
 
-    let hireResult = null;
     const upd = await withTransaction(async db => {
     const updated = await db.query(
       `UPDATE vacancy_candidates
@@ -198,7 +194,6 @@ export async function PATCH(request, props) {
       ]
     );
 
-    if (isHiredCanonical) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true,onboardingStages});
     if (body.pipelineStage !== undefined && stage != null) {
       await db.query(
         `INSERT INTO vacancy_candidate_pipeline_history
@@ -223,21 +218,6 @@ export async function PATCH(request, props) {
       }
     }
 
-    if (isHiredCanonical) {
-      const hireEffects = await runCandidateHireEffects({ companyId:loaded.link.companyId,candidateId,startDate,...hireResult,locale:localeFromRequest(request) });
-      upd.access = hireEffects?.access ?? null;
-      await maybeCloseVacancyIfFilled(vacancyId);
-      await notifyHireOnboardingKit(query, {
-        companyId: loaded.link.companyId,
-        candidateId: Number(candidateId),
-        vacancyId: Number(vacancyId),
-        candidateName: loaded.link.fullName || null,
-        vacancyTitle: loaded.link.vacancyTitle || null,
-        startDate: startDate || null,
-        dedupeKey: `hire_kit:vacancy:${vacancyId}:candidate:${candidateId}`,
-      });
-    }
-
     await auditFromRequest(request, {
       actorUserId: payload.userId || null,
       companyId: loaded.link.companyId,
@@ -247,6 +227,7 @@ export async function PATCH(request, props) {
       targetType: 'vacancy_candidate',
       targetId: loaded.link.id,
       metadata: {
+        employmentActivated: false,
         onboardingStages,
         vacancyId: Number(vacancyId),
         candidateId: Number(candidateId),
@@ -259,8 +240,8 @@ export async function PATCH(request, props) {
     return NextResponse.json({
       ...upd.rows[0],
       fullName: loaded.link.fullName,
-      email: hireResult?.emailAccess?.currentEmail || loaded.link.email,
-      access: upd.access ?? null,
+      email: loaded.link.email,
+      access: null,
     });
   } catch (error) {
     if ((error)?.code === '23505' && String((error)?.constraint || '').includes('email')) return apiError(request, ERR.EMAIL_TAKEN, 409);

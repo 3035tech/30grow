@@ -10,8 +10,9 @@ import { t } from '../../../lib/i18n';
 import { titleCasePersonName } from '../../../lib/person-name';
 import { rejectionReasonLabel } from '../pipeline-prompts';
 import { daysInStage } from './vacancy-admin-shared';
+import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
 
-export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruiters, workspaceLoading, onAssign, onClose, onPersonClick }) {
+export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruiters, workspaceLoading, onAssign, onClose, onPersonClick, canAdmitCandidate = false }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,6 +20,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
   const [assigning, setAssigning] = useState(false);
   const [assignmentError, setAssignmentError] = useState('');
   const [saved, setSaved] = useState(false);
+  const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: () => { onClose(); onPersonClick?.(row.candidateId); } });
   const stageLabel = (key) => stages.find((stage) => stage.id === key)?.label || key || '—';
   const days = daysInStage(row.stageEnteredAt || row.createdAt);
 
@@ -51,11 +53,13 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
       maxWidth="760px" eyebrow={t(locale, 'recruiting.candidateDialogEyebrow')}
       headerMeta={<><span>{data?.vacancyTitle}</span><span className="rounded-full bg-brand-500/10 px-2 py-1 text-sm text-brand-600">{stageLabel(row.pipelineStage || 'new')}</span></>}
       footer={<>
+        {canAdmitCandidate && data?.employmentStatus === 'candidate' ? <button type="button" className={dialogBtnGhostClass} disabled={Boolean(admissionBusyId)} onClick={() => admit(row.candidateId)}>{t(locale,'employeeAdmission.action')}</button> : null}
         <button type="button" className={dialogBtnGhostClass} onClick={onClose}>{t(locale, 'panel.common.close')}</button>
         {onPersonClick ? <button type="button" className={dialogBtnGhostClass} onClick={() => { onClose(); onPersonClick(row.candidateId); }}>{t(locale, 'recruiting.candidateDialogFullProfile')}</button> : null}
       </>}
     >
       <div className="space-y-5">
+        {data?.employmentStatus === 'candidate' && stages.find(stage => stage.id === row.pipelineStage)?.canonicalKey === 'hired' ? <p className="rounded-control border border-ink/12 bg-canvas p-3 text-sm text-ink-muted">{t(locale,'employeeAdmission.pending')}</p> : null}
         <section className="grid gap-3 rounded-card border border-ink/10 bg-canvas p-4 sm:grid-cols-2">
           <div className="min-w-0 space-y-1 text-sm text-ink-muted">
             {row.email ? <p className="m-0 break-words">{row.email}</p> : null}

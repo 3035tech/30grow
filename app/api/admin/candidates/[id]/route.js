@@ -1,4 +1,5 @@
 import { loadOperationalSummaries } from '../../../../../lib/people/operational-summary.js';
+import { EMPLOYEE_ACCESS_STATE_SQL } from '../../../../../lib/employee-access-state.js';
 import { rejectionReasonsSql } from '../../../../../lib/pipeline';
 import { candidateTagsSelectSql } from '../../../../../lib/candidate-tags-core.js';
 import { NextResponse } from 'next/server';
@@ -42,6 +43,7 @@ export async function GET(request, props) {
             c.salary_expectation AS "salaryExpectation", c.availability, c.source,
             c.job_role_id AS "jobRoleId", jr.name AS "jobRoleName",
             c.employment_status AS "employmentStatus",
+            ${EMPLOYEE_ACCESS_STATE_SQL} AS "employeeAccessState",
             c.hired_at AS "hiredAt", c.start_date AS "startDate",
             c.birth_date AS "birthDate",
             c.hired_vacancy_id AS "hiredVacancyId",

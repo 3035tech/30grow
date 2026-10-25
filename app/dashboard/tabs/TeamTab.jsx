@@ -50,13 +50,14 @@ import { MotivatorsRadarChart } from '../../_components/MotivatorsRadarChartLazy
 import { InlineCallout } from '../../_components/InlineCallout';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { useRehireEmployee } from '../../_components/useRehireEmployee';
+import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
 import { formatDisplayDate } from '../../../lib/format-display-date.js';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { isRichTextEmpty } from '../../../lib/sanitize-html';
 import { clusterCloseTypes, rankEnneagramScores } from '../../../lib/enneagram-cross';
 import { buildProfileSynthesis } from '../../../lib/profile-synthesis';
 import { EMPLOYMENT_STATUS, ROSTER_SCOPE } from '../../../lib/domain-status.js';
-import { PIPELINE_STAGE, PIPELINE_STAGES } from '../../../lib/pipeline';
+import { PIPELINE_STAGE, PIPELINE_STAGES, normalizeStartDate } from '../../../lib/pipeline';
 import { DB_FANOUT_CONCURRENCY, mapWithConcurrency } from '../../../lib/concurrency';
 import {
   ABSENCE_SUGGESTION,
@@ -301,7 +302,6 @@ export function TeamTab({
   const detailIdRef = useRef(null);
   detailIdRef.current = detail?.candidate?.id ?? null;
   const { rehire, busyId: rehireBusyId } = useRehireEmployee({ locale, companyId });
-
   const rehirePerson = async ({ candidateId, name, exitDate }) => {
     const ok = await rehire({ candidateId, name: titleCasePersonName(name), exitDate });
     if (!ok) return;
@@ -326,15 +326,23 @@ export function TeamTab({
         },
         {
           key: 'email',
-          label: t(locale, 'panel.team.addEmployeeEmail'),
-          required: true,
+          type: 'email',
+          label: t(locale, 'employeeAdmission.corporateEmail'),
+          help: t(locale,'employeeAdmission.directContactHelp'),
           defaultValue: '',
+          validate: (value, values) => !String(value || '').trim() && !String(values.personalEmail || '').trim() ? t(locale,'employeeAdmission.contactRequired') : null,
         },
+        { key:'personalEmail',type:'email',label:t(locale,'employeeAdmission.personalOptional'),help:t(locale,'employeeAdmission.personalDirectHelp') },
+        { key:'existingEmployee',type:'boolean',label:t(locale,'employeeAdmission.existing'),help:t(locale,'employeeAdmission.existingHelp'),
+          whenTrue:{onboardingStages:[],startDate:''},whenFalse:{onboardingStages:[...ONBOARDING_STAGES],startDate:new Date().toISOString().slice(0,10)} },
         {
           key: 'startDate',
           type: 'date',
-          label: t(locale, 'panel.team.addEmployeeStartDate'),
+          label: t(locale, 'employeeAdmission.actualStart'),
+          help: t(locale,'employeeAdmission.actualStartHelp'),
+          required: true,
           defaultValue: new Date().toISOString().slice(0, 10),
+          validate: value => !normalizeStartDate(value) ? t(locale,'formValidation.invalid') : value > new Date().toISOString().slice(0, 10) ? t(locale,'errors.ADMISSION_NOT_STARTED') : null,
         },
         {
           key: 'onboardingStages', type: 'checkboxGroup',
@@ -351,6 +359,7 @@ export function TeamTab({
           help: t(locale, 'panel.team.addEmployeeInviteHelp'),
           defaultValue: true,
         },
+        { key:'startedWorking',type:'boolean',defaultValue:false,required:true,label:t(locale,'employeeAdmission.startedWorking') },
       ],
     });
     if (!values) return;
@@ -362,9 +371,11 @@ export function TeamTab({
         body: JSON.stringify({
           companyId: Number(companyId),
           fullName: titleCasePersonName(values.fullName),
-          email: String(values.email || '').trim().toLowerCase(),
+          email: String(values.email || values.personalEmail || '').trim().toLowerCase(),
+          ...(String(values.personalEmail || '').trim() ? { personalEmail:String(values.personalEmail).trim().toLowerCase() } : {}),
           startDate: values.startDate || null,
           sendAccessInvite: Boolean(values.sendAccessInvite),
+          entryMode: values.existingEmployee ? 'existing_employee' : 'new_hire',
           onboardingStages: values.onboardingStages,
           locale,
         }),
@@ -605,6 +616,27 @@ export function TeamTab({
     if (id) return loadDetail(id, { silent: true });
     return undefined;
   }, [loadDetail]);
+  const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: async result => {
+    await loadDetail(result.candidateId);
+    navigateDashboard?.({ tab:'team',candidate:result.candidateId,roster:ROSTER_SCOPE.INTERNAL,section:'summary',returnTab:null,search:null });
+    router.refresh();
+  } });
+  const [accessInviteBusy, setAccessInviteBusy] = useState(false);
+  const inviteEmployeeAccess = async () => {
+    const person = detail?.candidate;
+    if (!person || accessInviteBusy || !await confirm({ message:t(locale,'employeeAdmission.confirmInvite',{email:person.email}) })) return;
+    setAccessInviteBusy(true);
+    try {
+      const response = await fetch(`/api/admin/candidates/${person.id}/employee-access`, { method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId:person.companyId,locale}) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || t(locale,'panel.common.error'));
+      await reloadDetailSilently();
+      toast(t(locale,'employeeAdmission.inviteQueued'),'ok');
+    } catch (error) { toast(error.message || t(locale,'panel.common.error'),'error'); }
+    finally { setAccessInviteBusy(false); }
+  };
+
+
 
   const addToVacancy = async (candidateId, personName) => {
     const cid = Number(candidateId);
@@ -984,14 +1016,17 @@ export function TeamTab({
   const personHeaderMeta = detailMatchesOpen && detail?.candidate ? (
     <>
       <StatusToneChip tone={detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? 'success' : 'neutral'}>
-        {t(locale, `panel.team.employment.${detail.candidate.employmentStatus}`)}
+        {t(locale, detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? 'employeeAdmission.employmentActive' : `panel.team.employment.${detail.candidate.employmentStatus}`)}
       </StatusToneChip>
       {openRow?.areaLabel ? <StatusToneChip tone="neutral">{openRow.areaLabel}</StatusToneChip> : null}
       {detail.candidate.email ? <span className="truncate">{detail.candidate.email}</span> : null}
+      {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState ? <StatusToneChip tone={detail.candidate.employeeAccessState === 'active' ? 'success' : 'neutral'}>{t(locale,`employeeAdmission.access.${detail.candidate.employeeAccessState}`)}</StatusToneChip> : null}
     </>
   ) : null;
   const personHeaderActions = focusCandidateId ? (
     <div className="flex items-center gap-1">
+      {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? <button type="button" className={S.btnPrimary} disabled={Boolean(admissionBusyId)} onClick={() => admit(detail.candidate.id)}>{t(locale,'employeeAdmission.action')}</button> : null}
+      {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? <button type="button" className={S.btnGhost} disabled={accessInviteBusy} onClick={inviteEmployeeAccess}>{t(locale,'employeeAdmission.invite')}</button> : null}
       {currentPersonIndex >= 0 ? (
         <span className="mr-1 hidden whitespace-nowrap font-ui text-prose text-ink/75 sm:inline">
           {currentPersonIndex + 1} / {personRows.length}
@@ -1312,6 +1347,7 @@ export function TeamTab({
                   <RowActionsMenu
                     label={t(locale, 'panel.team.moreActions')}
                     items={[
+                      ...(r.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? [{id:'admit',label:t(locale,'employeeAdmission.action'),disabled:Boolean(admissionBusyId),onSelect:()=>admit(r.candidateId)}] : []),
                       ...(isAdmin
                         ? [{
                           id: 'recalcHrScore',

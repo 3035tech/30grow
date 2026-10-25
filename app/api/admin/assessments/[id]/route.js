@@ -12,7 +12,6 @@ import {
   normalizeStartDate,
 } from '../../../../../lib/pipeline';
 import { resolveRecruitingPipelineStage } from '../../../../../lib/pipeline-templates';
-import { persistCandidateHire, runCandidateHireEffects, maybeCloseVacancyIfFilled, notifyHireOnboardingKit } from '../../../../../lib/hire';
 import { canAccessCandidateRecord, isSuperAdminPayload } from '../../../../../lib/permissions';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/job-funnel';
 
@@ -73,15 +72,12 @@ export async function PATCH(request, props) {
     if (canonicalStage === PIPELINE_STAGE.REJECTED && !rejectionReason) {
       return apiError(request, ERR.REJECTION_REASON_REQUIRED, 400);
     }
-    if (canonicalStage === PIPELINE_STAGE.HIRED && !startDate) {
-      return apiError(request, ERR.START_DATE_REQUIRED, 400);
-    }
+    if (canonicalStage === PIPELINE_STAGE.HIRED && body.startDate && !startDate) return apiError(request, ERR.INVALID_DATA, 400);
 
     const rejectionReasons = canonicalStage === PIPELINE_STAGE.REJECTED ? selectedReasons : [];
     const funnelEvent = pipelineStageToFunnelEvent(canonicalStage);
 
 
-    let hireResult = null;
     const up = await withTransaction(async db => {
     const result = await db.query(
       `UPDATE assessments SET
@@ -116,7 +112,6 @@ export async function PATCH(request, props) {
       ]
     );
 
-    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) hireResult = await persistCandidateHire(db,{candidateId,vacancyId,startDate,actorId:payload.userId,corporateEmail:body.corporateEmail,inviteAccess:true,onboardingStages});
     if (vacancyId && candidateId) {
       await db.query(
         `UPDATE vacancy_candidates SET rejection_reasons = $3::text[],
@@ -124,6 +119,11 @@ export async function PATCH(request, props) {
          WHERE vacancy_id = $1 AND candidate_id = $2 AND company_id = $5`,
         [vacancyId, candidateId, rejectionReasons, rejectionReasons[0] ?? null, assCompanyId]
       );
+    }
+    if (canonicalStage === PIPELINE_STAGE.HIRED && vacancyId && candidateId) {
+      await db.query(`UPDATE vacancy_candidates SET pipeline_stage=$4,start_date=$3::date,
+        hired_at=COALESCE(hired_at,now()),rejection_reason=NULL,updated_at=now()
+        WHERE vacancy_id=$1 AND candidate_id=$2 AND company_id=$5`, [vacancyId,candidateId,startDate,stage,assCompanyId]);
     }
     return result;
     });
@@ -140,35 +140,6 @@ export async function PATCH(request, props) {
         campaign: own.rows[0]?.attrCampaign || null,
         referralCode: own.rows[0]?.attrRef || null,
       });
-    }
-
-    if (canonicalStage === PIPELINE_STAGE.HIRED && candidateId) {
-      const hireEffects = await runCandidateHireEffects({ companyId:assCompanyId,candidateId,startDate,...hireResult,locale:localeFromRequest(request) });
-      up.access = hireEffects?.access ?? null;
-      if (vacancyId) {
-        await query(
-          `UPDATE vacancy_candidates SET
-             pipeline_stage = $4,
-             start_date = COALESCE($3::date, start_date),
-             hired_at = COALESCE(hired_at, NOW()),
-             rejection_reason = NULL,
-             updated_at = NOW()
-           WHERE vacancy_id = $1 AND candidate_id = $2`,
-          [vacancyId, candidateId, startDate, stage]
-        ).catch(() => {});
-        await maybeCloseVacancyIfFilled(vacancyId);
-      }
-      if (assCompanyId) {
-        await notifyHireOnboardingKit(query, {
-          companyId: assCompanyId,
-          candidateId: Number(candidateId),
-          vacancyId: vacancyId != null ? Number(vacancyId) : null,
-          candidateName: own.rows[0]?.candidateName || null,
-          vacancyTitle: own.rows[0]?.vacancyTitle || null,
-          startDate: startDate || null,
-          dedupeKey: `hire_kit:assessment:${id}:candidate:${candidateId}`,
-        });
-      }
     }
 
     if (canonicalStage === PIPELINE_STAGE.REJECTED && vacancyId && candidateId) {
@@ -188,6 +159,7 @@ export async function PATCH(request, props) {
       targetType: 'assessment',
       targetId: String(id),
       metadata: {
+        employmentActivated: false,
         onboardingStages,
         pipelineStage: stage,
         rejectionReasons,
@@ -196,7 +168,7 @@ export async function PATCH(request, props) {
       },
     });
 
-    return NextResponse.json({ ...up.rows[0], access: up.access ?? null });
+    return NextResponse.json({ ...up.rows[0], access: null });
   } catch (e) {
     if ((e)?.code === '23505' && String((e)?.constraint || '').includes('email')) return apiError(request, ERR.EMAIL_TAKEN, 409);
     if (Object.values(ERR).includes(e?.code)) return apiErrorFromResult(request,{errorCode:e.code});

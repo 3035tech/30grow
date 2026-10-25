@@ -1,27 +1,18 @@
 'use client';
 
-import { CheckboxGroupControl } from '../_components/CheckboxGroupControl';
-import { ONBOARDING_STAGES, onboardingStageOptions } from '../../lib/onboarding-stage-selection.js';
-
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { REJECTION_REASONS, normalizeStartDate } from '../../lib/pipeline';
 import { t } from '../../lib/i18n';
 import { rejectionReasonLabel } from './pipeline-prompts';
 import { DateField } from '../_components/DateField';
 import { FormField } from '../_components/FormField';
-import { fieldInputClass } from '../_components/form-control-styles';
 import { S } from './dashboard-shared';
 
 const PipelineExtrasContext = createContext(null);
 
-const FIELD = `${fieldInputClass} w-full font-ui text-sm`;
-
-function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
-  const today = new Date().toISOString().slice(0, 10);
+function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
   const [reasons, setReasons] = useState([]);
-  const [startDate, setStartDate] = useState(today);
-  const [corporateEmail, setCorporateEmail] = useState('');
-  const [onboardingStages, setOnboardingStages] = useState([...ONBOARDING_STAGES]);
+  const [startDate, setStartDate] = useState('');
   const [error, setError] = useState('');
 
   const title =
@@ -44,16 +35,11 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
       return;
     }
     const normalized = normalizeStartDate(startDate);
-    if (!normalized) {
-      setError(t(locale, 'recruiting.hireStartDateRequired'));
+    if (startDate && !normalized) {
+      setError(t(locale, 'formValidation.invalid'));
       return;
     }
-    const email = corporateEmail.trim().toLowerCase();
-    if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
-      setError(t(locale, 'recruiting.hireEmailInvalid'));
-      return;
-    }
-    onConfirm({ startDate: normalized, onboardingStages, ...(!bulk && email ? { corporateEmail: email } : {}) });
+    onConfirm({ startDate: normalized || null });
   };
 
   return (
@@ -101,52 +87,12 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
               </div>
             </fieldset>
           ) : (
-            <div className="space-y-4">
-              <FormField
-                as="div"
-                label={t(locale, 'recruiting.startDateLabel')}
-                hint={t(locale, 'recruiting.hireDateHint')}
-              >
-                <DateField
-                  id="pipeline-hire-date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className={FIELD}
-                  aria-label={t(locale, 'recruiting.startDateLabel')}
-                />
-              </FormField>
-              {!bulk ? (
-                <FormField
-                  as="div"
-                  label={t(locale, 'recruiting.hireCorporateEmailLabel')}
-                  hint={t(locale, 'recruiting.hireCorporateEmailHint')}
-                >
-                  <input
-                    type="email"
-                    autoComplete="off"
-                    maxLength={254}
-                    value={corporateEmail}
-                    onChange={(event) => setCorporateEmail(event.target.value)}
-                    className={FIELD}
-                    aria-label={t(locale, 'recruiting.hireCorporateEmailLabel')}
-                  />
-                </FormField>
-              ) : (
-                <p className="text-sm text-ink-muted">{t(locale, 'recruiting.hireBulkEmailHint')}</p>
-              )}
-            </div>
+            <FormField label={t(locale, 'employeeAdmission.plannedStart')} hint={t(locale, 'employeeAdmission.plannedHelp')}>
+              <DateField value={startDate} onChange={(event) => setStartDate(event.target.value)} aria-label={t(locale, 'employeeAdmission.plannedStart')} />
+            </FormField>
           )}
         </div>
 
-        {mode !== 'rejected' ? <section className="mt-5" aria-label={t(locale, 'onboardingStages.title')}>
-          <h3 className="m-0 text-sm font-medium text-ink">{t(locale, 'onboardingStages.title')}</h3>
-          <p className="mb-2 mt-1 text-sm text-ink-muted">{t(locale, 'onboardingStages.help')}</p>
-          <CheckboxGroupControl label={t(locale, 'onboardingStages.title')} options={onboardingStageOptions(locale, t)}
-            value={onboardingStages} onChange={setOnboardingStages}
-            selectAllLabel={t(locale, 'onboardingStages.selectAll')} clearAllLabel={t(locale, 'onboardingStages.clearAll')}
-            selectionSummary={(n, total) => t(locale, 'onboardingStages.summary', { n, total })}
-            emptySelectionLabel={t(locale, 'onboardingStages.empty')} />
-        </section> : null}
 
         {error ? (
           <p role="alert" className="mb-0 mt-3 font-mono text-xs text-danger">{error}</p>
@@ -157,7 +103,7 @@ function PipelineExtrasDialog({ locale, mode, bulk, onConfirm, onCancel }) {
             {t(locale, 'recruiting.modalCancel')}
           </button>
           <button type="button" onClick={submit} className={S.btnPrimary}>
-            {t(locale, 'recruiting.modalConfirm')}
+            {t(locale, mode === 'hired' ? 'employeeAdmission.recordHiring' : 'recruiting.modalConfirm')}
           </button>
         </div>
       </div>

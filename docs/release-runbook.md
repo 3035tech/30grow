@@ -108,9 +108,53 @@ corporativo, emitiu convite SMTP simulado e permitiu definir senha e autenticar
 no corporativo; login pelo pessoal e por outra empresa foram recusados. A troca
 de e-mail na ficha não altera `employment_status`.
 
-Foi reproduzida uma diferença no cadastro direto: informar o mesmo e-mail de
-um candidato reaproveita o ID e o torna colaborador, mas não preenche
-`personal_email`. Não tratar esse caminho genérico como a conversão recomendada
-sem esclarecer os dois contatos. Recomenda-se ação explícita na ficha do candidato,
-por ID/empresa, reunindo vínculo, admissão, contatos, etapas e convite. Essa ação
-ainda é proposta de produto, não foi implementada nesta entrega.
+A diferença de contatos da inclusão direta foi corrigida no lote atual: quando
+um candidato conhecido é incluído com seu pessoal e um novo corporativo, o mesmo
+ID e histórico são preservados, sem duplicar o cadastro. Colaboradores atuais
+podem ser incluídos somente com corporativo, sem inferir um contato pessoal.
+
+A ação explícita “Ativar como colaborador” está disponível na ficha, banco de
+talentos e modal do pipeline para perfis com acesso à Equipe. Ela confirma o início
+efetivo do trabalho, data de admissão, contatos, etapas e convite. A API exige a
+confirmação do início e rejeita datas futuras. “Contratado” no funil grava somente
+a contratação em andamento e a previsão opcional: não altera contato, vínculo,
+acesso, tarefas nem fecha a vaga como preenchida. A pessoa ainda pode desistir.
+O vínculo e o acesso ao portal têm estados separados; reenvio de convite fica na ficha.
+
+Este lote usa a migration 172 já aplicada nos dois ambientes; não exige nova
+migration nem altera em massa os vínculos existentes.
+
+## Regra de contatos na inclusão direta — 25/10/2026
+
+Colaboradores atuais podem ser incluídos em Equipe somente com o e-mail corporativo.
+O pessoal é opcional e nunca é inferido a partir do corporativo. Se informado,
+é preservado para contato após a saída. Pelo menos um contato válido é necessário.
+A opção “Já trabalha nesta empresa” usa a data original de admissão e inicia sem
+etapas de integração selecionadas; RH/admin pode selecionar as necessárias.
+
+A etapa Contratado do recrutamento registra somente a contratação em andamento.
+A ativação do vínculo é uma ação explícita quando o trabalho efetivamente começou;
+não é consequência da troca do e-mail nem de uma previsão de início.
+
+Sem pessoal no desligamento, o vínculo pode ser encerrado normalmente, o acesso
+é revogado e o contato corporativo deixa de ser usado. Não há destinatário para
+novas comunicações até o cadastro de um contato pessoal válido.
+
+Prova local com PostgreSQL descartável: cadastro só com corporativo, convite SMTP
+simulado nesse endereço, pessoal nulo, quatro etapas dispensadas e desligamento
+com revogação do convite/acesso e contato nulo. Nenhum e-mail real foi enviado.
+
+### Prova do lote de ativação explícita
+
+Jornada completa em aplicação local com build de produção e PostgreSQL descartável:
+empresa e RH criados pela interface, cargo/vaga, candidatura pública, 54 respostas,
+arrastar para Contratado sem ativação, ativação explícita e mesma pessoa na Equipe
+após recarregar. Inclusão adicional de colaborador atual só com corporativo,
+pessoal nulo, admissão histórica e zero etapas selecionadas.
+A API recusou confirmação ausente (400), outra empresa (404) e sessão ausente (401).
+
+Seis contratos com PostgreSQL real cobrem os dois endpoints do funil, desistência,
+ativação idempotente, identidade/histórico, login corporativo, inclusão direta,
+kit de chegada sem duplicação e desligamento sem pessoal. Cinco contratos anteriores
+de seleção de etapas também passaram. SMTP simulado; esta prova não certifica
+entrega externa, nem aceitação de todos os perfis/módulos em produção.

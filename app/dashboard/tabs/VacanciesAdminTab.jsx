@@ -1328,6 +1328,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                 <>
                   {canViewOrganization ? <VacancyPositions key={`headcount-${v.id}-${pipelineRefresh}`} companyId={v.companyId} vacancyId={v.id} locale={locale} navigateDashboard={navigateDashboard}/> : null}
                   <VacancyKanbanBlock
+                    canAdmitCandidate={canViewOrganization}
                     onStageChanged={() => setPipelineRefresh(value=>value+1)}
                     vacancyId={v.id}
                     companyId={v.companyId}

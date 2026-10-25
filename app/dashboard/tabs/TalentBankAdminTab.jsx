@@ -5,6 +5,7 @@ import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
 import { CandidateTagsProvider, CandidateTags, CandidateTagFilters } from '../CandidateTags';
 import { useCallback, useEffect, useState } from 'react';
 import { useAppFeedback } from '../../_components/AppFeedback';
+import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading } from '../../_components/AppLoading';
 import { cn } from '../../../lib/cn';
@@ -65,8 +66,9 @@ export function TalentBankAdminTab(props) {
   );
 }
 
-function TalentBankContent({ tagRefresh, locale = 'pt-BR', companyId, navigateDashboard }) {
+function TalentBankContent({ tagRefresh, locale = 'pt-BR', companyId, navigateDashboard, canAdmitCandidate = false }) {
   const { promptForm, toast, notice, confirm } = useAppFeedback();
+  const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: result => navigateDashboard?.({tab:'team',candidate:result.candidateId,roster:'internal',section:'summary',returnTab:null}) });
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(() => Boolean(companyId));
@@ -484,6 +486,7 @@ function TalentBankContent({ tagRefresh, locale = 'pt-BR', companyId, navigateDa
                     </td>
                     <td className="px-4 py-3 text-right">
                       <AdminActionsCell>
+                        {canAdmitCandidate && row.employmentStatus === 'candidate' ? <button type="button" className={S.btnGhost} disabled={Boolean(admissionBusyId)} onClick={() => admit(row.id)}>{t(locale,'employeeAdmission.action')}</button> : null}
                         <AdminIconButton
                           onClick={() => navigateDashboard?.({ tab: 'team', candidate: row.id, section: 'profile', returnTab: 'talent-bank', clientOnly: true })}
                           label={t(locale, 'panel.talentBank.openPerson')}
