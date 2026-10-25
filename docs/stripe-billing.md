@@ -180,3 +180,57 @@ O operador recebeu o comando para adicionar somente esse ID ao mesmo Secret,
 preservando as duas credenciais, e reiniciar `grow30-backend`. A confirmação dessa
 etapa e o checkout de uma empresa fictícia ainda estão pendentes; a recuperação
 do webhook, isoladamente, não certifica que o checkout esteja configurado.
+
+## Prova externa em Dublin — 25/10/2026
+
+Foi validado o processamento real dos webhooks, separado do checkout no navegador.
+Ambiente: `team`, Stripe sandbox `acct_1UKidM5kjgLrzQCZ`, código publicado
+`207527b6`. Nenhuma cobrança live nem dado de empresa existente foi alterado.
+
+A fixture foi a empresa 27, “VALIDACAO Stripe Dublin 2026-10-25 - ficticia”,
+sem usuários, colaboradores ou endereço de e-mail. Sua licença original
+`30T-EA-000006` e trial foram criados vencidos, para não mascarar inadimplência.
+O cliente sandbox e uma intenção sintética de checkout foram vinculados somente
+a essa fixture. A assinatura foi criada pela API Stripe, com cartão oficial
+de teste e relógio simulado; isso não certifica criação pelo checkout do Grow
+nem aceite dos Termos pelo navegador.
+
+Todos os estados abaixo chegaram ao banco exclusivamente por entregas reais do
+Stripe; não foram aplicados UPDATEs manuais para simular esses resultados:
+
+| Etapa | Estado em Dublin | Cancelamento agendado | Resultado da função de licença |
+|---|---|---|---|
+| Primeiro pagamento | `active` | Não | Ativa |
+| Renovação recusada | `past_due` | Não | Expirada / sem acesso comercial |
+| Recuperação com cartão válido e fatura paga | `active` | Não | Ativa |
+| Cancelar próxima renovação | `active` | Sim | Ativa até o fim do período |
+| Retomar renovação | `active` | Não | Ativa |
+| Encerramento imediato | `canceled` | Não | Expirada / sem acesso comercial |
+
+O resultado da licença foi calculado com `companyLicenseSummary` do projeto
+aplicada aos snapshots reais do banco. Não foi uma navegação autenticada nos
+módulos com esses estados; o bloqueio visual/HTTP por perfil continua pendente.
+Número e vencimento original (`2026-10-24 15:55:30.458644+00`) ficaram preservados
+em todos os passos; somente o período da assinatura acompanhou o Stripe.
+
+A entrega `evt_1UUTpy5kjgLrzQCZF1CsVvkN` (`customer.subscription.created`) foi
+confirmada no Workbench como HTTP 200, `received: true`. Seu reenvio manual
+retornou HTTP 200, `duplicate: true`, sem repetir efeitos. A assinatura de teste
+foi `sub_1UUTpw5kjgLrzQCZMfoon1mm`. As datas do painel foram exibidas em −03.
+
+Também passaram novamente os dez contratos externos de
+`npm run test:stripe:sandbox`, incluindo os reembolsos parcial e restante,
+com clientes sem e-mail e cleanup ao final. Esse reembolso foi feito diretamente
+no provedor, não pela operação de superadmin do Grow.
+
+Cleanup: assinatura encerrada; cliente e relógio fictícios removidos do Stripe.
+Empresa 27 arquivada (`deleted=true`) somente após confirmar ausência de usuários
+e assinatura sandbox cancelada; licença e histórico financeiro de teste preservados.
+
+Continuam pendentes: checkout real iniciado no Grow com aceite, retorno à aplicação,
+cartão e pagamento pelo portal aberto pelo Grow, cancelamento pela aplicação,
+reembolso pelo painel superadmin e mensagens/bloqueio por perfil. A sessão disponível
+“Admin Eval 20” não exibe Assinatura; é necessário dono de uma empresa de teste
+ou superadmin para essas provas. O portal sandbox está ativo com atualização
+de cartão habilitada; sua existência no gerenciador de segredos não comprova,
+sozinha, a configuração `STRIPE_PORTAL_CONFIGURATION_ID` no runtime de Dublin.

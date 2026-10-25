@@ -33,8 +33,7 @@ sem cache. Não são geradas notificações para cada reação.
 - O feed inclui `reactions: [{ emoji, count, mine }]`. A consulta é em lote por
   página. Clientes antigos podem ignorar esse campo adicional.
 
-A interface foi implementada no portal web do colaborador. A interface do app
-nativo não foi alterada nesta entrega.
+A interface foi implementada no portal web do colaborador. No app nativo, a interface foi implementada em 25/10/2026 no branch `feat/community-files-reactions` do repositório `30-team-app`: escolha, troca e remoção de reação, contagens e nomes paginados. Lint, TypeScript e 328 testes passaram. A validação em aparelhos e distribuição permanecem pendentes; consulte `docs/community-files-reactions.md` no repositório do app.
 
 Aplicar a migration 171 antes da publicação. Durante a expansão, a ausência da
 tabela não impede a leitura das mensagens antigas; escrever reações exige a
