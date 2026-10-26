@@ -67,7 +67,7 @@
     "jose": "6.2.13",
     "jsonwebtoken": "^9.0.2",
     "next": "16.4.3",
-    "nodemailer": "10.1.4",
+    "nodemailer": "10.2.1",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^1.1.1",
     "pg": "8.23.1",
@@ -77,14 +77,14 @@
     "recharts": "^2.15.0",
     "signature_pad": "^5.1.4",
     "stripe": "23.0.1",
-    "zod": "4.6.6"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
-    "autoprefixer": "^10.5.4",
+    "@playwright/test": "^1.64.1",
+    "autoprefixer": "^10.6.1",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.3",
-    "postcss": "^8.5.26",
+    "postcss": "^8.5.31",
     "tailwindcss": "^3.4.19"
   },
   "overrides": {
