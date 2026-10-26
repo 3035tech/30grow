@@ -244,7 +244,8 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     const dialog = page.getByRole('dialog', { name: 'Incluir colaborador', exact: true });
     const workEmail = uniqueCandidateEmail('current-worker');
     await dialog.getByRole('textbox', { name: 'Nome completo', exact: true }).fill(`Colaborador Atual ${stamp}`);
-    await dialog.getByRole('textbox', { name: 'E-mail corporativo (opcional)', exact: true }).fill(workEmail);
+    await expect(dialog.getByRole('textbox', { name: 'E-mail corporativo', exact: true })).toHaveAttribute('required', '');
+    await dialog.getByRole('textbox', { name: 'E-mail corporativo', exact: true }).fill(workEmail);
     await expect(dialog.getByRole('textbox', { name: 'E-mail pessoal (opcional)', exact: true })).toHaveValue('');
     await dialog.getByRole('checkbox', { name: 'Já trabalha nesta empresa', exact: true }).check();
     await expect(dialog.getByRole('status')).toContainText('0 de 4 etapas selecionadas.');
@@ -253,7 +254,7 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await year.fill('2020'); await year.press('Tab');
     const date = `2020-${String(new Date().getMonth()+1).padStart(2,'0')}-01`;
     await page.locator(`[data-day="${date}"]`).click();
-    await dialog.getByRole('checkbox', { name: 'Confirmo que esta pessoa já iniciou o trabalho na empresa.', exact: true }).check();
+    await expect(dialog.getByRole('checkbox', { name: 'Confirmo que esta pessoa já iniciou o trabalho na empresa.', exact: true })).toHaveCount(0);
     const saved = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/admin/employees');
     await dialog.getByRole('button', { name: 'Incluir', exact: true }).click();
     const response = await saved;

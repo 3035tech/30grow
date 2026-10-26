@@ -327,10 +327,10 @@ export function TeamTab({
         {
           key: 'email',
           type: 'email',
-          label: t(locale, 'employeeAdmission.corporateEmail'),
+          label: t(locale, 'panel.dp.corporateEmail'),
           help: t(locale,'employeeAdmission.directContactHelp'),
+          required: true,
           defaultValue: '',
-          validate: (value, values) => !String(value || '').trim() && !String(values.personalEmail || '').trim() ? t(locale,'employeeAdmission.contactRequired') : null,
         },
         { key:'personalEmail',type:'email',label:t(locale,'employeeAdmission.personalOptional'),help:t(locale,'employeeAdmission.personalDirectHelp') },
         { key:'existingEmployee',type:'boolean',label:t(locale,'employeeAdmission.existing'),help:t(locale,'employeeAdmission.existingHelp'),
@@ -359,7 +359,6 @@ export function TeamTab({
           help: t(locale, 'panel.team.addEmployeeInviteHelp'),
           defaultValue: true,
         },
-        { key:'startedWorking',type:'boolean',defaultValue:false,required:true,label:t(locale,'employeeAdmission.startedWorking') },
       ],
     });
     if (!values) return;
@@ -371,7 +370,7 @@ export function TeamTab({
         body: JSON.stringify({
           companyId: Number(companyId),
           fullName: titleCasePersonName(values.fullName),
-          email: String(values.email || values.personalEmail || '').trim().toLowerCase(),
+          email: String(values.email || '').trim().toLowerCase(),
           ...(String(values.personalEmail || '').trim() ? { personalEmail:String(values.personalEmail).trim().toLowerCase() } : {}),
           startDate: values.startDate || null,
           sendAccessInvite: Boolean(values.sendAccessInvite),
