@@ -1,7 +1,7 @@
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-## This is NOT the Next.js you know
+# This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
@@ -23,3 +23,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Entidades e cadastros gerenciáveis devem ter relações, chaves estrangeiras, unicidade e isolamento por empresa quando aplicável.
 - Textos livres podem usar `TEXT`; opções fixas precisam de restrição de domínio. Snapshots históricos também podem ser modelados em tabelas relacionais.
 - Registrar decisões relevantes de modelagem e verificar integridade, preservação de dados e reaplicação das migrations antes de concluir a entrega.
+
+
+## Retomada de trabalho em andamento
+
+Antes de retomar migrations, catálogo de emojis ou atualizações do app 30 Grow, ler [docs/RETOMADA-2026-10-26.md](docs/RETOMADA-2026-10-26.md). O arquivo registra branches/PRs, validações, acessos bloqueados e a ordem autorizada de publicação.

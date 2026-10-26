@@ -18,4 +18,4 @@ Se as soluções ganharem conteúdo específico de país no futuro, revisar a co
 
 ## Publicação e acompanhamento
 
-Publicação autorizada em 26/10/2026. Depois de publicar, conferir canonical/JSON-LD das duas URLs inspecionadas, sitemap sem as duplicatas como loc e alternates recíprocos. Pedir nova leitura das URLs canônicas prioritárias e acompanhar o Search Console. A contagem pode continuar incluindo duplicatas excluídas; isso é esperado. Indexação e prazo dependem do Google.
+Código publicado na `main` no commit `3a7b5396`; a validação no ambiente publicado ainda está pendente. Conferir canonical/JSON-LD das duas URLs inspecionadas, sitemap sem as duplicatas como loc e alternates recíprocos. Pedir nova leitura das URLs canônicas prioritárias e acompanhar o Search Console. A contagem pode continuar incluindo duplicatas excluídas; isso é esperado. Indexação e prazo dependem do Google.
