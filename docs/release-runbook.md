@@ -158,3 +158,7 @@ ativação idempotente, identidade/histórico, login corporativo, inclusão dire
 kit de chegada sem duplicação e desligamento sem pessoal. Cinco contratos anteriores
 de seleção de etapas também passaram. SMTP simulado; esta prova não certifica
 entrega externa, nem aceitação de todos os perfis/módulos em produção.
+
+## Inclusão direta de colaborador — 26/10/2026
+
+Incluir colaborador exige e-mail corporativo; o pessoal permanece opcional e não é usado como fallback de acesso no formulário. A API já exige email não vazio e o domínio recusa ausência mesmo com contato pessoal informado. A data real de admissão continua obrigatória e não aceita futuro. A confirmação adicional “já iniciou o trabalho” foi removida apenas deste cadastro direto; a ativação de candidatos do recrutamento mantém sua confirmação explícita. Sem migration ou alteração de registros existentes.

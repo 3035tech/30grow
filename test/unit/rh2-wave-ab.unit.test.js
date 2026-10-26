@@ -32,6 +32,17 @@ describe('RH2 wave A/B', () => {
     assert.equal(r.errorCode, ERR.EMAIL_REQUIRED);
   });
 
+  it('direct inclusion requires work email even when personal email is provided', async () => {
+    for (const email of [undefined, '', '   ']) {
+      for (const entryMode of ['new_hire', 'existing_employee']) {
+        const result = await createEmployeeDirect({ companyId: 1, fullName: 'Test Person',
+          email, personalEmail: 'personal@example.test', entryMode });
+        assert.equal(result.ok, false);
+        assert.equal(result.errorCode, ERR.EMAIL_REQUIRED);
+      }
+    }
+  });
+
   it('createEmployeeDirect rejects invalid companyId without DB', async () => {
     const r = await createEmployeeDirect({
       companyId: null,
