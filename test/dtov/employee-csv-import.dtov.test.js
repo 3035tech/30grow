@@ -1,6 +1,7 @@
 /** Import proof against disposable DTOV PostgreSQL only. */
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { dtovEnv, assertDtovTarget } from './harness.js';
 
 const env = dtovEnv({ PGOPTIONS: '-c grow.billing_mode=test' });
@@ -65,6 +66,22 @@ try {
   ]);
   assert.deepEqual(concurrent.map(item => item.ok).sort(), [false, true], 'concurrent repeats create one person');
   assert.equal((await query('SELECT count(*)::int AS n FROM candidates WHERE company_id=$1 AND email=$2', [companyId, `concurrent-${suffix}@example.test`])).rows[0].n, 1);
+
+  const sampleCompanyId = await company('CSV Realistic');
+  const sample = readFileSync(new URL('../fixtures/employee-csv-rh-sintetico.csv', import.meta.url), 'utf8');
+  const samplePreview = await previewEmployeeCsv({ companyId: sampleCompanyId, csv: sample });
+  assert.equal(samplePreview.ok, true);
+  assert.equal(samplePreview.preview.total, 6);
+  assert.equal(samplePreview.preview.canImport, true);
+  mail.__resetMailMockLog();
+  const sampleImport = await importEmployeeCsv({ companyId: sampleCompanyId, csv: sample, actorId: null });
+  assert.equal(sampleImport.ok, true);
+  assert.equal(sampleImport.total, 6);
+  assert.equal(mail.__getMailMockLog().length, 0);
+  const sampleRows = await query("SELECT full_name, email, personal_email, start_date::text AS start_date FROM candidates WHERE company_id=$1 AND employment_status='employee'", [sampleCompanyId]);
+  assert.equal(sampleRows.rowCount, 6);
+  assert.ok(sampleRows.rows.some(row => row.full_name === 'Débora Araújo' && row.start_date === '2022-09-02'));
+  assert.ok(sampleRows.rows.some(row => row.email === 'bruno.lima@empresa.example.test' && row.personal_email == null));
 
   // Managed 20-person plan: preview and confirmation reject rows over capacity.
   await query(`INSERT INTO company_billing_terms(company_id,managed,trial_ends_at) VALUES($1,TRUE,now())

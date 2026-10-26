@@ -19,4 +19,6 @@ O domínio de admissão existente persiste a data de início e a escolha de nenh
 - Interface: prévia inválida bloqueia confirmação, arquivo corrigido habilita, resultado aparece em 390 e 1440 px sem overflow do documento.
 - ESLint dos arquivos alterados e build Next aprovados.
 
+Revalidação de 26/10/2026: o arquivo sintético `test/fixtures/employee-csv-rh-sintetico.csv` com seis pessoas, nomes acentuados, campo entre aspas, ponto e vírgula e e-mail pessoal opcional passou na prévia e na importação no PostgreSQL descartável. Os seis registros foram gravados como colaboradores, sem convite automático. O arquivo contém somente endereços `example.test`; o RH ainda precisa aceitar o fluxo com sua própria planilha antes do uso operacional.
+
 Sem migration nesta entrega. Novas admissões, atualização/fusão de pessoas, criação de referências organizacionais e convite em massa ficam fora deste fluxo.

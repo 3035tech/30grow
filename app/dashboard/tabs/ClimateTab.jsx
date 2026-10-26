@@ -512,6 +512,17 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
         minHeight: 100,
         placeholder: t(locale, 'panel.climate.descPh'),
       },
+      {
+        key: 'questionStarter',
+        type: 'select',
+        label: t(locale, 'panel.climate.questionStarterLabel'),
+        defaultValue: 'starter',
+        help: t(locale, 'panel.climate.questionStarterHelp'),
+        options: [
+          { value: 'starter', label: t(locale, 'panel.climate.questionStarterSuggested') },
+          { value: 'blank', label: t(locale, 'panel.climate.questionStarterBlank') },
+        ],
+      },
     ];
     if (isAdmin && companies.length) {
       fields.unshift({
@@ -538,6 +549,8 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
           title: values.title,
           description: values.description,
           companyId: values.companyId || companyId || undefined,
+          locale,
+          seedDefaultQuestions: values.questionStarter !== 'blank',
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -583,6 +596,12 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
 
   const setStatus = async (status) => {
     if (!selectedId) return;
+    if (status === CLIMATE_SURVEY_STATUS.OPEN && !(detail?.questions || []).length) {
+      toast(t(locale, 'panel.climate.questionStarterNeedQuestion'), 'info');
+      setDetailSection('questionnaire');
+      setShowQuestions(true);
+      return;
+    }
     setBusy(true);
     try {
       const data = await patch(selectedId, { status });
