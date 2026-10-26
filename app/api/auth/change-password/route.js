@@ -1,4 +1,4 @@
-import { webSessionMaxAge } from '../../../../lib/session-ttl.js';
+import { webSessionMaxAge } from '../../../../lib/identity/session-ttl.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
@@ -8,12 +8,12 @@ import {
   verifyPassword,
   signToken,
   sessionCookieOptions,
-} from '../../../../lib/auth';
+} from '../../../../lib/identity/auth';
 import { query } from '../../../../lib/db';
 import { apiError, ERR } from '../../../../lib/api-error';
 import { audit } from '../../../../lib/audit';
-import { bumpSessionVersion, verifySessionWithCapabilities } from '../../../../lib/session';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { bumpSessionVersion, verifySessionWithCapabilities } from '../../../../lib/identity/session';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 export async function POST(request) {
   const token = await (await cookies()).get(COOKIE_NAME)?.value;

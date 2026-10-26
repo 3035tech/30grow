@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../lib/identity/auth';
 import {
   CAP,
   requireCapability,
@@ -8,7 +8,7 @@ import {
 } from '../../../../lib/ae/require-admin';
 import { apiError, ERR } from '../../../../lib/api-error';
 import { normalizeLocale } from '../../../../lib/i18n';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 import { answerHelpQuestion } from '../../../../lib/help-assistant';
 
 /**

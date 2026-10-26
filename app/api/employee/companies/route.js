@@ -1,8 +1,8 @@
-import { consumeSecondFactorChallenge } from '../../../../lib/second-factor-challenge.js';
+import { consumeSecondFactorChallenge } from '../../../../lib/identity/second-factor-challenge.js';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db.js';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import {
   findEmployeesByEmail,

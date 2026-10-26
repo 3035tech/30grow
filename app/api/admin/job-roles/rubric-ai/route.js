@@ -7,7 +7,7 @@ import {
   isRubricAiConfigured,
   suggestJobRoleRubricFromText,
 } from '../../../../../lib/recruiting/rubric-ai.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import { z } from '../../../../../lib/validate.js';
 import { jobRoleAiDescriptionSchema } from '../../../../../lib/recruiting/job-role-description.js';
 

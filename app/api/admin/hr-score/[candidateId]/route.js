@@ -6,7 +6,7 @@ import {
   CAP,
   requireAnyCapability,
 } from '../../../../../lib/ae/require-admin.js';
-import { getHrScore, recalculateCandidateHrScore } from '../../../../../lib/hr-score.js';
+import { getHrScore, recalculateCandidateHrScore } from '../../../../../lib/assessment/hr-score.js';
 import { EMPLOYMENT_STATUS } from '../../../../../lib/domain-status.js';
 
 /**

@@ -2,7 +2,7 @@
 
 
 import { cn } from '../../lib/cn';
-import brandTokens from '../../lib/brand-tokens.cjs';
+import brandTokens from '../../lib/marketing/brand-tokens.cjs';
 
 const { LOGO_PATHS } = brandTokens;
 

@@ -13,7 +13,7 @@ const env = dtovEnv({ JWT_SECRET: 'dtov-smoke-jwt-secret-min-32-chars-long', COO
   PORT: '3010', HOSTNAME: '127.0.0.1', NEXT_PUBLIC_APP_URL: base, NODE_ENV: 'production', NEXT_DIST_DIR: '.next-polish-build' });
 assertDtovTarget(env);
 Object.assign(process.env, env);
-const { createSelfServiceSignupIdentity, SELF_SERVICE_COMPANY_ACTION } = await import('../../lib/self-service-signup.js');
+const { createSelfServiceSignupIdentity, SELF_SERVICE_COMPANY_ACTION } = await import('../../lib/identity/self-service-signup.js');
 const { pool } = await import('../../lib/db.js');
 const db = new pg.Client({ host: env.POSTGRES_HOST, port: Number(env.POSTGRES_PORT), database: env.POSTGRES_DB, user: env.POSTGRES_USER, password: env.POSTGRES_PASSWORD, ssl: false });
 let server, browser, page;

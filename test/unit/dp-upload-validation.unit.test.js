@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dpUploadValidationKey, dpUploadResponseKey, DP_DOC_MAX_BYTES } from '../../lib/dp-upload-validation.js';
+import { dpUploadValidationKey, dpUploadResponseKey, DP_DOC_MAX_BYTES } from '../../lib/assessment/dp-upload-validation.js';
 
 test('DP preflight accepts PDF, JPG, JPEG and existing PNG support', () => {
   for (const [name, type] of [['test.pdf', 'application/pdf'], ['test.JPG', 'image/jpeg'], ['test.jpeg', 'image/jpeg'], ['test.png', 'image/png'], ['test.jpeg', '']]) {

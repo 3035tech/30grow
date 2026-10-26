@@ -46,7 +46,7 @@ const secret = 'regression-test-secret-at-least-32-characters';
 for (const [purpose, identity] of [['manager', { userId: 7 }], ['employee', { candidateId: 8, companyId: 9 }], ['mobile_employee', { candidateId: 8, companyId: 9 }]]) {
   test(`${purpose}: challenge binds version, rejects revocation and consumes only once`, async () => {
     const db = challengeDb();
-    const api = await load('lib/second-factor-challenge.js', { ...db, default: crypto, getJwtSecret: () => secret });
+    const api = await load('lib/identity/second-factor-challenge.js', { ...db, default: crypto, getJwtSecret: () => secret });
     const binding = await api.issueSecondFactorChallenge(purpose, identity);
     const claims = { ...identity, ...binding };
     const token = jwt.sign(claims, secret, { expiresIn: 300 });
@@ -66,7 +66,7 @@ for (const [purpose, identity] of [['manager', { userId: 7 }], ['employee', { ca
 
 test('missing, expired, foreign and invalidly signed challenges cannot be consumed', async () => {
   const db = challengeDb();
-  const api = await load('lib/second-factor-challenge.js', { ...db, getJwtSecret: () => secret });
+  const api = await load('lib/identity/second-factor-challenge.js', { ...db, getJwtSecret: () => secret });
   const identity = { candidateId: 8, companyId: 9 };
   const binding = await api.issueSecondFactorChallenge('employee', identity);
   assert.equal(await api.secondFactorChallengeLive(identity), false);
@@ -86,7 +86,7 @@ async function usersFixture({ totp = false } = {}) {
     if (/FROM users/.test(sql)) return { rows: [{ ...row, email: storedEmail }], rowCount: 1 };
     throw new Error(sql);
   };
-  const api = await load('lib/users-admin.js', {
+  const api = await load('lib/identity/users-admin.js', {
     query, withTransaction: fn => fn({ query }), verifyPassword: async password => password === 'correct', verifyTotpCode: (_secret, code) => code === '123456',
     checkRateLimit: async () => ({ ok: true }), hashPassword: async () => 'hash',
     PAGE_SIZE_OPTIONS: [20], sqlUsersOrderBy: () => '', ERR,
@@ -119,7 +119,7 @@ test('self email with active 2FA requires TOTP; unrelated edits and authorized a
   assert.equal((await f.update({ email: 'support@example.com' }, true, 99)).ok, true);
 });
 
-for (const [path, name, args] of [['lib/manager-2fa.js', 'disable2fa', [7]], ['lib/employee/employee-2fa.js', 'disableEmployee2fa', [8, 9]]]) {
+for (const [path, name, args] of [['lib/identity/manager-2fa.js', 'disable2fa', [7]], ['lib/employee/employee-2fa.js', 'disableEmployee2fa', [8, 9]]]) {
   test(`${name}: eleventh attempt is blocked before password/TOTP/database work`, async () => {
     let attempts = 0;
     let reads = 0;
@@ -168,7 +168,7 @@ for (const [path, manager] of [['app/api/auth/2fa/verify/route.js', true], ['app
   });
 }
 
-for (const [path, name, args] of [['lib/manager-2fa.js', 'verify2faLogin', [7, '000000']], ['lib/employee/employee-2fa.js', 'verifyEmployee2faLogin', [8, 9, '000000']]]) {
+for (const [path, name, args] of [['lib/identity/manager-2fa.js', 'verify2faLogin', [7, '000000']], ['lib/employee/employee-2fa.js', 'verifyEmployee2faLogin', [8, 9, '000000']]]) {
   test(`${name}: account cap rejects TOTP attempts before database access`, async () => {
     let reads = 0;
     const keys = [];

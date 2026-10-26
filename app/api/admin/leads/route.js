@@ -1,9 +1,9 @@
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth.js';
+import { COOKIE_NAME } from '../../../../lib/identity/auth.js';
 import { query } from '../../../../lib/db.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
-import { CAP, requireCapability, isSuperAdminPayload } from '../../../../lib/permissions.js';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities.js';
+import { CAP, requireCapability, isSuperAdminPayload } from '../../../../lib/identity/permissions.js';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities.js';
 import { listEarlyAccessLeads } from '../../../../lib/admin-leads.js';
 
 /**

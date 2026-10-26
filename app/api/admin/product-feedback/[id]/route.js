@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
 import { query } from '../../../../../lib/db.js';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../lib/permissions.js';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../lib/identity/permissions.js';
 import { updateProductFeedback } from '../../../../../lib/product-feedback.js';
 import { PRODUCT_FEEDBACK_SEVERITIES, PRODUCT_FEEDBACK_STATUSES } from '../../../../../lib/domain-status.js';
 import { COMPANY_MODULES } from '../../../../../lib/company/company-modules.js';

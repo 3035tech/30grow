@@ -3,7 +3,7 @@
  * Run: node test/unit/user-signup-origin.js
  */
 import assert from 'node:assert/strict';
-import { resolveUserOrigin, isSelfServiceOrigin } from '../../lib/user-signup-origin.js';
+import { resolveUserOrigin, isSelfServiceOrigin } from '../../lib/identity/user-signup-origin.js';
 
 assert.equal(resolveUserOrigin({}), 'admin');
 assert.equal(resolveUserOrigin({ signupSource: null }), 'admin');

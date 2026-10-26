@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getReportByToken } from '../../../../lib/recruiting/vacancy-report';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 export const dynamic = 'force-dynamic';
 

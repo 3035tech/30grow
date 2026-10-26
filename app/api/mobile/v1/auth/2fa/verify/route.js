@@ -1,4 +1,4 @@
-import { consumeSecondFactorChallenge } from '../../../../../../../lib/second-factor-challenge.js';
+import { consumeSecondFactorChallenge } from '../../../../../../../lib/identity/second-factor-challenge.js';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
@@ -6,8 +6,8 @@ import { verifyEmployee2faLogin } from '../../../../../../../lib/employee/employ
 import {
   completeMobileEmployeeAuthentication,
   verifyMobileEmployeeSecondFactor,
-} from '../../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/rate-limit.js';
+} from '../../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/identity/rate-limit.js';
 import { parseJsonBody } from '../../../../../../../lib/validate.js';
 
 const verifySchema = z.object({

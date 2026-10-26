@@ -3,12 +3,12 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
 import { listCompanyPosts } from '../../../../../../lib/company/company-posts.js';
-import { mobileCommunityBody } from '../../../../../../lib/mobile-employee-payload.js';
+import { mobileCommunityBody } from '../../../../../../lib/mobile/mobile-employee-payload.js';
 import { createCompanyKudo, listCompanyKudos, searchEmployeeColleagues } from '../../../../../../lib/company/company-kudos.js';
 import { EMPLOYEE_NOTIF, notifyCandidate } from '../../../../../../lib/employee/employee-notifications.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { mobileIdempotencyKey } from '../../../../../../lib/mobile-idempotency.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { mobileIdempotencyKey } from '../../../../../../lib/mobile/mobile-idempotency.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store' });

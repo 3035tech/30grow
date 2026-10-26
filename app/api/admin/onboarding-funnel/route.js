@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import { queryRead } from '../../../../lib/db.js';
-import { CAP, isSuperAdminPayload } from '../../../../lib/permissions.js';
-import { getOnboardingFunnel } from '../../../../lib/onboarding-funnel.js';
+import { CAP, isSuperAdminPayload } from '../../../../lib/identity/permissions.js';
+import { getOnboardingFunnel } from '../../../../lib/development/onboarding-funnel.js';
 import { z } from '../../../../lib/validate.js';
 
 const querySchema = z.object({

@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
 import { query } from '../../../../../../lib/db';
 import crypto from 'node:crypto';
 import { apiError, ERR } from '../../../../../../lib/api-error';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/identity/permissions';
 
 
 async function authorizeVacancyLink(payload, vacancyId) {

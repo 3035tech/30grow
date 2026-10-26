@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
 import {
   CAP,
   getManagerScope,
@@ -16,7 +16,7 @@ import {
   suggestRubricWeightsFromContext,
 } from '../../../../../../lib/recruiting/rubric-ai';
 import { normalizeLocale } from '../../../../../../lib/i18n';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit';
 
 async function loadVacancyScoped(vacancyId, { isAdmin, companyId }) {
   const r = await queryRead(

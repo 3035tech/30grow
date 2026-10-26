@@ -29,9 +29,9 @@ import {
   VACANCY_STATUS,
   normalizeVacancyListFilter,
 } from '../../lib/domain-status.js';
-import { ROLES } from '../../lib/permissions.js';
+import { ROLES } from '../../lib/identity/permissions.js';
 import { normalizeOfferStatus } from '../../lib/people/candidate-offer.js';
-import { PERFORMANCE_REVIEW_CAPS } from '../../lib/performance-reviews.js';
+import { PERFORMANCE_REVIEW_CAPS } from '../../lib/development/performance-reviews.js';
 import { deriveOverallScoreFromOutcomes } from '../../lib/people/performance-calibration.js';
 import { shouldSuggestVariablePay } from '../../lib/people/variable-pay.js';
 import { computeHireReadiness } from '../../lib/recruiting/hire-readiness.js';

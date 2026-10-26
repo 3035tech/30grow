@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { hashPassword } from '../../lib/auth.js';
+import { hashPassword } from '../../lib/identity/auth.js';
 import { pool, query } from '../../lib/db.js';
 import { completeEmployeeCompanyPick, loginEmployeeWithPassword } from '../../lib/employee/employee-auth.js';
 import {
@@ -8,7 +8,7 @@ import {
   contextsFromSelectionToken,
   refreshMobileEmployeeSession,
   switchMobileEmployeeCompany,
-} from '../../lib/mobile-employee-session.js';
+} from '../../lib/mobile/mobile-employee-session.js';
 
 async function main() {
   process.env.JWT_SECRET ||= 'dtov-mobile-employee-secret-2026-minimum';

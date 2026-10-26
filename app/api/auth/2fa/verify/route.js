@@ -1,14 +1,14 @@
-import { consumeSecondFactorChallenge } from '../../../../../lib/second-factor-challenge.js';
+import { consumeSecondFactorChallenge } from '../../../../../lib/identity/second-factor-challenge.js';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../../lib/turnstile.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../../lib/identity/turnstile.js';
 import {
   verify2faChallenge,
   verify2faLogin,
-} from '../../../../../lib/manager-2fa.js';
-import { buildManagerLoginResponse } from '../../../../../lib/manager-login-session.js';
+} from '../../../../../lib/identity/manager-2fa.js';
+import { buildManagerLoginResponse } from '../../../../../lib/identity/manager-login-session.js';
 
 export const dynamic = 'force-dynamic';
 

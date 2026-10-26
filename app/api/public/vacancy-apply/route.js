@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { applyToPublicVacancy } from '../../../../lib/public-vacancy-apply';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 /**
  * POST /api/public/vacancy-apply

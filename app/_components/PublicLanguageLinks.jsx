@@ -1,5 +1,5 @@
 import { localeAccessibleLabel } from '../../lib/i18n';
-import { PUBLIC_MARKETING_LOCALES, publicMarketingPath, publicHreflang } from '../../lib/public-marketing-paths';
+import { PUBLIC_MARKETING_LOCALES, publicMarketingPath, publicHreflang } from '../../lib/marketing/public-marketing-paths';
 
 /** Plain anchors expose every translated version to crawlers and work without JavaScript. */
 export function PublicLanguageLinks({ locale, page = '/', solutionIndex = null }) {

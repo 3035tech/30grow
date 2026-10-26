@@ -22,7 +22,7 @@ import {
 } from '../../lib/company/company-modules.js';
 import { t } from '../../lib/i18n.js';
 import { validateHelpGuideCoverage } from '../../lib/help-sections.js';
-import { CAP, resolveCapabilities } from '../../lib/permissions.js';
+import { CAP, resolveCapabilities } from '../../lib/identity/permissions.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 

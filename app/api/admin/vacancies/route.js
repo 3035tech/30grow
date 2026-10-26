@@ -6,7 +6,7 @@ import {
   getManagerScope,
   requireCapability,
 } from '../../../../lib/ae/require-admin';
-import { parseVacanciesSort } from '../../../../lib/assessment-filters';
+import { parseVacanciesSort } from '../../../../lib/assessment/assessment-filters';
 import { parseVacancyDetailsFromBody } from '../../../../lib/recruiting/vacancy-details';
 import { slugify } from '../../../../lib/slugify';
 import { createVacancy, listVacancies } from '../../../../lib/recruiting/vacancies-admin';

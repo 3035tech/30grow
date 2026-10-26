@@ -3,7 +3,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import jwt from 'jsonwebtoken';
-import { rememberedSessionClaims, webSessionMaxAge, REMEMBER_SESSION_MAX_AGE_SEC, MANAGER_SESSION_MAX_AGE_SEC } from '../../lib/session-ttl.js';
+import { rememberedSessionClaims, webSessionMaxAge, REMEMBER_SESSION_MAX_AGE_SEC, MANAGER_SESSION_MAX_AGE_SEC } from '../../lib/identity/session-ttl.js';
 import { EMPLOYEE_SESSION_MAX_AGE } from '../../lib/employee/employee-auth-constants.js';
 
 const secret = 'remember-me-local-test-secret-at-least-32-characters';
@@ -23,9 +23,9 @@ test('only explicit boolean opt-in extends a session; remembered deadline is abs
 });
 
 test('manager and employee JWTs retain default TTL or fixed remembered expiry when reissued', async () => {
-  const { signToken, verifyToken } = await import('../../lib/auth.js');
+  const { signToken, verifyToken } = await import('../../lib/identity/auth.js');
   const { signEmployeeToken, verifyEmployeeToken } = await import('../../lib/employee/employee-auth.js');
-  const { verifyEmployeeTokenEdge } = await import('../../lib/auth-edge.js');
+  const { verifyEmployeeTokenEdge } = await import('../../lib/identity/auth-edge.js');
   for (const [sign, claims, fallback] of [
     [signToken, {userId: 1,role:'hr',companyId:3,sv:2}, MANAGER_SESSION_MAX_AGE_SEC],
     [signEmployeeToken, {candidateId:7,companyId:3,sv:2,email:'person@example.test'}, EMPLOYEE_SESSION_MAX_AGE],
@@ -67,7 +67,7 @@ async function secondFactor(file) {
 }
 
 test('remember choice is signed into manager and employee 2FA challenges', async () => {
-  const manager = await secondFactor('../../lib/manager-2fa.js');
+  const manager = await secondFactor('../../lib/identity/manager-2fa.js');
   const employee = await secondFactor('../../lib/employee/employee-2fa.js');
   for (const rememberMe of [false,true]) {
     const managerToken = await manager.sign2faChallenge(5,{rememberMe});

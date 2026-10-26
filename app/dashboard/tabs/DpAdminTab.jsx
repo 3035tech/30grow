@@ -4,7 +4,7 @@ import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { t, localeHtmlLang } from '../../../lib/i18n';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import {
   DP_LEAVE_STATUS,
   DP_LEAVE_STATUSES,

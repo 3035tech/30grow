@@ -35,7 +35,7 @@ O app declara quais telas sabe abrir; o servidor nunca manda um destino que a ve
 - `POST /api/mobile/v1/employee/push-token` aceita `appVersion` (≤ 32) e `destinations` (lista; valores fora do catálogo são descartados). Resposta inclui `destinations` aceitos. Persistido em `mobile_employee_push_tokens.app_version` / `push_destinations` (CHECK `<@ {'time_clock','field'}`). Re-registrar sem a lista zera o opt-in.
 - Destinos opt-in: `time_clock` (pedido de ponto decidido, espelho disponível) e `field` (visitas atribuídas, reembolso decidido). Sem opt-in o push vai com `today`, como antes.
 - `GET /api/mobile/v1/employee/notifications?destinations=time_clock,field` aplica a mesma regra a `items[].destination`.
-- Helpers: `mobilePushDestinationFor`, `resolveMobilePushDestination`, `normalizeMobilePushDestinations` (`lib/mobile-employee-push.js`).
+- Helpers: `mobilePushDestinationFor`, `resolveMobilePushDestination`, `normalizeMobilePushDestinations` (`lib/mobile/mobile-employee-push.js`).
 
 ## Copiloto de pessoas (B-3011)
 

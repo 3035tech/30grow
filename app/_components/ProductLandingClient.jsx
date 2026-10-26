@@ -6,18 +6,18 @@ import { useEffect, useRef, useState } from 'react';
 import { BrandMark } from './BrandMark';
 import { PrimaryCta, PublicSiteHeader } from './PublicSiteHeader';
 import { Icon } from './Icon';
-import { PRODUCT_LANDING_CONTACT_EMAIL } from '../../lib/product-landing-seo';
+import { PRODUCT_LANDING_CONTACT_EMAIL } from '../../lib/marketing/product-landing-seo';
 import { useLocale } from '../../lib/useLocale';
 import { t, localeHtmlLang, normalizeLocale } from '../../lib/i18n';
 import LandingAnalytics from './LandingAnalytics';
 import { ContentEnter } from './AppLoading';
 import { BlogPostCard } from './BlogPostCard';
-import { publicBlogPath, publicMarketingPath } from '../../lib/public-marketing-paths';
+import { publicBlogPath, publicMarketingPath } from '../../lib/marketing/public-marketing-paths';
 import { ProductScreenshot } from './ProductScreenshot';
-import { OVERVIEW_SCREENSHOT, SOLUTION_SCREENSHOTS, HOME_SCREENSHOT_INDICES, screenshotLabels } from '../../lib/product-screenshots';
+import { OVERVIEW_SCREENSHOT, SOLUTION_SCREENSHOTS, HOME_SCREENSHOT_INDICES, screenshotLabels } from '../../lib/marketing/product-screenshots';
 import { PublicLanguageLinks } from './PublicLanguageLinks';
 import { PublicPricingPlans } from './PublicPricingPlans';
-import { publicPricingCurrency } from '../../lib/pricing-currency';
+import { publicPricingCurrency } from '../../lib/marketing/pricing-currency';
 
 const PILLAR_ICONS = ['vacancies', 'compatibility', 'team', 'academy', 'dp', 'team'];
 

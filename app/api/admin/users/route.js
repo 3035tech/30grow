@@ -8,7 +8,7 @@ import {
   requireCapability,
   resolveScopedCompanyId,
 } from '../../../../lib/ae/require-admin';
-import { createUser, listUsers } from '../../../../lib/users-admin';
+import { createUser, listUsers } from '../../../../lib/identity/users-admin';
 
 export async function GET(request) {
   const payload = await getSessionPayload();

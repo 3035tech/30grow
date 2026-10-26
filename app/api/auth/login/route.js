@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db.js';
-import { verifyPassword } from '../../../../lib/auth.js';
+import { verifyPassword } from '../../../../lib/identity/auth.js';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import {
   accountRateLimitKey,
   checkRateLimit,
   clientIpFromRequest,
-} from '../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../lib/turnstile.js';
-import { sign2faChallenge, roleMayUse2Fa } from '../../../../lib/manager-2fa.js';
-import { buildManagerLoginResponse } from '../../../../lib/manager-login-session.js';
+} from '../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../lib/identity/turnstile.js';
+import { sign2faChallenge, roleMayUse2Fa } from '../../../../lib/identity/manager-2fa.js';
+import { buildManagerLoginResponse } from '../../../../lib/identity/manager-login-session.js';
 
 const LOGIN_USER_SQL = `SELECT
          u.id,

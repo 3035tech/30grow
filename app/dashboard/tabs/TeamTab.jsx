@@ -1,6 +1,6 @@
 'use client';
 
-import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../lib/onboarding-stage-selection.js';
+import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../lib/development/onboarding-stage-selection.js';
 
 import { ScoreExplanation } from '../../_components/ScoreExplanation';
 import { PersonOperationalSummary } from '../../_components/PersonOperationalSummary';
@@ -55,8 +55,8 @@ import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
 import { formatDisplayDate } from '../../../lib/format-display-date.js';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { isRichTextEmpty } from '../../../lib/sanitize-html';
-import { clusterCloseTypes, rankEnneagramScores } from '../../../lib/enneagram-cross';
-import { buildProfileSynthesis } from '../../../lib/profile-synthesis';
+import { clusterCloseTypes, rankEnneagramScores } from '../../../lib/assessment/enneagram-cross';
+import { buildProfileSynthesis } from '../../../lib/assessment/profile-synthesis';
 import { EMPLOYMENT_STATUS, ROSTER_SCOPE } from '../../../lib/domain-status.js';
 import { PIPELINE_STAGE, PIPELINE_STAGES, normalizeStartDate } from '../../../lib/recruiting/pipeline';
 import { DB_FANOUT_CONCURRENCY, mapWithConcurrency } from '../../../lib/concurrency';

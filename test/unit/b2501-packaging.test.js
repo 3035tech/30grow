@@ -10,7 +10,7 @@ import {
   inferReportTemplateKind,
   REPORT_TEMPLATE_KINDS,
 } from '../../lib/recruiting/vacancy-report-note-templates.js';
-import { playbooksForTab, PLAYBOOK_IDS } from '../../lib/persona-playbooks.js';
+import { playbooksForTab, PLAYBOOK_IDS } from '../../lib/development/persona-playbooks.js';
 
 describe('B-2501 packaging', () => {
   it('inferReportTemplateKind heuristics', () => {

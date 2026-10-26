@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { verifyCronRequest } from '../../../../lib/cron-auth';
-import { notifyLmsOverdueEnrollments } from '../../../../lib/lms.js';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth';
+import { notifyLmsOverdueEnrollments } from '../../../../lib/development/lms.js';
 
 export const dynamic = 'force-dynamic';
 

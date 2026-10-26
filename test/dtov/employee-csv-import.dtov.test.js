@@ -11,7 +11,7 @@ Object.assign(process.env, env);
 const { query, pool } = await import('../../lib/db.js');
 const { previewEmployeeCsv, importEmployeeCsv } = await import('../../lib/employee/employee-csv-import.js');
 const mail = await import('../../lib/mail.js');
-const { closeRateLimitRedis } = await import('../../lib/rate-limit.js');
+const { closeRateLimitRedis } = await import('../../lib/identity/rate-limit.js');
 const suffix = randomUUID().slice(0, 8);
 const header = 'nome_completo,email_corporativo,data_admissao,email_pessoal\n';
 const company = async name => Number((await query(

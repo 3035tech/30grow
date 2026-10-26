@@ -8,7 +8,7 @@ import { ensureActiveVacancyLinkToken } from '../../../../lib/recruiting/vacancy
 import { sendTransactionalMail } from '../../../../lib/mail';
 import { buildCandidateChallengeInviteMail } from '../../../../lib/recruiting/candidate-challenge-invite-mail';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { verifyCronRequest } from '../../../../lib/cron-auth';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth';
 
 function publicAppUrlFromEnv() {
   const env = (runtimeAppUrl() || '').trim();

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import {
   markInterviewPrepPrepared,
   resolveInterviewPrepByToken,

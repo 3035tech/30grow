@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit';
 import {
   getSideReviewByToken,
   submitSideReviewByToken,
-} from '../../../../../lib/performance-side-reviews.js';
+} from '../../../../../lib/development/performance-side-reviews.js';
 
 /** GET /api/public/performance-review/[token] — side review form (goals + meta). */
 export async function GET(request, props) {

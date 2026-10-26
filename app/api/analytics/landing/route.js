@@ -1,5 +1,5 @@
 import { trackLandingEvent } from '../../../../lib/analytics/landing-analytics.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 
 const ALLOWED_EVENTS = new Set([
   'pageview',

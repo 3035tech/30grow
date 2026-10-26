@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
-import { listLmsCohorts } from '../../../../../../../lib/lms.js';
+import { listLmsCohorts } from '../../../../../../../lib/development/lms.js';
 
 /** GET /api/admin/lms/courses/[id]/cohorts */
 export const GET = withAdminApi(

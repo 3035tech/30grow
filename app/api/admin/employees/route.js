@@ -5,8 +5,8 @@ import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../
 import { z, zLocale, zPositiveInt } from '../../../../lib/validate.js';
 import { createEmployeeDirect } from '../../../../lib/recruiting/hire.js';
 import { audit } from '../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
-import { ONBOARDING_STAGES } from '../../../../lib/onboarding-stage-selection.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
+import { ONBOARDING_STAGES } from '../../../../lib/development/onboarding-stage-selection.js';
 import { normalizeStartDate } from '../../../../lib/recruiting/pipeline.js';
 
 const bodySchema = z.object({

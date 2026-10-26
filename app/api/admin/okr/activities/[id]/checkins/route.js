@@ -12,7 +12,7 @@ import { z, zPositiveInt } from '../../../../../../../lib/validate.js';
 import {
   createOkrActivityCheckin,
   listOkrActivityCheckins,
-} from '../../../../../../../lib/okr-cycles.js';
+} from '../../../../../../../lib/development/okr-cycles.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

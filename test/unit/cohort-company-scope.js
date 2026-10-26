@@ -2,7 +2,7 @@
  * Offline unit: resolveCohortCompanyId — tenant-bound admin must not see all companies.
  */
 import assert from 'node:assert/strict';
-import { resolveCohortCompanyId, assessmentListWhereParts } from '../../lib/assessment-filters.js';
+import { resolveCohortCompanyId, assessmentListWhereParts } from '../../lib/assessment/assessment-filters.js';
 
 function check(name, fn) {
   try {

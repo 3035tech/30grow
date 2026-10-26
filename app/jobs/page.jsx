@@ -13,7 +13,7 @@ import {
   resolveRemoteAggregator,
 } from '../../lib/public-job-aggregators';
 import { PublicVacanciesIndexView } from '../_components/PublicVacancyPosting';
-import { publicSiteBaseUrl } from '../../lib/public-site-url.js';
+import { publicSiteBaseUrl } from '../../lib/marketing/public-site-url.js';
 
 export async function generateMetadata({ searchParams } = {}) {
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);

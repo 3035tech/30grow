@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { getSessionPayload, getManagerScope, resolveScopedCompanyId, CAP, requireCapability } from '../../../../../lib/ae/require-admin.js';
-import { updatePerformanceGoal, deletePerformanceGoal } from '../../../../../lib/performance-reviews.js';
+import { updatePerformanceGoal, deletePerformanceGoal } from '../../../../../lib/development/performance-reviews.js';
 import { audit } from '../../../../../lib/audit.js';
 
 

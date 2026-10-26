@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { query } from '../../../../../../lib/db.js';
-import { CAP } from '../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../lib/identity/permissions.js';
 import { updateLeaveRequest } from '../../../../../../lib/people/employee-dp.js';
 import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../../lib/employee/employee-notifications.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';

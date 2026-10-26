@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiErrorFromResult } from '../../../../../lib/api-error.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { listCompanyFieldVisits } from '../../../../../lib/people/field-team.js';
 import { fieldVisitBodySchema, planFieldVisit } from '../../../../../lib/people/field-team-api.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';

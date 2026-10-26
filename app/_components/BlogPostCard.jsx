@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { publicBlogPath } from '../../lib/public-marketing-paths';
+import { publicBlogPath } from '../../lib/marketing/public-marketing-paths';
 
 /** Card used by the blog index, related posts and the landing section. */
 export function BlogPostCard({ post, readMinutesLabel, headingLevel = 'h2', locale = 'pt-BR' }) {

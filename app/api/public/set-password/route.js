@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
-import { verifyTurnstileToken } from '../../../../lib/turnstile.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
+import { verifyTurnstileToken } from '../../../../lib/identity/turnstile.js';
 import {
   completePasswordSetup,
   peekPasswordSetupToken,
-} from '../../../../lib/user-password-invite';
+} from '../../../../lib/identity/user-password-invite';
 import { audit } from '../../../../lib/audit';
 
 export const dynamic = 'force-dynamic';

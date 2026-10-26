@@ -57,7 +57,7 @@ Executar somente após confirmar que nenhum endpoint ou job passou a gravar memb
 
 O primeiro incremento de dual-write adicionou:
 
-- serviço canônico `lib/user-company-memberships.js`;
+- serviço canônico `lib/identity/user-company-memberships.js`;
 - helper transacional compartilhado em `lib/db.js`;
 - sincronização atômica no CRUD administrativo de gestores;
 - aposentadoria do membership legado anterior quando um admin reatribui a empresa;
@@ -85,8 +85,8 @@ Refresh rotativo e logout remoto ainda não estão habilitados; são o próximo 
 
 ## Rollback do dual-write administrativo
 
-1. reverter os call sites em `lib/users-admin.js`, `app/api/auth/signup/route.js` e `lib/user-password-invite.js` para gravar somente `users`;
+1. reverter os call sites em `lib/identity/users-admin.js`, `app/api/auth/signup/route.js` e `lib/identity/user-password-invite.js` para gravar somente `users`;
 2. remover o roteamento `/api/mobile/v1` e `lib/mobile-manager-session.js` sem alterar a sessão web;
 3. manter a tabela e os dados de membership para reconciliação;
-4. não remover `lib/user-company-memberships.js` enquanto houver outro consumidor;
+4. não remover `lib/identity/user-company-memberships.js` enquanto houver outro consumidor;
 5. confirmar que login e autorização web continuam baseados em `users.company_id` e `users.role`.

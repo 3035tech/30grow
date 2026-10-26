@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import { getTimeClosingReadiness } from '../../../../../lib/people/time-clock-readiness.js';
 const schema = z.object({

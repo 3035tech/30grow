@@ -6,7 +6,7 @@ import {
   listCompanyKudos,
 } from '../../../../lib/company/company-kudos.js';
 import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee/employee-notifications.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 

@@ -10,7 +10,7 @@ import {
 import { ORG_TREE_CAP } from '../../lib/people/org-chart.js';
 import { FEEDBACK_MONTHLY_CAP, FEEDBACK_RESPONSE_MAX } from '../../lib/people/continuous-feedback.js';
 import { WHISTLE_BODY_MIN, WHISTLE_BODY_MAX } from '../../lib/people/whistleblowing.js';
-import { CAP, TAB_CAPABILITY } from '../../lib/permissions.js';
+import { CAP, TAB_CAPABILITY } from '../../lib/identity/permissions.js';
 
 function main() {
   assert.ok(WHISTLEBLOWING_CATEGORIES.includes('harassment'));

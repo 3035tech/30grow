@@ -16,7 +16,7 @@ import {
   ONBOARDING_STEP,
   PRODUCT_FEEDBACK_STATUS,
 } from '../../lib/domain-status.js';
-import { normalizeFunnelDays, recordOnboardingEvent } from '../../lib/onboarding-funnel.js';
+import { normalizeFunnelDays, recordOnboardingEvent } from '../../lib/development/onboarding-funnel.js';
 
 describe('addSupportBusinessDays', () => {
   it('promises one business day by default', () => {

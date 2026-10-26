@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../lib/identity/auth';
 import { audit } from '../../../../../lib/audit';
 import { apiError, ERR } from '../../../../../lib/api-error';
-import { CAP, requireCapability, isSuperAdminPayload } from '../../../../../lib/permissions';
+import { CAP, requireCapability, isSuperAdminPayload } from '../../../../../lib/identity/permissions';
 import { purgeExpiredAssessmentsAndOrphans } from '../../../../../lib/retention';
 
 export async function POST(request) {

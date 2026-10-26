@@ -38,7 +38,7 @@ Próxima categoria de melhorias após completar **UX/UI**. Foco em escala, perfo
 
 #### P-1001: Rate Limiting Signup
 ```js
-// lib/rate-limit.js (reusar existente)
+// lib/identity/rate-limit.js (reusar existente)
 export function checkSignupRateLimit(ip) {
   // 5 tentativas / 15min / IP
   const key = `signup:${ip}`;
@@ -48,13 +48,13 @@ export function checkSignupRateLimit(ip) {
 
 **Files:**
 - `app/api/signup/route.js` (add rate limit)
-- `lib/rate-limit.js` (extend)
+- `lib/identity/rate-limit.js` (extend)
 
 ---
 
 #### P-1002: Cache HR Score Persistente
 ```js
-// lib/hr-score-cache.js
+// lib/assessment/hr-score-cache.js
 import Redis from 'ioredis'; // ou in-memory com TTL
 const redis = new Redis(process.env.REDIS_URL);
 
@@ -372,7 +372,7 @@ Cada P-xxxx deve ter:
 ## 🔗 Referências
 
 - Health checks: [Kubernetes liveness](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
-- Rate limiting: `lib/rate-limit.js` existente
+- Rate limiting: `lib/identity/rate-limit.js` existente
 - Pool PG: [node-postgres best practices](https://node-postgres.com/features/pooling)
 - Índices: `migrations/006_performance_indexes.sql`
 - Logs: [12-factor app logging](https://12factor.net/logs)

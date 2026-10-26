@@ -366,7 +366,7 @@ for point in data['trends']['hrScore']:
 
 - **Multi-tenant:** Todas as queries são isoladas por `company_id` (exceto `admin` cross-tenant)
 - **Performance:** Queries otimizadas com índices (`migrations/061_performance_indexes.sql`)
-- **Cache:** HR Score usa cache em memória (TTL 5min) via `lib/hr-score-cache.js`
+- **Cache:** HR Score usa cache em memória (TTL 5min) via `lib/assessment/hr-score-cache.js`
 - **Monitoramento:** Métricas de uso em `/api/health/metrics` (admin-only)
 - **Logs estruturados:** JSON logs via `lib/monitoring.js`
 

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
-import { ONBOARDING_FUNNEL_DAY_OPTIONS } from '../../../lib/onboarding-funnel';
+import { ONBOARDING_FUNNEL_DAY_OPTIONS } from '../../../lib/development/onboarding-funnel';
 import { AdminTableShell, AdminTh, S } from '../dashboard-shared';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';

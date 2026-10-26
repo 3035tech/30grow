@@ -31,7 +31,7 @@ import { createRequire } from 'node:module';
 import { getPgBaseConfig } from '../lib/pg-config.js';
 import { MOTIVATORS_DIMENSIONS, motivatorDimensionLabel } from '../lib/ae/motivators-dimensions.js';
 import { AE_SCORING_ENGINE_VERSION } from '../lib/ae/ae-id.js';
-import { computeAreaScore010 } from '../lib/area-fit.js';
+import { computeAreaScore010 } from '../lib/assessment/area-fit.js';
 import {
   fitTypeAlignment,
   normalizeRecommendation,

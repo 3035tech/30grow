@@ -10,7 +10,7 @@ Origem: brand kit oficial `30grow-brand-kit.zip` (vetores sem fonte, favicon aju
 
 - Símbolo: `public/brand/logo-symbol.svg` (+ `logo-symbol-dark.svg`), viewBox 140×110.
 - Logo completo: `public/brand/logo-wordmark.svg` (+ `-dark`, `-white`), viewBox 368×114.
-- Paths vetoriais: `LOGO_PATHS` em `lib/brand-tokens.cjs`, consumidos pelo `BrandMark` (3 em `currentColor`, restante `--grow-primary`); sem `<text>` nem imagem raster.
+- Paths vetoriais: `LOGO_PATHS` em `lib/marketing/brand-tokens.cjs`, consumidos pelo `BrandMark` (3 em `currentColor`, restante `--grow-primary`); sem `<text>` nem imagem raster.
 - Favicon (`favicon.ico`, `public/brand/favicon.svg`, `logo-16…64.png`), Apple icon (180px), PWA (`logo-192/512.png` + `logo-maskable-192/512.png` no `site.webmanifest`).
 - Atualizar a partir de um kit novo: descompactar e rodar `node scripts/brand/generate.cjs <pasta-do-kit>`. Sem argumento, só regenera `app/brand-tokens.css`.
 - E-mails transacionais (convites, acesso, relatório de Analytics) usam `GROW.action` / navy em vez do roxo antigo.
@@ -18,7 +18,7 @@ Origem: brand kit oficial `30grow-brand-kit.zip` (vetores sem fonte, favicon aju
 
 ## Fonte de verdade
 
-`lib/brand-tokens.cjs` centraliza cores, escala verde, tipografia e sombras. O gerador produz `app/brand-tokens.css` e os assets. Tailwind e o tema JS consomem os mesmos valores. Aliases históricos (`PURPLE`, `C.purple`, `FONTS.serif`) permanecem para compatibilidade, mas resolvem para a nova identidade.
+`lib/marketing/brand-tokens.cjs` centraliza cores, escala verde, tipografia e sombras. O gerador produz `app/brand-tokens.css` e os assets. Tailwind e o tema JS consomem os mesmos valores. Aliases históricos (`PURPLE`, `C.purple`, `FONTS.serif`) permanecem para compatibilidade, mas resolvem para a nova identidade.
 
 | Papel | Valor |
 | --- | --- |

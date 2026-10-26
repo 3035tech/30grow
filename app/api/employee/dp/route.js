@@ -10,7 +10,7 @@ import {
 } from '../../../../lib/people/employee-dp.js';
 import { notifyCompanyManagers } from '../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../lib/manager-notification-catalog.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 import { AUDIT_ACTOR_KIND, auditFromRequest } from '../../../../lib/audit.js';
 
 export const dynamic = 'force-dynamic';

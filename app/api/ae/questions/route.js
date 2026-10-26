@@ -3,7 +3,7 @@ import { queryRead } from '../../../../lib/db';
 import { drawMotivatorsQuestions } from '../../../../lib/ae/draw-questions';
 import { toPublicQuestions } from '../../../../lib/ae/to-public-questions';
 import { apiError, localeFromRequest, ERR } from '../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 /**
  * GET /api/ae/questions?definition=motivators

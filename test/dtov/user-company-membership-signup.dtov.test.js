@@ -1,15 +1,15 @@
 /** DTOV proof — signup and password activation preserve membership parity. */
 import assert from 'node:assert/strict';
 import { pool, query } from '../../lib/db.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import {
   createSelfServiceSignupIdentity,
   SELF_SERVICE_COMPANY_ACTION,
-} from '../../lib/self-service-signup.js';
-import { completePasswordSetup, hashUnusablePassword, issuePasswordSetupInvite } from '../../lib/user-password-invite.js';
-import { hydrateSessionPayload } from '../../lib/session.js';
-import { CAP, can, canManageCompanyModules } from '../../lib/permissions.js';
-import { deactivateUser, listUsers, resendUserPasswordInvite, updateUser } from '../../lib/users-admin.js';
+} from '../../lib/identity/self-service-signup.js';
+import { completePasswordSetup, hashUnusablePassword, issuePasswordSetupInvite } from '../../lib/identity/user-password-invite.js';
+import { hydrateSessionPayload } from '../../lib/identity/session.js';
+import { CAP, can, canManageCompanyModules } from '../../lib/identity/permissions.js';
+import { deactivateUser, listUsers, resendUserPasswordInvite, updateUser } from '../../lib/identity/users-admin.js';
 
 async function main() {
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

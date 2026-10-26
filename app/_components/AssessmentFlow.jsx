@@ -3,7 +3,7 @@
 import { SelectField } from './SelectField';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { computeAssessmentFromAnswers } from '../../lib/assessment-score';
+import { computeAssessmentFromAnswers } from '../../lib/assessment/assessment-score';
 import { drawLocalizedQuestions, getScaleLabels, localizeAreaLabel } from '../../lib/i18n-data';
 import { errorMessage, t } from '../../lib/i18n';
 import { useLocale } from '../../lib/useLocale';

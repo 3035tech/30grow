@@ -1,14 +1,14 @@
 import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { COOKIE_NAME, sessionCookieOptions } from './lib/session-cookie';
-import { shouldSlideSession, MANAGER_SESSION_MAX_AGE_SEC } from './lib/session-ttl';
+import { COOKIE_NAME, sessionCookieOptions } from './lib/identity/session-cookie';
+import { shouldSlideSession, MANAGER_SESSION_MAX_AGE_SEC } from './lib/identity/session-ttl';
 import {
   signEmployeeTokenEdge,
   signManagerTokenEdge,
   verifyTokenEdge,
   verifyEmployeeTokenEdge,
-} from './lib/auth-edge';
-import { isManagerRole } from './lib/permissions';
+} from './lib/identity/auth-edge';
+import { isManagerRole } from './lib/identity/permissions';
 import { ERR } from './lib/api-error-codes';
 import {
   EMPLOYEE_COOKIE_NAME,
@@ -31,10 +31,10 @@ import {
 import {
   applyContentSecurityPolicyHeaders,
   resolveContentSecurityPolicy,
-} from './lib/security-csp';
+} from './lib/identity/security-csp';
 import { isCrawlerNoIndexPath } from './lib/crawler-guard';
-import { PUBLIC_LOCALE_HEADER, publicMarketingRoute, publicMarketingPath } from './lib/public-marketing-paths';
-import { publicSiteBaseUrl } from './lib/public-site-url';
+import { PUBLIC_LOCALE_HEADER, publicMarketingRoute, publicMarketingPath } from './lib/marketing/public-marketing-paths';
+import { publicSiteBaseUrl } from './lib/marketing/public-site-url';
 import {
   LOCALE_COOKIE,
   LOCALE_COOKIE_MAX_AGE_SEC,

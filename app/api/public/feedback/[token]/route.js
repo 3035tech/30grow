@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit';
 import {
   answerFeedbackRequest,
   resolveFeedbackByToken,

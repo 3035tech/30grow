@@ -4,8 +4,8 @@ import {
   accountRateLimitKey,
   checkRateLimit,
   clientIpFromRequest,
-} from '../../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../../lib/turnstile.js';
+} from '../../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../../lib/identity/turnstile.js';
 import {
   completeEmployeeCompanyPick,
   loginEmployeeWithPassword,

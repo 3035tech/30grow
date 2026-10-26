@@ -4,7 +4,7 @@
 
 Search Console: 57 URLs indexadas e 36 excluídas. Das excluídas, dez são favicons/manifesto; três são acessos bloqueados; oito redirecionam; uma é privacidade alternativa. Sete soluções regionais tiveram canonical diferente da declarada e sete páginas estavam descobertas sem rastreamento.
 
-A inspeção confirmou que Google escolheu `/es/solutions/reclutamiento` para a URL `/es-es/solutions/reclutamiento` e `/solucoes/departamento-pessoal` para `/pt-pt/solucoes/departamento-pessoal`. O acesso e a indexação estavam permitidos. `lib/public-solutions.js` compartilha títulos e conteúdo por idioma, sem diferenciação regional nessas soluções.
+A inspeção confirmou que Google escolheu `/es/solutions/reclutamiento` para a URL `/es-es/solutions/reclutamiento` e `/solucoes/departamento-pessoal` para `/pt-pt/solucoes/departamento-pessoal`. O acesso e a indexação estavam permitidos. `lib/marketing/public-solutions.js` compartilha títulos e conteúdo por idioma, sem diferenciação regional nessas soluções.
 
 As seis soluções pt-PT consolidam em pt-BR; as seis es-ES consolidam em es-419. Metadata, Open Graph e JSON-LD usam a URL preferida; o sitemap deixa de listar as doze duplicatas como URLs principais. As rotas regionais e seus alternates hreflang permanecem disponíveis. Home e preços continuam com canonical regional próprio.
 

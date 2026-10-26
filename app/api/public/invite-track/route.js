@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 export const dynamic = 'force-dynamic';
 

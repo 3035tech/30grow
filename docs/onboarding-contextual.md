@@ -32,7 +32,7 @@ import { ContextualTooltip } from '@/app/_components/ContextualTooltip';
 
 **Arquivos:**
 - `app/_components/OnboardingChecklist.jsx` (UI)
-- `lib/onboarding-progress.js` (lógica de tracking)
+- `lib/development/onboarding-progress.js` (lógica de tracking)
 
 **7 tarefas críticas:**
 1. Criar primeira vaga (20%)
@@ -107,7 +107,7 @@ import { EmptyVacancies } from '@/app/_components/EmptyStateActionable';
 - E-mail só pela própria pessoa: gestor não-admin não altera o e-mail de outro usuário (`updateUser` com `isAdmin: false` e `actorUserId` diferente → `EMAIL_CHANGE_SELF_ONLY` 403), porque trocar o e-mail e usar "Esqueci a senha" entregaria a conta. Em Usuários o campo fica bloqueado com dica; o próprio usuário troca em Meu perfil (ou na própria linha). E-mail digitado errado: desativar e convidar de novo. Super admin mantém a troca para suporte
 - Colaborador: quando o gestor troca o e-mail corporativo (`PATCH /api/admin/candidates/[id]`), `revokeEmployeeAccessForEmailChange` zera `password_hash` e o token de definição e incrementa `session_version` na mesma transação; depois do commit, `finishEmployeeEmailChange` atualiza o cache de sessão e, se a pessoa tinha acesso ao portal, envia o convite de senha ao e-mail novo. A resposta traz `portalAccessReset: { inviteSent }` e a auditoria `candidate.email_change` registra `portalAccessReset` / `inviteSent`. Assim, trocar o e-mail não reaproveita a senha antiga e derruba sessões abertas
 - Origem (selo em Usuários / Leads, `resolveUserOrigin`): o fallback "empresa criada por signup" vale só para o próprio criador (`isCompanySignupCreator`); gestores que ele convida aparecem como **Painel**. Empresa sem `signup_creator_user_id` (legado) mantém o comportamento antigo
-- Gestor não-admin nunca lista, edita, desativa nem reenvia convite de usuário `admin`, mesmo vinculado à própria empresa (`assertUserInScope` em `lib/users-admin-scope.js` + filtro em `listUsers`)
+- Gestor não-admin nunca lista, edita, desativa nem reenvia convite de usuário `admin`, mesmo vinculado à própria empresa (`assertUserInScope` em `lib/identity/users-admin-scope.js` + filtro em `listUsers`)
 - Outras rotas abertas por `users.manage`: recálculo do HR Score usa sempre o `company_id` da sessão para não-admin; métricas de cache do HR Score (`/api/admin/hr-score/cache-metrics`) só super admin; módulos via `/api/admin/company-modules` ficam na empresa da sessão (`withAdminApi`)
 - Portal do colaborador (`/employee`, card de boas-vindas) usa sessão própria (`team30_employee_session`) e não passa por `resolveCapabilities`: a mudança não o afeta
 

@@ -36,7 +36,7 @@ Navegador (React) → Next.js (App Router, Proxy) → PostgreSQL 16 (+ réplica 
 | Backend | API Routes finas + regras em `lib/` · `pg` com SQL parametrizado (`query` primário / `queryRead` réplica) |
 | Auth gestor | Tabela `users` + JWT em cookie httpOnly `team30_session` (8h, sliding; `session_version` revoga) |
 | Auth colaborador | `team30_employee_session` (12h) em `/employee`; candidato **não** tem conta (links por token `/t`, `/v`, `/r`, `/e`) |
-| Roles | `admin` (única cross-tenant), `direction`, `hr` · capabilities em `lib/permissions.js` (`CAP`) |
+| Roles | `admin` (única cross-tenant), `direction`, `hr` · capabilities em `lib/identity/permissions.js` (`CAP`) |
 | Observabilidade | Logs JSON em stdout, Sentry opcional, `GET /api/health` e `/api/health/status` |
 | Runtime | Node **22** (imagem `node:22-alpine`) |
 
@@ -199,7 +199,7 @@ Retenção LGPD (`RETENTION_DAYS`) e demais crons: ver `.env.example` e [`docs/p
 |---------|---------------|
 | Isolamento | Toda query multi-tenant filtra `company_id`; só `admin` é cross-tenant |
 | Autenticação | JWT httpOnly, revogação por `session_version`, 2FA opcional |
-| Autorização | `lib/permissions.js` (`can` / `CAP`) no servidor, não só no menu |
+| Autorização | `lib/identity/permissions.js` (`can` / `CAP`) no servidor, não só no menu |
 | APIs admin | `withAdminApi` + Zod + rate limit + `audit_log` |
 | Senhas | bcrypt em `users.password_hash` |
 | Cabeçalhos | Baseline sempre; HSTS automático com HTTPS; CSP via `ENABLE_CSP` |

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 /** GET /api/public/ae-invite-track?token= — marca convite como aberto. */
 export async function GET(request) {

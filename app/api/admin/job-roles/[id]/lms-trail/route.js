@@ -6,7 +6,7 @@ import { z, zPositiveInt } from '../../../../../../lib/validate.js';
 import {
   listJobRoleLmsTrail,
   setJobRoleLmsTrail,
-} from '../../../../../../lib/lms-job-role-trail.js';
+} from '../../../../../../lib/development/lms-job-role-trail.js';
 import { audit } from '../../../../../../lib/audit.js';
 
 const putBodySchema = z.object({

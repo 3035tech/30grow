@@ -6,7 +6,7 @@ import {
   getManagerScope,
   requireCapability,
 } from '../../../../../lib/ae/require-admin';
-import { deactivateUser, updateUser } from '../../../../../lib/users-admin';
+import { deactivateUser, updateUser } from '../../../../../lib/identity/users-admin';
 
 export async function PATCH(request, props) {
   const params = await props.params;

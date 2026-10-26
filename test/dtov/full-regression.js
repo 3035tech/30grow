@@ -78,7 +78,7 @@ async function runOfflineLibs() {
 
   await check('lib', 'cohort-company-scope', async () => {
     const { resolveCohortCompanyId, assessmentListWhereParts } = await import(
-      '../../lib/assessment-filters.js'
+      '../../lib/assessment/assessment-filters.js'
     );
     if (resolveCohortCompanyId({ isAdmin: true, companyId: 12, scopeCompanyFilter: null }) !== 12) {
       throw new Error('tenant-bound admin must default to home company');
@@ -131,7 +131,7 @@ async function runOfflineLibs() {
     if (!isItemDueOverdue({ status: 'todo', dueDate: '2000-01-01' })) {
       throw new Error('expected overdue');
     }
-    const { computeAreaScore010 } = await import('../../lib/area-fit.js');
+    const { computeAreaScore010 } = await import('../../lib/assessment/area-fit.js');
     const fit = computeAreaScore010(
       { 1: 10, 2: 5, 3: 2 },
       { 1: 3, 2: 1 },
@@ -473,7 +473,7 @@ async function runOfflineLibs() {
     const { fileURLToPath } = await import('node:url');
     const { dirname, join } = await import('node:path');
     const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-    const src = await readFile(join(root, 'lib', 'assessment-score.js'), 'utf8');
+    const src = await readFile(join(root, 'lib', 'assessment', 'assessment-score.js'), 'utf8');
     if (!src.includes('export function computeAssessmentFromAnswers')) {
       throw new Error('missing computeAssessmentFromAnswers export');
     }
@@ -481,7 +481,7 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'permissions-hr', async () => {
-    const { can, CAP } = await import('../../lib/permissions.js');
+    const { can, CAP } = await import('../../lib/identity/permissions.js');
     const hr = { role: 'hr', companyId: 1 };
     if (!can(hr, CAP.VACANCIES_VIEW)) throw new Error('hr should view vacancies');
     if (!can(hr, CAP.CLIMATE_VIEW)) throw new Error('hr should view climate');
@@ -490,7 +490,7 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'permissions-admin-only', async () => {
-    const { ADMIN_ONLY_CAPS, resolveCapabilities } = await import('../../lib/permissions.js');
+    const { ADMIN_ONLY_CAPS, resolveCapabilities } = await import('../../lib/identity/permissions.js');
     const set = resolveCapabilities({ role: 'hr', companyId: 1 });
     for (const c of ADMIN_ONLY_CAPS) {
       if (set.has(c)) throw new Error(`hr leaked admin cap ${c}`);
@@ -551,8 +551,8 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'totp-optional-2fa', async () => {
-    const { generateTotpSecret, verifyTotpCode, buildOtpAuthUrl } = await import('../../lib/totp.js');
-    const { roleMayUse2Fa } = await import('../../lib/manager-2fa.js');
+    const { generateTotpSecret, verifyTotpCode, buildOtpAuthUrl } = await import('../../lib/identity/totp.js');
+    const { roleMayUse2Fa } = await import('../../lib/identity/manager-2fa.js');
     if (!roleMayUse2Fa('admin') || !roleMayUse2Fa('hr') || !roleMayUse2Fa('direction')) {
       throw new Error('managers should use 2FA');
     }
@@ -843,13 +843,13 @@ async function runOfflineLibs() {
       generatePasswordSetupToken,
       maskEmail,
       PASSWORD_SETUP_TTL_MS,
-    } = await import('../../lib/user-password-invite.js');
+    } = await import('../../lib/identity/user-password-invite.js');
     const tok = generatePasswordSetupToken();
     if (!tok || tok.length < 20) throw new Error('token too short');
     if (maskEmail('hr@acme.com') !== 'hr***@acme.com') throw new Error(maskEmail('hr@acme.com'));
     if (PASSWORD_SETUP_TTL_MS < 24 * 60 * 60 * 1000) throw new Error('ttl too short');
     const src = await import('node:fs/promises').then((fs) =>
-      fs.readFile(new URL('../../lib/user-password-invite.js', import.meta.url), 'utf8')
+      fs.readFile(new URL('../../lib/identity/user-password-invite.js', import.meta.url), 'utf8')
     );
     if (!src.includes('signup_pending = TRUE')) {
       throw new Error('invite must allow signup_pending inactive users');
@@ -1084,7 +1084,7 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'referral-code-normalize', async () => {
-    const { normalizeReferralCode } = await import('../../lib/referral-codes.js');
+    const { normalizeReferralCode } = await import('../../lib/marketing/referral-codes.js');
     if (normalizeReferralCode('ab-c') !== 'AB-C') throw new Error('normalize');
     if (normalizeReferralCode('x') != null) throw new Error('too short');
     if (normalizeReferralCode('@@@') != null) throw new Error('invalid chars');
@@ -1591,7 +1591,7 @@ async function runSqlSuite(client) {
 
   await check('sql', 'referral-analytics', async () => {
     const { getReferralAnalytics, findActiveReferralCode } = await import(
-      '../../lib/referral-codes.js'
+      '../../lib/marketing/referral-codes.js'
     );
     const found = await findActiveReferralCode('dtovref', { companyId });
     if (!found || found.code !== 'DTOVREF') throw new Error('missing DTOVREF code');

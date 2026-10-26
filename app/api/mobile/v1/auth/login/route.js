@@ -7,13 +7,13 @@ import {
   MOBILE_EMPLOYEE_AUTH_OUTCOME,
   mobileEmployeeSelectionResponse,
   signMobileEmployeeSecondFactor,
-} from '../../../../../../lib/mobile-employee-session.js';
+} from '../../../../../../lib/mobile/mobile-employee-session.js';
 import { query } from '../../../../../../lib/db.js';
 import {
   accountRateLimitKey,
   checkRateLimit,
   clientIpFromRequest,
-} from '../../../../../../lib/rate-limit.js';
+} from '../../../../../../lib/identity/rate-limit.js';
 import { parseJsonBody } from '../../../../../../lib/validate.js';
 
 const loginSchema = z.object({

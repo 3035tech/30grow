@@ -1,11 +1,11 @@
 import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
-import { requestPasswordResetByEmail } from '../../../../lib/user-password-invite';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
+import { requestPasswordResetByEmail } from '../../../../lib/identity/user-password-invite';
 import { audit } from '../../../../lib/audit';
 import { normalizeLocale } from '../../../../lib/i18n';
-import { verifyTurnstileToken } from '../../../../lib/turnstile.js';
+import { verifyTurnstileToken } from '../../../../lib/identity/turnstile.js';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
 import { changeEmployeePassword } from '../../../../../lib/employee/employee-profile.js';
 

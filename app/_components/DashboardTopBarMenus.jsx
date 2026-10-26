@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { redirectManagerIfUnauthorized } from '../../lib/manager-client-session';
+import { redirectManagerIfUnauthorized } from '../../lib/identity/manager-client-session';
 import { notificationCopySpec, notificationVisual, NOTIF } from '../../lib/manager-notification-catalog';
 import { GlobalSearch } from './GlobalSearch';
 import { DarkModeToggle } from './DarkModeProvider';

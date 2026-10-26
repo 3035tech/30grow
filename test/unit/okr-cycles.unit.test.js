@@ -9,7 +9,7 @@ import {
   meanProgressPct,
   weightedProgressPct,
   clampWeight,
-} from '../../lib/okr-cycles.js';
+} from '../../lib/development/okr-cycles.js';
 
 describe('meanProgressPct', () => {
   it('returns null for empty', () => {

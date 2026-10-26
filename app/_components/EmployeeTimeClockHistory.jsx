@@ -11,7 +11,7 @@ import {
   TIME_REQUEST_KIND,
   TIME_REQUEST_STATUS,
 } from '../../lib/domain-status.js';
-import { DP_DOC_ALLOWED_MIMES, DP_DOC_MAX_BYTES } from '../../lib/dp-upload-validation.js';
+import { DP_DOC_ALLOWED_MIMES, DP_DOC_MAX_BYTES } from '../../lib/assessment/dp-upload-validation.js';
 import {
   TIME_ADJUST_MAX_ADD,
   TIME_ADJUST_MAX_VOID,

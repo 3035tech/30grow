@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { collectHealthStatus, isHealthStatusTokenValid } from '../../../../lib/health-status';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 export const dynamic = 'force-dynamic';
 

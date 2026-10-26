@@ -3,7 +3,7 @@ import { withTransaction } from '../../../../lib/db';
 import { loadQuestionsForScoring } from '../../../../lib/ae/load-questions-for-scoring';
 import { computeMotivatorScores } from '../../../../lib/ae/scoring';
 import { resolveResultTextsFromDb } from '../../../../lib/ae/templates';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 import { AE_SCORING_ENGINE_VERSION } from '../../../../lib/ae/ae-id';
 import { bootstrapMotivators } from '../../../../lib/ae/bootstrap-motivators';
 import { formatScoringFailure, summarizeScoringInput } from '../../../../lib/ae/scoring-diagnostics';

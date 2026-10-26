@@ -1,7 +1,7 @@
 'use client';
 
-import { DP_ADDRESS_NUMBER_MAX_LENGTH } from '../../lib/dp-profile-constants';
-import { dpUploadValidationKey, dpUploadResponseKey } from '../../lib/dp-upload-validation';
+import { DP_ADDRESS_NUMBER_MAX_LENGTH } from '../../lib/assessment/dp-profile-constants';
+import { dpUploadValidationKey, dpUploadResponseKey } from '../../lib/assessment/dp-upload-validation';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t, tCount, localeHtmlLang } from '../../lib/i18n';

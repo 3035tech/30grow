@@ -4,13 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { S, AdminListPager, AdminListSearch, AdminPageHeader, AdminTableShell, AdminTh } from '../dashboard-shared';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
 import { StatusToneChip } from '../../_components/StatusToneChip';
-import { isSignupJobTitle, SIGNUP_JOB_TITLE } from '../../../lib/signup-job-titles';
+import { isSignupJobTitle, SIGNUP_JOB_TITLE } from '../../../lib/marketing/signup-job-titles';
 
 function leadStatusTone(status) {
   if (status === 'pending') return 'warning';

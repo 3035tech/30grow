@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import {
   assignRecruitingCandidate,
   deleteRecruitingView,

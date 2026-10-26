@@ -10,7 +10,7 @@ import {
   PAGE_SIZE_OPTIONS,
   parseVacanciesPagination,
   parseVacanciesSort,
-} from '../../../lib/assessment-filters';
+} from '../../../lib/assessment/assessment-filters';
 import {
   clientSortNextDir,
   PanelSubNav,

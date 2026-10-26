@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { queryRead } from '../../../../lib/db.js';
 import { withAdminApi } from '../../../../lib/admin-api.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import { normalizeLocale } from '../../../../lib/i18n.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 import { loadTeamBehavioralIntel } from '../../../../lib/people/load-team-behavioral-intel.js';

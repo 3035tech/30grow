@@ -3,8 +3,8 @@ import { z } from 'zod';
 import { query } from '../../../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
 import { requestEmployeeMagicLink } from '../../../../../../lib/employee/employee-auth.js';
-import { checkRateLimit, clientIpFromRequest, accountRateLimitKey } from '../../../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../../../lib/turnstile.js';
+import { checkRateLimit, clientIpFromRequest, accountRateLimitKey } from '../../../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../../../lib/identity/turnstile.js';
 import { zLocale, parseJsonBody } from '../../../../../../lib/validate.js';
 
 export const dynamic = 'force-dynamic';

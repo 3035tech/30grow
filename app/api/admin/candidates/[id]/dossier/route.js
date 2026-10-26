@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { queryRead } from '../../../../../../lib/db.js';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
-import { CAP } from '../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../lib/identity/permissions.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { normalizeLocale } from '../../../../../../lib/i18n.js';
 import { buildPersonDossier } from '../../../../../../lib/people/person-dossier.js';

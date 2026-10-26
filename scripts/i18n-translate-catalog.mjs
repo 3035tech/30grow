@@ -326,7 +326,7 @@ async function main() {
   }
   if (opts.target === 'all' || opts.target === 'landing') {
     const rel = `lib/i18n/landing/${opts.locale}.js`;
-    const { PRODUCT_LANDING_SOURCE_COPY } = await import(pathToFileURL(path.join(ROOT, 'lib/product-landing-seo.js')).href);
+    const { PRODUCT_LANDING_SOURCE_COPY } = await import(pathToFileURL(path.join(ROOT, 'lib/marketing/product-landing-seo.js')).href);
     await run({
       locale: opts.locale, label: 'landing', opts, ai,
       source: PRODUCT_LANDING_SOURCE_COPY,

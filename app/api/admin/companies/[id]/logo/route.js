@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabilities';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
+import { verifySessionWithCapabilities } from '../../../../../../lib/identity/user-capabilities';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
 import { query } from '../../../../../../lib/db';
 import { audit } from '../../../../../../lib/audit';
 import { apiError, ERR } from '../../../../../../lib/api-error';
-import { CAP, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, requireCapability } from '../../../../../../lib/identity/permissions';
 import {
   isCompanyLogoStorageConfigured,
   removeCompanyLogoObject,

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {ERR} from '../../lib/api-error-codes.js';
-import * as permissions from '../../lib/permissions.js';
+import * as permissions from '../../lib/identity/permissions.js';
 import * as stripe from '../../lib/billing/stripe.js';
 
 test('financial operations require a platform superadmin and same-origin POSTs',async()=>{

@@ -80,17 +80,17 @@ A partir da migration `054`, `055` e `056`:
 - **Auto PDI**: ao submeter review, metas com outcome `develop` geram automaticamente itens PDI com `source: 'performance_review'` e `performance_goal_id` linkado
 - UI: `PerformanceReviewsAdminTab` (criar/listar ciclos), review form (metas + outcomes + auto-confirm de PDI)
 - APIs: `/api/admin/performance-cycles` (CRUD cycles), `/api/admin/performance-goals` (CRUD goals), `/api/admin/performance-reviews` (GET/POST draft, POST submit → auto PDI)
-- Lib: `lib/performance-reviews.js` (ciclos, goals, reviews, `autoGeneratePdiFromReview`)
+- Lib: `lib/development/performance-reviews.js` (ciclos, goals, reviews, `autoGeneratePdiFromReview`)
 - Migration: `056_performance_reviews.sql` (tabelas `performance_cycles`, `performance_goals`, `performance_reviews`; estende `development_plan_items.source` para incluir `'performance_review'` e adiciona FK `performance_goal_id`)
 
 ### B-1005 — Plano de Sucessão
 - **Critical Roles** (papéis críticos da empresa): título, descrição, área, nível de impacto (high/critical)
 - **Succession Plans** (sucessores por papel): candidato, prontidão (`not_ready`, `developing`, `ready`, `now`), notas, data-alvo
 - **Readiness Score**: combina HR Score (70%) + Leadership Potential (30%) para ranquear candidatos
-- Integração com `lib/hr-score.js` (B-1001) e `lib/analytics/leadership-analytics.js` (potencial de liderança já existente)
+- Integração com `lib/assessment/hr-score.js` (B-1001) e `lib/analytics/leadership-analytics.js` (potencial de liderança já existente)
 - UI: `SuccessionAdminTab` (criar/listar papéis críticos, ver contadores de sucessores)
 - APIs: `/api/admin/succession/critical-roles` (CRUD roles), `/api/admin/succession/plans` (CRUD succession plans), `/api/admin/succession/critical-roles/[id]/successors` (list successors)
-- Lib: `lib/succession-plans.js` (CRUD roles/plans, `calculateSuccessionReadiness`, `getPotentialSuccessors`)
+- Lib: `lib/development/succession-plans.js` (CRUD roles/plans, `calculateSuccessionReadiness`, `getPotentialSuccessors`)
 - Migration: `057_succession_plans.sql` (tabelas `critical_roles`, `succession_plans`)
 
 ### B-1006 — Análise Demissional
@@ -115,7 +115,7 @@ A partir da migration `054`, `055` e `056`:
 - **Catálogo leve** (não é LMS): título, descrição rica, temas em tags (`TagInput`), tipo, URL, duração
 - **Link com PDI**: Equipe → PDI → item → botão Academy (`development_plan_resource_links`); listagem GET também para `TEAM_VIEW`
 - Sem player, SCORM ou progresso
-- UI: `LearningResourcesAdminTab`; APIs `/api/admin/learning-resources`; lib `lib/learning-resources.js`
+- UI: `LearningResourcesAdminTab`; APIs `/api/admin/learning-resources`; lib `lib/development/learning-resources.js`
 - Migrations: `059_learning_resources.sql`, `063_learning_theme_tags.sql`
 
 ### B-1009 — Benefícios da Empresa (Company Benefits)
@@ -296,7 +296,7 @@ Aceite do piloto: [`docs/pilot-acceptance-checklist.md`](./pilot-acceptance-chec
 
 ### Performance & Cache
 
-- **HR Score Cache:** TTL 5min em memória (`lib/hr-score-cache.js`)
+- **HR Score Cache:** TTL 5min em memória (`lib/assessment/hr-score-cache.js`)
 - **Índices otimizados:** `migrations/061_performance_indexes.sql` (15 índices estratégicos)
 - **Monitoring:** Logs estruturados JSON (`lib/monitoring.js`) + métricas in-memory
 - **Health Check:** `GET /api/health/metrics` (admin-only) — cache metrics, memory, request counts

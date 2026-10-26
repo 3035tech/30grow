@@ -25,7 +25,7 @@ import { explainAbsenceDiagnosisAi } from '../../lib/people/list-absence-explain
 import { ABSENCE_LIST, ABSENCE_REASON } from '../../lib/people/list-absence-diagnostics-core.js';
 import { CLIMATE_SURVEY_STATUS, PSYCHOSOCIAL_FACTOR, PSYCHOSOCIAL_RISK_STATUS } from '../../lib/domain-status.js';
 import { ERR } from '../../lib/api-error-codes.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 
 // Global response cache would skip usage tracking on reruns; prove the tracked path.
 process.env.AI_RESPONSE_CACHE = '0';

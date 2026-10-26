@@ -3,7 +3,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { buildDefaultContentSecurityPolicy, applyContentSecurityPolicyHeaders } from '../../lib/security-csp.js';
+import { buildDefaultContentSecurityPolicy, applyContentSecurityPolicyHeaders } from '../../lib/identity/security-csp.js';
 
 async function rateFixture(redisEnabled = false) {
   const events = [];
@@ -23,7 +23,7 @@ async function rateFixture(redisEnabled = false) {
     process: { env: redisEnabled ? { REDIS_URL: 'redis://example.invalid' } : {} },
     Date, Map, Number, String, URL,
   });
-  const mod = new vm.SourceTextModule(await readFile(new URL('../../lib/rate-limit.js', import.meta.url), 'utf8'), { context });
+  const mod = new vm.SourceTextModule(await readFile(new URL('../../lib/identity/rate-limit.js', import.meta.url), 'utf8'), { context });
   const deps = { default: Redis, createHash,
     logger: { info() {}, warn: (...args) => events.push(args) },
     incrementMetric: (...args) => metrics.push(args),

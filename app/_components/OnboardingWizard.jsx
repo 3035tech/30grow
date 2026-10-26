@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { can, canManageCompanyModules, CAP } from '../../lib/permissions';
+import { can, canManageCompanyModules, CAP } from '../../lib/identity/permissions';
 import { BrandMark } from './BrandMark';
 import { InlineCallout } from './InlineCallout';
 import { Icon } from './Icon';

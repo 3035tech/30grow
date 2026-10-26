@@ -1,7 +1,7 @@
-import { consumeSecondFactorChallenge } from '../../../../../../lib/second-factor-challenge.js';
+import { consumeSecondFactorChallenge } from '../../../../../../lib/identity/second-factor-challenge.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../../../lib/turnstile.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../../../lib/identity/turnstile.js';
 import {
   verifyEmployee2faChallenge,
   verifyEmployee2faLogin,

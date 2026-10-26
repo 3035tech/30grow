@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { EMPLOYEE_NOTIF } from '../../lib/employee/employee-notification-catalog.js';
-import { MOBILE_PUSH_DESTINATION, mobilePushDestinationFor, validExpoPushToken } from '../../lib/mobile-employee-push.js';
+import { MOBILE_PUSH_DESTINATION, mobilePushDestinationFor, validExpoPushToken } from '../../lib/mobile/mobile-employee-push.js';
 
 test('accepts only Expo push token shapes', () => {
   assert.equal(validExpoPushToken('ExpoPushToken[abc_DEF-123]'), true);
@@ -17,7 +17,7 @@ test('maps notification types to a closed mobile destination', () => {
 
 test('B-2721: opt-in destinations fall back to today unless the device declared them', async () => {
   const { MOBILE_PUSH_OPT_IN_DESTINATIONS, normalizeMobilePushDestinations, resolveMobilePushDestination, normalizeMobileAppVersion } =
-    await import('../../lib/mobile-employee-push.js');
+    await import('../../lib/mobile/mobile-employee-push.js');
   assert.equal(mobilePushDestinationFor(EMPLOYEE_NOTIF.TIME_REQUEST_DECIDED), MOBILE_PUSH_DESTINATION.TIME_CLOCK);
   assert.equal(mobilePushDestinationFor(EMPLOYEE_NOTIF.FIELD_EXPENSE_DECIDED), MOBILE_PUSH_DESTINATION.FIELD);
   assert.ok(MOBILE_PUSH_OPT_IN_DESTINATIONS.includes(MOBILE_PUSH_DESTINATION.TIME_CLOCK));

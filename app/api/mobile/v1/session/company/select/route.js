@@ -7,7 +7,7 @@ import {
   contextsFromSelectionToken,
   MOBILE_EMPLOYEE_AUTH_OUTCOME,
   signMobileEmployeeSecondFactor,
-} from '../../../../../../../lib/mobile-employee-session.js';
+} from '../../../../../../../lib/mobile/mobile-employee-session.js';
 import { query } from '../../../../../../../lib/db.js';
 import { parseJsonBody } from '../../../../../../../lib/validate.js';
 

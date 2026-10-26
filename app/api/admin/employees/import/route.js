@@ -3,7 +3,7 @@ import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../lib/ae/require-admin.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
 import { z, zLocale, zPositiveInt } from '../../../../../lib/validate.js';
-import { checkRateLimit } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../lib/identity/rate-limit.js';
 import { audit } from '../../../../../lib/audit.js';
 import { previewEmployeeCsv, importEmployeeCsv } from '../../../../../lib/employee/employee-csv-import.js';
 

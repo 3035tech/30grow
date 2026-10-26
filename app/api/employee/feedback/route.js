@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 import {
   createFeedbackRequest,
   listFeedbackInbox,

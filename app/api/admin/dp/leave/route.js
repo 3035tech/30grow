@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import { query } from '../../../../../lib/db.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { DP_LEAVE_TYPES } from '../../../../../lib/domain-status.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import {

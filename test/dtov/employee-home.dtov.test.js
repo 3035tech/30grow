@@ -4,7 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import { query, pool } from '../../lib/db.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import { EMPLOYMENT_STATUS, DEVELOPMENT_PLAN_ITEM_STATUS, DEVELOPMENT_PLAN_STATUS } from '../../lib/domain-status.js';
 import {
   completeEmployeePasswordSetup,
@@ -39,7 +39,7 @@ import {
   createLmsLesson,
   enrollLmsCandidates,
   lmsEmbedUrl,
-} from '../../lib/lms.js';
+} from '../../lib/development/lms.js';
 
 async function main() {
   const emp = await query(

@@ -6,9 +6,9 @@ import { z, zLocale, zPositiveInt } from '../../../../../../lib/validate.js';
 import { query } from '../../../../../../lib/db.js';
 import { admitCandidateAsEmployee, listCandidateHiringLinks } from '../../../../../../lib/recruiting/hire.js';
 import { normalizeStartDate } from '../../../../../../lib/recruiting/pipeline.js';
-import { ONBOARDING_STAGES } from '../../../../../../lib/onboarding-stage-selection.js';
+import { ONBOARDING_STAGES } from '../../../../../../lib/development/onboarding-stage-selection.js';
 import { audit } from '../../../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../lib/identity/rate-limit.js';
 import { EMPLOYEE_ACCESS_STATE_SQL } from '../../../../../../lib/employee/employee-access-state.js';
 
 const schema = z.object({

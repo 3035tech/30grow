@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../../lib/admin-api.js';
-import { CANDIDATE_ACCESS_CAPS } from '../../../../../../../lib/permissions.js';
+import { CANDIDATE_ACCESS_CAPS } from '../../../../../../../lib/identity/permissions.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 import {
   analyzeCandidateProfile,
   applyCandidateProfile,

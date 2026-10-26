@@ -3,7 +3,7 @@ import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../lib/api-error.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import {
   canManageDigitalCertificate,
 } from '../../../../lib/rep/certificate-admin.js';
@@ -13,7 +13,7 @@ import {
   readSigningSettings,
 } from '../../../../lib/rep/certificate-settings.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 const headers = {
   'Cache-Control': 'private, no-store',
   'X-Content-Type-Options': 'nosniff',

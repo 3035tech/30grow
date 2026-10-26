@@ -1,5 +1,5 @@
 import { withBillingApi } from '../../../../../lib/billing/api.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { query } from '../../../../../lib/db.js';
 import { BILLING_PLANS, LAUNCH_PRICE, priceId } from '../../../../../lib/billing/catalog.js';
 import { stripeMode } from '../../../../../lib/billing/stripe.js';

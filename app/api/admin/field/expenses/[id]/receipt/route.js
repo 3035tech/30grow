@@ -4,7 +4,7 @@
 
 import { withAdminApi } from '../../../../../../../lib/admin-api.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
-import { CAP } from '../../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../../lib/identity/permissions.js';
 import { dpDownloadResponse } from '../../../../../../../lib/people/dp-download-response.js';
 import { downloadFieldExpenseReceipt } from '../../../../../../../lib/people/field-team.js';
 import { zPositiveInt } from '../../../../../../../lib/validate.js';

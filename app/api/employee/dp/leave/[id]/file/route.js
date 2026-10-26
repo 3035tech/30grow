@@ -10,7 +10,7 @@ import {
 } from '../../../../../../../lib/people/employee-dp.js';
 import { notifyCompanyManagers } from '../../../../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../../../../lib/manager-notification-catalog.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 import { zPositiveInt } from '../../../../../../../lib/validate.js';
 import { dpDownloadResponse } from '../../../../../../../lib/people/dp-download-response.js';
 

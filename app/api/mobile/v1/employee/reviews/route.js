@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { mobileReviewDetail, mobileReviewList } from '../../../../../../lib/mobile-employee-payload.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { mobileReviewDetail, mobileReviewList } from '../../../../../../lib/mobile/mobile-employee-payload.js';
 import { getSentFormalReviewForEmployee, listSentFormalReviewsForEmployee } from '../../../../../../lib/people/formal-competency-reviews.js';
 
 export const dynamic = 'force-dynamic';

@@ -1,4 +1,4 @@
-import { authenticateMobileEmployee,mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee,mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile/mobile-employee-session.js';
 import { apiError,ERR,HTTP_STATUS } from '../../../../../../../../../lib/api-error.js';
 import { z,zPositiveInt } from '../../../../../../../../../lib/validate.js';
 import { COMPANY_MODULE,companyHasModule } from '../../../../../../../../../lib/company/company-modules.js';

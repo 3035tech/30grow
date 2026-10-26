@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
-import { CAP, requireCapability } from '../../../../lib/permissions.js';
+import { CAP, requireCapability } from '../../../../lib/identity/permissions.js';
 import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 import { query as dbQuery } from '../../../../lib/db.js';
 import {
   listOrgPositions,

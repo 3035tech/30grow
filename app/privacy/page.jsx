@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { LOCALE_COOKIE, normalizeLocale } from '../../lib/i18n.js';
-import { buildPublicLegalMetadata, getPublicLegalDocument } from '../../lib/public-legal.js';
+import { buildPublicLegalMetadata, getPublicLegalDocument } from '../../lib/marketing/public-legal.js';
 import { PublicLegalDocument } from '../_components/PublicLegalDocument.jsx';
 
 export const dynamic = 'force-dynamic';

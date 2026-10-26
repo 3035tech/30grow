@@ -5,7 +5,7 @@ import { ListLoadError } from './ListLoadError';
 import { useCallback, useEffect, useState } from 'react';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { PAGE_SIZE_OPTIONS } from '../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../lib/assessment/assessment-filters';
 import { FIELD_EXPENSE_STATUS, FIELD_EXPENSE_STATUSES, FIELD_VISIT_STATUS, TIME_REQUEST_DECISION } from '../../lib/domain-status.js';
 import { formatDisplayDate } from '../../lib/format-display-date';
 import {

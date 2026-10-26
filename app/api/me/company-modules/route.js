@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth.js';
+import { COOKIE_NAME } from '../../../../lib/identity/auth.js';
 import { query } from '../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
-import { verifySessionWithCapabilities } from '../../../../lib/session.js';
-import { canManageCompanyModules, isManagerRole } from '../../../../lib/permissions.js';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/session.js';
+import { canManageCompanyModules, isManagerRole } from '../../../../lib/identity/permissions.js';
 import { listCompanyModuleCatalog, modulesSelectionForPersist } from '../../../../lib/company/company-modules.js';
 import {
   getCompanyEnabledModules,
@@ -12,7 +12,7 @@ import {
 } from '../../../../lib/company/company-module-entitlements.js';
 import { audit } from '../../../../lib/audit.js';
 import { z } from '../../../../lib/validate.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 
 async function requireCompanyManager(request) {
   const token = await (await cookies()).get(COOKIE_NAME)?.value;

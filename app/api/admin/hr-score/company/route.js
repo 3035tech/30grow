@@ -6,11 +6,11 @@ import {
   CAP, requireCapability,
   resolveScopedCompanyId,
 } from '../../../../../lib/ae/require-admin.js';
-import { getCompanyHrScoreRollup } from '../../../../../lib/hr-score.js';
+import { getCompanyHrScoreRollup } from '../../../../../lib/assessment/hr-score.js';
 
 /**
  * GET /api/admin/hr-score/company?companyId=X
- * Company HR Score rollup (overall + top/bottom). Domain in lib/hr-score.js.
+ * Company HR Score rollup (overall + top/bottom). Domain in lib/assessment/hr-score.js.
  */
 export async function GET(request) {
   try {

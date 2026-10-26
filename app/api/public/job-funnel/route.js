@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { queryRead } from '../../../../lib/db';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 import {
   JOB_ATTR_COOKIE,
   decodeAttributionCookie,

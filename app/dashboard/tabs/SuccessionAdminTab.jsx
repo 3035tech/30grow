@@ -12,7 +12,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { RichTextView } from '../../_components/RichTextView';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { htmlToPlainText } from '../../../lib/sanitize-html';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';

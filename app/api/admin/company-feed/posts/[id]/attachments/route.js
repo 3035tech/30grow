@@ -6,7 +6,7 @@ import { apiError,apiErrorFromResult,ERR } from '../../../../../../../lib/api-er
 import { readBoundedFormData,singleFormFile } from '../../../../../../../lib/bounded-multipart.js';
 import { POST_FILE_MAX_BYTES } from '../../../../../../../lib/company/company-post-file-rules.js';
 import { uploadPostAttachment } from '../../../../../../../lib/company/company-post-attachments.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 import { auditFromRequest } from '../../../../../../../lib/audit.js';
 export const POST=withAdminApi({cap:CAP.COMPANY_FEED_VIEW,companyFrom:'query',query:z.object({companyId:zPositiveInt.optional(),uploadId:z.string().uuid()}),logLabel:'company post attachment upload'},async({request,payload,companyId,params,query})=>{
  const parsed=zPositiveInt.safeParse(params?.id);if(!parsed.success)return apiError(request,ERR.INVALID_ID,400);

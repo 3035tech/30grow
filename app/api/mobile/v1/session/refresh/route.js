@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { refreshMobileEmployeeSession } from '../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { refreshMobileEmployeeSession } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 import { parseJsonBody } from '../../../../../../lib/validate.js';
 
 const refreshSchema = z.object({ refreshToken: z.string().min(32).max(256) });

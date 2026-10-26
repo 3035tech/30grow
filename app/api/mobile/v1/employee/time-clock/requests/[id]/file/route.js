@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../../../../lib/api-error.js';
-import { DP_DOC_MAX_BYTES } from '../../../../../../../../../lib/dp-upload-validation.js';
+import { DP_DOC_MAX_BYTES } from '../../../../../../../../../lib/assessment/dp-upload-validation.js';
 import { dpDownloadResponse } from '../../../../../../../../../lib/people/dp-download-response.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile/mobile-employee-session.js';
 import { readBoundedFormData, singleFormFile } from '../../../../../../../../../lib/bounded-multipart.js';
 import { clearTimeRequestAttachment, downloadTimeRequestAttachment, uploadTimeRequestAttachment } from '../../../../../../../../../lib/people/time-clock-requests.js';
-import { checkRateLimit } from '../../../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../../../lib/identity/rate-limit.js';
 import { zPositiveInt } from '../../../../../../../../../lib/validate.js';
 
 export const dynamic = 'force-dynamic';

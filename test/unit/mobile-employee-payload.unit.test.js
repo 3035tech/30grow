@@ -8,7 +8,7 @@ import {
   mobileReviewDetail,
   mobileReviewList,
   mobileSurveyInbox,
-} from '../../lib/mobile-employee-payload.js';
+} from '../../lib/mobile/mobile-employee-payload.js';
 
 test('mobile payloads coerce bigint ids, dates and 1:1 HTML', () => {
   const createdAt = new Date('2026-09-28T12:00:00.000Z');

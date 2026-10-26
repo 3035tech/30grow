@@ -1,7 +1,7 @@
 import {
   authenticateMobileEmployee,
   mobileEmployeeBearerToken,
-} from '../../../../../../../lib/mobile-employee-session.js';
+} from '../../../../../../../lib/mobile/mobile-employee-session.js';
 import { employeeReceiptResponse } from '../../../../../../../lib/rep/employee-api.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
 export const dynamic = 'force-dynamic';

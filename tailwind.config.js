@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 /**
- * Tailwind theme aligned to lib/theme.js + lib/brand.js.
+ * Tailwind theme aligned to lib/theme.js + lib/marketing/brand.js.
  * Canvas / ink / brand / semantic colors use CSS vars so `.dark` on <html> remaps them
  * (see app/dark-mode.css). Grow identity is separate from semantic states.
  */
-const { SHADOWS } = require('./lib/brand-tokens.cjs');
+const { SHADOWS } = require('./lib/marketing/brand-tokens.cjs');
 const uiFont = ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'];
 module.exports = {
   darkMode: 'class',

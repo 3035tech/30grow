@@ -12,7 +12,7 @@ async function moduleAt(path, dependencies) {
   await module.link(async () => new vm.SyntheticModule(Object.keys(dependencies), function () { for (const [name, value] of Object.entries(dependencies)) this.setExport(name, value); }, { context }));
   await module.evaluate(); return module.namespace;
 }
-const target = await moduleAt('../../lib/mobile-notification-target.js', { EMPLOYEE_NOTIF, DP_DOCUMENT_KEYS });
+const target = await moduleAt('../../lib/mobile/mobile-notification-target.js', { EMPLOYEE_NOTIF, DP_DOCUMENT_KEYS });
 test('closed target mapping preserves IDs and never exposes URLs/tokens or incorrect entity IDs', () => {
   const rows = [
     [EMPLOYEE_NOTIF.LMS_ENROLLED, 'lms_course', 'course'], [EMPLOYEE_NOTIF.LMS_OVERDUE, 'lms_enrollment', 'enrollment'],

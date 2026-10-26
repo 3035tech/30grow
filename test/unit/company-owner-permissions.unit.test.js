@@ -7,8 +7,8 @@ import {
   canAccessDashboardTab,
   canManageCompanyModules,
   isCompanyOwnerPayload,
-} from '../../lib/permissions.js';
-import { assertUserInScope } from '../../lib/users-admin-scope.js';
+} from '../../lib/identity/permissions.js';
+import { assertUserInScope } from '../../lib/identity/users-admin-scope.js';
 
 function source(path) {
   return readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
@@ -73,6 +73,6 @@ describe('company owner permissions', () => {
     assert.match(me, /canEdit: canManageCompanyModules\(ctx\.payload\)/);
     assert.match(me, /!canManageCompanyModules\(ctx\.payload\)[\s\S]*ERR\.FORBIDDEN/);
     assert.match(source('app/api/admin/onboarding/complete/route.js'), /canManageCompanyModules\(payload\)/);
-    assert.match(source('lib/session.js'), /signup_creator_user_id = u\.id\) AS "companyOwner"/);
+    assert.match(source('lib/identity/session.js'), /signup_creator_user_id = u\.id\) AS "companyOwner"/);
   });
 });

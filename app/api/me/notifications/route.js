@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../lib/identity/auth';
 import { query, queryRead } from '../../../../lib/db';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { verifySessionWithCapabilities } from '../../../../lib/session';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/session';
 import {
   countUnreadNotificationsForUser,
   listNotificationsForUser,

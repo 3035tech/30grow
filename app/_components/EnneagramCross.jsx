@@ -1,6 +1,6 @@
 'use client';
 
-import { buildEnneagramCross } from '../../lib/enneagram-cross';
+import { buildEnneagramCross } from '../../lib/assessment/enneagram-cross';
 import { t } from '../../lib/i18n';
 import { typeHintTooltip, typeShortLabel } from '../../lib/type-en';
 import { C } from '../../lib/theme';

@@ -31,7 +31,7 @@ test('internal roster never includes alumni; alumni roster lists only alumni', (
 });
 
 test('dashboard list and behavioral intel share the roster predicate', () => {
-  assert.match(read('lib/assessment-filters.js'), /rosterScopeSqlPart\(rosterScope\)/);
+  assert.match(read('lib/assessment/assessment-filters.js'), /rosterScopeSqlPart\(rosterScope\)/);
   assert.match(read('lib/people/load-team-behavioral-intel.js'), /rosterScopeSqlPart\(rosterScope\)/);
 });
 

@@ -6,7 +6,7 @@ import {
   requireCapability,
 } from '../../../../../lib/ae/require-admin.js';
 import { queryRead } from '../../../../../lib/db.js';
-import { recalculateCandidateHrScore, recalculateCompanyScores } from '../../../../../lib/hr-score.js';
+import { recalculateCandidateHrScore, recalculateCompanyScores } from '../../../../../lib/assessment/hr-score.js';
 
 /**
  * POST /api/admin/hr-score/recalculate

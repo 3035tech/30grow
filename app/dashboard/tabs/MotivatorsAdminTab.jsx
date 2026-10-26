@@ -9,7 +9,7 @@ import { t, localeHtmlLang } from '../../../lib/i18n';
 import { motivatorDimensionLabel } from '../../../lib/ae/motivators-dimensions';
 import { C } from '../../../lib/theme';
 import { Bar, PanelSubNav, S, SortableTh, AdminListPager, AdminListSearch, AdminTableShell, AdminActionsCell, AdminActionsTh, AdminIconButton, AdminPageHeader, AdminCreateButton, AdminViewButton, AdminDeleteButton, clientSortNextDir } from '../dashboard-shared';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { SystemNoticeModal } from '../SystemNoticeModal';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';

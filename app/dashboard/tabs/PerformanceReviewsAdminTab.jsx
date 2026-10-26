@@ -15,7 +15,7 @@ import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading } from '../../_components/AppLoading';
 import { PERFORMANCE_CYCLE_STATUS, PERFORMANCE_REVIEW_STATUS } from '../../../lib/domain-status.js';
 import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/AdminRecordViewDrawer';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { toDateOnlyIso } from '../../../lib/format-display-date.js';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
 import {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { auditAccess, tenantAuditEntry, auditCsv } from '../../lib/audit-access.js';
-import { CAP, can, canAccessDashboardTab } from '../../lib/permissions.js';
+import { CAP, can, canAccessDashboardTab } from '../../lib/identity/permissions.js';
 import { listAuditLogEntries } from '../../lib/audit-log-admin.js';
 import { ERR, HTTP_STATUS } from '../../lib/api-error-codes.js';
 const owner = { userId: 10, role: 'direction', companyId: 7, companyOwner: true, companyModules: ['core'], capabilitiesCustomized: true, capabilityOverrides: [] };

@@ -6,7 +6,7 @@ import {
 } from '../../lib/people/time-clock-closure-people.js';
 import { employeeNotificationCopySpec, employeeNotificationHref, EMPLOYEE_NOTIF } from '../../lib/employee/employee-notification-catalog.js';
 import { notificationCopySpec, notificationHref, NOTIF } from '../../lib/manager-notification-catalog.js';
-import { mobilePushDestinationFor, MOBILE_PUSH_DESTINATION } from '../../lib/mobile-employee-push.js';
+import { mobilePushDestinationFor, MOBILE_PUSH_DESTINATION } from '../../lib/mobile/mobile-employee-push.js';
 import { TIME_CLOCK_ACK_STATUS, TIME_CLOCK_ACK_STATUSES } from '../../lib/domain-status.js';
 import { TIME_CLOCK_ACK_TONE } from '../../lib/time-clock-format.js';
 import { t } from '../../lib/i18n.js';

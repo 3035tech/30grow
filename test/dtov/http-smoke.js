@@ -377,7 +377,7 @@ export async function runHttpSmoke(baseUrl) {
   // Session revocation: bumped session_version must reject /api/me/notifications
   {
     const { Client } = await import('pg');
-    const { setSessionVersionCache } = await import('../../lib/session-revocation.js');
+    const { setSessionVersionCache } = await import('../../lib/identity/session-revocation.js');
     const client = new Client({
       host: process.env.POSTGRES_HOST || '127.0.0.1',
       port: Number(process.env.POSTGRES_PORT || 55432),

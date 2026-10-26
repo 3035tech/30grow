@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { queryRead } from '../../../../../lib/db.js';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import { normalizeLocale } from '../../../../../lib/i18n.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import { buildPersonDossier } from '../../../../../lib/people/person-dossier.js';
 import { buildTeamTensionNarrative } from '../../../../../lib/people/team-tension-narrative.js';
 import { loadTeamBehavioralIntel } from '../../../../../lib/people/load-team-behavioral-intel.js';
@@ -13,7 +13,7 @@ import { interpretPeopleSignalsAi } from '../../../../../lib/people/interpret-ai
 import { buildMultiSignalWorkbench } from '../../../../../lib/people/multi-signal-workbench.js';
 import { getCompanyClimatePulse } from '../../../../../lib/people/climate-surveys.js';
 import { getCompanyPdiPulse } from '../../../../../lib/people/development-plans.js';
-import { getCompanyHrScoreRollup } from '../../../../../lib/hr-score.js';
+import { getCompanyHrScoreRollup } from '../../../../../lib/assessment/hr-score.js';
 import { getCompanyTurnoverRisks } from '../../../../../lib/turnover-radar.js';
 import { listCompanyRetentionWatches } from '../../../../../lib/people/retention-watch.js';
 

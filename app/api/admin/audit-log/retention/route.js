@@ -1,10 +1,10 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { COOKIE_NAME } from '../../../../../lib/auth.js';
+import { COOKIE_NAME } from '../../../../../lib/identity/auth.js';
 import { query, withTransaction } from '../../../../../lib/db.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../lib/api-error.js';
-import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities.js';
-import { CAP, can, isSuperAdminPayload } from '../../../../../lib/permissions.js';
+import { verifySessionWithCapabilities } from '../../../../../lib/identity/user-capabilities.js';
+import { CAP, can, isSuperAdminPayload } from '../../../../../lib/identity/permissions.js';
 import { parseJsonBody } from '../../../../../lib/validate.js';
 export const dynamic = 'force-dynamic';
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store' });

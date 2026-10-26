@@ -1,12 +1,12 @@
-import { normalizeOnboardingStages } from '../../../../../../../lib/onboarding-stage-selection.js';
+import { normalizeOnboardingStages } from '../../../../../../../lib/development/onboarding-stage-selection.js';
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../../lib/identity/auth';
 import { query, withTransaction } from '../../../../../../../lib/db';
 import { sanitizeInterviewNotesHtml } from '../../../../../../../lib/sanitize-html';
 import { apiError, apiErrorFromResult, localeFromRequest, ERR } from '../../../../../../../lib/api-error';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../lib/identity/permissions';
 import {
   PIPELINE_STAGE,
   normalizeRejectionReasons,

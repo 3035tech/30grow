@@ -1,4 +1,4 @@
-import { normalizeOnboardingStages } from '../../lib/onboarding-stage-selection.js';
+import { normalizeOnboardingStages } from '../../lib/development/onboarding-stage-selection.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import vm from 'node:vm';
 import { z } from 'zod';
-import { mobileCommunityBody } from '../../lib/mobile-employee-payload.js';
+import { mobileCommunityBody } from '../../lib/mobile/mobile-employee-payload.js';
 
 async function setup(session) {
   const calls = [];

@@ -7,7 +7,7 @@ import { RichTextView } from './RichTextView';
 import { isRichTextEmpty } from '../../lib/sanitize-html';
 import { t, errorMessage } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { brandMarkSrc } from '../../lib/brand';
+import { brandMarkSrc } from '../../lib/marketing/brand';
 import { employmentTypeLabelKey } from '../../lib/recruiting/vacancy-employment-type';
 import {
   formatWorkplaceLabel,

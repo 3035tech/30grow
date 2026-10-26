@@ -5,9 +5,9 @@ import { query } from '../../../../../../../../../lib/db.js';
 import { DP_DOCUMENT_KEYS } from '../../../../../../../../../lib/domain-status.js';
 import { NOTIF } from '../../../../../../../../../lib/manager-notification-catalog.js';
 import { notifyCompanyManagers } from '../../../../../../../../../lib/manager-notifications.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile/mobile-employee-session.js';
 import { getEmployeeDisplayName, getEmployeeDpHome, signDpDocument } from '../../../../../../../../../lib/people/employee-dp.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store' });

@@ -76,7 +76,7 @@ _(entregue — B-601–B-605 + polish: revisão retenção na UI, leitura hedged
 
 - **B-I18N-01 · Revisão nativa fr-FR / de-DE.** Catálogos e landing gerados por `npm run i18n:translate`. **Revisão automatizada feita (out/2026):** 0 chaves faltando vs en, 0 placeholders divergentes, 0 textos iguais ao en ou ao pt, 0 ` — `, tom formal (vous/Sie) sem ocorrências de tu/du, termos alinhados (manager no fr, HR-Verantwortliche/Führungskräfte no de). **Validação técnica adicional (07/10/2026):** 7.973 chaves por catálogo, sem diferenças de chave/placeholder; comando `node scripts/validate-i18n-catalogs.mjs`. Ver `docs/i18n-review-2026-10-07.md`. **Ainda exige revisor nativo humano:** naturalidade e terminologia de RH local, textos longos do Guia e landing.
 - **B-I18N-02 · Conteúdo por idioma além de pt/en.** Perguntas/tipos/escala do Eneagrama (`lib/i18n-data.js`, `lib/data.js`, `lib/type-en.js`), banco e templates de Motivadores (`lib/ae/*`), prompts de IA e PDFs usam `contentLocale` (fr/de/es caem em inglês). Traduzir exige validação psicométrica das perguntas antes de trocar o texto. **Bloqueado para agente:** sem validação humana especializada não se troca o texto (fr/de continuam caindo em inglês de propósito).
-- **B-I18N-03 · Documentos legais em fr/de/es.** `lib/public-legal.js` só tem pt/en; tradução precisa de revisão jurídica. **Bloqueado para agente:** exige advogado/revisor jurídico por país; não publicar tradução automática.
+- **B-I18N-03 · Documentos legais em fr/de/es.** `lib/marketing/public-legal.js` só tem pt/en; tradução precisa de revisão jurídica. **Bloqueado para agente:** exige advogado/revisor jurídico por país; não publicar tradução automática.
 
 ---
 
@@ -182,7 +182,7 @@ Pedido (ago/2026): completar o ciclo **módulos geram → núcleo transforma →
 
 ### B-1001 — Núcleo: HR Score + predições ✅ ENTREGUE
 
-_(migration 054 + lib/hr-score.js + APIs + UI Equipe/Overview)_ Consolida 7 sinais em score 0–100. Predições: risco, gaps PDI.
+_(migration 054 + lib/assessment/hr-score.js + APIs + UI Equipe/Overview)_ Consolida 7 sinais em score 0–100. Predições: risco, gaps PDI.
 
 
 ### B-1002 — Radar de rotatividade (multi-sinal) ✅ ENTREGUE
@@ -195,11 +195,11 @@ _(migration 055 + lib/recruiting/job-roles.js + APIs REST + i18n + JobRolesAdmin
 
 ### B-1004 — Avaliação de desempenho + metas → PDI ✅ ENTREGUE
 
-_(migration 056 + lib/performance-reviews.js + APIs + UI PerformanceReviewsAdminTab)_ Ciclo leve (gestor → colaborador; não 360). Metas no ciclo com outcome (`met`, `exceeded`, `develop`, `not_met`). Outcome `develop` gera item PDI automaticamente com `source: 'performance_review'` e `performance_goal_id`. Tabelas `performance_cycles`, `performance_goals`, `performance_reviews`. UI admin de ciclos + review form (draft → submitted).
+_(migration 056 + lib/development/performance-reviews.js + APIs + UI PerformanceReviewsAdminTab)_ Ciclo leve (gestor → colaborador; não 360). Metas no ciclo com outcome (`met`, `exceeded`, `develop`, `not_met`). Outcome `develop` gera item PDI automaticamente com `source: 'performance_review'` e `performance_goal_id`. Tabelas `performance_cycles`, `performance_goals`, `performance_reviews`. UI admin de ciclos + review form (draft → submitted).
 
 ### B-1005 — Plano de sucessão ✅ ENTREGUE
 
-_(migration 057 + lib/succession-plans.js + APIs + UI SuccessionAdminTab)_ Papéis críticos (`critical_roles`) com sucessores (`succession_plans`) + prontidão (`not_ready`, `developing`, `ready`, `now`). Readiness score combina HR Score (70%) + Leadership Potential (30%). Integra com `lib/hr-score.js` e `lib/analytics/leadership-analytics.js`. UI admin de papéis críticos + contador de sucessores.
+_(migration 057 + lib/development/succession-plans.js + APIs + UI SuccessionAdminTab)_ Papéis críticos (`critical_roles`) com sucessores (`succession_plans`) + prontidão (`not_ready`, `developing`, `ready`, `now`). Readiness score combina HR Score (70%) + Leadership Potential (30%). Integra com `lib/assessment/hr-score.js` e `lib/analytics/leadership-analytics.js`. UI admin de papéis críticos + contador de sucessores.
 
 ### B-1006 — Análise demissional ✅ ENTREGUE
 
@@ -211,7 +211,7 @@ _(lib/organizational-culture.js + API `/api/admin/organizational-culture` + Cult
 
 ### B-1008 — Academy leve (não LMS) ✅ ENTREGUE
 
-_(migration 059 + lib/learning-resources.js + APIs + LearningResourcesAdminTab)_ Catálogo simples de recursos de aprendizagem (título, descrição, tema, tipo, URL, duração). Tipos: course, article, video, book, workshop, mentoring, other. PDI pode linkar recursos via `development_plan_resource_links` (muitos-para-muitos) ou referenciar no texto. Sem player, sem SCORM, sem acompanhamento de progresso — apenas catálogo de ações/trilhas que o gestor pode apontar no plano de desenvolvimento.
+_(migration 059 + lib/development/learning-resources.js + APIs + LearningResourcesAdminTab)_ Catálogo simples de recursos de aprendizagem (título, descrição, tema, tipo, URL, duração). Tipos: course, article, video, book, workshop, mentoring, other. PDI pode linkar recursos via `development_plan_resource_links` (muitos-para-muitos) ou referenciar no texto. Sem player, sem SCORM, sem acompanhamento de progresso — apenas catálogo de ações/trilhas que o gestor pode apontar no plano de desenvolvimento.
 
 ### B-1009 — Catálogo de benefícios (não clube/folha) ✅ ENTREGUE
 
@@ -333,7 +333,7 @@ Export **rico** além do CSV básico:
 - Metadados (período, filtros, gerado em X)
 - Formato escolhido pelo usuário (CSV/JSON/XLSX)
 
-**Reuso:** `lib/export-assessments-csv.js` (já existe), estender
+**Reuso:** `lib/assessment/export-assessments-csv.js` (já existe), estender
 
 ### B-1106 — API de métricas (externas/integrações) ✅ ENTREGUE
 
@@ -901,7 +901,7 @@ Meu perfil: trocar o e-mail pede a senha atual (+ código TOTP com 2FA ativo); o
 ## Aberto — Observabilidade
 
 ### B-1701 — Logs estruturados (infra) ✅ ENTREGUE (básico)
-JSON stdout via `lib/monitoring.js` ligado a Postgres (`lib/db.js`), Redis (`lib/rate-limit.js`) e S3 (`lib/s3-object-storage.js`). Env: `LOG_LEVEL`, `LOG_SLOW_MS`.
+JSON stdout via `lib/monitoring.js` ligado a Postgres (`lib/db.js`), Redis (`lib/identity/rate-limit.js`) e S3 (`lib/s3-object-storage.js`). Env: `LOG_LEVEL`, `LOG_SLOW_MS`.
 
 ### B-1702 — Sentry (erros de app) ✅ ENTREGUE (SDK)
 `@sentry/nextjs` + `instrumentation.js` + `sentry.*.config.js` + `app/global-error.jsx`. Org `3035tech-9t` / project `30team`. Ativar com `NEXT_PUBLIC_SENTRY_DSN` (+ `SENTRY_DSN` server) e opcional `SENTRY_AUTH_TOKEN` no build (source maps).

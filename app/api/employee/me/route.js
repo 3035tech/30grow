@@ -1,4 +1,4 @@
-import { webSessionMaxAge } from '../../../../lib/session-ttl.js';
+import { webSessionMaxAge } from '../../../../lib/identity/session-ttl.js';
 import { EMPLOYEE_SESSION_MAX_AGE } from '../../../../lib/employee/employee-auth-constants.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -15,7 +15,7 @@ import {
   signEmployeeToken,
 } from '../../../../lib/employee/employee-auth.js';
 import { LOCALE_COOKIE, normalizeLocale } from '../../../../lib/i18n.js';
-import { sessionCookieSecure } from '../../../../lib/auth.js';
+import { sessionCookieSecure } from '../../../../lib/identity/auth.js';
 
 export const dynamic = 'force-dynamic';
 

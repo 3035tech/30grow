@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isTurnstileConfigured, turnstileSiteKey } from '../../../../lib/turnstile.js';
+import { isTurnstileConfigured, turnstileSiteKey } from '../../../../lib/identity/turnstile.js';
 
 export const dynamic = 'force-dynamic';
 

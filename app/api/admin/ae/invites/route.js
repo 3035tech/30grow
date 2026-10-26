@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db';
 import { CAP, getManagerScope, getSessionPayload, publicAppUrl, requireCapability } from '../../../../../lib/ae/require-admin';
 import { createAndQueueMotivatorsInvite, isValidInviteEmail } from '../../../../../lib/ae/create-motivators-invite';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit';
 import { apiError, localeFromRequest, ERR } from '../../../../../lib/api-error';
 import { sqlAeInvitesOrderBy } from '../../../../../lib/ae/list-sort';
 

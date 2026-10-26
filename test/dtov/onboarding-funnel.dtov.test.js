@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { query, pool } from '../../lib/db.js';
 import { ONBOARDING_EVENT, ONBOARDING_STEP } from '../../lib/domain-status.js';
-import { getOnboardingFunnel, recordOnboardingEvent } from '../../lib/onboarding-funnel.js';
+import { getOnboardingFunnel, recordOnboardingEvent } from '../../lib/development/onboarding-funnel.js';
 
 async function main() {
   const hr = await query(

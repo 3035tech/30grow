@@ -5,7 +5,7 @@ import {
   listLearningResources,
   createLearningResource,
   getCompanyLearningThemes,
-} from '../../../../lib/learning-resources.js';
+} from '../../../../lib/development/learning-resources.js';
 
 /**
  * GET /api/admin/learning-resources — list resources (admin/direction/hr)

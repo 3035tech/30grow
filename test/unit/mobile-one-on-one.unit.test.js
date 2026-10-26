@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import { z } from 'zod';
 import { normalizeLocale } from '../../lib/locale-negotiation.js';
 import { getEmployeeOneOnOnePrep, submitEmployeeOneOnOnePrep } from '../../lib/employee/employee-one-on-one-prep.js';
-import { mobileOneOnOneBody } from '../../lib/mobile-employee-payload.js';
+import { mobileOneOnOneBody } from '../../lib/mobile/mobile-employee-payload.js';
 
 async function route(session) {
   const calls = [];

@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import crypto from 'node:crypto';
 import pg from 'pg';
-import { saveAreaObjective, saveAreaKeyResult, recordKeyResultCheckin, listKeyResultCheckins, listOkrHierarchy, listAssignedKeyResults, deleteAreaOkrEntity } from '../../lib/okr-hierarchy.js';
-import { createOkrArea, deleteOkrArea, deleteOkrCycle, updateOkrArea, updateOkrCycle } from '../../lib/okr-cycles.js';
-import { createOkrKeyResult, updateOkrKeyResultProgress, deleteOkrObjective } from '../../lib/okr.js';
+import { saveAreaObjective, saveAreaKeyResult, recordKeyResultCheckin, listKeyResultCheckins, listOkrHierarchy, listAssignedKeyResults, deleteAreaOkrEntity } from '../../lib/development/okr-hierarchy.js';
+import { createOkrArea, deleteOkrArea, deleteOkrCycle, updateOkrArea, updateOkrCycle } from '../../lib/development/okr-cycles.js';
+import { createOkrKeyResult, updateOkrKeyResultProgress, deleteOkrObjective } from '../../lib/development/okr.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 const db=new pg.Client({host:'127.0.0.1',port:55432,database:'enneagram_dtov',user:'dtov',password:'dtov_local_only',ssl:false});

@@ -12,10 +12,10 @@ import { getTypeData, localizeAreaLabel } from '../../lib/i18n-data';
 import { typeHintTooltip } from '../../lib/type-en';
 import { t } from '../../lib/i18n';
 import { useLocale } from '../../lib/useLocale';
-import { CAP, can, canAccessDashboardTab, isSuperAdminPayload } from '../../lib/permissions';
+import { CAP, can, canAccessDashboardTab, isSuperAdminPayload } from '../../lib/identity/permissions';
 import { VACANCY_STATUS, ROSTER_SCOPE } from '../../lib/domain-status.js';
 import { cn } from '../../lib/cn';
-import { managerLoginUrl } from '../../lib/manager-client-session';
+import { managerLoginUrl } from '../../lib/identity/manager-client-session';
 import { BrandMark } from '../_components/BrandMark';
 import { Icon } from '../_components/Icon';
 import { DateField } from '../_components/DateField';
@@ -27,7 +27,7 @@ import {
   parseCompatTabPagination,
   parseDashboardTab,
   parseTeamSort,
-} from '../../lib/assessment-filters';
+} from '../../lib/assessment/assessment-filters';
 
 import { DashboardBreadcrumb, DashboardPageTitleContext, getDashboardTabNav, S } from './dashboard-shared';
 import { preloadDashboardTab } from './dashboard-tab-preload';

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { getOnboardingProgress, ONBOARDING_TASKS } from '../../lib/onboarding-progress.js';
+import { getOnboardingProgress, ONBOARDING_TASKS } from '../../lib/development/onboarding-progress.js';
 
 describe('onboarding progress', () => {
   it('uses the persisted assessment result instead of a nonexistent completed_at column', async () => {

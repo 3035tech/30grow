@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import { pool, query } from '../../lib/db.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import { __resetMailMockLog, __getMailMockLog } from '../../lib/mail.js';
 import { createExitRecord, deleteExitRecord, getExitRecord, listExitRecords } from '../../lib/exit-analysis.js';
 import { createEmployeeDirect, rehireEmployee } from '../../lib/recruiting/hire.js';

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities';
+import { COOKIE_NAME } from '../../../../lib/identity/auth';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/permissions';
-import { createReferralCode, listReferralCodes } from '../../../../lib/referral-codes';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/identity/permissions';
+import { createReferralCode, listReferralCodes } from '../../../../lib/marketing/referral-codes';
 
 /**
  * GET /api/admin/referral-codes?vacancyId=&activeOnly=1&companyId=

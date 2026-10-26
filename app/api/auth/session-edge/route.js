@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME, verifyToken } from '../../../../lib/auth';
-import { isManagerRole } from '../../../../lib/permissions';
-import { isSessionVersionCurrent } from '../../../../lib/session-revocation';
+import { COOKIE_NAME, verifyToken } from '../../../../lib/identity/auth';
+import { isManagerRole } from '../../../../lib/identity/permissions';
+import { isSessionVersionCurrent } from '../../../../lib/identity/session-revocation';
 
 export const dynamic = 'force-dynamic';
 

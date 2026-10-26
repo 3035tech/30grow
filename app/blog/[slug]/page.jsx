@@ -3,7 +3,7 @@ import { cookies, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Icon } from '../../_components/Icon';
 import { LOCALE_COOKIE, normalizeLocale, t } from '../../../lib/i18n';
-import { publicBlogPath } from '../../../lib/public-marketing-paths';
+import { publicBlogPath } from '../../../lib/marketing/public-marketing-paths';
 import {
   BLOG_CONTENT_LOCALE,
   buildBlogPostJsonLd,

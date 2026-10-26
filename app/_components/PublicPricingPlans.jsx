@@ -1,7 +1,7 @@
 import { TimeClockValidationNotice } from './TimeClockValidationNotice';
 import Link from 'next/link';
 import { t } from '../../lib/i18n';
-import { formatPublicPrice, PUBLIC_BRL_TIERS, publicPricingTextValues } from '../../lib/pricing-currency';
+import { formatPublicPrice, PUBLIC_BRL_TIERS, publicPricingTextValues } from '../../lib/marketing/pricing-currency';
 
 /** BRL launch offer. Shared by the landing and pricing page. */
 export function PublicPricingPlans({ locale, showLaunchOffer = false }) {

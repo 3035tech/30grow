@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { publicCompanyPath } from '../../../lib/public-job-url';
-import { parseCompaniesPagination, parseCompaniesSort } from '../../../lib/assessment-filters';
+import { parseCompaniesPagination, parseCompaniesSort } from '../../../lib/assessment/assessment-filters';
 import {
   AdminActionsCell,
   AdminActionsTh,

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeRubric } from '../../lib/recruiting/job-role-rubric.js';
-import { computeAreaScore010 } from '../../lib/area-fit.js';
+import { computeAreaScore010 } from '../../lib/assessment/area-fit.js';
 
 test('legacy job-role weights reopen without loss, rescaling or mutation', () => {
   const legacy = Object.freeze({ 1: 2, 3: 2, 5: 3, 6: 1 });

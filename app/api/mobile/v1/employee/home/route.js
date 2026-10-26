@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
 import { dismissEmployeeWelcome, getEmployeeHome } from '../../../../../../lib/employee/employee-home.js';
 import { t, normalizeLocale } from '../../../../../../lib/i18n.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
 import { getTimeClockAccess } from '../../../../../../lib/people/time-clock.js';
 import { getEmployeeProfile } from '../../../../../../lib/employee/employee-profile.js';
 import { getCompanyEnabledModules } from '../../../../../../lib/company/company-module-entitlements.js';
@@ -14,7 +14,7 @@ import { listEmployeeSurveyInbox } from '../../../../../../lib/employee/employee
 import { listFeedbackInbox } from '../../../../../../lib/people/continuous-feedback.js';
 import { listEmployeeVisibleCompensation } from '../../../../../../lib/people/variable-pay.js';
 import { employeeSectionVisible } from '../../../../../../lib/company/company-modules.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 
 const TASK_PAGE_SIZE = 20;
 const MAX_TASK_PAGE = 10000;

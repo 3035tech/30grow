@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 import { parseJsonBody } from '../../../../../../lib/validate.js';
 
 const TELEMETRY_EVENT = Object.freeze({ REQUEST_FAILED: 'request_failed', SLOW_REQUEST: 'slow_request' });

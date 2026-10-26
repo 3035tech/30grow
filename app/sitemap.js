@@ -1,8 +1,8 @@
 import { listSitemapPublicEntries } from '../lib/public-vacancy-posting';
 import { listSitemapAggregatorEntries } from '../lib/public-job-aggregators';
 import { BLOG_PATH, listBlogPosts } from '../lib/blog/index.js';
-import { publicSiteBaseUrl } from '../lib/public-site-url.js';
-import { publicMarketingSitemapEntries } from '../lib/public-marketing-sitemap.js';
+import { publicSiteBaseUrl } from '../lib/marketing/public-site-url.js';
+import { publicMarketingSitemapEntries } from '../lib/marketing/public-marketing-sitemap.js';
 
 /**
  * Sitemap: / + /pricing + /blog (+ posts) + /jobs + aggregators (remote/city with enough volume) + vagas públicas indexáveis.

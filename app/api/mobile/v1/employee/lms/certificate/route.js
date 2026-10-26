@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
-import { getLmsCertificatePayload } from '../../../../../../../lib/lms.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile-employee-session.js';
+import { getLmsCertificatePayload } from '../../../../../../../lib/development/lms.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile/mobile-employee-session.js';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store, private' });

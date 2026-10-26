@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { query, pool } from '../../lib/db.js';
 import { EMPLOYMENT_STATUS } from '../../lib/domain-status.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import {
   changeEmployeePassword,
   getEmployeeProfile,

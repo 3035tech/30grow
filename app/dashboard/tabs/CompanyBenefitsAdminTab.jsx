@@ -12,7 +12,7 @@ import { cn } from '../../../lib/cn';
 import { RichTextView } from '../../_components/RichTextView';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
 import { BENEFIT_TYPES } from '../../../lib/domain-status.js';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import {
   AdminActionsCell,
   AdminActionsTh,

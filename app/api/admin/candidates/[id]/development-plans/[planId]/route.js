@@ -9,12 +9,12 @@ import {
   updateDevelopmentPlan,
   updateDevelopmentPlanItem,
 } from '../../../../../../../lib/people/development-plans';
-import { linkResourceToPdi, unlinkResourceFromPdi } from '../../../../../../../lib/learning-resources';
+import { linkResourceToPdi, unlinkResourceFromPdi } from '../../../../../../../lib/development/learning-resources';
 import {
   enrollLmsCandidates,
   linkLmsCourseToPdi,
   unlinkLmsCourseFromPdi,
-} from '../../../../../../../lib/lms.js';
+} from '../../../../../../../lib/development/lms.js';
 
 async function loadCandidateScope(candidateId, scope) {
   const c = await query(

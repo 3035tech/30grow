@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api';
 import { apiError, ERR, httpStatusForError } from '../../../../../../lib/api-error';
-import { CAP } from '../../../../../../lib/permissions';
+import { CAP } from '../../../../../../lib/identity/permissions';
 import { getVacancyFunnelAnalytics } from '../../../../../../lib/recruiting/job-funnel';
 
 /**

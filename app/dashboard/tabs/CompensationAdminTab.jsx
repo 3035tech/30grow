@@ -5,7 +5,7 @@ import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
 import { useCallback, useEffect, useState } from 'react';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { formatSalaryDisplay } from '../../../lib/br-masks';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { EMPLOYMENT_STATUS } from '../../../lib/domain-status.js';
 import {
   AdminActionsCell,

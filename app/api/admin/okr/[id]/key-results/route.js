@@ -8,7 +8,7 @@ import { CAP } from '../../../../../../lib/ae/require-admin.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../../lib/api-error.js';
 import { audit } from '../../../../../../lib/audit.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';
-import { createOkrKeyResult } from '../../../../../../lib/okr.js';
+import { createOkrKeyResult } from '../../../../../../lib/development/okr.js';
 
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),

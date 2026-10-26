@@ -7,7 +7,7 @@ import pg from 'pg';
 import { rejectionReasonsSql } from '../../lib/recruiting/pipeline.js';
 import { candidateTagsSelectSql } from '../../lib/recruiting/candidate-tags-core.js';
 import { loadOperationalSummaries } from '../../lib/people/operational-summary.js';
-import * as permissions from '../../lib/permissions.js';
+import * as permissions from '../../lib/identity/permissions.js';
 import { ERR, httpStatusForError } from '../../lib/api-error-codes.js';
 import { normalizeCandidateProfile } from '../../lib/recruiting/candidate-profile.js';
 import { titleCasePersonName } from '../../lib/person-name.js';

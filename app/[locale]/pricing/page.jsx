@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import PricingPage from '../../pricing/page';
-import { publicMarketingRoute } from '../../../lib/public-marketing-paths';
-import { buildPricingMetadata } from '../../../lib/pricing-plans';
+import { publicMarketingRoute } from '../../../lib/marketing/public-marketing-paths';
+import { buildPricingMetadata } from '../../../lib/marketing/pricing-plans';
 
 async function routeLocale(params) {
   const { locale } = await params;

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
-import { getLmsCohortReport } from '../../../../../lib/lms.js';
+import { getLmsCohortReport } from '../../../../../lib/development/lms.js';
 
 const querySchema = z.object({
   companyId: zPositiveInt.optional(),

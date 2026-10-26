@@ -8,7 +8,7 @@ import { ERR } from '../../lib/api-error-codes.js';
 import { createEmployeeDirect } from '../../lib/recruiting/hire.js';
 import { reopenOnboardingCheckin } from '../../lib/people/onboarding-checkins.js';
 import { submitEmployeeOneOnOnePrep } from '../../lib/employee/employee-one-on-one-prep.js';
-import { buildProfileSynthesis } from '../../lib/profile-synthesis.js';
+import { buildProfileSynthesis } from '../../lib/assessment/profile-synthesis.js';
 import { t } from '../../lib/i18n.js';
 
 describe('RH2 wave A/B', () => {

@@ -4,9 +4,9 @@ import { zLocale } from '../../../../../../lib/validate.js';
 import { normalizeLocale } from '../../../../../../lib/locale-negotiation.js';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
 import { withTransaction } from '../../../../../../lib/db.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
 import { listEmployeeMotivators, changeEmployeeMotivators, MotivatorsAction } from '../../../../../../lib/employee/employee-motivators.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = { 'Cache-Control': 'no-store' };

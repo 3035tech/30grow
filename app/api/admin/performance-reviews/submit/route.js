@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { getSessionPayload, getManagerScope, CAP, requireCapability } from '../../../../../lib/ae/require-admin.js';
-import { submitPerformanceReview } from '../../../../../lib/performance-reviews.js';
+import { submitPerformanceReview } from '../../../../../lib/development/performance-reviews.js';
 import { audit } from '../../../../../lib/audit.js';
 
 export async function POST(request) {

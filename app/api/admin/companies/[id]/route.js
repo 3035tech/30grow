@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../lib/identity/auth';
 import { query } from '../../../../../lib/db';
 import { archiveCompany, withCompanyDeactivation } from '../../../../../lib/company/company-lifecycle.js';
 import { BillingError } from '../../../../../lib/billing/stripe.js';
 import { audit } from '../../../../../lib/audit';
 import { apiError, ERR } from '../../../../../lib/api-error';
-import { CAP, requireCapability } from '../../../../../lib/permissions';
+import { CAP, requireCapability } from '../../../../../lib/identity/permissions';
 import { parseCompanyProfileFromBody } from '../../../../../lib/company/company-profile';
 import { slugify as slugifyRaw } from '../../../../../lib/slugify';
 import { parseAiMonthlyCallLimit } from '../../../../../lib/ai-usage';

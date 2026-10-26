@@ -6,7 +6,7 @@ import LanguageSelect from './LanguageSelect';
 import { cn } from '../../lib/cn';
 import { LOCALE_COOKIE, normalizeLocale } from '../../lib/i18n';
 import { useLocale } from '../../lib/useLocale';
-import { publicBlogPath, publicMarketingPath, publicMarketingRoute } from '../../lib/public-marketing-paths';
+import { publicBlogPath, publicMarketingPath, publicMarketingRoute } from '../../lib/marketing/public-marketing-paths';
 
 export function PrimaryCta({ copy, compact = false }) {
   return <Link href="/signup" className={`inline-flex min-h-touch items-center justify-center rounded-control bg-action font-ui font-semibold text-action-ink no-underline transition-colors hover:bg-action-hover ${compact ? 'px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm' : 'px-6 py-3.5 text-base'}`}>{compact ? copy.navEarly : copy.ctaEarly}</Link>;

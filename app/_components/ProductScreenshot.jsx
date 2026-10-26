@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useId, useRef, useState } from 'react';
-import { screenshotLabels } from '../../lib/product-screenshots';
+import { screenshotLabels } from '../../lib/marketing/product-screenshots';
 
 export function ProductScreenshot({ image, title, locale, eager = false, sizes = '(max-width: 767px) calc(100vw - 40px), 960px' }) {
   const dialogRef = useRef(null);

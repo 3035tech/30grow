@@ -1,11 +1,11 @@
 import { cookies } from 'next/headers';
-import { verifyToken } from '../../../../../lib/auth.js';
+import { verifyToken } from '../../../../../lib/identity/auth.js';
 import { query } from '../../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
-import { hydrateSessionPayload } from '../../../../../lib/session.js';
+import { hydrateSessionPayload } from '../../../../../lib/identity/session.js';
 import { setCompanyEnabledModules } from '../../../../../lib/company/company-module-entitlements.js';
 import { modulesSelectionForPersist } from '../../../../../lib/company/company-modules.js';
-import { canManageCompanyModules } from '../../../../../lib/permissions.js';
+import { canManageCompanyModules } from '../../../../../lib/identity/permissions.js';
 import { audit } from '../../../../../lib/audit.js';
 
 /**

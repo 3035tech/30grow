@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../../../lib/api-error.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../lib/mobile/mobile-employee-session.js';
 import { withdrawEmployeeTimeRequest } from '../../../../../../../../lib/people/time-clock-request-api.js';
 import { zPositiveInt } from '../../../../../../../../lib/validate.js';
 

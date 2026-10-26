@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
 import { searchEmployeeColleagues } from '../../../../../../lib/company/company-kudos.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit } from '../../../../../../lib/rate-limit.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit } from '../../../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 const PAGE_SIZE = 20;

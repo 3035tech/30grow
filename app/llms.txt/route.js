@@ -1,4 +1,4 @@
-import { buildProductLlmsTxt, productLandingAbsoluteUrl } from '../../lib/product-landing-seo';
+import { buildProductLlmsTxt, productLandingAbsoluteUrl } from '../../lib/marketing/product-landing-seo';
 import { listBlogPosts } from '../../lib/blog/index.js';
 
 function blogSection() {

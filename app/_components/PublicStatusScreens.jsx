@@ -1,6 +1,6 @@
 'use client';
 
-import { brandMarkSrc } from '../../lib/brand';
+import { brandMarkSrc } from '../../lib/marketing/brand';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit';
 import {
   getPublicTeamPulseByToken,
   submitPublicTeamPulse,

@@ -2,7 +2,7 @@ import { zipSync } from 'fflate';
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
 import { pool } from '../../../../../../lib/db.js';
-import { CAP } from '../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../lib/identity/permissions.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';
 import { apiError, ERR } from '../../../../../../lib/api-error.js';
 import { fiscalExport } from '../../../../../../lib/rep/exports.js';

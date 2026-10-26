@@ -40,7 +40,7 @@ async function fixture() {
     setInterval(callback, ms) { const timer = { callback, ms, unref() { this.unreferenced = true; } }; timers.add(timer); return timer; },
     clearInterval(timer) { timers.delete(timer); },
   });
-  const mod = new vm.SourceTextModule(await readFile(new URL('../../lib/rate-limit.js', import.meta.url), 'utf8'), { context });
+  const mod = new vm.SourceTextModule(await readFile(new URL('../../lib/identity/rate-limit.js', import.meta.url), 'utf8'), { context });
   const deps = { default: Redis, createHash, logger: { info() {}, warn: (...args) => warnings.push(args) }, incrementMetric() {} };
   await mod.link(() => new vm.SyntheticModule(Object.keys(deps), function () {
     for (const [name, value] of Object.entries(deps)) this.setExport(name, value);

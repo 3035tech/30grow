@@ -5,7 +5,7 @@ import { useListUrlState } from '../hooks/useListUrlState';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t, contentLocale } from '../../../lib/i18n';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';

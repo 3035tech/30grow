@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { verifyCronRequest } from '../../../../lib/cron-auth';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth';
 import { refreshHourBankCheckpoints } from '../../../../lib/people/hour-bank-checkpoints.js';
 
 export const dynamic = 'force-dynamic';

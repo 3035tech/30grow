@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import pg from 'pg';
 import * as status from '../../lib/domain-status.js';
 import * as magic from '../../lib/file-magic.js';
-import * as upload from '../../lib/dp-upload-validation.js';
+import * as upload from '../../lib/assessment/dp-upload-validation.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 const db = new pg.Client({ host: '127.0.0.1', port: 55432, database: 'enneagram_dtov', user: 'dtov', password: 'dtov_local_only', ssl: false });

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { PUBLIC_MARKETING_LOCALES, SOLUTION_SLUGS, publicMarketingPath, publicHreflang } from '../lib/public-marketing-paths.js';
+import { PUBLIC_MARKETING_LOCALES, SOLUTION_SLUGS, publicMarketingPath, publicHreflang } from '../lib/marketing/public-marketing-paths.js';
 
 const base = (process.argv[2] || 'http://127.0.0.1:3032').replace(/\/$/, '');
 const canonicalBase = (process.env.SEO_CANONICAL_BASE || 'https://30grow.com').replace(/\/$/, '');

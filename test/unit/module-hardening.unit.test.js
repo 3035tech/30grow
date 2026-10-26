@@ -13,7 +13,7 @@ describe('module hardening', () => {
     assert.match(companyModules, /companyId,/);
     assert.match(companyModules, /company_modules_set/);
 
-    const users = source('lib/users-admin.js');
+    const users = source('lib/identity/users-admin.js');
     for (const action of ['user.create', 'user.update', 'user.deactivate']) {
       assert.match(users, new RegExp(action.replace('.', '\\.')));
     }

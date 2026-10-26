@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
-import { CANDIDATE_ACCESS_CAPS } from '../../../../../../lib/permissions.js';
+import { CANDIDATE_ACCESS_CAPS } from '../../../../../../lib/identity/permissions.js';
 import {
   apiError,
   apiErrorFromResult,
@@ -16,7 +16,7 @@ import {
 } from '../../../../../../lib/recruiting/candidate-cv.js';
 import { queryRead } from '../../../../../../lib/db.js';
 import { audit } from '../../../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../lib/identity/rate-limit.js';
 
 export const runtime = 'nodejs';
 

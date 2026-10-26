@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import { pool, query } from '../../lib/db.js';
 import { __getMailMockLog, __resetMailMockLog } from '../../lib/mail.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import {
   completePasswordSetup,
   issuePasswordSetupInvite,
   peekPasswordSetupToken,
   requestPasswordResetByEmail,
-} from '../../lib/user-password-invite.js';
+} from '../../lib/identity/user-password-invite.js';
 import {
   issueEmployeePasswordInvite,
   requestEmployeeMagicLink,

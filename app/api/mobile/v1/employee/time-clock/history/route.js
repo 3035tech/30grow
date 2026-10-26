@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
 import { query } from '../../../../../../../lib/db.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile/mobile-employee-session.js';
 import { getEmployeeTimeHistory } from '../../../../../../../lib/people/time-clock-requests.js';
 import { parseIsoDay } from '../../../../../../../lib/people/time-day-summary.js';
 

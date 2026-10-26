@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { query } from '../../../../../lib/db.js';
 
 export const GET = withAdminApi({ cap: CAP.PROFILE_SELF, requireCompany: false, companyFrom: 'none', logLabel: 'support-mine' }, async ({ payload }) => {

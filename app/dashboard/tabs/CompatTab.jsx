@@ -4,7 +4,7 @@ import { SelectField } from '../../_components/SelectField';
 
 import { useState } from 'react';
 import { TYPE_DATA } from '../../../lib/data';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { t } from '../../../lib/i18n';
 import { personListName } from '../../../lib/person-name';
 import { C } from '../../../lib/theme';

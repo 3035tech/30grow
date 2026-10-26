@@ -4,7 +4,7 @@ import {
   buildProductLandingJsonLd,
   buildProductLandingMetadata,
   getProductLandingCopy,
-} from '../lib/product-landing-seo';
+} from '../lib/marketing/product-landing-seo';
 import { BLOG_LANDING_CAP, listBlogPosts } from '../lib/blog/index.js';
 import ProductLandingClient from './_components/ProductLandingClient';
 

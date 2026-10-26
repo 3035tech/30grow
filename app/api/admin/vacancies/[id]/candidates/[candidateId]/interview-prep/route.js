@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../../../lib/admin-api.js';
-import { CAP, isSuperAdminPayload } from '../../../../../../../../lib/permissions.js';
+import { CAP, isSuperAdminPayload } from '../../../../../../../../lib/identity/permissions.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../../../../lib/api-error.js';
 import {
   ensureInterviewPrepLink,

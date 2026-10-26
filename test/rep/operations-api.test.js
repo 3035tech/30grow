@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
-import { CAP, can, canAny, isAdminRole } from '../../lib/permissions.js';
+import { CAP, can, canAny, isAdminRole } from '../../lib/identity/permissions.js';
 import { ERR } from '../../lib/api-error-codes.js';
 import { canManageDigitalCertificate } from '../../lib/rep/certificate-admin.js';
 async function moduleAt(path, deps, context) {

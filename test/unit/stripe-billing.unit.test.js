@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import Stripe from 'stripe';
 import { BILLING_PLANS, fitsPlan, billingAccess, addUtcMonths, canManageBilling } from '../../lib/billing/catalog.js';
 import { BillingError, requireSameOrigin, checkedPrice } from '../../lib/billing/stripe.js';
-import { CAP, resolveCapabilities } from '../../lib/permissions.js';
+import { CAP, resolveCapabilities } from '../../lib/identity/permissions.js';
 
 const future = new Date(Date.now() + 86400000).toISOString();
 const past = new Date(Date.now() - 86400000).toISOString();

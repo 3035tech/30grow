@@ -5,10 +5,10 @@ import {
   apiErrorFromResult,
   ERR,
 } from '../../../../../lib/api-error.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import { remindTimeClosing } from '../../../../../lib/people/time-clock-reminders.js';
-import { checkRateLimit } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../lib/identity/rate-limit.js';
 import { auditFromRequest } from '../../../../../lib/audit.js';
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const body = z.object({

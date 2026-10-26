@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
-import { CAP } from '../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../lib/identity/permissions.js';
 import { cancelPlannedFieldVisit } from '../../../../../../lib/people/field-team-api.js';
 import { zPositiveInt } from '../../../../../../lib/validate.js';
 

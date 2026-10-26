@@ -16,7 +16,7 @@ import {
   parseRosterScope,
   parseTeamListFilter,
   sqlWhere,
-} from '../../lib/assessment-filters';
+} from '../../lib/assessment/assessment-filters';
 import { enrichAssessmentDashboardRow, toNum } from '../../lib/dashboard-assessment-row';
 import {
   buildAreaSummaries,
@@ -29,9 +29,9 @@ import {
 import { buildOverviewMetrics } from '../../lib/analytics/overview-metrics';
 import { OVERVIEW_FUNNEL_STAGES } from '../../lib/analytics/overview-constants.js';
 import { buildCompatBundles, COMPAT_PEOPLE_CAP } from '../../lib/compat-bundles';
-import { getOnboardingProgress } from '../../lib/onboarding-progress';
+import { getOnboardingProgress } from '../../lib/development/onboarding-progress';
 import { ANNIVERSARY_WINDOW_DAYS, getUpcomingAnniversaries } from '../../lib/people/upcoming-anniversaries.js';
-import { isSuperAdminPayload } from '../../lib/permissions';
+import { isSuperAdminPayload } from '../../lib/identity/permissions';
 import { measureAsync } from '../../lib/monitoring.js';
 import { COHORT_TABS, needsAdminCompaniesList } from '../../lib/dashboard-company-scope.js';
 

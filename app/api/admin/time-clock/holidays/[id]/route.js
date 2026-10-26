@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { audit } from '../../../../../../lib/audit.js';
-import { CAP } from '../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../lib/identity/permissions.js';
 import { HOLIDAY_RECURRENCES } from '../../../../../../lib/domain-status.js';
 import { deleteHoliday, saveHoliday } from '../../../../../../lib/people/time-clock-calendar.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';

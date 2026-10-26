@@ -8,7 +8,7 @@ import {
   CANCELLATION_POLICY_PATH,
   buildPublicLegalMetadata,
   getPublicLegalDocument,
-} from '../../lib/public-legal.js';
+} from '../../lib/marketing/public-legal.js';
 
 describe('public legal documents', () => {
   it('publishes complete bilingual privacy and terms copy', () => {

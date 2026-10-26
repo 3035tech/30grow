@@ -22,9 +22,9 @@ import {
   listFieldExpenses,
   updateEmployeeFieldVisit,
 } from '../../lib/people/field-team.js';
-import { registerMobileEmployeePushToken } from '../../lib/mobile-employee-push.js';
+import { registerMobileEmployeePushToken } from '../../lib/mobile/mobile-employee-push.js';
 import { COPILOT_REASON, buildCopilotPerson, buildCopilotRadar } from '../../lib/people/people-copilot.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 
 const db = new pg.Client({ host: '127.0.0.1', port: 55432, database: 'enneagram_dtov', user: 'dtov', password: 'dtov_local_only', ssl: false });
 await db.connect();

@@ -10,7 +10,7 @@ import {
   normalizeLocale,
   t,
 } from '../../lib/i18n.js';
-import { buildProductLandingMetadata, getProductLandingCopy } from '../../lib/product-landing-seo.js';
+import { buildProductLandingMetadata, getProductLandingCopy } from '../../lib/marketing/product-landing-seo.js';
 
 test('regional locales normalize with stable aliases and region metadata', () => {
   assert.deepEqual(LOCALES, ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr-FR', 'de-DE']);

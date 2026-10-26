@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { resolveVacancyLinkByToken } from '../../../../lib/public-vacancy-link';
 import { apiError, localeFromRequest, ERR } from '../../../../lib/api-error';
 import { t } from '../../../../lib/i18n';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 export async function GET(request) {
   const ip = clientIpFromRequest(request);

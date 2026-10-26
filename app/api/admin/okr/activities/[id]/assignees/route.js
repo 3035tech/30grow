@@ -12,7 +12,7 @@ import { z, zPositiveInt } from '../../../../../../../lib/validate.js';
 import {
   addOkrActivityAssignee,
   removeOkrActivityAssignee,
-} from '../../../../../../../lib/okr-cycles.js';
+} from '../../../../../../../lib/development/okr-cycles.js';
 
 const postBodySchema = z.object({
   companyId: zPositiveInt.optional(),

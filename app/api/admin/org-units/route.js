@@ -4,7 +4,7 @@ import { CAP } from '../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 import { ORG_UNIT_TYPES } from '../../../../lib/org-position-constants.js';
 import { ORG_UNIT } from '../../../../lib/org-unit-constants.js';
 import { listOrgUnits, getCandidateOrgUnit, saveOrgUnit, assignOrgUnit } from '../../../../lib/people/org-units.js';

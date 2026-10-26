@@ -12,8 +12,8 @@ import {
   getManagerScope,
   requireAnyCapability,
 } from '../../../../lib/ae/require-admin.js';
-import { can } from '../../../../lib/permissions.js';
-import { resolveCohortCompanyId } from '../../../../lib/assessment-filters.js';
+import { can } from '../../../../lib/identity/permissions.js';
+import { resolveCohortCompanyId } from '../../../../lib/assessment/assessment-filters.js';
 
 export const dynamic = 'force-dynamic';
 

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';
 import { StatusToneChip } from './StatusToneChip';
-import { lmsPdfCanEmbed } from '../../lib/lms-media.js';
+import { lmsPdfCanEmbed } from '../../lib/development/lms-media.js';
 import { EmptyState } from './EmptyState';
 
 function loadScript(src, globalKey) {

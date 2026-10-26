@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
-import { getLmsCertificatePayload } from '../../../../../lib/lms.js';
+import { getLmsCertificatePayload } from '../../../../../lib/development/lms.js';
 
 export const dynamic = 'force-dynamic';
 

@@ -9,7 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
 import * as catalog from '../../lib/billing/catalog.js';
 import * as stripeModule from '../../lib/billing/stripe.js';
-import * as publicLegal from '../../lib/public-legal.js';
+import * as publicLegal from '../../lib/marketing/public-legal.js';
 import * as errorCodes from '../../lib/api-error-codes.js';
 
 const port=Number(process.env.BILLING_TEST_PG_PORT);

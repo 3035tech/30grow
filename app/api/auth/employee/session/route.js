@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../../lib/db.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../../lib/turnstile.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../../lib/identity/turnstile.js';
 import {
   EMPLOYEE_COOKIE_NAME,
   consumeEmployeeMagicToken,

@@ -3,9 +3,9 @@ import { BrandMark } from '../_components/BrandMark';
 import { PublicSiteHeaderWithLocale } from '../_components/PublicSiteHeader';
 import { ContentEnter } from '../_components/AppLoading';
 import { LOCALES } from '../../lib/i18n';
-import { getProductLandingCopy, getPublicHeaderCopy } from '../../lib/product-landing-seo';
+import { getProductLandingCopy, getPublicHeaderCopy } from '../../lib/marketing/product-landing-seo';
 import { t } from '../../lib/i18n';
-import { publicBlogPath, publicMarketingPath } from '../../lib/public-marketing-paths';
+import { publicBlogPath, publicMarketingPath } from '../../lib/marketing/public-marketing-paths';
 
 /** Public chrome for `/blog` pages: landing header/footer, content in pt-BR. */
 export function BlogShell({ locale, children }) {

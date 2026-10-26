@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth.js';
+import { COOKIE_NAME } from '../../../../lib/identity/auth.js';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
-import { verifySessionWithCapabilities } from '../../../../lib/session.js';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/session.js';
 import {
   begin2faSetup,
   disable2fa,
   enable2fa,
   loadUser2faState,
   roleMayUse2Fa,
-} from '../../../../lib/manager-2fa.js';
+} from '../../../../lib/identity/manager-2fa.js';
 
 export const dynamic = 'force-dynamic';
 

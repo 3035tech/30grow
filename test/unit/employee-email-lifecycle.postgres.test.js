@@ -15,7 +15,7 @@ test('email lifecycle: hire → corporate contact → exit → personal contact 
   const { candidateContact } = await import('../../lib/recruiting/candidate-contact.js');
   const { finishEmployeeEmailChange, revokeEmployeeAccessForEmailChange, consumeEmployeeMagicToken } = await import('../../lib/employee/employee-auth.js');
   const { __getMailMockLog, __resetMailMockLog } = await import('../../lib/mail.js');
-  const { closeRateLimitRedis } = await import('../../lib/rate-limit.js');
+  const { closeRateLimitRedis } = await import('../../lib/identity/rate-limit.js');
   let companyId;
   try {
     companyId = (await query("INSERT INTO companies(name,slug) VALUES('Email lifecycle fixture','email-fixture-' || gen_random_uuid()::text) RETURNING id")).rows[0].id;

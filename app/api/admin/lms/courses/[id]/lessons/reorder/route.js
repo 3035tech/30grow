@@ -3,7 +3,7 @@ import { withAdminApi } from '../../../../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../../../../../lib/validate.js';
-import { reorderLmsLessons } from '../../../../../../../../lib/lms.js';
+import { reorderLmsLessons } from '../../../../../../../../lib/development/lms.js';
 
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),

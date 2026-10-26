@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { queryRead } from '../../../../lib/db';
 import { apiError, localeFromRequest, ERR } from '../../../../lib/api-error';
 import { t } from '../../../../lib/i18n';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 /** GET /api/public/ae-invite?token= — valida convite de motivadores. */
 export async function GET(request) {

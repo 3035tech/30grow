@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { query } from '../../../../lib/db.js';
 import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 import {
   getEmployeeHourBankHome,
   requestHourBankDebit,

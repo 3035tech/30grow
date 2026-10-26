@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { HOUR_BANK_CHECKPOINT_RUN_CAP, pickHourBankBase } from '../../lib/people/hour-bank-balance.js';
 import { hourBankCheckpointRunCap } from '../../lib/people/hour-bank-checkpoints.js';
-import { verifyCronRequest } from '../../lib/cron-auth.js';
+import { verifyCronRequest } from '../../lib/identity/cron-auth.js';
 
 function main() {
   const snap = { balance: 100, periodEnd: '2026-08-31' };

@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { BrandMark } from './BrandMark';
 import { ContentEnter } from './AppLoading';
-import { PRIVACY_CONTACT_EMAIL } from '../../lib/public-legal.js';
-import { publicMarketingPath } from '../../lib/public-marketing-paths.js';
+import { PRIVACY_CONTACT_EMAIL } from '../../lib/marketing/public-legal.js';
+import { publicMarketingPath } from '../../lib/marketing/public-marketing-paths.js';
 
 export function PublicLegalDocument({ copy }) {
   const homeHref = publicMarketingPath(copy.locale);

@@ -5,7 +5,7 @@ import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../
 import { z, zLocale, zPositiveInt } from '../../../../../lib/validate.js';
 import { rehireEmployee } from '../../../../../lib/recruiting/hire.js';
 import { audit } from '../../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../lib/identity/rate-limit.js';
 
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),

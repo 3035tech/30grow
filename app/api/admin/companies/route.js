@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../lib/identity/auth';
 import { query, queryRead } from '../../../../lib/db';
 import crypto from 'node:crypto';
-import { PAGE_SIZE_OPTIONS, sqlCompaniesOrderBy } from '../../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS, sqlCompaniesOrderBy } from '../../../../lib/assessment/assessment-filters';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { CAP, requireCapability } from '../../../../lib/permissions';
+import { CAP, requireCapability } from '../../../../lib/identity/permissions';
 import { EMPLOYMENT_STATUS } from '../../../../lib/domain-status';
 import { parseCompanyProfileFromBody } from '../../../../lib/company/company-profile';
 import { isCompanyLogoStorageConfigured } from '../../../../lib/company/company-logo';

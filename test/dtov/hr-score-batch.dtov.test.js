@@ -5,8 +5,8 @@
  */
 import assert from 'node:assert/strict';
 import { query } from '../../lib/db.js';
-import { recalculateCandidateHrScore, recalculateCompanyScores, saveHrScore } from '../../lib/hr-score.js';
-import { calculateAllPredictions, loadRecentOneOnOneNotes, predictionsFromSignals } from '../../lib/hr-predictions.js';
+import { recalculateCandidateHrScore, recalculateCompanyScores, saveHrScore } from '../../lib/assessment/hr-score.js';
+import { calculateAllPredictions, loadRecentOneOnOneNotes, predictionsFromSignals } from '../../lib/assessment/hr-predictions.js';
 import {
   calculateTurnoverRadar,
   detectTrendChange,

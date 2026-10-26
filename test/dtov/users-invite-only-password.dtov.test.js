@@ -8,8 +8,8 @@ import assert from 'node:assert/strict';
 import { pool, query } from '../../lib/db.js';
 import { ERR } from '../../lib/api-error-codes.js';
 import { __getMailMockLog, __resetMailMockLog } from '../../lib/mail.js';
-import { createUser, updateUser } from '../../lib/users-admin.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { createUser, updateUser } from '../../lib/identity/users-admin.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 
 async function main() {
   assert.equal(process.env.SMTP_MOCK, '1', 'run with SMTP_MOCK=1');

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale } from '../../lib/useLocale';
 import { t, errorMessage } from '../../lib/i18n';
-import { publicPricingCurrency, publicPricingTextValues } from '../../lib/pricing-currency';
+import { publicPricingCurrency, publicPricingTextValues } from '../../lib/marketing/pricing-currency';
 import { BrandMark } from '../_components/BrandMark';
 import LanguageSelect from '../_components/LanguageSelect';
 import { FormField } from '../_components/FormField';
@@ -17,7 +17,7 @@ import TurnstileField from '../_components/TurnstileField';
 import { InlineCallout } from '../_components/InlineCallout';
 import { S } from '../dashboard/dashboard-shared';
 import { ContentEnter } from '../_components/AppLoading';
-import { SIGNUP_JOB_TITLE, SIGNUP_JOB_TITLES } from '../../lib/signup-job-titles';
+import { SIGNUP_JOB_TITLE, SIGNUP_JOB_TITLES } from '../../lib/marketing/signup-job-titles';
 
 const TURNSTILE_SITE_KEY = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim();
 
