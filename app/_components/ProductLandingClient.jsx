@@ -12,7 +12,7 @@ import { t, localeHtmlLang, normalizeLocale } from '../../lib/i18n';
 import LandingAnalytics from './LandingAnalytics';
 import { ContentEnter } from './AppLoading';
 import { BlogPostCard } from './BlogPostCard';
-import { publicMarketingPath } from '../../lib/public-marketing-paths';
+import { publicBlogPath, publicMarketingPath } from '../../lib/public-marketing-paths';
 import { ProductScreenshot } from './ProductScreenshot';
 import { OVERVIEW_SCREENSHOT, SOLUTION_SCREENSHOTS, HOME_SCREENSHOT_INDICES, screenshotLabels } from '../../lib/product-screenshots';
 import { PublicLanguageLinks } from './PublicLanguageLinks';
@@ -156,11 +156,11 @@ export default function ProductLandingClient({ copyByLocale, locale: initialLoca
               <div className="mx-auto max-w-6xl px-5 sm:px-8">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                   <SectionHeading label={copy.blog.label} title={copy.blog.title} body={copy.blog.body} id="blog-title" />
-                  <Link href="/blog" className="inline-flex min-h-touch items-center gap-2 text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">{copy.blog.allPosts}<Icon name="chevronRight" className="h-4 w-4" /></Link>
+                  <Link href={publicBlogPath(locale)} className="inline-flex min-h-touch items-center gap-2 text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">{copy.blog.allPosts}<Icon name="chevronRight" className="h-4 w-4" /></Link>
                 </div>
                 <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-3" lang="pt-BR">
                   {blogPosts.map((post) => (
-                    <li key={post.slug}><BlogPostCard post={post} headingLevel="h3" readMinutesLabel={copy.blog.readMinutes.replace('{n}', String(post.readingMinutes))} /></li>
+                    <li key={post.slug}><BlogPostCard post={post} locale={locale} headingLevel="h3" readMinutesLabel={copy.blog.readMinutes.replace('{n}', String(post.readingMinutes))} /></li>
                   ))}
                 </ul>
                 {normalizeLocale(locale) !== 'pt-BR' ? <p className="mb-0 mt-4 text-xs text-ink-faint">{copy.blog.contentLanguageNote}</p> : null}
@@ -180,7 +180,7 @@ export default function ProductLandingClient({ copyByLocale, locale: initialLoca
           <section id="oferta" className="bg-navy py-14 text-white sm:py-16"><div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between"><div className="max-w-2xl"><p className="mb-3 font-ui text-2xs font-medium text-brand-300">{copy.earlyLabel}</p><h2 className="m-0 font-display text-3xl font-semibold leading-tight text-white sm:text-4xl">{copy.earlyTitle}</h2><p className="mb-0 mt-4 text-base leading-7 text-white/65">{copy.earlyBody}</p></div><div className="shrink-0"><Link href="/signup" className="inline-flex min-h-touch items-center justify-center rounded-control bg-white px-6 py-3.5 font-semibold text-brand-800 no-underline hover:bg-brand-50">{copy.ctaEarly}</Link><p className="mb-0 mt-3 text-xs text-white/70">{copy.earlyContact} <a className="text-white underline-offset-2 hover:underline" href={`mailto:${PRODUCT_LANDING_CONTACT_EMAIL}`}>{PRODUCT_LANDING_CONTACT_EMAIL}</a></p></div></div></section>
         </main>
       </ContentEnter>
-      <footer className="border-t border-ink/8 bg-surface py-8"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"><div><BrandMark size={26} withWordmark /><p className="mb-0 mt-2 max-w-xl text-xs leading-5 text-ink-faint">{copy.footerLegal}</p></div><div className="flex flex-wrap gap-5 text-sm"><Link href={publicMarketingPath(locale, '/pricing')} className="text-ink-muted no-underline hover:text-ink">{copy.footerPricing}</Link><Link href="/blog" className="text-ink-muted no-underline hover:text-ink">{u.navBlog}</Link><Link href="/privacy" className="text-ink-muted no-underline hover:text-ink">{copy.footerPrivacy}</Link><Link href="/terms#cancelamento-e-reembolso" className="text-ink-muted no-underline hover:text-ink">{t(locale, 'billing.policies')}</Link><Link href="/terms" className="text-ink-muted no-underline hover:text-ink">{copy.footerTerms}</Link><Link href="/login" className="text-ink-muted no-underline hover:text-ink">{copy.navLogin}</Link><Link href="/employee/login" className="text-ink-muted no-underline hover:text-ink">{copy.navEmployee}</Link></div></div></footer>
+      <footer className="border-t border-ink/8 bg-surface py-8"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"><div><BrandMark size={26} withWordmark /><p className="mb-0 mt-2 max-w-xl text-xs leading-5 text-ink-faint">{copy.footerLegal}</p></div><div className="flex flex-wrap gap-5 text-sm"><Link href={publicMarketingPath(locale, '/pricing')} className="text-ink-muted no-underline hover:text-ink">{copy.footerPricing}</Link><Link href={publicBlogPath(locale)} className="text-ink-muted no-underline hover:text-ink">{u.navBlog}</Link><Link href="/privacy" className="text-ink-muted no-underline hover:text-ink">{copy.footerPrivacy}</Link><Link href="/terms#cancelamento-e-reembolso" className="text-ink-muted no-underline hover:text-ink">{t(locale, 'billing.policies')}</Link><Link href="/terms" className="text-ink-muted no-underline hover:text-ink">{copy.footerTerms}</Link><Link href="/login" className="text-ink-muted no-underline hover:text-ink">{copy.navLogin}</Link><Link href="/employee/login" className="text-ink-muted no-underline hover:text-ink">{copy.navEmployee}</Link></div></div></footer>
       <PublicLanguageLinks locale={locale} />
       <LandingAnalytics measurementId={analyticsId} nonce={nonce} locale={locale} />
     </div>

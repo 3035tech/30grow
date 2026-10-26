@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Icon } from '../../_components/Icon';
-import { t } from '../../../lib/i18n';
+import { LOCALE_COOKIE, normalizeLocale, t } from '../../../lib/i18n';
+import { publicBlogPath } from '../../../lib/public-marketing-paths';
 import {
   BLOG_CONTENT_LOCALE,
   buildBlogPostJsonLd,
@@ -33,7 +34,7 @@ export default async function BlogPostPage(props) {
   const { slug } = await props.params;
   const post = getBlogPost(slug);
   if (!post) notFound();
-  const locale = BLOG_CONTENT_LOCALE;
+  const locale = normalizeLocale((await props.searchParams)?.lang || (await cookies()).get(LOCALE_COOKIE)?.value);
   const related = relatedBlogPosts(post);
   const toc = post.sections.map((section) => (
     <li key={section.id}>
@@ -45,10 +46,10 @@ export default async function BlogPostPage(props) {
   return (
     <BlogShell locale={locale}>
       <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: buildBlogPostJsonLd(post) }} />
-      <BlogBreadcrumb locale={locale} items={[{ href: '/blog', label: t(locale, 'blog.navBlog') }, { label: post.categoryLabel }]} />
+      <BlogBreadcrumb locale={locale} items={[{ href: publicBlogPath(locale), label: t(locale, 'blog.navBlog') }, { label: post.categoryLabel }]} />
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px]">
-        <article className="min-w-0 max-w-3xl">
+        <article lang={BLOG_CONTENT_LOCALE} className="min-w-0 max-w-3xl">
           <header>
             <p className="m-0 font-ui text-2xs font-medium text-brand-600">{post.categoryLabel}</p>
             <h1 className="mb-0 mt-3 font-display text-3xl font-semibold leading-[1.15] tracking-[-0.02em] text-ink sm:text-4xl">{post.title}</h1>
@@ -143,12 +144,12 @@ export default async function BlogPostPage(props) {
         <section className="mt-16 border-t border-ink/8 pt-10" aria-labelledby="leia-tambem">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h2 id="leia-tambem" className="m-0 font-display text-2xl font-semibold text-ink">{t(locale, 'blog.related')}</h2>
-            <Link href="/blog" className="text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">{t(locale, 'blog.allPosts')}</Link>
+            <Link href={publicBlogPath(locale)} className="text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">{t(locale, 'blog.allPosts')}</Link>
           </div>
           <ul className="m-0 mt-6 grid list-none gap-4 p-0 md:grid-cols-3">
             {related.map((item) => (
               <li key={item.slug}>
-                <BlogPostCard post={item} headingLevel="h3" readMinutesLabel={t(locale, 'blog.readMinutes', { n: item.readingMinutes })} />
+                <BlogPostCard post={item} locale={locale} headingLevel="h3" readMinutesLabel={t(locale, 'blog.readMinutes', { n: item.readingMinutes })} />
               </li>
             ))}
           </ul>

@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { BrandMark } from './BrandMark';
 import LanguageSelect from './LanguageSelect';
 import { cn } from '../../lib/cn';
-import { normalizeLocale } from '../../lib/i18n';
+import { LOCALE_COOKIE, normalizeLocale } from '../../lib/i18n';
 import { useLocale } from '../../lib/useLocale';
-import { publicMarketingPath, publicMarketingRoute } from '../../lib/public-marketing-paths';
+import { publicBlogPath, publicMarketingPath, publicMarketingRoute } from '../../lib/public-marketing-paths';
 
 export function PrimaryCta({ copy, compact = false }) {
   return <Link href="/signup" className={`inline-flex min-h-touch items-center justify-center rounded-control bg-action font-ui font-semibold text-action-ink no-underline transition-colors hover:bg-action-hover ${compact ? 'px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm' : 'px-6 py-3.5 text-base'}`}>{compact ? copy.navEarly : copy.ctaEarly}</Link>;
@@ -21,11 +21,16 @@ export function PublicSiteHeader({ copy, locale, onLocaleChange, sectionBase = '
   const homePath = publicMarketingPath(locale);
   const anchorBase = sectionBase ? homePath : '';
   const switchLanguage = (next) => {
+    document.cookie = `${LOCALE_COOKIE}=${encodeURIComponent(normalizeLocale(next))}; path=/; max-age=31536000; samesite=lax`;
     const route = publicMarketingRoute(window.location.pathname);
     if (route || window.location.pathname === '/blog' || window.location.pathname.startsWith('/blog/')) {
-      const target = new URL(publicMarketingPath(next, route?.page, route?.solutionIndex), window.location.origin);
+      const targetPath = route
+        ? publicMarketingPath(next, route.page, route.solutionIndex)
+        : publicBlogPath(next, window.location.pathname.slice('/blog/'.length).replace(/\/$/, ''));
+      const target = new URL(targetPath, window.location.origin);
       target.search = window.location.search;
-      target.searchParams.delete('lang');
+      if (route || normalizeLocale(next) === 'pt-BR') target.searchParams.delete('lang');
+      else target.searchParams.set('lang', normalizeLocale(next));
       target.hash = window.location.hash;
       window.location.assign(target.href);
       return;
@@ -44,7 +49,7 @@ export function PublicSiteHeader({ copy, locale, onLocaleChange, sectionBase = '
           <a href={`${anchorBase}#modulos`} className={linkClass(false)}>{u.navModules}</a>
           <a href={`${anchorBase}#app-colaborador`} className={linkClass(false)}>{copy.employeeApp.label}</a>
           <Link href={publicMarketingPath(locale, '/pricing')} className={linkClass(active === 'pricing')} aria-current={active === 'pricing' ? 'page' : undefined}>{u.navPricing}</Link>
-          <Link href="/blog" className={linkClass(active === 'blog')} aria-current={active === 'blog' ? 'page' : undefined}>{u.navBlog || 'Blog'}</Link>
+          <Link href={publicBlogPath(locale)} className={linkClass(active === 'blog')} aria-current={active === 'blog' ? 'page' : undefined}>{u.navBlog || 'Blog'}</Link>
           <a href={`${anchorBase}#faq`} className={linkClass(false)}>FAQ</a>
         </nav>
         <div className="flex items-center gap-2 [&>label>span]:hidden">
