@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { normalizeLocale, localeHtmlLang } from '../../../lib/i18n';
 import { getProductLandingCopy, getPublicHeaderCopy, productLandingAbsoluteUrl } from '../../../lib/product-landing-seo';
-import { PUBLIC_MARKETING_LOCALES, publicMarketingPath } from '../../../lib/public-marketing-paths';
+import { PUBLIC_MARKETING_LOCALES, publicMarketingPath, publicSolutionCanonicalPath } from '../../../lib/public-marketing-paths';
 import { getPublicSolutions, solutionCopy, buildSolutionMetadata } from '../../../lib/public-solutions';
 import { PublicSiteHeaderWithLocale } from '../../_components/PublicSiteHeader';
 import { PublicLanguageLinks } from '../../_components/PublicLanguageLinks';
@@ -33,7 +33,7 @@ export default async function SolutionPage({ params }) {
   const copy = getProductLandingCopy(locale);
   const labels = solutionCopy(locale);
   const root = productLandingAbsoluteUrl('/');
-  const url = productLandingAbsoluteUrl(solution.path);
+  const url = productLandingAbsoluteUrl(publicSolutionCanonicalPath(locale, index));
   const home = publicMarketingPath(locale);
   const nonce = (await headers()).get('x-nonce') || undefined;
   const headerCopyByLocale = Object.fromEntries(PUBLIC_MARKETING_LOCALES.map((loc) => [loc, getPublicHeaderCopy(loc)]));

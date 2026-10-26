@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
-import { PUBLIC_MARKETING_LOCALES, SOLUTION_SLUGS, publicMarketingRoute, publicMarketingPath, publicLanguageAlternates, publicHreflang } from '../../lib/public-marketing-paths.js';
+import { PUBLIC_MARKETING_LOCALES, SOLUTION_SLUGS, publicMarketingRoute, publicMarketingPath, publicLanguageAlternates, publicHreflang, publicSolutionCanonicalPath } from '../../lib/public-marketing-paths.js';
 import { publicMarketingSitemapEntries } from '../../lib/public-marketing-sitemap.js';
 import { buildProductLandingMetadata, buildProductLandingJsonLd } from '../../lib/product-landing-seo.js';
 import { buildPricingMetadata } from '../../lib/pricing-plans.js';
@@ -72,7 +72,7 @@ test('section pages have unique localized headings, descriptions and full visibl
       assert.ok(item.items.length >= 6);
       const metadata = buildSolutionMetadata(locale, item.index);
       assert.ok(metadata.title.absolute.includes(item.title));
-      assert.equal(metadata.alternates.canonical, `https://30grow.com${item.path}`);
+      assert.equal(metadata.alternates.canonical, `https://30grow.com${publicSolutionCanonicalPath(locale, item.index)}`);
       assert.deepEqual(metadata.alternates.languages, publicLanguageAlternates('solution', item.index, 'https://30grow.com'));
       assert.equal(metadata.robots.index, true);
     }
@@ -81,7 +81,7 @@ test('section pages have unique localized headings, descriptions and full visibl
 
 test('sitemap includes every actual marketing translation, stable timestamps and no private URLs', () => {
   const entries = publicMarketingSitemapEntries('https://30grow.com');
-  assert.equal(entries.length, PUBLIC_MARKETING_LOCALES.length * 8);
+  assert.equal(entries.length, PUBLIC_MARKETING_LOCALES.length * 8 - 12);
   assert.equal(new Set(entries.map((item) => item.url)).size, entries.length);
   for (const item of entries) {
     assert.ok(publicMarketingRoute(new URL(item.url).pathname));
@@ -116,7 +116,7 @@ test('search images keep the product brand distinct from its publisher and expos
     assert.ok(metadata.openGraph.images[0].alt?.length > 20);
   }
   const entries = publicMarketingSitemapEntries('https://30grow.com');
-  assert.equal(entries.filter((entry) => entry.images?.length).length, PUBLIC_MARKETING_LOCALES.length * 6);
+  assert.equal(entries.filter((entry) => entry.images?.length).length, PUBLIC_MARKETING_LOCALES.length * 6 - 10);
 });
 
 
@@ -135,5 +135,26 @@ test('solution previews match the module shown and do not reuse another module f
         assert.match(metadata.openGraph.images[0].url, /brand\/logo-512\.png$/);
       }
     });
+  }
+});
+
+
+test('regional solution duplicates consolidate without losing regional routes or hreflang', () => {
+  configure();
+  const entries = publicMarketingSitemapEntries('https://30grow.com');
+  for (const [regional, preferred] of [['pt-PT', 'pt-BR'], ['es-ES', 'es-419']]) {
+    for (let index = 0; index < SOLUTION_SLUGS.length; index++) {
+      const regionalUrl = `https://30grow.com${publicMarketingPath(regional, 'solution', index)}`;
+      const canonical = `https://30grow.com${publicMarketingPath(preferred, 'solution', index)}`;
+      const metadata = buildSolutionMetadata(regional, index);
+      assert.equal(metadata.alternates.canonical, canonical);
+      assert.equal(metadata.openGraph.url, canonical);
+      assert.equal(metadata.alternates.languages[publicHreflang(regional)], regionalUrl);
+      assert.ok(publicMarketingRoute(new URL(regionalUrl).pathname));
+      assert.ok(!entries.some((entry) => entry.url === regionalUrl));
+      assert.ok(entries.some((entry) => entry.url === canonical));
+    }
+    // Home and pricing retain regional identity and pricing.
+    assert.equal(buildPricingMetadata(regional).alternates.canonical, `https://30grow.com${publicMarketingPath(regional, '/pricing')}`);
   }
 });
