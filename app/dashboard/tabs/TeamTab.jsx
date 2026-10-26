@@ -50,6 +50,7 @@ import { MotivatorsRadarChart } from '../../_components/MotivatorsRadarChartLazy
 import { InlineCallout } from '../../_components/InlineCallout';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { useRehireEmployee } from '../../_components/useRehireEmployee';
+import { EmployeeCsvImport } from '../../_components/EmployeeCsvImport';
 import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
 import { formatDisplayDate } from '../../../lib/format-display-date.js';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
@@ -311,12 +312,26 @@ export function TeamTab({
     router.refresh();
   };
 
+  const previewEmployeeInvite = async (person, resend = false) => {
+    const response = await fetch('/api/admin/employees/invite-preview', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ companyId: Number(person.companyId || companyId), fullName: person.fullName, email: person.email, locale }),
+    });
+    const preview = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(preview.error || t(locale, 'panel.common.error'));
+    return confirm({ title: t(locale, 'employeeInvite.preview'),
+      message: `${person.email}\n\n${preview.subject}\n\n${preview.text}${resend ? `\n\n${t(locale, 'employeeInvite.resendHelp')}` : ''}`,
+      confirmLabel: t(locale, resend ? 'employeeInvite.resend' : 'employeeInvite.send'), preferCancel: true });
+  };
+
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
   const createEmployeeDirect = async () => {
     if (!companyId || createEmployeeBusy) return;
     const values = await promptForm({
       title: t(locale, 'panel.team.addEmployeeTitle'),
       message: t(locale, 'panel.team.addEmployeeHint'),
       confirmLabel: t(locale, 'panel.team.addEmployeeConfirm'),
+      submit: async values => !values.sendAccessInvite || await previewEmployeeInvite(values),
       fields: [
         {
           key: 'fullName',
@@ -623,9 +638,10 @@ export function TeamTab({
   const [accessInviteBusy, setAccessInviteBusy] = useState(false);
   const inviteEmployeeAccess = async () => {
     const person = detail?.candidate;
-    if (!person || accessInviteBusy || !await confirm({ message:t(locale,'employeeAdmission.confirmInvite',{email:person.email}) })) return;
+    if (!person || accessInviteBusy) return;
     setAccessInviteBusy(true);
     try {
+      if (!await previewEmployeeInvite(person, person.employeeAccessState !== 'not_invited')) return;
       const response = await fetch(`/api/admin/candidates/${person.id}/employee-access`, { method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId:person.companyId,locale}) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || t(locale,'panel.common.error'));
@@ -1019,13 +1035,13 @@ export function TeamTab({
       </StatusToneChip>
       {openRow?.areaLabel ? <StatusToneChip tone="neutral">{openRow.areaLabel}</StatusToneChip> : null}
       {detail.candidate.email ? <span className="truncate">{detail.candidate.email}</span> : null}
-      {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState ? <StatusToneChip tone={detail.candidate.employeeAccessState === 'active' ? 'success' : 'neutral'}>{t(locale,`employeeAdmission.access.${detail.candidate.employeeAccessState}`)}</StatusToneChip> : null}
+      {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState ? <StatusToneChip tone={detail.candidate.employeeAccessState === 'active' ? 'success' : 'neutral'}>{t(locale, detail.candidate.employeeAccessState === 'invited' ? 'employeeInvite.pending' : `employeeAdmission.access.${detail.candidate.employeeAccessState}`)}</StatusToneChip> : null}
     </>
   ) : null;
   const personHeaderActions = focusCandidateId ? (
     <div className="flex items-center gap-1">
       {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? <button type="button" className={S.btnPrimary} disabled={Boolean(admissionBusyId)} onClick={() => admit(detail.candidate.id)}>{t(locale,'employeeAdmission.action')}</button> : null}
-      {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? <button type="button" className={S.btnGhost} disabled={accessInviteBusy} onClick={inviteEmployeeAccess}>{t(locale,'employeeAdmission.invite')}</button> : null}
+      {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? <button type="button" className={S.btnGhost} disabled={accessInviteBusy} onClick={inviteEmployeeAccess}>{t(locale, detail.candidate.employeeAccessState === 'not_invited' ? 'employeeInvite.send' : 'employeeInvite.resend')}</button> : null}
       {currentPersonIndex >= 0 ? (
         <span className="mr-1 hidden whitespace-nowrap font-ui text-prose text-ink/75 sm:inline">
           {currentPersonIndex + 1} / {personRows.length}
@@ -1060,7 +1076,8 @@ export function TeamTab({
       {!isPersonPage ? (
       <>
       {companyId ? (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2">
+          <button type="button" className={S.btnGhost} onClick={() => setCsvImportOpen(true)}>{t(locale, 'employeeCsv.title')}</button>
           <AdminCreateButton
             label={t(locale, 'panel.team.addEmployeeBtn')}
             onClick={createEmployeeDirect}
@@ -1068,6 +1085,7 @@ export function TeamTab({
           />
         </div>
       ) : null}
+      {csvImportOpen && companyId ? <EmployeeCsvImport key={companyId} companyId={Number(companyId)} locale={locale} onClose={() => setCsvImportOpen(false)} onImported={() => router.refresh()} /> : null}
       <AdminListFilters
         locale={locale}
         aria-label={t(locale, 'panel.team.searchAriaLabel')}

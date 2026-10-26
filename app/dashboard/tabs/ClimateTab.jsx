@@ -581,10 +581,34 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
     }
   };
 
+  const editSurvey = async () => {
+    if (!selectedId || busy || detail?.status !== CLIMATE_SURVEY_STATUS.DRAFT) return;
+    await promptForm({
+      title: t(locale, 'climateEditor.editSurvey'),
+      confirmLabel: t(locale, 'panel.climate.saveQuestion'),
+      fields: [
+        { key: 'title', label: t(locale, 'panel.climate.titleLabel'), required: true, defaultValue: detail.title },
+        { key: 'description', label: t(locale, 'panel.climate.descLabel'), type: 'richText', minHeight: 100, defaultValue: detail.description || '' },
+      ],
+      submit: async values => {
+        const data = await patch(selectedId, { title: values.title, description: values.description });
+        setDetail(data.survey);
+        await load();
+        toast(t(locale, 'panel.climate.statusUpdated'), 'ok');
+      },
+    });
+  };
+
   const setStatus = async (status) => {
-    if (!selectedId) return;
+    if (!selectedId || busy) return;
     setBusy(true);
     try {
+      if (status === CLIMATE_SURVEY_STATUS.OPEN && !await confirm({
+        title: t(locale, 'climateEditor.publishTitle'),
+        message: t(locale, 'climateEditor.publishBody', { title: detail?.title || '', count: detail?.questions?.length || 0 }),
+        confirmLabel: t(locale, 'climateEditor.publishConfirm'),
+        preferCancel: true,
+      })) return;
       const data = await patch(selectedId, { status });
       setDetail(data.survey);
       toast(t(locale, 'panel.climate.statusUpdated'), 'ok');
@@ -702,10 +726,20 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
 
   const addQuestion = async () => {
     if (!selectedId) return;
-    const values = await promptForm({
+    await promptForm({
       title: t(locale, 'panel.climate.addQuestionTitle'),
       message: t(locale, 'panel.climate.addQuestionHint'),
       confirmLabel: t(locale, 'panel.climate.addQuestionConfirm'),
+      submit: async values => {
+        const kind = values.kind || CLIMATE_QUESTION_KIND.LIKERT;
+        const data = await patch(selectedId, { addQuestion: {
+          prompt: values.prompt, questionKind: kind,
+          psychosocialFactor: kind === CLIMATE_QUESTION_KIND.LIKERT ? values.factor || null : null,
+        } });
+        setDetail(data.survey); setShowQuestions(true);
+        toast(t(locale, 'panel.climate.questionSaved'), 'ok');
+        await load();
+      },
       fields: [
         {
           key: 'kind',
@@ -743,27 +777,6 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
         },
       ],
     });
-    if (!values) return;
-    setBusy(true);
-    try {
-      const data = await patch(selectedId, {
-        addQuestion: {
-          prompt: values.prompt,
-          questionKind: values.kind || CLIMATE_QUESTION_KIND.LIKERT,
-          psychosocialFactor: (values.kind || CLIMATE_QUESTION_KIND.LIKERT) === CLIMATE_QUESTION_KIND.LIKERT
-            ? values.factor || null
-            : null,
-        },
-      });
-      setDetail(data.survey);
-      setShowQuestions(true);
-      toast(t(locale, 'panel.climate.questionSaved'), 'ok');
-      await load();
-    } catch {
-      toast(t(locale, 'panel.climate.saveError'), 'error');
-    } finally {
-      setBusy(false);
-    }
   };
 
   const editQuestion = async (q) => {
@@ -1087,6 +1100,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
+                      {detail.status === CLIMATE_SURVEY_STATUS.DRAFT ? <button type="button" className={S.btnGhost} disabled={busy} onClick={editSurvey}>{t(locale, 'climateEditor.editSurvey')}</button> : null}
                       {detailSection === 'questionnaire' && detail.status === CLIMATE_SURVEY_STATUS.DRAFT ? (
                         <button
                           type="button"
