@@ -1,5 +1,6 @@
 'use client';
 
+import { TimeClockValidationNotice } from '../../_components/TimeClockValidationNotice';
 import { useCallback, useEffect, useState } from 'react';
 import { t } from '../../../lib/i18n';
 import { EmployeeDedicatedShell } from '../../_components/EmployeeDedicatedShell';
@@ -37,6 +38,7 @@ export function EmployeeTimeClockClient({ locale = 'pt-BR' }) {
       title={t(locale, 'employeeHome.timeClockPageTitle')}
       hint={t(locale, 'employeeHome.timeClockPageHint')}
     >
+      <TimeClockValidationNotice locale={locale} className="mb-4" />
       <section className="rounded-card border border-ink/12 bg-surface p-4 sm:p-5"><EmployeeTimeClockSection locale={locale} onBadge={onBadge} onPunched={onPunched} /></section>
       <EmployeeTimeClockMirrors locale={locale} />
       <section className="mt-4 rounded-card border border-ink/12 bg-surface p-4 sm:p-5" aria-labelledby="emp-tc-history-title">

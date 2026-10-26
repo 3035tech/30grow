@@ -1,5 +1,6 @@
 'use client';
 
+import { TimeClockValidationNotice } from './TimeClockValidationNotice';
 import { ListLoadError } from './ListLoadError';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -347,6 +348,7 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
 
   return (
     <div className="flex flex-col gap-4">
+      <TimeClockValidationNotice locale={locale} />
       <RepAdminSettings key={companyId} companyId={companyId} locale={locale} />
       <SegmentedControl
         aria-label={t(locale, `${K}.viewsAria`)}

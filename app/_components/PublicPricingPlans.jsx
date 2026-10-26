@@ -1,3 +1,4 @@
+import { TimeClockValidationNotice } from './TimeClockValidationNotice';
 import Link from 'next/link';
 import { t } from '../../lib/i18n';
 import { formatPublicPrice, PUBLIC_BRL_TIERS, publicPricingTextValues } from '../../lib/pricing-currency';
@@ -32,6 +33,7 @@ export function PublicPricingPlans({ locale, showLaunchOffer = false }) {
         <p className="m-0">{copy('customTierNote', { n: PUBLIC_BRL_TIERS.at(-1).max })}</p>
         <a href="mailto:contact@3035tech.com?subject=30Grow%3A%20proposta%20para%20mais%20de%20100%20colaboradores" className="inline-flex min-h-touch shrink-0 items-center font-semibold text-brand-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-700">{copy('quoteCta')}</a>
       </div>
+      <TimeClockValidationNotice locale={locale} className="mt-6" />
       <p className="mb-0 mt-4 text-xs leading-5 text-ink-muted">{copy('billingDefinition')}</p>
       <p className="mb-0 mt-2 text-xs leading-5 text-ink-muted">{copy('usageNote')}</p>
       {showLaunchOffer ? (
