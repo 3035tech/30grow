@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { KUDO_REACTION_EMOJIS, KUDO_REACTORS_PAGE_SIZE } from '../../lib/kudo-reaction-options';
+import { KUDO_REACTION_EMOJIS, KUDO_QUICK_REACTION_EMOJIS, KUDO_REACTORS_PAGE_SIZE } from '../../lib/kudo-reaction-options';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';
@@ -12,6 +12,7 @@ const EMPTY_REACTIONS = Object.freeze([]);
 export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, locale = 'pt-BR' }) {
   const { toast } = useAppFeedback();
   const [reactions, setReactions] = useState(initialReactions);
+  const [expandedPicker, setExpandedPicker] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [peopleOpen, setPeopleOpen] = useState(false);
   const [people, setPeople] = useState([]);
@@ -55,6 +56,7 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
       if (!response.ok || !data.ok) throw Error('reaction_failed');
       setReactions(data.reactions || []);
       setPickerOpen(false);
+      setExpandedPicker(false);
       setPeopleOpen(false);
       setPeople([]);
       setAnnouncement(label(remove ? 'kudosReactionRemoved' : 'kudosReactionUpdated'));
@@ -93,7 +95,7 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
           if (!reaction?.count) return null;
           return (
             <button key={emoji} type="button" disabled={busy || loadingPeople} aria-pressed={reaction.mine}
-              aria-label={`${label(`kudosReaction${index}`)} · ${reaction.count}`}
+              aria-label={`${index < KUDO_QUICK_REACTION_EMOJIS.length ? label(`kudosReaction${index}`) : emoji} · ${reaction.count}`}
               className={cn(reaction.mine ? S.btnBrandSoft : S.btnGhost, 'min-h-touch gap-1 rounded-full px-3')}
               onClick={() => react(emoji)}>
               <span aria-hidden="true">{emoji}</span><span>{reaction.count}</span>
@@ -122,12 +124,13 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
               reactButtonRef.current?.focus();
             }
           }} className="mt-2 flex flex-wrap gap-1 rounded-xl border border-line bg-surface p-2">
-          {KUDO_REACTION_EMOJIS.map((emoji, index) => (
+          {(expandedPicker ? KUDO_REACTION_EMOJIS : KUDO_QUICK_REACTION_EMOJIS).map((emoji, index) => (
             <button key={emoji} type="button" className={cn(S.btnGhost, 'min-h-touch min-w-touch text-xl')}
-              disabled={busy || loadingPeople} aria-label={label(`kudosReaction${index}`)}
+              disabled={busy || loadingPeople} aria-label={index < KUDO_QUICK_REACTION_EMOJIS.length ? label(`kudosReaction${index}`) : emoji}
               aria-pressed={reactions.some(reaction => reaction.emoji === emoji && reaction.mine)}
               onClick={() => react(emoji)}>{emoji}</button>
           ))}
+          <button type="button" className={cn(S.btnGhost, 'min-h-touch min-w-touch text-xl')} disabled={busy || loadingPeople} aria-expanded={expandedPicker} aria-label={label('kudosChooseReaction')} onClick={() => setExpandedPicker(open => !open)}>{expandedPicker ? '−' : '+'}</button>
           <p className="w-full text-xs text-ink-muted">{label('kudosReactionHint')}</p>
         </div>
       ) : null}

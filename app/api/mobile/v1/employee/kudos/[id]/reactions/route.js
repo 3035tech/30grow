@@ -8,7 +8,7 @@ async function handle(request, { params }) {
   try {
     const session = await authenticateMobileEmployee(mobileEmployeeBearerToken(request));
     const modules = session ? await getCompanyEnabledModules(null, session.companyId) : null;
-    return await kudoReactionResponse(request, params, session, modules);
+    return await kudoReactionResponse(request, params, session, modules, { mobile: true });
   } catch (error) {
     return apiError(request, error.code === '42P01' ? ERR.SCHEMA_NOT_INITIALIZED : ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }

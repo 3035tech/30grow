@@ -1,6 +1,6 @@
 # Reações aos kudos
 
-Cada colaborador pode escolher uma das cinco reações (👍 ❤️ 👏 🎉 🙌) em
+Cada colaborador pode escolher uma das 17 reações do catálogo fixo, com cinco atalhos (👍 ❤️ 👏 🎉 🙌) e mais opções pelo botão +, em
 qualquer kudos ativo da própria empresa, inclusive quando é autor ou destinatário.
 Escolher outra substitui a reação atual; tocar novamente na própria reação a
 remove. A lista mostra contagem, escolha atual e nomes de quem reagiu, sob demanda.
@@ -56,3 +56,19 @@ Em 24/10/2026, migrations 170 e 171 registradas e verificadas em Dublin
 O acabamento do portal foi validado em cinco casos de interface e no build: foco
 após reagir, fechamento por Escape, anúncios acessíveis, falhas de rede e
 tamanho legível dos anexos em B/KB/MB.
+
+## Ampliação do catálogo — migration 173
+
+O domínio passa a aceitar 😊 💪 🚀 ⭐ 🔥 💯 🤝 🏆 🙏 🤩 💡 🥳 além dos cinco atalhos. Mantido TEXT com CHECK de domínio fixo: emojis não são um cadastro editável, não têm identidade/histórico próprios e não precisam de JSONB ou de nova tabela. PK, FKs, cardinalidade, índices e updated_at permanecem. A alteração é uma única instrução DO, com lock_timeout local de cinco segundos, sem apagar/regravar linhas; pode ser reaplicada.
+
+Compatibilidade: apps com schema antigo não podem receber os novos valores. O mobile anuncia X-Kudo-Reaction-Catalog: 2; o feed devolve reactionCatalogVersion 2 para o opt-in e 1 para o legado. Feed e respostas de mutação legados omitem emojis desconhecidos; a consulta paginada de nomes filtra antes de LIMIT/OFFSET. O web usa o catálogo completo. Não se acrescentam novas chamadas ou dados pessoais. Apps novos continuam usando somente os cinco atalhos quando o servidor não anuncia suporte.
+
+Sequência: aplicar 173 em Dublin e produção; verificar CHECK/registro da migration; publicar backend com leitores compatíveis; depois liberar o cliente que oferece opções ampliadas. As duas bases reais ainda não foram alteradas nesta entrega. SQL canônico em migrations/173_expanded_kudo_reactions.sql; bundle operacional também atualizado.
+
+Rollback: retirar a oferta das opções extras nos clientes, mantendo o CHECK ampliado e os leitores compatíveis enquanto existirem reações novas. Não reduzir a constraint nem voltar leitores que rejeitem/emitam valores desconhecidos para clientes antigos. Nenhuma exclusão ou conversão de reações é autorizada implicitamente.
+
+Prova local: migration aplicada pelo harness DTOV e reaplicada duas vezes; dados e timestamps preservados. Seis casos de integração passaram, cobrindo os 17 valores, unicidade, isolamento, ex-colaborador, moderação e paginação legada. Oito casos de contrato/payload passaram. Liberação remota depende da aplicação da migration e dos gates finais.
+
+### Situação operacional desta entrega
+
+Build Next/webpack e lint dos arquivos alterados aprovados. Produção: preflight confirmou database grow30 na instância general, TLS verificado com CA oficial, role grow30_app e owner admin3035tech. Tentativa de 173 foi recusada com 42501 e a transação foi revertida; nenhum grant ou alteração de credencial foi feito. Precisa de credencial administrativa existente para continuar. Dublin: aguarda reconexão do controle do Chrome/pgAdmin web. Não declarar a migration aplicada nos ambientes reais.
