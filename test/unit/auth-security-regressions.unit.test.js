@@ -119,7 +119,7 @@ test('self email with active 2FA requires TOTP; unrelated edits and authorized a
   assert.equal((await f.update({ email: 'support@example.com' }, true, 99)).ok, true);
 });
 
-for (const [path, name, args] of [['lib/manager-2fa.js', 'disable2fa', [7]], ['lib/employee-2fa.js', 'disableEmployee2fa', [8, 9]]]) {
+for (const [path, name, args] of [['lib/manager-2fa.js', 'disable2fa', [7]], ['lib/employee/employee-2fa.js', 'disableEmployee2fa', [8, 9]]]) {
   test(`${name}: eleventh attempt is blocked before password/TOTP/database work`, async () => {
     let attempts = 0;
     let reads = 0;
@@ -168,7 +168,7 @@ for (const [path, manager] of [['app/api/auth/2fa/verify/route.js', true], ['app
   });
 }
 
-for (const [path, name, args] of [['lib/manager-2fa.js', 'verify2faLogin', [7, '000000']], ['lib/employee-2fa.js', 'verifyEmployee2faLogin', [8, 9, '000000']]]) {
+for (const [path, name, args] of [['lib/manager-2fa.js', 'verify2faLogin', [7, '000000']], ['lib/employee/employee-2fa.js', 'verifyEmployee2faLogin', [8, 9, '000000']]]) {
   test(`${name}: account cap rejects TOTP attempts before database access`, async () => {
     let reads = 0;
     const keys = [];
@@ -191,7 +191,7 @@ for (const [path, name, args] of [['lib/manager-2fa.js', 'verify2faLogin', [7, '
 }
 
 test('employee TOTP state rejects a candidate id paired with another company', async () => {
-  const api = await load('lib/employee-2fa.js', {
+  const api = await load('lib/employee/employee-2fa.js', {
     query: async (sql, args) => {
       assert.match(sql, /c.id = \$1 AND c.company_id = \$2/);
       const own = args[0] === 8 && args[1] === 9;

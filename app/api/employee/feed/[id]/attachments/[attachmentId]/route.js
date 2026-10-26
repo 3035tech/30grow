@@ -1,9 +1,9 @@
-import { getEmployeeSessionPayload } from '../../../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../../../lib/employee/employee-session.js';
 import { apiError,ERR } from '../../../../../../../lib/api-error.js';
 import { z,zPositiveInt } from '../../../../../../../lib/validate.js';
-import { COMPANY_MODULE,companyHasModule } from '../../../../../../../lib/company-modules.js';
-import { getCompanyEnabledModules } from '../../../../../../../lib/company-module-entitlements.js';
-import { companyPostFileResponse } from '../../../../../../../lib/company-post-file-http.js';
+import { COMPANY_MODULE,companyHasModule } from '../../../../../../../lib/company/company-modules.js';
+import { getCompanyEnabledModules } from '../../../../../../../lib/company/company-module-entitlements.js';
+import { companyPostFileResponse } from '../../../../../../../lib/company/company-post-file-http.js';
 export const dynamic='force-dynamic';
 export async function GET(request,{params}){
  try{

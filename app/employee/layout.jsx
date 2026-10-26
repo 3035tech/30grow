@@ -3,9 +3,9 @@ import { EmployeeShell } from '../_components/EmployeeShell';
 import { I18nBoot } from '../_components/I18nBoot';
 import {
   EMPLOYEE_COOKIE_NAME,
-} from '../../lib/employee-auth-constants.js';
-import { verifyEmployeeToken, isEmployeeSessionPayload } from '../../lib/employee-auth.js';
-import { getEmployeeProfile } from '../../lib/employee-profile.js';
+} from '../../lib/employee/employee-auth-constants.js';
+import { verifyEmployeeToken, isEmployeeSessionPayload } from '../../lib/employee/employee-auth.js';
+import { getEmployeeProfile } from '../../lib/employee/employee-profile.js';
 import { query } from '../../lib/db.js';
 import { normalizeLocale } from '../../lib/i18n.js';
 

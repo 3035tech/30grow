@@ -1,6 +1,6 @@
 /**
  * DTOV: B-2601 — "Por que não aparece?" for Banco de talentos and the vacancy pipeline.
- * Membership mirrors lib/talent-bank.js and lib/vacancy-ranking.js; tenant-scoped.
+ * Membership mirrors lib/recruiting/talent-bank.js and lib/recruiting/vacancy-ranking.js; tenant-scoped.
  * The lib reads through the shared pool, so fixtures are committed and removed at the end.
  * Run with dtovEnv() (see test/README.md).
  */

@@ -3,13 +3,13 @@
  */
 import assert from 'node:assert/strict';
 import { query } from '../../lib/db.js';
-import { createCompanyPost, listCompanyPosts, softDeleteCompanyPost, updateCompanyPost } from '../../lib/company-posts.js';
+import { createCompanyPost, listCompanyPosts, softDeleteCompanyPost, updateCompanyPost } from '../../lib/company/company-posts.js';
 import {
   createCompanyKudo,
   listCompanyKudos,
   searchEmployeeColleagues,
   countRecentCompanyKudos,
-} from '../../lib/company-kudos.js';
+} from '../../lib/company/company-kudos.js';
 import { EMPLOYMENT_STATUS } from '../../lib/domain-status.js';
 
 async function main() {

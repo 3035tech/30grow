@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { employeeLoginUrl } from '../../lib/employee-client-session';
+import { employeeLoginUrl } from '../../lib/employee/employee-client-session';
 import { Icon } from './Icon';
 import { Spinner } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';

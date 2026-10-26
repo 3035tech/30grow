@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, ERR, httpStatusForError, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
 import { query } from '../../../../../../../lib/db.js';
-import { completeEmployeePasswordSetup, peekEmployeePasswordSetupToken } from '../../../../../../../lib/employee-auth.js';
+import { completeEmployeePasswordSetup, peekEmployeePasswordSetupToken } from '../../../../../../../lib/employee/employee-auth.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/rate-limit.js';
 import { parseJsonBody } from '../../../../../../../lib/validate.js';
 

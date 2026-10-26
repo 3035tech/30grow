@@ -7,7 +7,7 @@ import { InsightListItem } from '../../../_components/InsightListItem';
 import { AppLoading, ContentEnter } from '../../../_components/AppLoading';
 import { CategoryBars } from '../../../_components/CategoryBars';
 import { ChartPanel } from '../../../_components/ChartPanel';
-import { CHART_MIN_N, topCategoryCounts } from '../../../../lib/chart-aggregates';
+import { CHART_MIN_N, topCategoryCounts } from '../../../../lib/analytics/chart-aggregates';
 import { t as i18nT, messageNode } from '../../../../lib/i18n';
 
 

@@ -5,7 +5,7 @@ import { COOKIE_NAME } from '../../../lib/auth';
 import { cookies } from 'next/headers';
 import { checkRateLimit, clientIpFromRequest } from '../../../lib/rate-limit';
 import { apiError, ERR } from '../../../lib/api-error';
-import { JOB_ATTR_COOKIE } from '../../../lib/job-attribution';
+import { JOB_ATTR_COOKIE } from '../../../lib/recruiting/job-attribution';
 import { normalizeAssessmentTelemetry, submitAssessmentResult } from '../../../lib/assessment-submit';
 import { verifySessionWithCapabilities } from '../../../lib/session';
 

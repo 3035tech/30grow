@@ -8,7 +8,7 @@ import {
   ERR,
   httpStatusForError,
 } from '../../../../../../../lib/api-error.js';
-import { cancelInterviewSlot, updateInterviewSlot } from '../../../../../../../lib/interview-slots.js';
+import { cancelInterviewSlot, updateInterviewSlot } from '../../../../../../../lib/recruiting/interview-slots.js';
 import { audit } from '../../../../../../../lib/audit.js';
 import { INTERVIEW_SLOT_STATUSES } from '../../../../../../../lib/domain-status.js';
 

@@ -11,7 +11,7 @@ import { AppLoading } from '../../_components/AppLoading';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
-import { PIPELINE_STAGES } from '../../../lib/pipeline';
+import { PIPELINE_STAGES } from '../../../lib/recruiting/pipeline';
 import {
   ABSENCE_LIST,
   ABSENCE_SUGGESTION,

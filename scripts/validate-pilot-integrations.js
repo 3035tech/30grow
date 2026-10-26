@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import process from 'node:process';
-import { companyLogoObjectKey } from '../lib/company-logo.js';
+import { companyLogoObjectKey } from '../lib/company/company-logo.js';
 import {
   companyScopedObjectKey,
   deleteObjectBestEffort,

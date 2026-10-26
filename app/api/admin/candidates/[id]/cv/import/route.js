@@ -6,7 +6,7 @@ import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
 import {
   analyzeCandidateProfile,
   applyCandidateProfile,
-} from '../../../../../../../lib/candidate-profile-import.js';
+} from '../../../../../../../lib/recruiting/candidate-profile-import.js';
 import { audit } from '../../../../../../../lib/audit.js';
 
 export const runtime = 'nodejs';

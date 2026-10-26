@@ -5,7 +5,7 @@ import { cn } from '../../../lib/cn';
 import { t } from '../../../lib/i18n';
 import { getTypeData } from '../../../lib/i18n-data';
 import { computeAreaScore010 } from '../../../lib/area-fit';
-import { fitTypeAlignment } from '../../../lib/vacancy-report-shared';
+import { fitTypeAlignment } from '../../../lib/recruiting/vacancy-report-shared';
 import { S } from '../dashboard-shared';
 
 /** Module cache: vacancyId → weights object (or null). */

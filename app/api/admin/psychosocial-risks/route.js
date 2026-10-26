@@ -6,7 +6,7 @@ import { CAP } from '../../../../lib/permissions.js';
 import { query } from '../../../../lib/db.js';
 import { audit, auditRequestContext } from '../../../../lib/audit.js';
 import { PSYCHOSOCIAL_FACTORS, PSYCHOSOCIAL_RISK_STATUSES } from '../../../../lib/domain-status.js';
-import { listActiveCompanyUsers } from '../../../../lib/recruiting-workspace.js';
+import { listActiveCompanyUsers } from '../../../../lib/recruiting/recruiting-workspace.js';
 import {
   PSYCHOSOCIAL_GROUP_MAX,
   PSYCHOSOCIAL_HAZARD_MAX,

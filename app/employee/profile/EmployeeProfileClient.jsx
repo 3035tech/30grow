@@ -19,8 +19,8 @@ import { EmptyState } from '../../_components/EmptyState';
 import { TotpQrCode } from '../../_components/TotpQrCode';
 import LanguageSelect from '../../_components/LanguageSelect';
 import { useEmployeeNav } from '../../_components/EmployeeNavContext';
-import { BR_STATES } from '../../../lib/candidate-profile';
-import { redirectEmployeeIfUnauthorized } from '../../../lib/employee-client-session';
+import { BR_STATES } from '../../../lib/recruiting/candidate-profile';
+import { redirectEmployeeIfUnauthorized } from '../../../lib/employee/employee-client-session';
 
 const profilePanelClass = cn(S.cardShell, 'p-4 sm:p-6');
 

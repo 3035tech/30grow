@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api';
 import { apiError, ERR, httpStatusForError } from '../../../../../../lib/api-error';
 import { CAP } from '../../../../../../lib/permissions';
-import { getVacancyFunnelAnalytics } from '../../../../../../lib/job-funnel';
+import { getVacancyFunnelAnalytics } from '../../../../../../lib/recruiting/job-funnel';
 
 /**
  * GET /api/admin/vacancies/[id]/analytics

@@ -1,7 +1,7 @@
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { cn } from '../../../lib/cn';
 import { formatSalaryBr, salaryAmountNumber } from '../../../lib/br-masks';
-import { PIPELINE_STAGE } from '../../../lib/pipeline.js';
+import { PIPELINE_STAGE } from '../../../lib/recruiting/pipeline.js';
 import { S } from '../dashboard-shared';
 
 function formatSalaryCompact(locale, value, bare = false) {

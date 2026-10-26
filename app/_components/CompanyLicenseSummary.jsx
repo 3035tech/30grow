@@ -1,7 +1,7 @@
 'use client';
 
 import { t } from '../../lib/i18n';
-import { COMPANY_LICENSE } from '../../lib/company-license';
+import { COMPANY_LICENSE } from '../../lib/company/company-license';
 import { cn } from '../../lib/cn';
 import { formatDisplayDateTime } from '../../lib/format-display-date';
 import { S } from '../dashboard/dashboard-shared';

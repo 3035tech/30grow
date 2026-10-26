@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { EMPLOYEE_NOTIF } from '../../lib/employee-notification-catalog.js';
+import { EMPLOYEE_NOTIF } from '../../lib/employee/employee-notification-catalog.js';
 import { MOBILE_PUSH_DESTINATION, mobilePushDestinationFor, validExpoPushToken } from '../../lib/mobile-employee-push.js';
 
 test('accepts only Expo push token shapes', () => {

@@ -7,11 +7,11 @@ import {
   createReportShare,
   listReportShares,
   loadVacancyReportSource,
-} from '../../../../../../lib/vacancy-report';
+} from '../../../../../../lib/recruiting/vacancy-report';
 import { apiError, ERR } from '../../../../../../lib/api-error';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
 import { loadCompanyInternalNucleus } from '../../../../../../lib/people/company-nucleus.js';
-import { buildShortlistCompositionRisks } from '../../../../../../lib/shortlist-composition-risks.js';
+import { buildShortlistCompositionRisks } from '../../../../../../lib/recruiting/shortlist-composition-risks.js';
 import { queryRead } from '../../../../../../lib/db.js';
 import { normalizeLocale } from '../../../../../../lib/i18n.js';
 

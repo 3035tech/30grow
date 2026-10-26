@@ -19,7 +19,7 @@ async function session({ cookie = 'signed-test-token', payload = { candidateId: 
     EMPLOYMENT_STATUS: { EMPLOYEE: 'employee' },
   };
   const context = vm.createContext({});
-  const module = new vm.SourceTextModule(await readFile(new URL('../../lib/employee-session.js', import.meta.url), 'utf8'), { context });
+  const module = new vm.SourceTextModule(await readFile(new URL('../../lib/employee/employee-session.js', import.meta.url), 'utf8'), { context });
   await module.link(() => new vm.SyntheticModule(Object.keys(deps), function () {
     for (const [name, value] of Object.entries(deps)) this.setExport(name, value);
   }, { context }));

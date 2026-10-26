@@ -22,7 +22,7 @@ describe('module hardening', () => {
     const vacancies = source('app/api/admin/vacancies/[id]/route.js');
     assert.match(vacancies, /recruiting\.vacancy\.updated/);
     assert.match(vacancies, /recruiting\.vacancy\.soft_deleted/);
-    assert.match(source('lib/vacancies-admin.js'), /UPDATE vacancies SET deleted = TRUE/);
+    assert.match(source('lib/recruiting/vacancies-admin.js'), /UPDATE vacancies SET deleted = TRUE/);
 
     const pipeline = source('app/api/admin/vacancies/[id]/candidates/[candidateId]/route.js');
     assert.match(pipeline, /recruiting\.candidate\.hired/);
@@ -35,7 +35,7 @@ describe('module hardening', () => {
 
     const companies = source('app/api/admin/companies/[id]/route.js');
     assert.match(companies, /await archiveCompany\(companyId\)/);
-    assert.match(source('lib/company-lifecycle.js'), /UPDATE companies SET deleted=TRUE,active=FALSE/);
+    assert.match(source('lib/company/company-lifecycle.js'), /UPDATE companies SET deleted=TRUE,active=FALSE/);
     assert.match(companies, /company\.soft_delete/);
   });
 

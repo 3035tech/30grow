@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { z } from 'zod';
-import { jobRoleDescriptionSchema, jobRoleAiDescriptionSchema } from '../../lib/job-role-description.js';
+import { jobRoleDescriptionSchema, jobRoleAiDescriptionSchema } from '../../lib/recruiting/job-role-description.js';
 import { htmlToPlainText } from '../../lib/sanitize-html.js';
 
 test('formatted description below 2000 visible characters reaches both creation and AI', () => {

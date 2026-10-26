@@ -84,7 +84,7 @@ _(vazio: B-RH2-12 aceite fechado abaixo.)_
 
 ## B-RH2-12 — Pipeline configurável (entregue)
 
-**Implementação:** `migrations/110_company_pipeline_stages.sql`, `lib/company-pipeline-stages.js` (lazy seed + CRUD + reorder + delete com guard), APIs `app/api/admin/pipeline-stages/*` (VACANCIES_MANAGE), editor DnD em `app/dashboard/vacancies/PipelineStagesEditor.jsx` acima do Kanban, canonicalização nos reports (overview-metrics, hire, manager-weekly-digest, vacancy-report, assessment-filters) via `LEFT JOIN company_pipeline_stages` + `COALESCE(canonical_key, pipeline_stage)`. Hire/reject/archive continuam ações especiais disparadas pelo `canonical_key` — custom pode reutilizar qualquer canonical (ex.: dois "Contratado" mapeados p/ canonical=hired).
+**Implementação:** `migrations/110_company_pipeline_stages.sql`, `lib/company/company-pipeline-stages.js` (lazy seed + CRUD + reorder + delete com guard), APIs `app/api/admin/pipeline-stages/*` (VACANCIES_MANAGE), editor DnD em `app/dashboard/vacancies/PipelineStagesEditor.jsx` acima do Kanban, canonicalização nos reports (overview-metrics, hire, manager-weekly-digest, vacancy-report, assessment-filters) via `LEFT JOIN company_pipeline_stages` + `COALESCE(canonical_key, pipeline_stage)`. Hire/reject/archive continuam ações especiais disparadas pelo `canonical_key` — custom pode reutilizar qualquer canonical (ex.: dois "Contratado" mapeados p/ canonical=hired).
 
 
 Pedido RH: etapa tipo “Encaminhado / Análise da gestão” **e** colunas Kanban configuráveis.

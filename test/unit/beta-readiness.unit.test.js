@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
 import { validationFields, validateFormFields } from '../../lib/form-validation.js';
-import { jobRoleDescriptionSchema, jobRoleAiDescriptionSchema } from '../../lib/job-role-description.js';
+import { jobRoleDescriptionSchema, jobRoleAiDescriptionSchema } from '../../lib/recruiting/job-role-description.js';
 import { motivatorDimensionLabel } from '../../lib/ae/motivators-dimensions.js';
 
 test('safe field validation identifies the field and limit without echoing input or custom messages', () => {

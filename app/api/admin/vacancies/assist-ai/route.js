@@ -10,7 +10,7 @@ import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error'
 import { isOpenAiConfigured } from '../../../../../lib/openai-chat';
 import { normalizeLocale } from '../../../../../lib/i18n';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
-import { suggestVacancyDescriptionAi } from '../../../../../lib/vacancy-assist-ai';
+import { suggestVacancyDescriptionAi } from '../../../../../lib/recruiting/vacancy-assist-ai';
 
 /**
  * POST /api/admin/vacancies/assist-ai

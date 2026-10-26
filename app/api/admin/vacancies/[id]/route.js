@@ -14,7 +14,7 @@ import {
   getVacancyRubric,
   softDeleteVacancy,
   updateVacancy,
-} from '../../../../../lib/vacancies-admin';
+} from '../../../../../lib/recruiting/vacancies-admin';
 
 export async function GET(request, props) {
   const params = await props.params;

@@ -19,10 +19,10 @@ import {
   compareRubrics,
   listAvailableAreas,
   listAvailableRubrics,
-} from '../../../../../lib/analytics-comparisons.js';
-import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics-rate-limit.js';
+} from '../../../../../lib/analytics/analytics-comparisons.js';
+import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics/analytics-rate-limit.js';
 import { withApiLogging } from '../../../../../lib/monitoring.js';
-import { isValidAnalyticsDateRange } from '../../../../../lib/analytics-query.js';
+import { isValidAnalyticsDateRange } from '../../../../../lib/analytics/analytics-query.js';
 
 export async function GET(request) {
   const logContext = { operation: 'analytics.compare' };

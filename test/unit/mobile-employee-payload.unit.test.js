@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getEmployeeProfile } from '../../lib/employee-profile.js';
+import { getEmployeeProfile } from '../../lib/employee/employee-profile.js';
 import {
   mobileCommunityBody,
   mobileLmsBody,

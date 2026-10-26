@@ -9,11 +9,11 @@ const env = dtovEnv(); assertDtovTarget(env);
 if (process.env.ADMISSION_TEST_PG_PORT !== undefined) { assert.equal(process.env.ADMISSION_TEST_PG_PORT,'55489'); env.POSTGRES_PORT='55489'; env.REDIS_URL=''; }
 Object.assign(process.env,env);
 const { query, pool, withTransaction } = await import('../../lib/db.js');
-const { admitCandidateAsEmployee, createEmployeeDirect, listCandidateHiringLinks, maybeCloseVacancyIfFilled } = await import('../../lib/hire.js');
-const auth = await import('../../lib/employee-auth.js');
+const { admitCandidateAsEmployee, createEmployeeDirect, listCandidateHiringLinks, maybeCloseVacancyIfFilled } = await import('../../lib/recruiting/hire.js');
+const auth = await import('../../lib/employee/employee-auth.js');
 const mail = await import('../../lib/mail.js');
-const pipeline = await import('../../lib/pipeline.js');
-const { resolveRecruitingPipelineStage } = await import('../../lib/pipeline-templates.js');
+const pipeline = await import('../../lib/recruiting/pipeline.js');
+const { resolveRecruitingPipelineStage } = await import('../../lib/recruiting/pipeline-templates.js');
 const { CAP, isSuperAdminPayload, requireCapability, canAccessCandidateRecord } = await import('../../lib/permissions.js');
 const { ERR, httpStatusForError } = await import('../../lib/api-error-codes.js');
 const { normalizeOnboardingStages } = await import('../../lib/onboarding-stage-selection.js');

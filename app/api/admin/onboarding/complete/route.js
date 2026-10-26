@@ -3,8 +3,8 @@ import { verifyToken } from '../../../../../lib/auth.js';
 import { query } from '../../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import { hydrateSessionPayload } from '../../../../../lib/session.js';
-import { setCompanyEnabledModules } from '../../../../../lib/company-module-entitlements.js';
-import { modulesSelectionForPersist } from '../../../../../lib/company-modules.js';
+import { setCompanyEnabledModules } from '../../../../../lib/company/company-module-entitlements.js';
+import { modulesSelectionForPersist } from '../../../../../lib/company/company-modules.js';
 import { canManageCompanyModules } from '../../../../../lib/permissions.js';
 import { audit } from '../../../../../lib/audit.js';
 

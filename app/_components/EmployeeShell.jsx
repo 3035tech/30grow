@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { EMPLOYEE_PUBLIC_PATHS } from '../../lib/employee-paths';
-import { redirectEmployeeIfUnauthorized } from '../../lib/employee-client-session';
+import { EMPLOYEE_PUBLIC_PATHS } from '../../lib/employee/employee-paths';
+import { redirectEmployeeIfUnauthorized } from '../../lib/employee/employee-client-session';
 import { useLocale } from '../../lib/useLocale';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';

@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
 import { CAP } from '../../../../lib/permissions.js';
-import { RECRUITING_UX_EVENTS } from '../../../../lib/recruiting-ux-events.js';
-import { getRecruitingUxMetrics } from '../../../../lib/recruiting-ux-metrics.js';
+import { RECRUITING_UX_EVENTS } from '../../../../lib/recruiting/recruiting-ux-events.js';
+import { getRecruitingUxMetrics } from '../../../../lib/recruiting/recruiting-ux-metrics.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 
 const bodySchema = z.object({

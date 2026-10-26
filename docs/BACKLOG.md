@@ -191,7 +191,7 @@ _(lib/turnover-radar.js + API `/api/admin/turnover-radar/company` + TurnoverRada
 
 ### B-1003 — Engenharia de cargos leve ✅ ENTREGUE (UI+rubric+FK wired)
 
-_(migration 055 + lib/job-roles.js + APIs REST + i18n + JobRolesAdminTab drawer/RubricEditor + vacancies.job_role_id on create/update)_ Tabela `job_roles` com rubrica T1-T9. Vagas herdam cargo via FK `job_role_id` (persistido no create e no PATCH). CRUD completo (list, create, update, deactivate). UI admin com `AdminRichFormDrawer` + `RubricEditor`; prévia compacta da rubrica ao selecionar cargo na vaga.
+_(migration 055 + lib/recruiting/job-roles.js + APIs REST + i18n + JobRolesAdminTab drawer/RubricEditor + vacancies.job_role_id on create/update)_ Tabela `job_roles` com rubrica T1-T9. Vagas herdam cargo via FK `job_role_id` (persistido no create e no PATCH). CRUD completo (list, create, update, deactivate). UI admin com `AdminRichFormDrawer` + `RubricEditor`; prévia compacta da rubrica ao selecionar cargo na vaga.
 
 ### B-1004 — Avaliação de desempenho + metas → PDI ✅ ENTREGUE
 
@@ -199,7 +199,7 @@ _(migration 056 + lib/performance-reviews.js + APIs + UI PerformanceReviewsAdmin
 
 ### B-1005 — Plano de sucessão ✅ ENTREGUE
 
-_(migration 057 + lib/succession-plans.js + APIs + UI SuccessionAdminTab)_ Papéis críticos (`critical_roles`) com sucessores (`succession_plans`) + prontidão (`not_ready`, `developing`, `ready`, `now`). Readiness score combina HR Score (70%) + Leadership Potential (30%). Integra com `lib/hr-score.js` e `lib/leadership-analytics.js`. UI admin de papéis críticos + contador de sucessores.
+_(migration 057 + lib/succession-plans.js + APIs + UI SuccessionAdminTab)_ Papéis críticos (`critical_roles`) com sucessores (`succession_plans`) + prontidão (`not_ready`, `developing`, `ready`, `now`). Readiness score combina HR Score (70%) + Leadership Potential (30%). Integra com `lib/hr-score.js` e `lib/analytics/leadership-analytics.js`. UI admin de papéis críticos + contador de sucessores.
 
 ### B-1006 — Análise demissional ✅ ENTREGUE
 
@@ -215,7 +215,7 @@ _(migration 059 + lib/learning-resources.js + APIs + LearningResourcesAdminTab)_
 
 ### B-1009 — Catálogo de benefícios (não clube/folha) ✅ ENTREGUE
 
-_(migration 060 + 062 categorias + 065 enums ampliado + lib/company-benefits.js + APIs + CompanyBenefitsAdminTab)_ Catálogo simples de benefícios da empresa (nome, descrição, **categoria cadastral por empresa**, tipo enum multi-segmento) para contexto de retenção/oferta. Tipos fechados em `BENEFIT_TYPE` (saúde, PLR, home office, cesta, etc. + other). Sem adesão, sem desconto em folha, sem "clube". CRUD com filtros por categoria.
+_(migration 060 + 062 categorias + 065 enums ampliado + lib/company/company-benefits.js + APIs + CompanyBenefitsAdminTab)_ Catálogo simples de benefícios da empresa (nome, descrição, **categoria cadastral por empresa**, tipo enum multi-segmento) para contexto de retenção/oferta. Tipos fechados em `BENEFIT_TYPE` (saúde, PLR, home office, cesta, etc. + other). Sem adesão, sem desconto em folha, sem "clube". CRUD com filtros por categoria.
 
 ---
 
@@ -235,7 +235,7 @@ Transformar dados comportamentais em **inteligência acionável** para decisões
 
 ### B-1101 — Métricas de efetividade (hiring ROI) ✅ ENTREGUE
 
-_(lib/analytics-metrics.js + API /api/admin/analytics/metrics + AnalyticsTab UI)_ 
+_(lib/analytics/analytics-metrics.js + API /api/admin/analytics/metrics + AnalyticsTab UI)_
 
 Dashboard com métricas de **impacto real** do processo seletivo:
 - **Time-to-hire** (dias: vaga aberta → contratação)
@@ -262,7 +262,7 @@ Dashboard com métricas de **impacto real** do processo seletivo:
 
 ### B-1102 — Tendências temporais (time series) ✅ ENTREGUE
 
-_(lib/analytics-trends.js + API /api/admin/analytics/trends + UI com toggle Tendências)_
+_(lib/analytics/analytics-trends.js + API /api/admin/analytics/trends + UI com toggle Tendências)_
 
 Gráficos de **evolução ao longo do tempo** (últimos 6/12/24 meses):
 - HR Score médio do time (mensal)
@@ -281,7 +281,7 @@ Gráficos de **evolução ao longo do tempo** (últimos 6/12/24 meses):
 
 ### B-1103 — Comparativos (área, período, rubrica) ✅ ENTREGUE
 
-_(lib/analytics-comparisons.js + API /api/admin/analytics/compare + UI com toggle Comparar)_
+_(lib/analytics/analytics-comparisons.js + API /api/admin/analytics/compare + UI com toggle Comparar)_
 
 **Comparar** métricas entre segmentos side-by-side:
 - Área A vs Área B (clima, HR Score, turnover)
@@ -299,7 +299,7 @@ _(lib/analytics-comparisons.js + API /api/admin/analytics/compare + UI com toggl
 
 ### B-1104 — Alertas e anomalias ✅ ENTREGUE
 
-_(lib/analytics-alerts.js + API /api/admin/analytics/alerts)_
+_(lib/analytics/analytics-alerts.js + API /api/admin/analytics/alerts)_
 
 **Detecção proativa** de padrões anormais com thresholds configuráveis:
 - Clima caiu > 15% em 1 mês (área/empresa)
@@ -319,7 +319,7 @@ _(lib/analytics-alerts.js + API /api/admin/analytics/alerts)_
 
 ### B-1105 — Export estruturado (JSON/Excel) ✅ ENTREGUE
 
-_(lib/analytics-export.js + API /api/admin/analytics/export)_
+_(lib/analytics/analytics-export.js + API /api/admin/analytics/export)_
 
 Export **rico** além do CSV básico:
 - JSON (API-friendly, estruturado)
@@ -337,7 +337,7 @@ Export **rico** além do CSV básico:
 
 ### B-1106 — API de métricas (externas/integrações) ✅ ENTREGUE
 
-_(lib/analytics-rate-limit.js + aplicado em todas as 5 rotas + docs/analytics-api.md)_
+_(lib/analytics/analytics-rate-limit.js + aplicado em todas as 5 rotas + docs/analytics-api.md)_
 
 API REST autenticada (JWT) para expor métricas:
 - `GET /api/admin/analytics/metrics` (HR Score, clima, turnover)
@@ -357,7 +357,7 @@ API REST autenticada (JWT) para expor métricas:
 
 ### B-1107 — Relatórios agendados (email/PDF) ✅ ENTREGUE
 
-_(lib/analytics-scheduled-reports.js + API /api/cron/analytics-report)_
+_(lib/analytics/analytics-scheduled-reports.js + API /api/cron/analytics-report)_
 
 **Envio automático** de relatórios de Analytics:
 - Weekly/monthly digest com métricas de efetividade inline
@@ -407,7 +407,7 @@ Copiloto no painel para perguntas do tipo **“por que o João não aparece na m
 ### B-2601 — Diagnóstico “por que não vejo X?” (MVP Equipe) ✅ ENTREGUE
 **Entregue (UX+API MVP):** `lib/people/list-absence-diagnostics.js` (razões: no_match / homonyms / wrong_roster / alumni / soft_filters / no_assessment) + `POST /api/admin/help-diagnose` (`withAdminApi`, CAP `team.view`, rate limit, audit) + CTA “Por que não aparece?” na Equipe (EmptyState quando busca vazia) via `useAppFeedback` notice/confirm. Guia `panel.help.teamStep7`. Sem SQL gerado por LLM.
 
-**Extensão entregue (out/2026):** mesmo endpoint com `list` = `talentBank` | `vacancyPipeline` (CAP `vacancies.view`; Equipe segue `team.view`). Banco de talentos: razões `not_in_talent_bank` / `soft_filters` (vaga, etapa, perfil avaliados no SQL) / `in_list`. Pipeline da vaga: `not_in_vacancy` + `other_vacancies` (até 3 títulos) / `soft_filters` (filtros do quadro, cliente) / `in_list` com etapa; regra de pertencimento espelha `lib/vacancy-ranking.js`. CTA no EmptyState "nenhum candidato corresponde" do quadro; oferta de limpar filtros mantendo a busca. Uma query por diagnóstico, teto 12 pessoas, escopo `company_id`. Guia `talentBankStep4` / `pipelineStep10`. Prova: `test/dtov/help-diagnose-lists.dtov.test.js`.
+**Extensão entregue (out/2026):** mesmo endpoint com `list` = `talentBank` | `vacancyPipeline` (CAP `vacancies.view`; Equipe segue `team.view`). Banco de talentos: razões `not_in_talent_bank` / `soft_filters` (vaga, etapa, perfil avaliados no SQL) / `in_list`. Pipeline da vaga: `not_in_vacancy` + `other_vacancies` (até 3 títulos) / `soft_filters` (filtros do quadro, cliente) / `in_list` com etapa; regra de pertencimento espelha `lib/recruiting/vacancy-ranking.js`. CTA no EmptyState "nenhum candidato corresponde" do quadro; oferta de limpar filtros mantendo a busca. Uma query por diagnóstico, teto 12 pessoas, escopo `company_id`. Guia `talentBankStep4` / `pipelineStep10`. Prova: `test/dtov/help-diagnose-lists.dtov.test.js`.
 
 **Redação IA entregue (out/2026):** `explain: true` no mesmo endpoint devolve `explanation { summary, nextStep }` redigido por IA (`lib/people/list-absence-explain-ai.js`, feature `help_diagnose`, migration 151). O prompt leva só códigos, contagens e etapa genérica (sem nome, e-mail, busca ou título de vaga), então o cache é global; conta na cota da empresa. IA desligada, sem cota ou com falha: o diagnóstico volta igual, sem o parágrafo. Aviso mostra o texto no topo com a nota "redigido por IA" e os motivos determinísticos abaixo. Prova: `test/unit/list-absence-explain-ai.unit.test.js`.
 

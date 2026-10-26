@@ -2,7 +2,7 @@
 
 import { cn } from '../../../lib/cn';
 import { t } from '../../../lib/i18n';
-import { buildJobShareCopy } from '../../../lib/job-share-copy';
+import { buildJobShareCopy } from '../../../lib/recruiting/job-share-copy';
 import { IconActionTip } from '../../_components/IconActionTip';
 
 function IconWhatsApp({ size = 16 }) {

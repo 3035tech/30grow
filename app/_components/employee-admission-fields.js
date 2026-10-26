@@ -1,5 +1,5 @@
 import { t } from '../../lib/i18n';
-import { normalizeStartDate } from '../../lib/pipeline';
+import { normalizeStartDate } from '../../lib/recruiting/pipeline';
 import { ONBOARDING_STAGES, onboardingStageOptions } from '../../lib/onboarding-stage-selection';
 
 /** Shared UI contract: an explicit activation, distinct from the recruiting stage. */

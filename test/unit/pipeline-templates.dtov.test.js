@@ -14,7 +14,7 @@ import {
   reorderPipelineTemplateStages,
   restorePipelineTemplate,
   updatePipelineTemplate,
-} from '../../lib/pipeline-templates.js';
+} from '../../lib/recruiting/pipeline-templates.js';
 
 const dtov = process.env.DTOV === '1';
 

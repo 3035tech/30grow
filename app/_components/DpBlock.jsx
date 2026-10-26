@@ -27,7 +27,7 @@ import { formatDisplayDateTime } from '../../lib/format-display-date';
 import { RichTextView } from './RichTextView';
 import { LeaveBalanceSummary } from './LeaveBalanceSummary';
 import { SignatureStrokePreview } from './SignaturePadField';
-import { BR_STATES } from '../../lib/candidate-profile.js';
+import { BR_STATES } from '../../lib/recruiting/candidate-profile.js';
 import { formatCepBr, formatCpfBr, formatPhoneBr } from '../../lib/br-masks.js';
 import {
   DP_DOCUMENT_KEYS,

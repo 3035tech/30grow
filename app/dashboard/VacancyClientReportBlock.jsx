@@ -14,20 +14,20 @@ import { AppLoading } from '../_components/AppLoading';
 import { CopyableLink } from '../_components/CopyableLink';
 import { copyToClipboard } from '../../lib/clipboard';
 import { htmlToPlainText } from '../../lib/sanitize-html';
-import { shortlistNoteDraft } from '../../lib/vacancy-report-note';
+import { shortlistNoteDraft } from '../../lib/recruiting/vacancy-report-note';
 import { getTypeData } from '../../lib/i18n-data';
 import {
   REPORT_NOTE_MIN_CHARS,
   REPORT_RECOMMENDATIONS,
   STRUCTURED_FIELD_MAX_CHARS,
   normalizeRecommendation,
-} from '../../lib/vacancy-report-shared';
-import { PIPELINE_STAGE } from '../../lib/pipeline';
+} from '../../lib/recruiting/vacancy-report-shared';
+import { PIPELINE_STAGE } from '../../lib/recruiting/pipeline';
 import {
   REPORT_TEMPLATE_KINDS,
   getReportNoteTemplate,
   inferReportTemplateKind,
-} from '../../lib/vacancy-report-note-templates';
+} from '../../lib/recruiting/vacancy-report-note-templates';
 
 const REPORT_EXPIRY_DAYS = [7, 14, 30];
 const DEFAULT_REPORT_EXPIRY_DAYS = 14;

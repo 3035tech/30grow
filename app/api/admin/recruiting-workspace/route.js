@@ -8,7 +8,7 @@ import {
   deleteRecruitingView,
   getRecruitingWorkspace,
   saveRecruitingView,
-} from '../../../../lib/recruiting-workspace.js';
+} from '../../../../lib/recruiting/recruiting-workspace.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 
 const querySchema = z.object({

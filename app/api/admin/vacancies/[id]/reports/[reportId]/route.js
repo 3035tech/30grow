@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../lib/auth';
-import { updateReportShareMeta } from '../../../../../../../lib/vacancy-report';
+import { updateReportShareMeta } from '../../../../../../../lib/recruiting/vacancy-report';
 import { apiError, ERR } from '../../../../../../../lib/api-error';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../lib/permissions';
 

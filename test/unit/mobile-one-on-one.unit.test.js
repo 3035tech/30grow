@@ -4,7 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { z } from 'zod';
 import { normalizeLocale } from '../../lib/locale-negotiation.js';
-import { getEmployeeOneOnOnePrep, submitEmployeeOneOnOnePrep } from '../../lib/employee-one-on-one-prep.js';
+import { getEmployeeOneOnOnePrep, submitEmployeeOneOnOnePrep } from '../../lib/employee/employee-one-on-one-prep.js';
 import { mobileOneOnOneBody } from '../../lib/mobile-employee-payload.js';
 
 async function route(session) {

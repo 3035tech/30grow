@@ -9,10 +9,10 @@ import { verifyTurnstileToken } from '../../../../../lib/turnstile.js';
 import {
   completeEmployeeCompanyPick,
   loginEmployeeWithPassword,
-} from '../../../../../lib/employee-auth.js';
+} from '../../../../../lib/employee/employee-auth.js';
 import { query } from '../../../../../lib/db.js';
-import { signEmployee2faChallenge } from '../../../../../lib/employee-2fa.js';
-import { buildEmployeeLoginResponse } from '../../../../../lib/employee-login-session.js';
+import { signEmployee2faChallenge } from '../../../../../lib/employee/employee-2fa.js';
+import { buildEmployeeLoginResponse } from '../../../../../lib/employee/employee-login-session.js';
 import { normalizeLocale } from '../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

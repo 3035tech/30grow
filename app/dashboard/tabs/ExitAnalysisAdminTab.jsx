@@ -17,7 +17,7 @@ import { useRehireEmployee } from '../../_components/useRehireEmployee';
 import { formatDisplayDate, toDateOnlyIso } from '../../../lib/format-display-date.js';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
 import { cn } from '../../../lib/cn';
-import { CHART_MIN_N, topCategoryCounts } from '../../../lib/chart-aggregates';
+import { CHART_MIN_N, topCategoryCounts } from '../../../lib/analytics/chart-aggregates';
 import { CategoryBars } from '../../_components/CategoryBars';
 import { ChartPanel } from '../../_components/ChartPanel';
 import {

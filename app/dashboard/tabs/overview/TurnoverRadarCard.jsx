@@ -12,7 +12,7 @@ import { Icon } from '../../../_components/Icon';
 import { AppLoading, ContentEnter } from '../../../_components/AppLoading';
 import { ChartPanel, ChartLegend } from '../../../_components/ChartPanel';
 import { StackedSegmentBar } from '../../../_components/StackedSegmentBar';
-import { CHART_MIN_N, turnoverRiskDistribution } from '../../../../lib/chart-aggregates';
+import { CHART_MIN_N, turnoverRiskDistribution } from '../../../../lib/analytics/chart-aggregates';
 
 const SIGNAL_META = {
   climate: { emoji: '🌡️', labelKey: 'turnoverRadar.signalLabelClimate', hintKey: 'turnoverRadar.signalClimateHint' },

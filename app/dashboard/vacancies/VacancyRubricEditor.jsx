@@ -9,7 +9,7 @@ import { htmlToPlainText } from '../../../lib/sanitize-html';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { AppLoading } from '../../_components/AppLoading';
 import { DisclosureToggle } from '../../_components/CollapsibleBlock';
-import { buildRubricContextDraft, isRubricContextFilledEnough } from '../../../lib/rubric-prompt';
+import { buildRubricContextDraft, isRubricContextFilledEnough } from '../../../lib/recruiting/rubric-prompt';
 import { typeHintTooltip, typeShortLabel } from '../../../lib/type-en';
 import { S } from '../dashboard-shared';
 

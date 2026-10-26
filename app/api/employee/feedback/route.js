@@ -5,14 +5,14 @@
 
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
 import {
   createFeedbackRequest,
   listFeedbackInbox,
   listFeedbackForSubject,
 } from '../../../../lib/people/continuous-feedback.js';
-import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee-notifications.js';
+import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee/employee-notifications.js';
 
 export const dynamic = 'force-dynamic';
 

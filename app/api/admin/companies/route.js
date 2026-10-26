@@ -8,8 +8,8 @@ import { PAGE_SIZE_OPTIONS, sqlCompaniesOrderBy } from '../../../../lib/assessme
 import { apiError, ERR } from '../../../../lib/api-error';
 import { CAP, requireCapability } from '../../../../lib/permissions';
 import { EMPLOYMENT_STATUS } from '../../../../lib/domain-status';
-import { parseCompanyProfileFromBody } from '../../../../lib/company-profile';
-import { isCompanyLogoStorageConfigured } from '../../../../lib/company-logo';
+import { parseCompanyProfileFromBody } from '../../../../lib/company/company-profile';
+import { isCompanyLogoStorageConfigured } from '../../../../lib/company/company-logo';
 import { aiDefaultCompanyMonthlyLimit } from '../../../../lib/ai-usage';
 import {
   checkCompanySlugAvailable,

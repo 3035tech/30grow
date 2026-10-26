@@ -13,7 +13,7 @@ import {
   createFeedbackRequest,
   listFeedbackForSubject,
 } from '../../../../lib/people/continuous-feedback.js';
-import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee-notifications.js';
+import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee/employee-notifications.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

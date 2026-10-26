@@ -5,7 +5,7 @@ import { query } from '../../../../../lib/db.js';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../lib/permissions.js';
 import { updateProductFeedback } from '../../../../../lib/product-feedback.js';
 import { PRODUCT_FEEDBACK_SEVERITIES, PRODUCT_FEEDBACK_STATUSES } from '../../../../../lib/domain-status.js';
-import { COMPANY_MODULES } from '../../../../../lib/company-modules.js';
+import { COMPANY_MODULES } from '../../../../../lib/company/company-modules.js';
 import { audit, auditRequestContext } from '../../../../../lib/audit.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 

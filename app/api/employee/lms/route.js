@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import {
   listCandidateLmsCourses,
   completeLmsLesson,

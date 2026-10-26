@@ -18,7 +18,7 @@ import {
   suggestShortlistAi,
   suggestVacancyDescriptionAi,
   summarizeInterviewNotesAi,
-} from '../../../../../../lib/vacancy-assist-ai';
+} from '../../../../../../lib/recruiting/vacancy-assist-ai';
 
 async function loadVacancyScoped(vacancyId, { isAdmin, companyId }) {
   const r = await queryRead(

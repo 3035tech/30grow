@@ -15,7 +15,7 @@ import {
   whistleStatusFunnel,
   vacationPoolTotals,
   vacationPoolByAreaBars,
-} from '../../lib/chart-aggregates.js';
+} from '../../lib/analytics/chart-aggregates.js';
 
 function main() {
   assert.equal(CHART_MIN_N, 3);

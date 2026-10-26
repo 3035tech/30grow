@@ -5,7 +5,7 @@ import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../
 import {
   ensureInterviewPrepLink,
   getInterviewPrepStatus,
-} from '../../../../../../../../lib/interview-prep.js';
+} from '../../../../../../../../lib/recruiting/interview-prep.js';
 import { query } from '../../../../../../../../lib/db.js';
 
 export const dynamic = 'force-dynamic';

@@ -14,7 +14,7 @@ import {
   SELECTABLE_COMPANY_MODULE_IDS,
   companyHasModule,
   modulesSelectionForUi,
-} from '../../lib/company-modules';
+} from '../../lib/company/company-modules';
 import { ONBOARDING_EVENT } from '../../lib/domain-status';
 
 function trackOnboardingEvent(step, event, objective = null) {

@@ -35,7 +35,7 @@ import { CopyableLink } from '../../_components/CopyableLink';
 import { RichTextEditor } from '../../_components/RichTextEditor';
 import { FormField } from '../../_components/FormField';
 import { CompanyLogoCropDialog } from '../../_components/CompanyLogoCropDialog';
-import { COMPANY_LOGO_ACCEPT } from '../../../lib/company-logo-limits';
+import { COMPANY_LOGO_ACCEPT } from '../../../lib/company/company-logo-limits';
 import { CompanyModulesField } from '../../_components/CompanyModulesField';
 import { InlineCallout } from '../../_components/InlineCallout';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
@@ -45,7 +45,7 @@ import {
   modulesSelectionForPersist,
   modulesSelectionForUi,
   SELECTABLE_COMPANY_MODULE_IDS,
-} from '../../../lib/company-modules';
+} from '../../../lib/company/company-modules';
 import { dialogBtnGhostClass, dialogBtnPrimaryClass } from '../../_components/app-dialog-styles';
 
 const FIELD_INPUT = cn(S.input, 'w-full');

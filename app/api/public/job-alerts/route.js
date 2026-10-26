@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../lib/api-error';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
-import { upsertJobAlert } from '../../../../lib/job-alerts';
+import { upsertJobAlert } from '../../../../lib/recruiting/job-alerts';
 
 export async function POST(request) {
   const ip = clientIpFromRequest(request);

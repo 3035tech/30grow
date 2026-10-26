@@ -5,11 +5,11 @@ import { query } from '../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { verifySessionWithCapabilities } from '../../../../lib/session.js';
 import { canManageCompanyModules, isManagerRole } from '../../../../lib/permissions.js';
-import { listCompanyModuleCatalog, modulesSelectionForPersist } from '../../../../lib/company-modules.js';
+import { listCompanyModuleCatalog, modulesSelectionForPersist } from '../../../../lib/company/company-modules.js';
 import {
   getCompanyEnabledModules,
   setCompanyEnabledModules,
-} from '../../../../lib/company-module-entitlements.js';
+} from '../../../../lib/company/company-module-entitlements.js';
 import { audit } from '../../../../lib/audit.js';
 import { z } from '../../../../lib/validate.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';

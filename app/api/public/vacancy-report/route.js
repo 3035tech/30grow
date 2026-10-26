@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getReportByToken } from '../../../../lib/vacancy-report';
+import { getReportByToken } from '../../../../lib/recruiting/vacancy-report';
 import { apiError, ERR } from '../../../../lib/api-error';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
 

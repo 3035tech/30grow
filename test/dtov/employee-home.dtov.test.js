@@ -16,19 +16,19 @@ import {
   peekEmployeePasswordSetupToken,
   signEmployeeToken,
   verifyEmployeeToken,
-} from '../../lib/employee-auth.js';
-import { dismissEmployeeWelcome, getEmployeeHome } from '../../lib/employee-home.js';
+} from '../../lib/employee/employee-auth.js';
+import { dismissEmployeeWelcome, getEmployeeHome } from '../../lib/employee/employee-home.js';
 import {
   employeeAckOnboardingItem,
   getEmployeeOnboardingJourney,
 } from '../../lib/people/employee-onboarding-journey.js';
 import { setPreOnboardingMeetUrl } from '../../lib/people/pre-onboarding.js';
-import { updateEmployeePdiItemStatus } from '../../lib/employee-pdi.js';
+import { updateEmployeePdiItemStatus } from '../../lib/employee/employee-pdi.js';
 import {
   EMPLOYEE_NOTIF,
   notifyCandidate,
   listCandidateNotifications,
-} from '../../lib/employee-notifications.js';
+} from '../../lib/employee/employee-notifications.js';
 import {
   addDevelopmentPlanItem,
   createDevelopmentPlan,
@@ -165,7 +165,7 @@ async function main() {
       assert.ok(multi.pickToken);
       assert.ok(Array.isArray(multi.companies) && multi.companies.length >= 2);
       assert.ok(multi.companies.every((c) => c.companyName));
-      const { completeEmployeeCompanyPick } = await import('../../lib/employee-auth.js');
+      const { completeEmployeeCompanyPick } = await import('../../lib/employee/employee-auth.js');
       const picked = await completeEmployeeCompanyPick(query, {
         pickToken: multi.pickToken,
         candidateId: person.candidateId,

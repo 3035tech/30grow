@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { query } from '../../../../../../lib/db.js';
-import { getEmployeeSessionPayload } from '../../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../../lib/employee/employee-session.js';
 import { cancelEmployeeLeaveRequest, getEmployeeDisplayName } from '../../../../../../lib/people/employee-dp.js';
 import { notifyCompanyManagers } from '../../../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../../../lib/manager-notification-catalog.js';

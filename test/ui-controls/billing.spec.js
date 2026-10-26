@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { companyLicenseSummary } from '../../lib/company-license.js';
+import { companyLicenseSummary } from '../../lib/company/company-license.js';
 import { BILLING_PLANS } from '../../lib/billing/catalog.js';
 
 function fixture(patch={}) {

@@ -1,19 +1,19 @@
 import { webSessionMaxAge } from '../../../../lib/session-ttl.js';
-import { EMPLOYEE_SESSION_MAX_AGE } from '../../../../lib/employee-auth-constants.js';
+import { EMPLOYEE_SESSION_MAX_AGE } from '../../../../lib/employee/employee-auth-constants.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import {
   getEmployeeProfile,
   updateEmployeeProfile,
-} from '../../../../lib/employee-profile.js';
+} from '../../../../lib/employee/employee-profile.js';
 import {
   EMPLOYEE_COOKIE_NAME,
   employeeSessionCookieOptions,
   signEmployeeToken,
-} from '../../../../lib/employee-auth.js';
+} from '../../../../lib/employee/employee-auth.js';
 import { LOCALE_COOKIE, normalizeLocale } from '../../../../lib/i18n.js';
 import { sessionCookieSecure } from '../../../../lib/auth.js';
 

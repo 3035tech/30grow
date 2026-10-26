@@ -12,7 +12,7 @@ import { MeterBar } from '../../_components/MeterBar';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { DEVELOPMENT_PLAN_ITEM_STATUS } from '../../../lib/domain-status';
-import { redirectEmployeeIfUnauthorized } from '../../../lib/employee-client-session';
+import { redirectEmployeeIfUnauthorized } from '../../../lib/employee/employee-client-session';
 
 function itemStatusLabel(locale, status) {
   if (status === DEVELOPMENT_PLAN_ITEM_STATUS.DONE) return t(locale, 'employeeHome.pdiDone');

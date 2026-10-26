@@ -17,7 +17,7 @@ import {
   SCORE_HIST_BINS,
   nineBoxOccupancy,
   scoreHistogram,
-} from '../../lib/chart-aggregates';
+} from '../../lib/analytics/chart-aggregates';
 
 /** 9Box display order: high performance top row; potential left → right. */
 const NINE_BOX_ORDER = [7, 8, 9, 4, 5, 6, 1, 2, 3];

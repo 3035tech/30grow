@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { hashPassword } from '../../lib/auth.js';
 import { pool, query } from '../../lib/db.js';
-import { completeEmployeeCompanyPick, loginEmployeeWithPassword } from '../../lib/employee-auth.js';
+import { completeEmployeeCompanyPick, loginEmployeeWithPassword } from '../../lib/employee/employee-auth.js';
 import {
   authenticateMobileEmployee,
   completeMobileEmployeeAuthentication,

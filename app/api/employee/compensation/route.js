@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import { listEmployeeVisibleCompensation } from '../../../../lib/people/variable-pay.js';
 
 export const dynamic = 'force-dynamic';

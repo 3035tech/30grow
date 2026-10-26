@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { parseEmployeeCsv } from '../../lib/employee-csv-format.js';
+import { parseEmployeeCsv } from '../../lib/employee/employee-csv-format.js';
 
 const header = 'nome_completo,email_corporativo,data_admissao,email_pessoal\r\n';
 

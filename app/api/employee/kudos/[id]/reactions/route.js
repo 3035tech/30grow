@@ -1,4 +1,4 @@
-import { getEmployeeSessionPayload } from '../../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../../lib/employee/employee-session.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
 import { kudoReactionResponse } from '../../../../../../lib/kudo-reaction-http.js';
 

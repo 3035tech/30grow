@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../../lib/ae/require-admin.js';
 import { apiError, ERR } from '../../../../../../lib/api-error.js';
-import { candidateTagAssignmentSchema } from '../../../../../../lib/candidate-tags-validation.js';
-import { replaceCandidateTags } from '../../../../../../lib/candidate-tags.js';
+import { candidateTagAssignmentSchema } from '../../../../../../lib/recruiting/candidate-tags-validation.js';
+import { replaceCandidateTags } from '../../../../../../lib/recruiting/candidate-tags.js';
 
 export const PUT = withAdminApi(
   { cap: CAP.VACANCIES_MANAGE, body: candidateTagAssignmentSchema, companyFrom: 'body' },

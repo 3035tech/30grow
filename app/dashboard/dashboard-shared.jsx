@@ -12,7 +12,7 @@ import { PAGE_SIZE_OPTIONS } from '../../lib/assessment-filters';
 import { buildAdminPagerPages } from '../../lib/admin-list-pager.js';
 import { typeHintTooltip, typeShortLabel } from '../../lib/type-en';
 import { C, PIPELINE_STAGE_COLORS, PIPELINE_STAGE_COLORS_DARK, typeChipSurfaceStyle } from '../../lib/theme';
-import { PIPELINE_STAGE } from '../../lib/pipeline';
+import { PIPELINE_STAGE } from '../../lib/recruiting/pipeline';
 import { cn } from '../../lib/cn';
 import {
   fieldInputClass,

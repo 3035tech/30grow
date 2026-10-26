@@ -7,8 +7,8 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { getSessionPayload, getManagerScope, CAP, requireCapability } from '../../../../../lib/ae/require-admin.js';
-import { detectAllAlerts } from '../../../../../lib/analytics-alerts.js';
-import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics-rate-limit.js';
+import { detectAllAlerts } from '../../../../../lib/analytics/analytics-alerts.js';
+import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics/analytics-rate-limit.js';
 import { withApiLogging } from '../../../../../lib/monitoring.js';
 
 export async function GET(request) {

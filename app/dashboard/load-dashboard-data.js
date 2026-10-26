@@ -25,9 +25,9 @@ import {
   rubricAlignmentShare,
   LEADERSHIP_SCORES_SAMPLE_CAP,
   LEADERSHIP_POTENTIALS_SCAN_CAP,
-} from '../../lib/leadership-analytics';
-import { buildOverviewMetrics } from '../../lib/overview-metrics';
-import { OVERVIEW_FUNNEL_STAGES } from '../../lib/overview-constants.js';
+} from '../../lib/analytics/leadership-analytics';
+import { buildOverviewMetrics } from '../../lib/analytics/overview-metrics';
+import { OVERVIEW_FUNNEL_STAGES } from '../../lib/analytics/overview-constants.js';
 import { buildCompatBundles, COMPAT_PEOPLE_CAP } from '../../lib/compat-bundles';
 import { getOnboardingProgress } from '../../lib/onboarding-progress';
 import { ANNIVERSARY_WINDOW_DAYS, getUpcomingAnniversaries } from '../../lib/people/upcoming-anniversaries.js';

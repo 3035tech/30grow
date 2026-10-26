@@ -7,7 +7,7 @@ import {
   resolveTimeClockEligibility,
   timeClockEnabledSql,
 } from '../../lib/people/time-clock-eligibility.js';
-import { employeeSectionVisible } from '../../lib/company-modules.js';
+import { employeeSectionVisible } from '../../lib/company/company-modules.js';
 import { WORK_FORMAT } from '../../lib/domain-status.js';
 
 test('default follows work format: clt/intern/unset on, pj/cooperative off', () => {

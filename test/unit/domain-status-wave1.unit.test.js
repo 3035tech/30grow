@@ -34,8 +34,8 @@ import { normalizeOfferStatus } from '../../lib/people/candidate-offer.js';
 import { PERFORMANCE_REVIEW_CAPS } from '../../lib/performance-reviews.js';
 import { deriveOverallScoreFromOutcomes } from '../../lib/people/performance-calibration.js';
 import { shouldSuggestVariablePay } from '../../lib/people/variable-pay.js';
-import { computeHireReadiness } from '../../lib/hire-readiness.js';
-import { PIPELINE_STAGE } from '../../lib/pipeline.js';
+import { computeHireReadiness } from '../../lib/recruiting/hire-readiness.js';
+import { PIPELINE_STAGE } from '../../lib/recruiting/pipeline.js';
 
 describe('domain-status wave1 closed sets', () => {
   it('exposes PDI item sources matching SQL CHECK final list', () => {

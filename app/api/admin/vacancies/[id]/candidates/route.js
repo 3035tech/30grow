@@ -10,7 +10,7 @@ import {
   linkVacancyCandidate,
   listVacancyCandidates,
   loadVacancyForActor,
-} from '../../../../../../lib/vacancies-admin';
+} from '../../../../../../lib/recruiting/vacancies-admin';
 
 function actorErrorStatus(errorCode) {
   if (errorCode === 'VACANCY_NOT_FOUND' || errorCode === 'NOT_FOUND') return 404;

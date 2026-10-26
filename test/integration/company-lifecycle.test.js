@@ -18,7 +18,7 @@ test('company lifecycle is atomic and cannot remove access while payment remains
  let providerSubscriptions=[],providerCheckouts=[],providerError=null,providerMode=false,providerCalls=0;
  const stripe={subscriptions:{list:async()=>{providerCalls++;if(providerError)throw providerError;return {data:providerSubscriptions};}},checkout:{sessions:{list:async()=>({data:providerCheckouts})}}};
  const context=vm.createContext({});const deps={withTransaction:transaction,BillingError,getStripe:()=>stripe,stripeMode:()=>providerMode,TERMINAL_STATUSES};
- const mod=new vm.SourceTextModule(await readFile(new URL('../../lib/company-lifecycle.js',import.meta.url),'utf8'),{context});
+ const mod=new vm.SourceTextModule(await readFile(new URL('../../lib/company/company-lifecycle.js',import.meta.url),'utf8'),{context});
  await mod.link(()=>new vm.SyntheticModule(Object.keys(deps),function(){for(const[k,v]of Object.entries(deps))this.setExport(k,v);},{context}));await mod.evaluate();
  const {archiveCompany,withCompanyDeactivation}=mod.namespace;
  try{

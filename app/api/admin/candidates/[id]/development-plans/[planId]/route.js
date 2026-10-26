@@ -31,7 +31,7 @@ async function loadCandidateScope(candidateId, scope) {
 async function notifyEmployeePdi(companyId, candidateId, { planId, planTitle, itemTitle }) {
   try {
     const { notifyCandidate, EMPLOYEE_NOTIF } = await import(
-      '../../../../../../../lib/employee-notifications.js'
+      '../../../../../../../lib/employee/employee-notifications.js'
     );
     await notifyCandidate(query, {
       companyId,

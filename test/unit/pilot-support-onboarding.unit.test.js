@@ -10,7 +10,7 @@ import {
   parseProductFeedbackListParams,
   SUPPORT_RESPONSE_BUSINESS_DAYS,
 } from '../../lib/product-feedback.js';
-import { COMPANY_MODULE, moduleForTab } from '../../lib/company-modules.js';
+import { COMPANY_MODULE, moduleForTab } from '../../lib/company/company-modules.js';
 import {
   ONBOARDING_EVENT,
   ONBOARDING_STEP,

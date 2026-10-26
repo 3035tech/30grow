@@ -4,14 +4,14 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../../lib/auth';
 import { query } from '../../../../../../../../lib/db';
-import { ensureActiveVacancyLinkToken } from '../../../../../../../../lib/vacancy-link';
+import { ensureActiveVacancyLinkToken } from '../../../../../../../../lib/recruiting/vacancy-link';
 import { enqueueTransactionalMail } from '../../../../../../../../lib/mail';
-import { buildCandidateChallengeInviteMail } from '../../../../../../../../lib/candidate-challenge-invite-mail';
+import { buildCandidateChallengeInviteMail } from '../../../../../../../../lib/recruiting/candidate-challenge-invite-mail';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../lib/rate-limit';
 import { apiError, localeFromRequest, ERR } from '../../../../../../../../lib/api-error';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/permissions';
 import { publicAppUrl } from '../../../../../../../../lib/ae/require-admin';
-import { PIPELINE_STAGE } from '../../../../../../../../lib/pipeline';
+import { PIPELINE_STAGE } from '../../../../../../../../lib/recruiting/pipeline';
 
 /** Envia desafio de eneagrama para candidato já pré-cadastrado na vaga. */
 export async function POST(request, props) {

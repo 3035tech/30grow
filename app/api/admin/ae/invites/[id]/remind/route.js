@@ -1,4 +1,4 @@
-import { candidateContact } from '../../../../../../../lib/candidate-contact';
+import { candidateContact } from '../../../../../../../lib/recruiting/candidate-contact';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../../../lib/db';
 import { CAP, getManagerScope, getSessionPayload, publicAppUrl, requireCapability } from '../../../../../../../lib/ae/require-admin';

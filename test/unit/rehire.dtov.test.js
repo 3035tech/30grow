@@ -4,7 +4,7 @@ import { pool, query } from '../../lib/db.js';
 import { closeRateLimitRedis } from '../../lib/rate-limit.js';
 import { __resetMailMockLog, __getMailMockLog } from '../../lib/mail.js';
 import { createExitRecord, deleteExitRecord, getExitRecord, listExitRecords } from '../../lib/exit-analysis.js';
-import { createEmployeeDirect, rehireEmployee } from '../../lib/hire.js';
+import { createEmployeeDirect, rehireEmployee } from '../../lib/recruiting/hire.js';
 import { rosterScopeSqlPart } from '../../lib/roster-scope-sql.js';
 import { ERR } from '../../lib/api-error-codes.js';
 import { EMPLOYMENT_STATUS, ROSTER_SCOPE } from '../../lib/domain-status.js';

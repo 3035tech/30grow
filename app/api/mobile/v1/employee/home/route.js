@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { dismissEmployeeWelcome, getEmployeeHome } from '../../../../../../lib/employee-home.js';
+import { dismissEmployeeWelcome, getEmployeeHome } from '../../../../../../lib/employee/employee-home.js';
 import { t, normalizeLocale } from '../../../../../../lib/i18n.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
 import { getTimeClockAccess } from '../../../../../../lib/people/time-clock.js';
-import { getEmployeeProfile } from '../../../../../../lib/employee-profile.js';
-import { getCompanyEnabledModules } from '../../../../../../lib/company-module-entitlements.js';
+import { getEmployeeProfile } from '../../../../../../lib/employee/employee-profile.js';
+import { getCompanyEnabledModules } from '../../../../../../lib/company/company-module-entitlements.js';
 import { z } from 'zod';
 import { query } from '../../../../../../lib/db.js';
 import { getEmployeeDpHome } from '../../../../../../lib/people/employee-dp.js';
 import { getEmployeeTimeClockToday } from '../../../../../../lib/people/time-clock.js';
-import { listEmployeeSurveyInbox } from '../../../../../../lib/employee-surveys.js';
+import { listEmployeeSurveyInbox } from '../../../../../../lib/employee/employee-surveys.js';
 import { listFeedbackInbox } from '../../../../../../lib/people/continuous-feedback.js';
 import { listEmployeeVisibleCompensation } from '../../../../../../lib/people/variable-pay.js';
-import { employeeSectionVisible } from '../../../../../../lib/company-modules.js';
+import { employeeSectionVisible } from '../../../../../../lib/company/company-modules.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
 
 const TASK_PAGE_SIZE = 20;

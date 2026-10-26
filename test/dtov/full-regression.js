@@ -316,7 +316,7 @@ async function runOfflineLibs() {
     const { dirname, join } = await import('node:path');
     const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-    const { buildTypeMixCompositionAdvice, buildMixVsRubricAdvice } = await import('../../lib/overview-type-mix.js');
+    const { buildTypeMixCompositionAdvice, buildMixVsRubricAdvice } = await import('../../lib/analytics/overview-type-mix.js');
     const empty = buildTypeMixCompositionAdvice({});
     if (empty.kind !== 'empty') throw new Error('expected empty');
     const conc = buildTypeMixCompositionAdvice({ 3: 10, 1: 1, 2: 1 });
@@ -441,7 +441,7 @@ async function runOfflineLibs() {
     const { fileURLToPath } = await import('node:url');
     const { dirname, join } = await import('node:path');
     const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-    const cloneSrc = await readFile(join(root, 'lib', 'vacancy-clone.js'), 'utf8');
+    const cloneSrc = await readFile(join(root, 'lib', 'recruiting', 'vacancy-clone.js'), 'utf8');
     if (!cloneSrc.includes('export async function cloneVacancy')) throw new Error('missing cloneVacancy');
     const digestSrc = await readFile(join(root, 'lib', 'manager-weekly-digest.js'), 'utf8');
     if (!digestSrc.includes('export async function runManagerWeeklyDigest')) {
@@ -636,7 +636,7 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'vacancy-public-allow-index-default', async () => {
-    const { parseVacancyDetailsFromBody } = await import('../../lib/vacancy-details.js');
+    const { parseVacancyDetailsFromBody } = await import('../../lib/recruiting/vacancy-details.js');
     const created = parseVacancyDetailsFromBody({}, { forCreate: true });
     if (created.publicAllowIndex !== true) {
       throw new Error(`expected publicAllowIndex true on create, got ${created.publicAllowIndex}`);
@@ -672,7 +672,7 @@ async function runOfflineLibs() {
       isVacancyDescriptionSparse,
       resolveVacancyDescriptionMode,
       buildVacancyDescriptionTemplate,
-    } = await import('../../lib/vacancy-description-template.js');
+    } = await import('../../lib/recruiting/vacancy-description-template.js');
     if (!isVacancyDescriptionSparse('')) throw new Error('empty should be sparse');
     if (resolveVacancyDescriptionMode('auto', '') !== 'draft') throw new Error('expected draft');
     if (resolveVacancyDescriptionMode('auto', `<p>${'x'.repeat(50)}</p>`) !== 'improve') {
@@ -683,7 +683,7 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'hire-readiness', async () => {
-    const { computeHireReadiness } = await import('../../lib/hire-readiness.js');
+    const { computeHireReadiness } = await import('../../lib/recruiting/hire-readiness.js');
     const empty = computeHireReadiness({});
     if (empty.ready || empty.readyCount !== 0) throw new Error('empty should not be ready');
     const partial = computeHireReadiness({
@@ -800,9 +800,9 @@ async function runOfflineLibs() {
 
   await check('lib', 'perf-hotpaths-caps', async () => {
     const { COMPAT_PAIR_PAYLOAD_CAP, buildCompatBundles } = await import('../../lib/compat-bundles.js');
-    const { JOB_ROLES_LIST_CAP } = await import('../../lib/job-roles.js');
+    const { JOB_ROLES_LIST_CAP } = await import('../../lib/recruiting/job-roles.js');
     const { LEADERSHIP_SCORES_SAMPLE_CAP, LEADERSHIP_POTENTIALS_SCAN_CAP } = await import(
-      '../../lib/leadership-analytics.js'
+      '../../lib/analytics/leadership-analytics.js'
     );
     const { measureAsync, resetMetrics, getMetricsSnapshot } = await import('../../lib/monitoring.js');
     if (COMPAT_PAIR_PAYLOAD_CAP > 150) throw new Error('pair payload cap too high');
@@ -886,7 +886,7 @@ async function runOfflineLibs() {
       companyLogoObjectKey,
       isCompanyLogoStorageConfigured,
       COMPANY_LOGO_MAX_BYTES,
-    } = await import('../../lib/company-logo.js');
+    } = await import('../../lib/company/company-logo.js');
     if (isCompanyLogoStorageConfigured()) throw new Error('expected storage off in offline/DTOV default');
     const pngSig = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const pngBuf = Buffer.concat([pngSig, Buffer.alloc(92)]);
@@ -1023,7 +1023,7 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'job-share-utm', async () => {
-    const { buildJobShareCopy, withShareUtm } = await import('../../lib/job-share-copy.js');
+    const { buildJobShareCopy, withShareUtm } = await import('../../lib/recruiting/job-share-copy.js');
     const u = withShareUtm('https://app.example/jobs/dev-12', { source: 'whatsapp', medium: 'social' });
     if (!u.includes('utm_source=whatsapp') || !u.includes('utm_medium=social')) {
       throw new Error(`utm missing: ${u}`);
@@ -1046,7 +1046,7 @@ async function runOfflineLibs() {
       mergeAttribution,
       mapAttributionToCandidateSource,
       searchHasAttribution,
-    } = await import('../../lib/job-attribution.js');
+    } = await import('../../lib/recruiting/job-attribution.js');
     const params = new URLSearchParams(
       'utm_source=linkedin&utm_medium=social&utm_campaign=share'
     );
@@ -1075,7 +1075,7 @@ async function runOfflineLibs() {
   });
 
   await check('lib', 'job-funnel-pipeline-map', async () => {
-    const { pipelineStageToFunnelEvent, FUNNEL_EVENT_TYPES } = await import('../../lib/job-funnel.js');
+    const { pipelineStageToFunnelEvent, FUNNEL_EVENT_TYPES } = await import('../../lib/recruiting/job-funnel.js');
     if (pipelineStageToFunnelEvent('interview') !== 'interview') throw new Error('interview');
     if (pipelineStageToFunnelEvent('approved') !== 'screening') throw new Error('approved→screening');
     if (pipelineStageToFunnelEvent('new') != null) throw new Error('new must be null');
@@ -1117,7 +1117,7 @@ async function runOfflineLibs() {
       publishJob,
       syncVacancyIndex,
       vacancyShouldBeIndexed,
-    } = await import('../../lib/job-indexing.js');
+    } = await import('../../lib/recruiting/job-indexing.js');
     __resetJobIndexingMockLog();
     if (!isGoogleIndexingEnabled()) throw new Error('expected enabled');
     if (!vacancyShouldBeIndexed({
@@ -1567,7 +1567,7 @@ async function runSqlSuite(client) {
   });
 
   await check('sql', 'vacancy-funnel-analytics', async () => {
-    const { getVacancyFunnelAnalytics } = await import('../../lib/job-funnel.js');
+    const { getVacancyFunnelAnalytics } = await import('../../lib/recruiting/job-funnel.js');
     const vac = await client.query(
       `SELECT id FROM vacancies
        WHERE company_id = $1 AND slug = 'engenheiro-fullstack-plataforma' AND deleted = FALSE
@@ -1607,7 +1607,7 @@ async function runSqlSuite(client) {
   });
 
   await check('lib', 'job-seo-score', async () => {
-    const { computeJobSeoScore } = await import('../../lib/job-seo-score.js');
+    const { computeJobSeoScore } = await import('../../lib/recruiting/job-seo-score.js');
     const weak = computeJobSeoScore({ title: 'Dev', publicPageEnabled: false });
     const strong = computeJobSeoScore({
       title: 'Engenheiro Fullstack Plataforma',
@@ -1632,7 +1632,7 @@ async function runSqlSuite(client) {
       shouldDispatchJobAlerts,
       jobAlertMatchesVacancy,
       vacancyIsAlertablePublic,
-    } = await import('../../lib/job-alerts.js');
+    } = await import('../../lib/recruiting/job-alerts.js');
     const openPub = {
       id: 1,
       title: 'Engenheiro Fullstack',
@@ -1813,7 +1813,7 @@ async function runSqlSuite(client) {
   });
 
   await check('lib', 'job-roles-list-cap', async () => {
-    const { listCompanyJobRoles } = await import('../../lib/job-roles.js');
+    const { listCompanyJobRoles } = await import('../../lib/recruiting/job-roles.js');
     const out = await listCompanyJobRoles(companyId);
     if (!Array.isArray(out.roles)) throw new Error('roles');
     if (typeof out.truncated !== 'boolean') throw new Error('truncated');
@@ -1821,7 +1821,7 @@ async function runSqlSuite(client) {
   });
 
   await check('lib', 'vacancy-candidates-paged', async () => {
-    const { listVacancyCandidates } = await import('../../lib/vacancies-admin.js');
+    const { listVacancyCandidates } = await import('../../lib/recruiting/vacancies-admin.js');
     const vac = await client.query(
       `SELECT id FROM vacancies WHERE company_id = $1 AND deleted = FALSE ORDER BY id LIMIT 1`,
       [companyId]

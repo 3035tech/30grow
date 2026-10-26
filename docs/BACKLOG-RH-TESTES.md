@@ -36,7 +36,7 @@ _(Entregues e removidos: B-RH2-01…11, 13–14, 16–20. **12 e 15 entregues.**
 
 **Implementação:**
 - `migrations/110_company_pipeline_stages.sql` — tabela `company_pipeline_stages` (stage_key, label_pt/en, sort_order, canonical_key, system, required, soft delete) + relaxa CHECK legada em `vacancy_candidates.pipeline_stage` / `assessments.pipeline_stage` (aceita slugs `c_*`).
-- `lib/company-pipeline-stages.js` — lazy seed (8 defaults na 1ª leitura), CRUD, reorder DnD, delete com guard `count > 0` + guard required, helpers `canonicalStageJoinSql` / `canonicalStageExprSql` p/ reports.
+- `lib/company/company-pipeline-stages.js` — lazy seed (8 defaults na 1ª leitura), CRUD, reorder DnD, delete com guard `count > 0` + guard required, helpers `canonicalStageJoinSql` / `canonicalStageExprSql` p/ reports.
 - APIs `app/api/admin/pipeline-stages/*` (list/create/update/delete/reorder) — cap `VACANCIES_MANAGE` (admin/direction/hr).
 - Move de candidato (`app/api/admin/vacancies/[id]/candidates/[candidateId]/route.js`) resolve stage via `company_pipeline_stages`; hire/reject especiais disparam por `canonical_key`.
 - Reports canônicos: `overview-metrics.js`, `hire.js`, `manager-weekly-digest.js`, `vacancy-report.js`, `assessment-filters.js` agregam via `LEFT JOIN company_pipeline_stages` + `COALESCE(canonical_key, pipeline_stage)`.
@@ -59,5 +59,5 @@ Fechados em [`docs/RH2-decisions.md`](./RH2-decisions.md) (ciclo de vida, perfis
 
 - Este markdown: Parte 1 concluída; Parte 2 entregue integralmente. Anexos visuais ficam no `.docx`.
 - Motivadores (B-RH2-20): após deploy, republicar copy com `npm run db:seed-motivators-all` (desativa chaves antigas; não apaga tentativas).
-- Constantes de domínio (ondas 1–3): `lib/domain-status.js` + `ROLES` em `permissions.js`. Sem schema. **B-RH2-12** entregue (`migrations/110`, `lib/company-pipeline-stages.js`, editor no detail da vaga).
+- Constantes de domínio (ondas 1–3): `lib/domain-status.js` + `ROLES` em `permissions.js`. Sem schema. **B-RH2-12** entregue (`migrations/110`, `lib/company/company-pipeline-stages.js`, editor no detail da vaga).
 - B-RH2-15 entregue: avaliação formal por competências (`migrations/108`, Avaliações → Competências, `/formal-review/[token]`).

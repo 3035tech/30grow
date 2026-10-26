@@ -41,7 +41,7 @@ Salário no relatório cliente (`/r`) é flag **separada** (`client_report_show_
 
 Empresa: `website`, `about_html`, `public_profile_enabled` (opt-in para `/companies/{slug}`), `logo_url` / `logo_key` (arquivo no S3; migration `039`).
 
-Score de completude (determinístico): `lib/job-seo-score.js` → `computeJobSeoScore` (checklist no drawer).
+Score de completude (determinístico): `lib/recruiting/job-seo-score.js` → `computeJobSeoScore` (checklist no drawer).
 
 ---
 
@@ -65,7 +65,8 @@ Validar JobPosting: [Google Rich Results Test](https://search.google.com/test/ri
 | `GOOGLE_INDEXING_SERVICE_ACCOUNT_JSON` | — | JSON inline **ou** path do arquivo da service account |
 | `GOOGLE_INDEXING_MOCK` | — | `1` = não chama Google (log em memória). `DTOV=1` força mock |
 
-Código: `lib/job-indexing.js`. Ganchos fire-and-forget em create/update/close/delete de vagas.  
+Código: `lib/recruiting/job-indexing.js`. Ganchos fire-and-forget em create/update/close/delete de vagas.
+
 **Falha do Google nunca bloqueia** salvar a vaga.  
 Requer `NEXT_PUBLIC_APP_URL` correto (URL absoluta no notify).
 
@@ -75,7 +76,7 @@ Service account no Google Cloud: API “Indexing” habilitada; owner/verified d
 
 ## Share e atribuição
 
-- **Share in-page**: WhatsApp / LinkedIn / copiar (`PublicVacancyShareBar`, `lib/job-share-copy.js`) com UTM.
+- **Share in-page**: WhatsApp / LinkedIn / copiar (`PublicVacancyShareBar`, `lib/recruiting/job-share-copy.js`) com UTM.
 - **Cookie** `team30_job_attr` (httpOnly, ~7 dias): `utm_*` e/ou `?ref=` — **sem PII / sem IP**.
 - Persistência no submit do assessment da vaga: `assessments.attr_*`; `candidates.source` grosso.
 - Eventos: `job_funnel_events` (view, apply_start, pipeline…).
@@ -105,7 +106,7 @@ Service account no Google Cloud: API “Indexing” habilitada; owner/verified d
 
 ## Assistentes de IA (vaga / relatório) — B-123
 
-Módulo único: **`lib/vacancy-assist-ai.js`** (OpenAI via `lib/openai-chat.js`).
+Módulo único: **`lib/recruiting/vacancy-assist-ai.js`** (OpenAI via `lib/openai-chat.js`).
 
 | Função exportada | Uso no produto |
 |------------------|----------------|
@@ -132,11 +133,11 @@ Fluxo sempre: sugerir → RH revisa → salvar. Linguagem hedged; sem diagnósti
 | Agregadores SEO | `lib/public-job-aggregators.js`, `app/jobs/remote`, `app/jobs/city/[citySlug]` |
 | Lifecycle / closed UX | `lib/public-vacancy-lifecycle.js` |
 | JSON-LD / meta | posting helpers + `app/jobs/**` |
-| Indexing | `lib/job-indexing.js` |
+| Indexing | `lib/recruiting/job-indexing.js` |
 | Funil / attr | `lib/job-attribution*.js`, `job_funnel_events` |
-| Alerts | `lib/job-alerts.js` |
-| Score | `lib/job-seo-score.js` |
-| Empresa pública | `lib/company-profile.js`, `app/companies/[companySlug]` |
+| Alerts | `lib/recruiting/job-alerts.js` |
+| Score | `lib/recruiting/job-seo-score.js` |
+| Empresa pública | `lib/company/company-profile.js`, `app/companies/[companySlug]` |
 | Migrations | `030`–`037` (ver `migrations/`) |
 
 ---
@@ -176,4 +177,4 @@ Complemento geral: [`docs/privacidade-lgpd-interno.md`](./privacidade-lgpd-inter
 ## Lacunas conhecidas (não inventar)
 
 - Senioridade, skills/benefícios como entidades separadas: ainda sem colunas.
-- Logo: schema + upload S3 (`039`, `lib/company-logo.js`); no painel, campo no modal criar/editar empresa (preview imediato). Precisa `S3_*` em produção.
+- Logo: schema + upload S3 (`039`, `lib/company/company-logo.js`); no painel, campo no modal criar/editar empresa (preview imediato). Precisa `S3_*` em produção.

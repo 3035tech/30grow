@@ -3,11 +3,11 @@ import { withAdminApi } from '../../../../lib/admin-api.js';
 import { CAP } from '../../../../lib/ae/require-admin.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import { z, zLocale, zPositiveInt } from '../../../../lib/validate.js';
-import { createEmployeeDirect } from '../../../../lib/hire.js';
+import { createEmployeeDirect } from '../../../../lib/recruiting/hire.js';
 import { audit } from '../../../../lib/audit.js';
 import { checkRateLimit } from '../../../../lib/rate-limit.js';
 import { ONBOARDING_STAGES } from '../../../../lib/onboarding-stage-selection.js';
-import { normalizeStartDate } from '../../../../lib/pipeline.js';
+import { normalizeStartDate } from '../../../../lib/recruiting/pipeline.js';
 
 const bodySchema = z.object({
   companyId: zPositiveInt.optional(),

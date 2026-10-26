@@ -13,7 +13,7 @@ import {
   isCvStorageConfigured,
   removeCandidateCv,
   uploadCandidateCv,
-} from '../../../../../../lib/candidate-cv.js';
+} from '../../../../../../lib/recruiting/candidate-cv.js';
 import { queryRead } from '../../../../../../lib/db.js';
 import { audit } from '../../../../../../lib/audit.js';
 import { checkRateLimit } from '../../../../../../lib/rate-limit.js';

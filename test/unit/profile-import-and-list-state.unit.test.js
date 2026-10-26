@@ -4,7 +4,7 @@ import {
   normalizeImportFields,
   profileImportSchema,
   importFingerprint,
-} from '../../lib/candidate-profile-import-core.js';
+} from '../../lib/recruiting/candidate-profile-import-core.js';
 import { parseListValue } from '../../lib/list-url-state.js';
 
 test('import accepts only professional profile fields and validates edited values', () => {
@@ -63,7 +63,7 @@ test('URL list parser protects pagination and tag filter shape', () => {
 
 test('PDF extraction handles pooled buffers reliably on the first document', async () => {
   const { profilePdf } = await import('../fixtures/profile-pdf.js');
-  const { extractPdfText } = await import('../../lib/candidate-cv.js');
+  const { extractPdfText } = await import('../../lib/recruiting/candidate-cv.js');
   const bytes = profilePdf([
     'Fictional Person',
     'fixture@dtov.invalid',

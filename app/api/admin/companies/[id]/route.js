@@ -3,12 +3,12 @@ import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilit
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../lib/auth';
 import { query } from '../../../../../lib/db';
-import { archiveCompany, withCompanyDeactivation } from '../../../../../lib/company-lifecycle.js';
+import { archiveCompany, withCompanyDeactivation } from '../../../../../lib/company/company-lifecycle.js';
 import { BillingError } from '../../../../../lib/billing/stripe.js';
 import { audit } from '../../../../../lib/audit';
 import { apiError, ERR } from '../../../../../lib/api-error';
 import { CAP, requireCapability } from '../../../../../lib/permissions';
-import { parseCompanyProfileFromBody } from '../../../../../lib/company-profile';
+import { parseCompanyProfileFromBody } from '../../../../../lib/company/company-profile';
 import { slugify as slugifyRaw } from '../../../../../lib/slugify';
 import { parseAiMonthlyCallLimit } from '../../../../../lib/ai-usage';
 

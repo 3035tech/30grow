@@ -58,7 +58,7 @@ import { isRichTextEmpty } from '../../../lib/sanitize-html';
 import { clusterCloseTypes, rankEnneagramScores } from '../../../lib/enneagram-cross';
 import { buildProfileSynthesis } from '../../../lib/profile-synthesis';
 import { EMPLOYMENT_STATUS, ROSTER_SCOPE } from '../../../lib/domain-status.js';
-import { PIPELINE_STAGE, PIPELINE_STAGES, normalizeStartDate } from '../../../lib/pipeline';
+import { PIPELINE_STAGE, PIPELINE_STAGES, normalizeStartDate } from '../../../lib/recruiting/pipeline';
 import { DB_FANOUT_CONCURRENCY, mapWithConcurrency } from '../../../lib/concurrency';
 import {
   ABSENCE_SUGGESTION,

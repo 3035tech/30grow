@@ -5,8 +5,8 @@ import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit'
 import {
   JOB_ATTR_COOKIE,
   decodeAttributionCookie,
-} from '../../../../lib/job-attribution';
-import { FUNNEL_EVENT_TYPES, recordJobFunnelEvent } from '../../../../lib/job-funnel';
+} from '../../../../lib/recruiting/job-attribution';
+import { FUNNEL_EVENT_TYPES, recordJobFunnelEvent } from '../../../../lib/recruiting/job-funnel';
 
 /**
  * POST /api/public/job-funnel

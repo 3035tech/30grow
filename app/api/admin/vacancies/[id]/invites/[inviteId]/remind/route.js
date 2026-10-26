@@ -1,12 +1,12 @@
-import { candidateContact } from '../../../../../../../../lib/candidate-contact';
+import { candidateContact } from '../../../../../../../../lib/recruiting/candidate-contact';
 import { NextResponse } from 'next/server';
 import { verifySessionWithCapabilities } from '../../../../../../../../lib/user-capabilities';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../../lib/auth';
 import { query, queryRead } from '../../../../../../../../lib/db';
-import { ensureActiveVacancyLinkToken } from '../../../../../../../../lib/vacancy-link';
+import { ensureActiveVacancyLinkToken } from '../../../../../../../../lib/recruiting/vacancy-link';
 import { enqueueTransactionalMail } from '../../../../../../../../lib/mail';
-import { buildCandidateChallengeInviteMail } from '../../../../../../../../lib/candidate-challenge-invite-mail';
+import { buildCandidateChallengeInviteMail } from '../../../../../../../../lib/recruiting/candidate-challenge-invite-mail';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../lib/rate-limit';
 import { apiError, localeFromRequest, ERR } from '../../../../../../../../lib/api-error';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/permissions';

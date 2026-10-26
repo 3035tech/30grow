@@ -8,13 +8,13 @@ import {
   EMPLOYEE_COOKIE_NAME,
   consumeEmployeeMagicToken,
   employeeSessionCookieOptions,
-} from '../../../../../lib/employee-auth.js';
-import { getEmployeeSessionPayload } from '../../../../../lib/employee-session.js';
+} from '../../../../../lib/employee/employee-auth.js';
+import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
 import {
   employee2faRequired,
   signEmployee2faChallenge,
-} from '../../../../../lib/employee-2fa.js';
-import { buildEmployeeLoginResponse } from '../../../../../lib/employee-login-session.js';
+} from '../../../../../lib/employee/employee-2fa.js';
+import { buildEmployeeLoginResponse } from '../../../../../lib/employee/employee-login-session.js';
 import { normalizeLocale } from '../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

@@ -2,7 +2,7 @@ import { consumeSecondFactorChallenge } from '../../../../../../../lib/second-fa
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
-import { verifyEmployee2faLogin } from '../../../../../../../lib/employee-2fa.js';
+import { verifyEmployee2faLogin } from '../../../../../../../lib/employee/employee-2fa.js';
 import {
   completeMobileEmployeeAuthentication,
   verifyMobileEmployeeSecondFactor,

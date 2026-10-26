@@ -11,7 +11,7 @@ import {
   listLeaveRequests,
   getCompanyVacationPool,
 } from '../../../../../lib/people/employee-dp.js';
-import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../lib/employee-notifications.js';
+import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../lib/employee/employee-notifications.js';
 
 const createBodySchema = z.object({
   companyId: zPositiveInt.optional(),

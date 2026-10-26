@@ -9,7 +9,7 @@ import {
   COMPANY_MODULE_CORE,
   COMPANY_MODULE_UI_GROUPS,
   SELECTABLE_COMPANY_MODULE_IDS,
-} from '../../lib/company-modules';
+} from '../../lib/company/company-modules';
 
 /**
  * Checkbox list for company commercial modules (SKU entitlements).

@@ -19,7 +19,7 @@ import { CollapsibleBlock } from './CollapsibleBlock';
 import { SegmentedControl } from './SegmentedControl';
 import { StackedSegmentBar } from './StackedSegmentBar';
 import { ChartPanel, ChartLegend } from './ChartPanel';
-import { CHART_MIN_N, salaryBandTotals } from '../../lib/chart-aggregates';
+import { CHART_MIN_N, salaryBandTotals } from '../../lib/analytics/chart-aggregates';
 
 /**
  * B-3002 — Analytic salary map by job role + simple % raise simulation.

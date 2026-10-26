@@ -13,7 +13,7 @@ import {
   issueEmployeePasswordInvite,
   requestEmployeeMagicLink,
   requestEmployeePasswordReset,
-} from '../../lib/employee-auth.js';
+} from '../../lib/employee/employee-auth.js';
 import { createAndQueueMotivatorsInvite } from '../../lib/ae/create-motivators-invite.js';
 import { emailClimateSurveyInvites } from '../../lib/people/climate-surveys.js';
 import { CLIMATE_SURVEY_STATUS, EMPLOYMENT_STATUS } from '../../lib/domain-status.js';

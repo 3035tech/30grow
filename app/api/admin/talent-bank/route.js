@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { CAP } from '../../../../lib/ae/require-admin.js';
-import { listTalentBank } from '../../../../lib/talent-bank.js';
+import { listTalentBank } from '../../../../lib/recruiting/talent-bank.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 
-import { candidateTagFilterShape } from '../../../../lib/candidate-tags-validation.js';
+import { candidateTagFilterShape } from '../../../../lib/recruiting/candidate-tags-validation.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

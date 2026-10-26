@@ -24,7 +24,7 @@ import { InlineCallout } from '../../_components/InlineCallout';
 import { ChartPanel } from '../../_components/ChartPanel';
 import { CategoryBars } from '../../_components/CategoryBars';
 import { WHISTLEBLOWING_REPORT_STATUS } from '../../../lib/domain-status';
-import { CHART_MIN_N, whistleStatusFunnel, topCategoryCounts } from '../../../lib/chart-aggregates';
+import { CHART_MIN_N, whistleStatusFunnel, topCategoryCounts } from '../../../lib/analytics/chart-aggregates';
 
 function statusTone(status) {
   if (status === WHISTLEBLOWING_REPORT_STATUS.NEW) return 'warning';

@@ -5,7 +5,7 @@ import { SelectField } from './SelectField';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { t } from '../../lib/i18n';
-import { BR_UF_SET } from '../../lib/candidate-profile';
+import { BR_UF_SET } from '../../lib/recruiting/candidate-profile';
 import { cn } from '../../lib/cn';
 import { fieldInputClass, fieldSelectClass } from './form-control-styles';
 

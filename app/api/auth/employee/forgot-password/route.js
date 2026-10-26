@@ -3,7 +3,7 @@ import { query } from '../../../../../lib/db.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
 import { verifyTurnstileToken } from '../../../../../lib/turnstile.js';
-import { requestEmployeePasswordReset } from '../../../../../lib/employee-auth.js';
+import { requestEmployeePasswordReset } from '../../../../../lib/employee/employee-auth.js';
 import { contentLocale } from '../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

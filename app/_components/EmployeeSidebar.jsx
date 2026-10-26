@@ -6,7 +6,7 @@ import { BrandMark } from './BrandMark';
 import { EmployeeLogoutButton } from './EmployeeLogoutButton';
 import { SidebarNav, SidebarNavItem } from './SidebarNav';
 import { useEmployeeNav } from './EmployeeNavContext';
-import { employeeSectionVisible } from '../../lib/company-modules';
+import { employeeSectionVisible } from '../../lib/company/company-modules';
 
 /** @typedef {{ id: string, href: string, icon: string, labelKey: string, hash?: string }} EmpNavItem */
 

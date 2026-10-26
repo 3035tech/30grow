@@ -3,8 +3,8 @@ import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
-import { reorderCompanyPipelineStages } from '../../../../../lib/company-pipeline-stages.js';
-import { reorderPipelineTemplateStages, reorderVacancyPipelineStages } from '../../../../../lib/pipeline-templates.js';
+import { reorderCompanyPipelineStages } from '../../../../../lib/company/company-pipeline-stages.js';
+import { reorderPipelineTemplateStages, reorderVacancyPipelineStages } from '../../../../../lib/recruiting/pipeline-templates.js';
 
 const reorderBodySchema = z.object({
   companyId: zPositiveInt.optional(),

@@ -2,7 +2,7 @@
 
 import { cn } from '../../../lib/cn';
 import { t } from '../../../lib/i18n';
-import { computeJobSeoScore } from '../../../lib/job-seo-score';
+import { computeJobSeoScore } from '../../../lib/recruiting/job-seo-score';
 import { fieldCheckboxClass } from '../../_components/form-control-styles';
 
 function VacancyPublicFlagCheckbox({ locale, checked, onChange, labelKey, helpKey }) {

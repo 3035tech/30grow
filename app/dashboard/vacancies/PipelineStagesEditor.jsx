@@ -5,7 +5,7 @@ import { SelectField } from '../../_components/SelectField';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t, contentLocale } from '../../../lib/i18n';
-import { PIPELINE_STAGE } from '../../../lib/pipeline';
+import { PIPELINE_STAGE } from '../../../lib/recruiting/pipeline';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { EmptyState } from '../../_components/EmptyState';
 import { useAppFeedback } from '../../_components/AppFeedback';

@@ -38,7 +38,7 @@ import {
   normalizeReportWeights,
   recommendationFromStage,
   rubricWeightedTypes,
-} from '../lib/vacancy-report-shared.js';
+} from '../lib/recruiting/vacancy-report-shared.js';
 import { isRichTextEmpty, sanitizeRichTextHtml } from '../lib/sanitize-html.js';
 import { seedTodosOsDadosModules, MODULE_TOK } from './seed-demo-todos-os-dados-modules.js';
 

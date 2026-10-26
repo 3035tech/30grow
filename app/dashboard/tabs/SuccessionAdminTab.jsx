@@ -19,7 +19,7 @@ import { AdminListFilters, AdminListFilterSelect } from '../../_components/Admin
 import { ChartPanel, ChartLegend } from '../../_components/ChartPanel';
 import { StackedSegmentBar } from '../../_components/StackedSegmentBar';
 import { cn } from '../../../lib/cn';
-import { successionCoverage } from '../../../lib/chart-aggregates';
+import { successionCoverage } from '../../../lib/analytics/chart-aggregates';
 import {
   AdminActionsCell,
   AdminActionsTh,

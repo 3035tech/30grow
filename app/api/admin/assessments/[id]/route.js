@@ -10,10 +10,10 @@ import {
   PIPELINE_STAGE,
   normalizeRejectionReasons,
   normalizeStartDate,
-} from '../../../../../lib/pipeline';
-import { resolveRecruitingPipelineStage } from '../../../../../lib/pipeline-templates';
+} from '../../../../../lib/recruiting/pipeline';
+import { resolveRecruitingPipelineStage } from '../../../../../lib/recruiting/pipeline-templates';
 import { canAccessCandidateRecord, isSuperAdminPayload } from '../../../../../lib/permissions';
-import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/job-funnel';
+import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/recruiting/job-funnel';
 
 export async function PATCH(request, props) {
   const params = await props.params;

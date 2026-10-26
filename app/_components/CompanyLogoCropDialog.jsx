@@ -17,8 +17,8 @@ import {
   coverScale,
   exportCroppedLogoFile,
   loadImageFromFile,
-} from '../../lib/company-logo-client';
-import { COMPANY_LOGO_MAX_EDGE } from '../../lib/company-logo-limits';
+} from '../../lib/company/company-logo-client';
+import { COMPANY_LOGO_MAX_EDGE } from '../../lib/company/company-logo-limits';
 
 const VIEW = 280;
 

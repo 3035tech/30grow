@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
-import { beginEmployee2faSetup, disableEmployee2fa, enableEmployee2fa, loadEmployee2faState } from '../../../../../../../lib/employee-2fa.js';
+import { beginEmployee2faSetup, disableEmployee2fa, enableEmployee2fa, loadEmployee2faState } from '../../../../../../../lib/employee/employee-2fa.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile-employee-session.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/rate-limit.js';
 

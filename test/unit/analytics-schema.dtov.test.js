@@ -2,15 +2,15 @@ import assert from 'node:assert/strict';
 import { after, describe, it } from 'node:test';
 
 import { pool, query } from '../../lib/db.js';
-import { getHiringEffectivenessMetrics } from '../../lib/analytics-metrics.js';
-import { getAllTrends } from '../../lib/analytics-trends.js';
-import { detectAllAlerts } from '../../lib/analytics-alerts.js';
+import { getHiringEffectivenessMetrics } from '../../lib/analytics/analytics-metrics.js';
+import { getAllTrends } from '../../lib/analytics/analytics-trends.js';
+import { detectAllAlerts } from '../../lib/analytics/analytics-alerts.js';
 import {
   compareAreas,
   comparePeriods,
   listAvailableAreas,
   listAvailableRubrics,
-} from '../../lib/analytics-comparisons.js';
+} from '../../lib/analytics/analytics-comparisons.js';
 
 const dtov = process.env.DTOV === '1';
 

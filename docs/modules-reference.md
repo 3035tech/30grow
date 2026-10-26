@@ -70,7 +70,7 @@ A partir da migration `054`, `055` e `056`:
 - CRUD completo: listar, criar, editar, desativar (soft)
 - UI: `JobRolesAdminTab` (admin), campo `jobRoleId` no formulário de vagas (`VacanciesAdminTab`), componente `RubricEditor` para editar pesos visuais
 - APIs: `GET/POST /api/admin/job-roles`, `GET/PATCH/DELETE /api/admin/job-roles/[id]`
-- Lib: `lib/job-roles.js` (`getRubricForVacancy` resolve herança: job_role → vacancy rubric)
+- Lib: `lib/recruiting/job-roles.js` (`getRubricForVacancy` resolve herança: job_role → vacancy rubric)
 - Migration: `055_job_roles.sql` (tabela `job_roles`, FK em `vacancies`)
 
 ### B-1004 — Avaliação de Desempenho + Metas → PDI
@@ -87,7 +87,7 @@ A partir da migration `054`, `055` e `056`:
 - **Critical Roles** (papéis críticos da empresa): título, descrição, área, nível de impacto (high/critical)
 - **Succession Plans** (sucessores por papel): candidato, prontidão (`not_ready`, `developing`, `ready`, `now`), notas, data-alvo
 - **Readiness Score**: combina HR Score (70%) + Leadership Potential (30%) para ranquear candidatos
-- Integração com `lib/hr-score.js` (B-1001) e `lib/leadership-analytics.js` (potencial de liderança já existente)
+- Integração com `lib/hr-score.js` (B-1001) e `lib/analytics/leadership-analytics.js` (potencial de liderança já existente)
 - UI: `SuccessionAdminTab` (criar/listar papéis críticos, ver contadores de sucessores)
 - APIs: `/api/admin/succession/critical-roles` (CRUD roles), `/api/admin/succession/plans` (CRUD succession plans), `/api/admin/succession/critical-roles/[id]/successors` (list successors)
 - Lib: `lib/succession-plans.js` (CRUD roles/plans, `calculateSuccessionReadiness`, `getPotentialSuccessors`)
@@ -101,7 +101,7 @@ A partir da migration `054`, `055` e `056`:
 - APIs: `/api/admin/exit-analysis` (CRUD exit records), `/api/admin/exit-analysis/insights` (agregações + insights)
 - Lib: `lib/exit-analysis.js` (CRUD, `getExitReasonAggregation`, `getExitsByTypeProfile`, `getExitInsights`)
 - Migration: `058_exit_analysis.sql` (tabela `exit_records`)
-- **Recontratação (várias passagens):** `POST /api/admin/exit-analysis/rehire` (`CAP.EXIT_ANALYSIS_VIEW`, Zod, audit `employee.rehire`) → `rehireEmployee` em `lib/hire.js`; fecha a saída aberta (`rehired_at`, `rehired_by_user_id`) e volta a pessoa a colaborador, com convite de acesso opcional. `markCandidateHired` (vaga ou inclusão direta) também fecha a saída aberta. Filtro **Ex-colaboradores** na Equipe (`ROSTER_SCOPE.ALUMNI`, SQL em `lib/roster-scope-sql.js`); "Time interno" exclui ex-colaboradores. Migration `135_exit_records_rehire.sql` (uma saída **aberta** por pessoa, índice parcial).
+- **Recontratação (várias passagens):** `POST /api/admin/exit-analysis/rehire` (`CAP.EXIT_ANALYSIS_VIEW`, Zod, audit `employee.rehire`) → `rehireEmployee` em `lib/recruiting/hire.js`; fecha a saída aberta (`rehired_at`, `rehired_by_user_id`) e volta a pessoa a colaborador, com convite de acesso opcional. `markCandidateHired` (vaga ou inclusão direta) também fecha a saída aberta. Filtro **Ex-colaboradores** na Equipe (`ROSTER_SCOPE.ALUMNI`, SQL em `lib/roster-scope-sql.js`); "Time interno" exclui ex-colaboradores. Migration `135_exit_records_rehire.sql` (uma saída **aberta** por pessoa, índice parcial).
 
 ### B-1007 — Cultura Organizacional
 - **Leitura hedged**: sintetiza clima (Likert mean level), mix T1–T9 (arquétipo dominante, % homogeneidade), pulsos recentes (engajamento), e valores declarados (`companies.about_html`)
@@ -124,7 +124,7 @@ A partir da migration `054`, `055` e `056`:
 - **Sem adesão, sem folha, sem clube**: não há sistema de inscrição, desconto em folha ou gestão de adesão. Apenas catálogo de benefícios que a empresa oferece
 - UI: `CompanyBenefitsAdminTab` (CRUD com filtro por categoria)
 - APIs: `/api/admin/company-benefits` (list com `?category=`, `?categories=true`, POST), `/api/admin/company-benefits/[id]` (GET, PATCH, DELETE)
-- Lib: `lib/company-benefits.js` (CRUD, `getCompanyBenefitCategories`)
+- Lib: `lib/company/company-benefits.js` (CRUD, `getCompanyBenefitCategories`)
 - Migration: `060_company_benefits.sql` (tabela `company_benefits`)
 
 ### B-2510 — Remuneração interna (RH)
@@ -217,7 +217,7 @@ Remuneração é um módulo sensível separado (`compensation.view` / `compensat
 - Sem campos no schema hoje (omitidos de propósito): senioridade, skills/benefícios separados.
 - Encerrada ou `target_date` passado: agradecimento + relacionadas + `/jobs`; sem JobPosting / noindex / sem CTA de apply.
 - SEO: `robots.txt` + `sitemap.xml` (só vagas `open`, indexáveis e prazo ok; inclui agregadores que passam o limiar). Crawlers de busca e IA podem descobrir apenas superfícies públicas; painel, APIs, autenticação e links por token continuam bloqueados. `/llms.txt` mantém o inventário verificável do produto.
-- Google Indexing API (opcional): `GOOGLE_INDEXING_ENABLED=true` + service account — push ao criar/atualizar/fechar página pública indexável (`lib/job-indexing.js`). Desligado por padrão; falha não bloqueia o save da vaga.
+- Google Indexing API (opcional): `GOOGLE_INDEXING_ENABLED=true` + service account — push ao criar/atualizar/fechar página pública indexável (`lib/recruiting/job-indexing.js`). Desligado por padrão; falha não bloqueia o save da vaga.
 - Atribuição / funil: query `utm_*` e `?ref=` → cookie httpOnly `team30_job_attr` (7 dias, sem PII). Persistido em `assessments.attr_*` no submit da vaga; eventos em `job_funnel_events`. Analytics: `GET /api/admin/vacancies/[id]/analytics`.
 - Referral (indicação): tabela `referral_codes`; APIs admin + **aba Indicação** no detalhe da vaga (criar, copiar `/jobs/…?ref=`, desativar, métricas). Analytics: `GET /api/admin/referral-codes/analytics`.
 - Logo empresa: `S3_BUCKET` + chaves AWS (ver `.env.example`). Sem S3 o upload fica desligado; páginas públicas usam `logo_url` quando existir (incl. `hiringOrganization.logo` no JSON-LD).

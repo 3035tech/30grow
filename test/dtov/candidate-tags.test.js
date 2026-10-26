@@ -7,15 +7,15 @@ assertDtovTarget(env);
 Object.assign(process.env, env);
 const { pool, query, withTransaction } = await import('../../lib/db.js');
 const { listCandidateTags, saveCandidateTag, replaceCandidateTags } = await import(
-  '../../lib/candidate-tags.js'
+  '../../lib/recruiting/candidate-tags.js'
 );
 const { normalizeTagIds, normalizeCandidateTagFilter } = await import(
-  '../../lib/candidate-tags-core.js'
+  '../../lib/recruiting/candidate-tags-core.js'
 );
-const { listTalentBank } = await import('../../lib/talent-bank.js');
-const { getVacancyRanking } = await import('../../lib/vacancy-ranking.js');
+const { listTalentBank } = await import('../../lib/recruiting/talent-bank.js');
+const { getVacancyRanking } = await import('../../lib/recruiting/vacancy-ranking.js');
 const { saveRecruitingView, getRecruitingWorkspace } = await import(
-  '../../lib/recruiting-workspace.js'
+  '../../lib/recruiting/recruiting-workspace.js'
 );
 const stamp = Date.now();
 const companies = [];

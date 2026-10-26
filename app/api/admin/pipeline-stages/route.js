@@ -8,13 +8,13 @@ import {
   createCompanyPipelineStage,
   readCompanyStageUsageMap,
   PIPELINE_CANONICAL_KEYS,
-} from '../../../../lib/company-pipeline-stages.js';
+} from '../../../../lib/company/company-pipeline-stages.js';
 import {
   createPipelineTemplateStage,
   createVacancyPipelineStage,
   listPipelineTemplateStages,
   listVacancyPipelineStages,
-} from '../../../../lib/pipeline-templates.js';
+} from '../../../../lib/recruiting/pipeline-templates.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

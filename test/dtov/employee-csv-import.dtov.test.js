@@ -9,7 +9,7 @@ assertDtovTarget(env);
 Object.assign(process.env, env);
 
 const { query, pool } = await import('../../lib/db.js');
-const { previewEmployeeCsv, importEmployeeCsv } = await import('../../lib/employee-csv-import.js');
+const { previewEmployeeCsv, importEmployeeCsv } = await import('../../lib/employee/employee-csv-import.js');
 const mail = await import('../../lib/mail.js');
 const { closeRateLimitRedis } = await import('../../lib/rate-limit.js');
 const suffix = randomUUID().slice(0, 8);

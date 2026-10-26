@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import { t } from '../../lib/i18n';
-import { CANDIDATE_TAG_COLORS, MAX_CANDIDATE_TAGS } from '../../lib/candidate-tags-core';
+import { CANDIDATE_TAG_COLORS, MAX_CANDIDATE_TAGS } from '../../lib/recruiting/candidate-tags-core';
 import { AdminRichFormDrawer } from '../_components/AdminRichFormDrawer';
 import { SelectField } from '../_components/SelectField';
 import { useAppFeedback } from '../_components/AppFeedback';

@@ -7,13 +7,13 @@ import {
   updateCompanyPipelineStage,
   deleteCompanyPipelineStage,
   PIPELINE_CANONICAL_KEYS,
-} from '../../../../../lib/company-pipeline-stages.js';
+} from '../../../../../lib/company/company-pipeline-stages.js';
 import {
   deletePipelineTemplateStage,
   deleteVacancyPipelineStage,
   updatePipelineTemplateStage,
   updateVacancyPipelineStage,
-} from '../../../../../lib/pipeline-templates.js';
+} from '../../../../../lib/recruiting/pipeline-templates.js';
 
 const patchBodySchema = z.object({
   companyId: zPositiveInt.optional(),

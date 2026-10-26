@@ -4,8 +4,8 @@ import { withAdminApi } from '../../../../lib/admin-api.js';
 import { CAP, requireCapability } from '../../../../lib/ae/require-admin.js';
 import { apiError } from '../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
-import { candidateTagBodySchema } from '../../../../lib/candidate-tags-validation.js';
-import { listCandidateTags, saveCandidateTag } from '../../../../lib/candidate-tags.js';
+import { candidateTagBodySchema } from '../../../../lib/recruiting/candidate-tags-validation.js';
+import { listCandidateTags, saveCandidateTag } from '../../../../lib/recruiting/candidate-tags.js';
 
 export const GET = withAdminApi(
   {

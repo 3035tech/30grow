@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { LOCALE_COOKIE, normalizeLocale, t, localeHtmlLang } from '../../lib/i18n';
-import { normalizeEmploymentType } from '../../lib/vacancy-employment-type';
-import { normalizeWorkplaceModality } from '../../lib/vacancy-workplace';
+import { normalizeEmploymentType } from '../../lib/recruiting/vacancy-employment-type';
+import { normalizeWorkplaceModality } from '../../lib/recruiting/vacancy-workplace';
 import {
   defaultPublicOgImageUrl,
   listOpenPublicVacancies,

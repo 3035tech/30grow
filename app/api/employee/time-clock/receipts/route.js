@@ -1,4 +1,4 @@
-import { getEmployeeSessionPayload } from '../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
 import { employeeReceiptResponse } from '../../../../../lib/rep/employee-api.js';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 export const dynamic = 'force-dynamic';

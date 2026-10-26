@@ -63,7 +63,7 @@ Situação atual relevante:
 
 Referências atuais:
 
-- `lib/job-roles.js`
+- `lib/recruiting/job-roles.js`
 - `lib/people/org-chart.js`
 - `migrations/055_job_roles.sql`
 - `migrations/084_market_salary_bands.sql`

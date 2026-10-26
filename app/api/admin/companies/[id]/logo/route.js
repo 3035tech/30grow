@@ -10,7 +10,7 @@ import {
   isCompanyLogoStorageConfigured,
   removeCompanyLogoObject,
   uploadCompanyLogoObject,
-} from '../../../../../../lib/company-logo';
+} from '../../../../../../lib/company/company-logo';
 
 async function requireCompany(companyId) {
   const current = await query(

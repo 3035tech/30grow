@@ -3,7 +3,7 @@ import { query } from '../../../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { audit } from '../../../../../../lib/audit.js';
 import { CAP, getManagerScope, getSessionPayload, requireCapability } from '../../../../../../lib/ae/require-admin.js';
-import { listCompanyBenefits } from '../../../../../../lib/company-benefits.js';
+import { listCompanyBenefits } from '../../../../../../lib/company/company-benefits.js';
 import {
   assignEmployeeBenefit,
   listEmployeeBenefitAssignments,

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error';
-import { unsubscribeJobAlert } from '../../../../../lib/job-alerts';
+import { unsubscribeJobAlert } from '../../../../../lib/recruiting/job-alerts';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
 
 export async function GET(request) {

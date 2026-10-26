@@ -2,8 +2,8 @@ import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
 import { CAP } from '../../../../lib/ae/require-admin.js';
 import { z, zPositiveInt, zQueryBool } from '../../../../lib/validate.js';
-import { listCompanyJobRoles, createJobRole } from '../../../../lib/job-roles.js';
-import { jobRoleDescriptionSchema } from '../../../../lib/job-role-description.js';
+import { listCompanyJobRoles, createJobRole } from '../../../../lib/recruiting/job-roles.js';
+import { jobRoleDescriptionSchema } from '../../../../lib/recruiting/job-role-description.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

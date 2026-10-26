@@ -4,8 +4,8 @@ import { CAP } from '../../../../../../../lib/ae/require-admin.js';
 import { z,zPositiveInt } from '../../../../../../../lib/validate.js';
 import { apiError,apiErrorFromResult,ERR } from '../../../../../../../lib/api-error.js';
 import { readBoundedFormData,singleFormFile } from '../../../../../../../lib/bounded-multipart.js';
-import { POST_FILE_MAX_BYTES } from '../../../../../../../lib/company-post-file-rules.js';
-import { uploadPostAttachment } from '../../../../../../../lib/company-post-attachments.js';
+import { POST_FILE_MAX_BYTES } from '../../../../../../../lib/company/company-post-file-rules.js';
+import { uploadPostAttachment } from '../../../../../../../lib/company/company-post-attachments.js';
 import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
 import { auditFromRequest } from '../../../../../../../lib/audit.js';
 export const POST=withAdminApi({cap:CAP.COMPANY_FEED_VIEW,companyFrom:'query',query:z.object({companyId:zPositiveInt.optional(),uploadId:z.string().uuid()}),logLabel:'company post attachment upload'},async({request,payload,companyId,params,query})=>{

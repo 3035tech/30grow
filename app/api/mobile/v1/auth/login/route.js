@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { loginEmployeeWithPassword } from '../../../../../../lib/employee-auth.js';
+import { loginEmployeeWithPassword } from '../../../../../../lib/employee/employee-auth.js';
 import {
   completeMobileEmployeeAuthentication,
   MOBILE_EMPLOYEE_AUTH_OUTCOME,

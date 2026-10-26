@@ -27,7 +27,7 @@ Impacto confirmado: o formulário não representa os pesos existentes. Não foi 
 
 O controle em si sincroniza corretamente: digitar 37 no campo T1 atualizou o slider e o total para 37; a alteração foi cancelada. A descrição do cargo permaneceu preenchida.
 
-Indício no código local: `RubricEditor.jsx` lê apenas chaves `T1`–`T9`; `JobRolesAdminTab.jsx` copia a rubrica recebida ao abrir o editor e o detalhe enumera suas chaves. `lib/job-roles.js` também normaliza apenas `T1`–`T9`. Isso é compatível com uma divergência de formato legado, mas o payload/banco publicado não foi inspecionado. A correção precisa preservar a semântica dos pesos existentes.
+Indício no código local: `RubricEditor.jsx` lê apenas chaves `T1`–`T9`; `JobRolesAdminTab.jsx` copia a rubrica recebida ao abrir o editor e o detalhe enumera suas chaves. `lib/recruiting/job-roles.js` também normaliza apenas `T1`–`T9`. Isso é compatível com uma divergência de formato legado, mas o payload/banco publicado não foi inspecionado. A correção precisa preservar a semântica dos pesos existentes.
 
 ### RH-BROWSER-02 — Escape na busca de gestor fecha o perfil inteiro
 

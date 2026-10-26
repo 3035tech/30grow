@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { shortlistNoteDraft } from '../../lib/vacancy-report-note.js';
+import { shortlistNoteDraft } from '../../lib/recruiting/vacancy-report-note.js';
 
 test('shortlist draft uses recorded evidence and escapes user text', () => {
   const note = shortlistNoteDraft({

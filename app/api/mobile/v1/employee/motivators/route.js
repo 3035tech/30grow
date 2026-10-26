@@ -5,7 +5,7 @@ import { normalizeLocale } from '../../../../../../lib/locale-negotiation.js';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
 import { withTransaction } from '../../../../../../lib/db.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { listEmployeeMotivators, changeEmployeeMotivators, MotivatorsAction } from '../../../../../../lib/employee-motivators.js';
+import { listEmployeeMotivators, changeEmployeeMotivators, MotivatorsAction } from '../../../../../../lib/employee/employee-motivators.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
 
 export const dynamic = 'force-dynamic';

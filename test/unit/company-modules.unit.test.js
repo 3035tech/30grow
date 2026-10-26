@@ -19,7 +19,7 @@ import {
   modulesSelectionForUi,
   normalizeEnabledModules,
   tabAllowedByCompanyModules,
-} from '../../lib/company-modules.js';
+} from '../../lib/company/company-modules.js';
 import { t } from '../../lib/i18n.js';
 import { validateHelpGuideCoverage } from '../../lib/help-sections.js';
 import { CAP, resolveCapabilities } from '../../lib/permissions.js';

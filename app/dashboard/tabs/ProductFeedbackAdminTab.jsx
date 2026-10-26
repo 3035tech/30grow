@@ -13,7 +13,7 @@ import {
   PRODUCT_FEEDBACK_STATUS,
   PRODUCT_FEEDBACK_STATUSES,
 } from '../../../lib/domain-status';
-import { COMPANY_MODULES } from '../../../lib/company-modules';
+import { COMPANY_MODULES } from '../../../lib/company/company-modules';
 import {
   S,
   AdminListPager,

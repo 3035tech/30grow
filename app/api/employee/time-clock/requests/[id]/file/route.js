@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../../../lib/employee/employee-session.js';
 import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
 import { zPositiveInt } from '../../../../../../../lib/validate.js';
 import { dpDownloadResponse } from '../../../../../../../lib/people/dp-download-response.js';

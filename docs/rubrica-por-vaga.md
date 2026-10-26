@@ -41,7 +41,7 @@ Prático: **2–4 tipos com peso > 0** já geram ranking útil. Pesos são **rel
 
 Não há mais copiar prompt / colar JSON na UI.
 
-Contrato da resposta da IA (parse em `lib/rubric-prompt.js`):
+Contrato da resposta da IA (parse em `lib/recruiting/rubric-prompt.js`):
 
 ```json
 {

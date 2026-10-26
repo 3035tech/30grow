@@ -9,7 +9,7 @@ import { FormField } from './FormField';
 import {
   VACANCY_WORKPLACE_MODALITIES,
   workplaceModalityLabelKey,
-} from '../../lib/vacancy-workplace';
+} from '../../lib/recruiting/vacancy-workplace';
 import { fieldSelectBlockClass } from './form-control-styles';
 
 /**

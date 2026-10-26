@@ -2,7 +2,7 @@
 
 import { SelectField } from './SelectField';
 
-import { BR_STATES, BR_UF_SET } from '../../lib/candidate-profile';
+import { BR_STATES, BR_UF_SET } from '../../lib/recruiting/candidate-profile';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { fieldSelectClass } from './form-control-styles';

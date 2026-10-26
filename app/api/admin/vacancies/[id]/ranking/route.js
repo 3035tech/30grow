@@ -6,9 +6,9 @@ import {
   getManagerScope,
   requireCapability,
 } from '../../../../../../lib/ae/require-admin.js';
-import { getVacancyRanking } from '../../../../../../lib/vacancy-ranking.js';
+import { getVacancyRanking } from '../../../../../../lib/recruiting/vacancy-ranking.js';
 import { z, parseSearchParams } from '../../../../../../lib/validate.js';
-import { candidateTagFilterShape } from '../../../../../../lib/candidate-tags-validation.js';
+import { candidateTagFilterShape } from '../../../../../../lib/recruiting/candidate-tags-validation.js';
 import { contentLocale } from '../../../../../../lib/i18n.js';
 
 /** GET /api/admin/vacancies/[id]/ranking — fit ranking for vacancy pipeline. */

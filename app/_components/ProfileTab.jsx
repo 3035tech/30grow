@@ -19,7 +19,7 @@ import {
   modulesSelectionEqual,
   modulesSelectionForPersist,
   modulesSelectionForUi,
-} from '../../lib/company-modules';
+} from '../../lib/company/company-modules';
 
 const inputClass = dashS.input;
 const panelClass = cn(dashS.cardShell, 'p-4 sm:p-6');

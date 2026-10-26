@@ -9,7 +9,7 @@ import * as domainStatus from '../../lib/domain-status.js';
 import * as fileMagic from '../../lib/file-magic.js';
 import * as dpUpload from '../../lib/dp-upload-validation.js';
 import * as boundedMultipart from '../../lib/bounded-multipart.js';
-import * as notificationCatalog from '../../lib/employee-notification-catalog.js';
+import * as notificationCatalog from '../../lib/employee/employee-notification-catalog.js';
 import { ERR, HTTP_STATUS } from '../../lib/api-error-codes.js';
 import { normalizeDependentRelation, normalizeEmergencyRelation } from '../../lib/kinship-relation.js';
 
@@ -45,7 +45,7 @@ test('colleague search: strict input, bounded page, no email and authenticated t
 });
 test('shared colleague query retains web defaults and applies parameterized stable offset/search', async () => {
   const calls = [];
-  const domain = await moduleAt('../../lib/company-kudos.js', { loadKudoReactionSummaries: async () => new Map(), asDb: (db) => db, query: null, ERR, ...domainStatus });
+  const domain = await moduleAt('../../lib/company/company-kudos.js', { loadKudoReactionSummaries: async () => new Map(), asDb: (db) => db, query: null, ERR, ...domainStatus });
   const db = { query: async (sql, values) => { calls.push({ sql, values }); return { rows: [] }; } };
   await domain.searchEmployeeColleagues(db, { companyId: 2, excludeCandidateId: 20 });
   assert.deepEqual([...calls[0].values], [2, 20, 20, 0]);
@@ -122,7 +122,7 @@ test('native push keeps legacy destination but sends only generic copy and an op
 });
 test('notification reference lookup binds both tenant and recipient; fanout emits only inserted recipient/ID pairs', async () => {
   const sends = [], calls = [];
-  const domain = await moduleAt('../../lib/employee-notifications.js', { asDb: (db) => db, query: null, ERR, ...domainStatus, ...notificationCatalog, mobilePushDestinationFor: () => 'lms', sendMobileEmployeePush: async (_db, input) => sends.push(input) });
+  const domain = await moduleAt('../../lib/employee/employee-notifications.js', { asDb: (db) => db, query: null, ERR, ...domainStatus, ...notificationCatalog, mobilePushDestinationFor: () => 'lms', sendMobileEmployeePush: async (_db, input) => sends.push(input) });
   const db = { query: async (sql, values) => { calls.push({ sql, values }); return { rows: sql.includes('COUNT') ? [{ n: 0, total: 0 }] : [] }; } };
   await domain.listCandidateNotifications(db, { companyId: 2, candidateId: 20, id: '99' });
   assert.deepEqual([...calls[0].values], [2, 20, 20, 0, '99']); assert.match(calls[0].sql, /company_id = \$1 AND recipient_candidate_id = \$2\s+AND id = \$5/);

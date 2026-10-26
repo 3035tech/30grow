@@ -4,7 +4,7 @@ import { apiError, apiErrorFromResult, ERR } from '../../../../../../lib/api-err
 import { query } from '../../../../../../lib/db.js';
 import { CAP } from '../../../../../../lib/permissions.js';
 import { updateLeaveRequest } from '../../../../../../lib/people/employee-dp.js';
-import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../../lib/employee-notifications.js';
+import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../../lib/employee/employee-notifications.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';
 import { DP_LEAVE_STATUSES } from '../../../../../../lib/domain-status.js';
 

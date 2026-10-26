@@ -4,7 +4,7 @@ import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-lim
 import {
   markInterviewPrepPrepared,
   resolveInterviewPrepByToken,
-} from '../../../../../lib/interview-prep.js';
+} from '../../../../../lib/recruiting/interview-prep.js';
 import { normalizeLocale } from '../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

@@ -9,17 +9,17 @@ import {
   changeEmployeePassword,
   getEmployeeProfile,
   updateEmployeeProfile,
-} from '../../lib/employee-profile.js';
+} from '../../lib/employee/employee-profile.js';
 import {
   EMPLOYEE_NOTIF,
   listCandidateNotifications,
   notifyCandidate,
-} from '../../lib/employee-notifications.js';
+} from '../../lib/employee/employee-notifications.js';
 import {
   completeEmployeePasswordSetup,
   issueEmployeePasswordInvite,
-} from '../../lib/employee-auth.js';
-import { loadEmployeeSessionVersion } from '../../lib/employee-session-revocation.js';
+} from '../../lib/employee/employee-auth.js';
+import { loadEmployeeSessionVersion } from '../../lib/employee/employee-session-revocation.js';
 
 async function main() {
   const emp = await query(

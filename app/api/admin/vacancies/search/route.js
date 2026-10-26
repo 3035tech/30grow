@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../lib/ae/require-admin.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
-import { searchOpenVacancies } from '../../../../../lib/vacancies-search.js';
+import { searchOpenVacancies } from '../../../../../lib/recruiting/vacancies-search.js';
 
 const querySchema = z.object({
   companyId: zPositiveInt.optional(),

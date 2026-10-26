@@ -15,7 +15,7 @@ import { audit, auditRequestContext, AUDIT_ACTOR_KIND } from '../../../../../../
 import {
   notifyCandidates,
   EMPLOYEE_NOTIF,
-} from '../../../../../../../../lib/employee-notifications.js';
+} from '../../../../../../../../lib/employee/employee-notifications.js';
 import { NextResponse } from 'next/server';
 
 const DP_OR_TEAM = Object.freeze([CAP.DP_VIEW, CAP.TEAM_VIEW]);

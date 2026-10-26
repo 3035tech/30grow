@@ -44,7 +44,7 @@ Após **Test pass** (pipeline Dev → Test → Validate), antes de dar a entrega
 | “Por que não aparece?” com resumo redigido por IA | Seção `team` passo 7 (nota sobre a IA) + `docs/BACKLOG.md` B-2601 |
 | Benefícios por colaborador | Guia `b1000Benefits` + Equipe → Remuneração + `docs/RH2-decisions.md` (B-RH2-14) |
 | Avaliação formal por competências (90/180/360) | Guia `formalCompetency` + Avaliações → Competências + `/formal-review/[token]` + `docs/RH2-decisions.md` (B-RH2-15) |
-| Módulos da empresa (SKU / acesso) | Guia `companyModules` + Meu perfil + onboarding wizard + `companies.enabled_modules` + `lib/company-modules.js` |
+| Módulos da empresa (SKU / acesso) | Guia `companyModules` + Meu perfil + onboarding wizard + `companies.enabled_modules` + `lib/company/company-modules.js` |
 | Motivadores: copy situacional + templates hedged + sync sem DELETE | Guia `motivators` + `npm run db:seed-motivators-all` + `docs/RH2-decisions.md` (B-RH2-20) |
 | Super admin (auditoria, leads, sugestões) | Seção `access` (passos 10–11) + `productFeedback` |
 | Suporte do piloto (canal, prazo de 1 dia útil, tipo/severidade/módulo, duplicatas) | Seção `productFeedback` (passos 1–4) + FAQ `faqProductFeedback` + `lib/product-feedback.js` |

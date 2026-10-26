@@ -7,7 +7,7 @@ import {
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import { enqueueTransactionalMail, isMailConfigured } from '../../../../lib/mail.js';
 import { generateUniqueCompanySlug } from '../../../../lib/slugify.js';
-import { trackLandingEvent } from '../../../../lib/landing-analytics.js';
+import { trackLandingEvent } from '../../../../lib/analytics/landing-analytics.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
 import { verifyTurnstileToken } from '../../../../lib/turnstile.js';
 import {

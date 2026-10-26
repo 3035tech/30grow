@@ -1,6 +1,6 @@
 'use client';
 
-import { REJECTION_REASONS, rejectionReasonLabelKey } from '../../lib/pipeline';
+import { REJECTION_REASONS, rejectionReasonLabelKey } from '../../lib/recruiting/pipeline';
 import { t } from '../../lib/i18n';
 
 export function rejectionReasonLabel(locale, code) {

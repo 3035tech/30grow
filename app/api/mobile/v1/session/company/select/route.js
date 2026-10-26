@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
-import { completeEmployeeCompanyPick } from '../../../../../../../lib/employee-auth.js';
+import { completeEmployeeCompanyPick } from '../../../../../../../lib/employee/employee-auth.js';
 import {
   completeMobileEmployeeAuthentication,
   contextsFromSelectionToken,

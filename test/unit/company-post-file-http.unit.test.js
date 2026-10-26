@@ -6,7 +6,7 @@ import {privateAttachmentResponse} from '../../lib/private-attachment-response.j
 import {ERR} from '../../lib/api-error-codes.js';
 async function handler(contentType,allowed=true){
  let calls=0;const deps={privateAttachmentResponse,ERR,checkRateLimit:async()=>({ok:allowed}),apiError:(_req,code,status)=>Response.json({errorCode:code},{status}),apiErrorFromResult:()=>new Response(null,{status:404}),downloadPostAttachment:async()=>{calls++;return {ok:true,body:new Uint8Array([1,2]),contentType,fileName:'Private notice.pdf'};}};
- const context=vm.createContext({Response,URL});const module=new vm.SourceTextModule(await readFile(new URL('../../lib/company-post-file-http.js',import.meta.url),'utf8'),{context});
+ const context=vm.createContext({Response,URL});const module=new vm.SourceTextModule(await readFile(new URL('../../lib/company/company-post-file-http.js',import.meta.url),'utf8'),{context});
  await module.link(()=>new vm.SyntheticModule(Object.keys(deps),function(){for(const [key,value]of Object.entries(deps))this.setExport(key,value);},{context}));await module.evaluate();return {send:module.namespace.companyPostFileResponse,calls:()=>calls};
 }
 test('raster preview stays authenticated and private; files default to safe downloads',async()=>{

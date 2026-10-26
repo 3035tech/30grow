@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { listCandidateNotifications, markCandidateNotificationRead } from '../../../../../../lib/employee-notifications.js';
+import { listCandidateNotifications, markCandidateNotificationRead } from '../../../../../../lib/employee/employee-notifications.js';
 import { mobilePushDestinationFor, normalizeMobilePushDestinations, resolveMobilePushDestination } from '../../../../../../lib/mobile-employee-push.js';
 import { mobileNotificationTarget } from '../../../../../../lib/mobile-notification-target.js';
-import { getEmployeeProfile } from '../../../../../../lib/employee-profile.js';
+import { getEmployeeProfile } from '../../../../../../lib/employee/employee-profile.js';
 import { t, normalizeLocale } from '../../../../../../lib/i18n.js';
 import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
 

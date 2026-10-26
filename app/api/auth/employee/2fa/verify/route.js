@@ -5,8 +5,8 @@ import { verifyTurnstileToken } from '../../../../../../lib/turnstile.js';
 import {
   verifyEmployee2faChallenge,
   verifyEmployee2faLogin,
-} from '../../../../../../lib/employee-2fa.js';
-import { buildEmployeeLoginResponse } from '../../../../../../lib/employee-login-session.js';
+} from '../../../../../../lib/employee/employee-2fa.js';
+import { buildEmployeeLoginResponse } from '../../../../../../lib/employee/employee-login-session.js';
 import { normalizeLocale } from '../../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

@@ -7,7 +7,7 @@ import {
   listCompanyBenefits,
   createCompanyBenefit,
   getCompanyBenefitCategories,
-} from '../../../../lib/company-benefits.js';
+} from '../../../../lib/company/company-benefits.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

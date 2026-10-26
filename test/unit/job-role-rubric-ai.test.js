@@ -3,7 +3,7 @@
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { relativeWeightsToPercentRubric } from '../../lib/rubric-prompt.js';
+import { relativeWeightsToPercentRubric } from '../../lib/recruiting/rubric-prompt.js';
 
 describe('relativeWeightsToPercentRubric', () => {
   it('maps relative 0–3 weights to T1–T9 percents summing to 100', () => {

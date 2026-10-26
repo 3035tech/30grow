@@ -4,7 +4,7 @@ import { CAP } from '../../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { z, zLocale, zPositiveInt } from '../../../../../../lib/validate.js';
 import { query } from '../../../../../../lib/db.js';
-import { issueEmployeePasswordInvite } from '../../../../../../lib/employee-auth.js';
+import { issueEmployeePasswordInvite } from '../../../../../../lib/employee/employee-auth.js';
 import { audit } from '../../../../../../lib/audit.js';
 import { EMPLOYMENT_STATUS } from '../../../../../../lib/domain-status.js';
 

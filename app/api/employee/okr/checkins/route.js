@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
 import { createOkrActivityCheckin } from '../../../../../lib/okr-cycles.js';
 import { recordKeyResultCheckin } from '../../../../../lib/okr-hierarchy.js';

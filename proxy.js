@@ -13,12 +13,12 @@ import { ERR } from './lib/api-error-codes';
 import {
   EMPLOYEE_COOKIE_NAME,
   EMPLOYEE_SESSION_MAX_AGE,
-} from './lib/employee-auth-constants';
+} from './lib/employee/employee-auth-constants';
 import {
   EMPLOYEE_PATH,
   isEmployeeAppPath,
   isPublicEmployeeAuthPath,
-} from './lib/employee-paths';
+} from './lib/employee/employee-paths';
 import {
   JOB_ATTR_COOKIE,
   attributionCookieOptions,
@@ -27,7 +27,7 @@ import {
   mergeAttribution,
   parseAttributionFromSearchParams,
   searchHasAttribution,
-} from './lib/job-attribution';
+} from './lib/recruiting/job-attribution';
 import {
   applyContentSecurityPolicyHeaders,
   resolveContentSecurityPolicy,

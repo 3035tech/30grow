@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
-import * as pipeline from '../../lib/pipeline.js';
+import * as pipeline from '../../lib/recruiting/pipeline.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 async function fixture({ authorized = true, companyId = 3, admin = false, found = true, events = [] } = {}) {

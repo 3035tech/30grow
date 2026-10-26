@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
 import { query } from '../../../../../../../lib/db.js';
-import { getEmployeeSessionPayload } from '../../../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../../../lib/employee/employee-session.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/rate-limit.js';
 import { signDpDocument, getEmployeeDisplayName } from '../../../../../../../lib/people/employee-dp.js';
 import { audit, auditRequestContext, AUDIT_ACTOR_KIND } from '../../../../../../../lib/audit.js';

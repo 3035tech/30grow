@@ -12,9 +12,9 @@ import {
   normalizeRejectionReasons,
   normalizeStartDate,
   rejectionReasonsSql,
-} from '../../../../../../../lib/pipeline';
-import { resolveRecruitingPipelineStage } from '../../../../../../../lib/pipeline-templates';
-import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../../../lib/job-funnel';
+} from '../../../../../../../lib/recruiting/pipeline';
+import { resolveRecruitingPipelineStage } from '../../../../../../../lib/recruiting/pipeline-templates';
+import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../../../lib/recruiting/job-funnel';
 import { auditFromRequest } from '../../../../../../../lib/audit';
 
 

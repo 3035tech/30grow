@@ -115,7 +115,7 @@ export const POST = withAdminApi(
           },
         });
         const { notifyCandidates, EMPLOYEE_NOTIF } = await import(
-          '../../../../../../../lib/employee-notifications.js'
+          '../../../../../../../lib/employee/employee-notifications.js'
         );
         const enrolledIds = Array.isArray(result.candidateIds) ? result.candidateIds : [];
         if (enrolledIds.length) {
