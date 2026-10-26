@@ -28,6 +28,7 @@ import { usePipelineExtras } from '../PipelineExtrasContext';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { CandidateTagsProvider, CandidateTags } from '../CandidateTags';
 import { AdminRichFormDrawer } from '../../_components/AdminRichFormDrawer';
+import { EmployeeCsvImport } from '../../_components/EmployeeCsvImport';
 import { EnneagramCross } from '../../_components/EnneagramCross';
 import { RowActionsMenu } from '../../_components/RowActionsMenu';
 import { TypeScoreChart } from '../../_components/TypeScoreChart';
@@ -296,6 +297,7 @@ export function TeamTab({
   const [stageOverrides, setStageOverrides] = useState({});
   const [diagnoseBusy, setDiagnoseBusy] = useState(false);
   const [createEmployeeBusy, setCreateEmployeeBusy] = useState(false);
+  const [employeeImportOpen, setEmployeeImportOpen] = useState(false);
   const { requestPipelineExtras } = usePipelineExtras();
   const { confirm, notice, promptForm, toast } = useAppFeedback();
   const detailReqRef = useRef(null);
@@ -1058,10 +1060,21 @@ export function TeamTab({
 
   return (
     <div className="flex flex-col gap-3">
+      {employeeImportOpen && companyId ? <EmployeeCsvImport
+        key={companyId || 'none'}
+        open
+        onClose={() => setEmployeeImportOpen(false)}
+        companyId={companyId}
+        locale={locale}
+        onImported={() => router.refresh()}
+      /> : null}
       {!isPersonPage ? (
       <>
       {companyId ? (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2">
+          <button type="button" className={S.btnGhost} onClick={() => setEmployeeImportOpen(true)}>
+            {t(locale, 'panel.team.csvImport.open')}
+          </button>
           <AdminCreateButton
             label={t(locale, 'panel.team.addEmployeeBtn')}
             onClick={createEmployeeDirect}
