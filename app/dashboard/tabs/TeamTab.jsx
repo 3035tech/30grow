@@ -1027,7 +1027,6 @@ export function TeamTab({
   const personHeaderActions = focusCandidateId ? (
     <div className="flex items-center gap-1">
       {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? <button type="button" className={S.btnPrimary} disabled={Boolean(admissionBusyId)} onClick={() => admit(detail.candidate.id)}>{t(locale,'employeeAdmission.action')}</button> : null}
-      {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? <button type="button" className={S.btnGhost} disabled={accessInviteBusy} onClick={inviteEmployeeAccess}>{t(locale,'employeeAdmission.invite')}</button> : null}
       {currentPersonIndex >= 0 ? (
         <span className="mr-1 hidden whitespace-nowrap font-ui text-prose text-ink/75 sm:inline">
           {currentPersonIndex + 1} / {personRows.length}
@@ -1569,6 +1568,23 @@ export function TeamTab({
                     <ContentEnter animKey={activePeopleSubTab}>
                       {activePeopleSubTab === 'summary' ? (
                         <div className="space-y-4 pb-1">
+                          {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? (
+                            <section aria-label={t(locale, 'employeeAdmission.portalAccessTitle')} className="rounded-card border border-brand-500/30 bg-brand-500/[0.06] p-4 sm:p-5">
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="m-0 font-ui text-base font-semibold text-ink">{t(locale, 'employeeAdmission.portalAccessTitle')}</h3>
+                                    <StatusToneChip tone="neutral">{t(locale, `employeeAdmission.access.${detail.candidate.employeeAccessState || 'not_invited'}`)}</StatusToneChip>
+                                  </div>
+                                  <p className="mb-0 mt-2 font-ui text-sm text-ink/75">{t(locale, 'employeeAdmission.inviteHelp')}</p>
+                                  {detail.candidate.email ? <p className="mb-0 mt-1 break-all font-ui text-sm text-ink/75">{t(locale, 'employeeAdmission.accessEmail', { email: detail.candidate.email })}</p> : null}
+                                </div>
+                                <button type="button" className={cn(S.btnPrimary, 'w-full shrink-0 sm:w-auto')} disabled={accessInviteBusy} onClick={inviteEmployeeAccess}>
+                                  {t(locale, !detail.candidate.employeeAccessState || detail.candidate.employeeAccessState === 'not_invited' ? 'employeeAdmission.invite' : 'employeeAdmission.resendInvite')}
+                                </button>
+                              </div>
+                            </section>
+                          ) : null}
                           <PersonOperationalSummary person={detail.operational} candidate={detail.candidate} locale={locale} />
                           {isInternalPerson ? <>
                             <CandidateOrgUnit key={`${detail.candidate.companyId}-${detail.candidate.id}`} locale={locale} companyId={detail.candidate.companyId} candidateId={detail.candidate.id} onSaved={() => router.refresh()} />

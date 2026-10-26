@@ -1,5 +1,28 @@
 const {test, expect} = require('@playwright/test');
 
+test('employee access invitation appears in the summary beside its status and destination', async ({page}) => {
+  await page.route('**/api/admin/org-units?*', route => route.fulfill({json: {units: [], orgUnitId: null}}));
+  await page.route('**/api/admin/candidates/7?*', route => route.fulfill({json: {
+    candidate: {id: 7, companyId: 1, fullName: 'Fernanda Exemplo', email: 'fernanda@example.test', employmentStatus: 'employee', employeeAccessState: 'not_invited'},
+    operational: null, assessments: [], timeline: [], people: {}, lmsOverdue: [],
+  }}));
+  await page.goto('/dashboard?tab=team&candidate=7&persona=hr');
+  const access = page.getByRole('region', {name: 'Acesso ao portal do colaborador'});
+  await expect(access).toContainText('Sem convite de acesso');
+  await expect(access).toContainText('fernanda@example.test');
+  await expect(page.getByRole('button', {name: 'Enviar convite de acesso'})).toHaveCount(1);
+  await page.waitForTimeout(500);
+  await page.screenshot({path: test.info().outputPath('employee-access-desktop.png')});
+  await access.getByRole('button', {name: 'Enviar convite de acesso'}).click();
+  await expect(page.getByRole('dialog', {name: 'Confirmar'})).toContainText('fernanda@example.test');
+  await page.getByRole('dialog', {name: 'Confirmar'}).getByRole('button', {name: 'Cancelar'}).click();
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/dashboard?tab=team&candidate=7&persona=hr');
+  await expect(access.getByRole('button', {name: 'Enviar convite de acesso'})).toBeVisible();
+  await page.waitForTimeout(500);
+  await page.screenshot({path: test.info().outputPath('employee-access-mobile.png')});
+});
+
 test('RH navigation exposes people modules and hides administration', async ({page}) => {
   await page.goto('/dashboard?tab=team&persona=hr');
   await expect(page.getByRole('heading',{level:1})).toHaveText('Equipe');
