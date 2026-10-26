@@ -63,7 +63,7 @@ O domínio passa a aceitar 😊 💪 🚀 ⭐ 🔥 💯 🤝 🏆 🙏 🤩 💡
 
 Compatibilidade: apps com schema antigo não podem receber os novos valores. O mobile anuncia X-Kudo-Reaction-Catalog: 2; o feed devolve reactionCatalogVersion 2 para o opt-in e 1 para o legado. Feed e respostas de mutação legados omitem emojis desconhecidos; a consulta paginada de nomes filtra antes de LIMIT/OFFSET. O web usa o catálogo completo. Não se acrescentam novas chamadas ou dados pessoais. Apps novos continuam usando somente os cinco atalhos quando o servidor não anuncia suporte.
 
-Sequência: aplicar 173 em Dublin e produção; verificar CHECK/registro da migration; publicar backend com leitores compatíveis; depois liberar o cliente que oferece opções ampliadas. As duas bases reais ainda não foram alteradas nesta entrega. SQL canônico em migrations/173_expanded_kudo_reactions.sql; bundle operacional também atualizado.
+Sequência: aplicar 173 em Dublin e produção; verificar CHECK/registro da migration; publicar backend com leitores compatíveis; depois liberar o cliente que oferece opções ampliadas. Migration 173 aplicada e registrada nas duas bases em 26/10/2026, antes da publicação do backend. SQL canônico em migrations/173_expanded_kudo_reactions.sql; bundle operacional também atualizado.
 
 Rollback: retirar a oferta das opções extras nos clientes, mantendo o CHECK ampliado e os leitores compatíveis enquanto existirem reações novas. Não reduzir a constraint nem voltar leitores que rejeitem/emitam valores desconhecidos para clientes antigos. Nenhuma exclusão ou conversão de reações é autorizada implicitamente.
 
@@ -71,4 +71,4 @@ Prova local: migration aplicada pelo harness DTOV e reaplicada duas vezes; dados
 
 ### Situação operacional desta entrega
 
-Build Next/webpack e lint dos arquivos alterados aprovados. Produção: preflight confirmou database grow30 na instância general, TLS verificado com CA oficial, role grow30_app e owner admin3035tech. Tentativa de 173 foi recusada com 42501 e a transação foi revertida; nenhum grant ou alteração de credencial foi feito. Precisa de credencial administrativa existente para continuar. Dublin: aguarda reconexão do controle do Chrome/pgAdmin web. Não declarar a migration aplicada nos ambientes reais.
+Build Next/webpack e lint dos arquivos alterados aprovados. Em 26/10/2026, migration 173 aplicada via pgAdmin em Dublin (team/3035tech) e produção (grow30/admin3035tech, instância general). Em ambas: transação com lock_timeout de 5s, statement_timeout de 30s, lock exclusivo curto, CHECK validado e ledger confirmado. Comparação de contagem e hash de todas as colunas comprovou preservação dos dados e timestamps: Dublin 2 reações, hash d43908a3f191f9f67372a8793cf08319; produção 0 reações, hash d41d8cd98f00b204e9800998ecf8427e. Nenhuma credencial ou permissão foi alterada. Publicação do backend e validação do app são os próximos passos.
