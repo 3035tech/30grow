@@ -122,6 +122,7 @@ export async function POST(request) {
       candidateName,
       candidateEmail,
       candidateId: body.candidateId != null ? Number(body.candidateId) : null,
+      confirmedDifferentPerson: body.confirmedDifferentPerson === true,
       createdByUserId: payload?.userId,
       definitionSlug,
       locale: localeFromRequest(request),

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
+import { ERR } from '../../../lib/api-error-codes';
 import { motivatorDimensionLabel } from '../../../lib/ae/motivators-dimensions';
 import { C } from '../../../lib/theme';
 import { Bar, PanelSubNav, S, SortableTh, AdminListPager, AdminListSearch, AdminTableShell, AdminActionsCell, AdminActionsTh, AdminIconButton, AdminPageHeader, AdminCreateButton, AdminViewButton, AdminDeleteButton, clientSortNextDir } from '../dashboard-shared';
@@ -80,7 +81,7 @@ function statusBadge(locale, status) {
 }
 
 function InviteForm({ locale, isAdmin, companies, companyId, onSent, onActionsReady }) {
-  const { promptForm, toast } = useAppFeedback();
+  const { promptForm, confirm, toast } = useAppFeedback();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
@@ -105,6 +106,7 @@ function InviteForm({ locale, isAdmin, companies, companyId, onSent, onActionsRe
         key: 'email',
         label: t(locale, 'panel.motivatorsAdmin.invite.emailPh'),
         placeholder: t(locale, 'panel.motivatorsAdmin.invite.emailPh'),
+        help: t(locale, 'panel.motivatorsAdmin.invite.newPersonHelp'),
         defaultValue: '',
       },
     ];
@@ -151,12 +153,27 @@ function InviteForm({ locale, isAdmin, companies, companyId, onSent, onActionsRe
     try {
       const body = { candidateName: name, candidateEmail: email };
       if (isAdmin) body.companyId = Number(company);
-      const res = await fetch('/api/admin/ae/invites', {
+      let res = await fetch('/api/admin/ae/invites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const data = await res.json().catch(() => ({}));
+      let data = await res.json().catch(() => ({}));
+      if (res.status === 409 && data.errorCode === ERR.POSSIBLE_DUPLICATE_PERSON) {
+        const differentPerson = await confirm({
+          message: t(locale, 'panel.motivatorsAdmin.invite.sameNameConfirm'),
+        });
+        if (!differentPerson) {
+          setErr(data.error || t(locale, 'panel.motivatorsAdmin.invite.sendError'));
+          return;
+        }
+        res = await fetch('/api/admin/ae/invites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, confirmedDifferentPerson: true }),
+        });
+        data = await res.json().catch(() => ({}));
+      }
       if (!res.ok) throw new Error(data.error || t(locale, 'panel.motivatorsAdmin.invite.sendError'));
       setMsg(t(locale, 'panel.motivatorsAdmin.invite.sendOk', { email: data.sentTo }));
       onSent?.();
@@ -215,7 +232,6 @@ function InviteForm({ locale, isAdmin, companies, companyId, onSent, onActionsRe
         return;
       }
 
-      const defaultSelected = eligible.slice(0, Math.min(cap, eligible.length)).map((p) => String(p.candidateId));
       const values = await promptForm({
         title: t(locale, 'panel.motivatorsAdmin.invite.batchTitle'),
         confirmLabel: t(locale, 'panel.motivatorsAdmin.invite.batchSend'),
@@ -232,7 +248,7 @@ function InviteForm({ locale, isAdmin, companies, companyId, onSent, onActionsRe
               value: String(p.candidateId),
               label: `${p.name || '—'} · ${p.email}`,
             })),
-            defaultValue: defaultSelected,
+            defaultValue: [],
           },
         ],
       });
