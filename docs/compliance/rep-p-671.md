@@ -1,5 +1,7 @@
 # REP-P: implementação técnica e limites
 
+Posicionamento vigente: **Controle de jornada em validação**. Manter o sistema oficial de ponto da empresa. Ver [comunicação e critérios de liberação](time-clock-product-status.md).
+
 Estado: implementação local, sem publicação e sem declaração de conformidade integral.
 
 ## Entregas
