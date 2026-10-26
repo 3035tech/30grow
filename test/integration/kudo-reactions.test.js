@@ -42,6 +42,20 @@ try {
     for(let i=0;i<2;i++)assert.equal((await setKudoReaction({...scope,emoji:null})).ok,true);
     result=await setKudoReaction({...scope,emoji:null});assert.ok(result.reactions.every(r=>!r.mine));
   });
+  await test('expanded migration preserves existing reactions, reapplies, and accepts the full fixed catalog', async()=>{
+    const { KUDO_REACTION_EMOJIS, KUDO_QUICK_REACTION_EMOJIS } = await import('../../lib/kudo-reaction-options.js');
+    await setKudoReaction({...scope,emoji:'👏'});
+    const before=await one('SELECT emoji,updated_at FROM company_kudo_reactions WHERE company_id=$1 AND kudo_id=$2 AND candidate_id=$3',[companyId,kudoId,authorId]);
+    const sql=await readFile(new URL('../../migrations/173_expanded_kudo_reactions.sql',import.meta.url),'utf8');
+    await pool.query(sql);await pool.query(sql);
+    assert.deepEqual(await one('SELECT emoji,updated_at FROM company_kudo_reactions WHERE company_id=$1 AND kudo_id=$2 AND candidate_id=$3',[companyId,kudoId,authorId]),before);
+    for(const emoji of KUDO_REACTION_EMOJIS)assert.equal((await setKudoReaction({...scope,emoji})).ok,true);
+    assert.equal((await one('SELECT count(*)::int AS n FROM company_kudo_reactions WHERE kudo_id=$1 AND candidate_id=$2',[kudoId,authorId])).n,1);
+    await setKudoReaction({...scope,emoji:'🚀'});
+    const legacy=await listKudoReactors({...scope,allowedEmojis:KUDO_QUICK_REACTION_EMOJIS});
+    assert.ok(legacy.people.every(person=>KUDO_QUICK_REACTION_EMOJIS.includes(person.emoji)));
+    assert.ok((await listKudoReactors(scope)).people.some(person=>person.emoji==='🚀'));
+  });
   await test('foreign company, foreign employee, invalid emoji and direct cross-tenant inserts are rejected',async()=>{
     assert.equal((await setKudoReaction({...scope,companyId:foreignCompanyId,candidateId:foreignId,emoji:'👍'})).errorCode,ERR.NOT_FOUND);
     assert.equal((await listKudoReactors({...scope,companyId:foreignCompanyId})).errorCode,ERR.NOT_FOUND);

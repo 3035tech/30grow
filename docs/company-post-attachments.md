@@ -77,3 +77,7 @@ leu os mesmos bytes de um arquivo fictício, confirmou HTTP 403 sem autenticaç�
 e removeu o objeto ao final. Não foram criados avisos nem enviados comunicados.
 Esse teste comprova a conexão privada com S3; upload, visualização e remoção pela
 interface publicada permanecem como aceitação separada após a publicação.
+
+## Cliente nativo — 25/10/2026
+
+No repositório `30-team-app`, branch `feat/community-files-reactions`, o mural passa a exibir anexos, visualizar fotos sob demanda e compartilhar arquivos pelo mecanismo nativo existente. Downloads usam a fachada bearer e cache privado; URLs recebidas no payload não são utilizadas. Lint, TypeScript e 328 testes passaram. Validação em aparelhos e distribuição permanecem pendentes; consulte `docs/community-files-reactions.md` no app. Sem migration ou dependência nova.
