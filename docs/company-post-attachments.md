@@ -4,7 +4,7 @@
 
 O painel de Mural e reconhecimento permite adicionar e remover anexos dos avisos.
 O portal web do colaborador exibe fotos e links de download. A API mobile inclui
-metadados e uma rota autenticada de download; a interface nativa ainda não os renderiza.
+metadados e uma rota autenticada de download. O cliente nativo implementa a visualização, com aceite em dispositivos ainda pendente.
 
 São permitidos até cinco arquivos ativos por aviso, de até 10 MB cada: JPEG,
 PNG, WebP, PDF, texto UTF-8, DOCX, XLSX e PPTX. O servidor verifica o conteúdo,
@@ -81,3 +81,13 @@ interface publicada permanecem como aceitação separada após a publicação.
 ## Cliente nativo — 25/10/2026
 
 No repositório `30-team-app`, branch `feat/community-files-reactions`, o mural passa a exibir anexos, visualizar fotos sob demanda e compartilhar arquivos pelo mecanismo nativo existente. Downloads usam a fachada bearer e cache privado; URLs recebidas no payload não são utilizadas. Lint, TypeScript e 328 testes passaram. Validação em aparelhos e distribuição permanecem pendentes; consulte `docs/community-files-reactions.md` no app. Sem migration ou dependência nova.
+
+## Prova operacional em Dublin — 25/10/2026
+
+Upload real em https://team.3035service.com retornou 503 STORAGE_UPLOAD_FAILED. O evento Sentry 30TEAM-2 / ebc0b995c19849c6a64f9d147a672066 confirmou AccessDenied no bucket 30team (us-west-2), caminho companies/26/company-posts/11. O usuário de integração 30team-s3 teve uso no S3 no mesmo minuto, e a simulação IAM mostrou ausência de GetObject/PutObject/DeleteObject nesse prefixo.
+
+Aplicada política inline separada Team30CompanyPostAttachmentsV1, permitindo somente s3:GetObject, s3:PutObject e s3:DeleteObject em arn:aws:s3:::30team/companies/*/company-posts/*/*. Nenhuma chave criada ou alterada; política pública do bucket não foi alterada. Simulação posterior autorizou o recurso esperado e manteve negação fora do escopo. Rollback operacional: remover apenas essa política inline; uploads/leituras do mural voltariam a falhar. O renderizador scripts/render-s3-iam-policy.mjs já contempla company-posts e permanece referência para novas instalações.
+
+Teste repetido pelo fluxo real RH + bearer mobile, empresa de demonstração App Colaborador (26), aviso de teste 11: PNG e texto UTF-8 enviados, metadados presentes no feed, downloads com SHA-256 idêntico ao conteúdo original, Cache-Control no-store e nosniff. Leitura sem sessão negada. IDs de anexos 1 e 2. Dados sintéticos e logo do projeto, sem documentos pessoais. Sessão mobile temporária revogada; arquivos preservados no aviso marcado como teste para a inspeção nativa. Essa prova não certifica a interface de compartilhamento do iOS/Android nem isolamento entre duas empresas na infraestrutura real.
+
+Detalhes do erro: https://3035tech-9t.sentry.io/issues/30TEAM-2

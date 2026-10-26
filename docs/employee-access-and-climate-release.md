@@ -34,3 +34,7 @@ Rollback: reverter o código mantendo a CHECK ampliada, que é compatível com v
 - PostgreSQL local: reproduziu CHECK violation, aplicou/reaplicou 174, aceitou eNPS 0–10, rejeitou mínimo zero em Likert e limites inválidos, preservou linhas anteriores; só tabela temporária.
 - Componentes reais em rota local temporária com respostas simuladas: cancelar publicação não escreve; editar título/descrição mantém questão; erro eNPS preserva texto/tipo e nova tentativa salva; prévia sobreposta recebe foco/Cancelar e mantém campo; CSV mostra uma linha válida e uma inválida, confirma só a válida e apresenta seleção de convites desmarcada.
 - Rota temporária removida e servidor de validação encerrado. Sem envio de e-mail real; entrega SMTP/destino real permanece aceite operacional.
+
+## Acabamento da importação
+
+Modelo CSV disponível também ao lado da ação de importar. Tela apresenta preparar/conferir/resultado, campos obrigatórios e opcional, nome do arquivo, contagem de linhas válidas e com erro, erros em lista por linha, estados com texto e seleção de convites identificada por colaborador. Layout desktop e celular conferidos no Chrome; sem transbordamento horizontal no estado inicial. Os 12 testes focados de CSV/importação/catálogos passaram; rota temporária removida.

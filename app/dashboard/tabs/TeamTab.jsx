@@ -50,7 +50,7 @@ import { MotivatorsRadarChart } from '../../_components/MotivatorsRadarChartLazy
 import { InlineCallout } from '../../_components/InlineCallout';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { useRehireEmployee } from '../../_components/useRehireEmployee';
-import { EmployeeCsvImport } from '../../_components/EmployeeCsvImport';
+import { EmployeeCsvImport, EmployeeCsvTemplateLink } from '../../_components/EmployeeCsvImport';
 import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
 import { formatDisplayDate } from '../../../lib/format-display-date.js';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
@@ -1077,6 +1077,7 @@ export function TeamTab({
       <>
       {companyId ? (
         <div className="flex flex-wrap justify-end gap-2">
+          <EmployeeCsvTemplateLink locale={locale} />
           <button type="button" className={S.btnGhost} onClick={() => setCsvImportOpen(true)}>{t(locale, 'employeeCsv.title')}</button>
           <AdminCreateButton
             label={t(locale, 'panel.team.addEmployeeBtn')}
