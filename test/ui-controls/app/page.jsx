@@ -11,6 +11,7 @@ export default function Preview() {
  const [seconds, setSeconds] = useState('2026-09-19T10:30:45');
  const [dialog, setDialog] = useState(false);
  const [submits, setSubmits] = useState(0);
+ const [submittedValues, setSubmittedValues] = useState('');
  const [area, setArea] = useState('product');
  const [result, setResult] = useState('');
  const [calls, setCalls] = useState(0);
@@ -27,8 +28,9 @@ export default function Preview() {
   {key:'name',label:'Nome',required:true},
   {key:'area',label:'Área do formulário',type:'select',options:[{value:'a',label:'Área A'},{value:'b',label:'Área B'}]},
   {key:'date',label:'Data do formulário',type:'date',required:true,defaultValue:'2026-09-19',min:'2026-09-10',max:'2026-09-30'}
- ]} onCancel={()=>setDialog(false)} onSubmit={async()=>{setSubmits(n=>n+1);await new Promise(resolve=>setTimeout(resolve,300));}}/>
+ ]} onCancel={()=>setDialog(false)} onSubmit={async(values)=>{setSubmittedValues(JSON.stringify(values));setSubmits(n=>n+1);await new Promise(resolve=>setTimeout(resolve,300));}}/>
  <output data-testid="submits">{submits}</output>
+ <output data-testid="submitted-values">{submittedValues}</output>
  <DateField aria-label="Data de teste" value={date} onChange={e=>setDate(e.target.value)} min="2026-09-10" max="2026-10-10" />
  <output data-testid="date">{date}</output>
  <DateField aria-label="Horário de teste" mode="datetime-local" value={time} min="2026-09-19T10:00" max="2026-09-19T12:00" onChange={e=>setTime(e.target.value)}/>
