@@ -1334,12 +1334,13 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                     companyId={v.companyId}
                     locale={locale}
                     refreshKey={pipelineRefresh}
-                    onPersonClick={(candidateId) => {
+                    onPersonClick={(candidateId, section) => {
                       if (!candidateId) return;
                       navigateDashboard({
                         tab: 'team',
                         candidate: String(candidateId),
                         vacancy: String(v.id),
+                        ...(section ? { section } : {}),
                       });
                     }}
                   />

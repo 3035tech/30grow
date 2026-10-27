@@ -24,6 +24,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
   const [assignmentError, setAssignmentError] = useState('');
   const [saved, setSaved] = useState(false);
   const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: () => { onClose(); onPersonClick?.(row.candidateId); } });
+  const openPersonSection = (section) => { onClose(); onPersonClick?.(row.candidateId, section); };
   const stageLabel = (key) => stages.find((stage) => stage.id === key)?.label || key || '—';
   const days = daysInStage(row.stageEnteredAt || row.createdAt);
   const motivators = Array.isArray(data?.motivatorsRanking) ? data.motivatorsRanking.slice(0, 3) : [];
@@ -59,7 +60,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
       footer={<>
         {canAdmitCandidate && data?.employmentStatus === 'candidate' ? <button type="button" className={dialogBtnGhostClass} disabled={Boolean(admissionBusyId)} onClick={() => admit(row.candidateId)}>{t(locale,'employeeAdmission.action')}</button> : null}
         <button type="button" className={dialogBtnGhostClass} onClick={onClose}>{t(locale, 'panel.common.close')}</button>
-        {onPersonClick ? <button type="button" className={dialogBtnGhostClass} onClick={() => { onClose(); onPersonClick(row.candidateId); }}>{t(locale, 'recruiting.candidateDialogFullProfile')}</button> : null}
+        {onPersonClick ? <button type="button" className={dialogBtnGhostClass} onClick={() => openPersonSection()}>{t(locale, 'recruiting.candidateDialogFullProfile')}</button> : null}
       </>}
     >
       <div className="space-y-5">
@@ -90,14 +91,14 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
             <div>
               <h3 className="mb-2 text-sm font-semibold text-ink">{t(locale, 'recruiting.candidateDialogTests')}</h3>
               <p className="m-0 text-sm text-ink-muted">
-                {t(locale, 'recruiting.candidateDialogProfile')}: {data?.profileTopType
-                  ? `T${data.profileTopType} · ${typeShortLabel(data.profileTopType, locale)}`
-                  : '—'}
+                {t(locale, 'recruiting.candidateDialogProfile')}: {data?.profileTopType && onPersonClick
+                  ? <button type="button" className="text-brand-600 underline" onClick={() => openPersonSection('style')}>{`T${data.profileTopType} · ${typeShortLabel(data.profileTopType, locale)}`}</button>
+                  : data?.profileTopType ? `T${data.profileTopType} · ${typeShortLabel(data.profileTopType, locale)}` : '—'}
               </p>
               <p className="mb-0 mt-1 text-sm text-ink-muted">
-                {t(locale, 'recruiting.candidateDialogMotivators')}: {motivators.length
-                  ? motivators.map((key) => motivatorDimensionLabel(key, locale)).join(' · ')
-                  : '—'}
+                {t(locale, 'recruiting.candidateDialogMotivators')}: {motivators.length && onPersonClick
+                  ? <button type="button" className="text-brand-600 underline" onClick={() => openPersonSection('style')}>{motivators.map((key) => motivatorDimensionLabel(key, locale)).join(' · ')}</button>
+                  : motivators.length ? motivators.map((key) => motivatorDimensionLabel(key, locale)).join(' · ') : '—'}
               </p>
             </div>
             <div className="space-y-1 text-sm text-ink-muted">
