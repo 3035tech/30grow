@@ -1242,8 +1242,8 @@ function DashboardClientContent({
                   <>
                     {listTotal}{' '}
                     {listTotal === 1
-                      ? t(locale, 'dashboard.assessmentSingular')
-                      : t(locale, 'dashboard.assessmentPlural')}
+                      ? t(locale, tab === 'team' && compatMetrics.rosterPeopleCount ? 'dashboard.teamPersonSingular' : 'dashboard.assessmentSingular')
+                      : t(locale, tab === 'team' && compatMetrics.rosterPeopleCount ? 'dashboard.teamPersonPlural' : 'dashboard.assessmentPlural')}
                     {pagination.total > 0 && tab === 'team' ? (
                       <span className="text-ink-faint">
                         {' '}

@@ -1256,7 +1256,7 @@ export function TeamTab({
       <div className="flex flex-col gap-1.5">
           {filtered.map((r) => {
         const isInternalRow = [EMPLOYMENT_STATUS.EMPLOYEE, EMPLOYMENT_STATUS.ALUMNI].includes(r.employmentStatus);
-        const id = String(r.assessmentId);
+        const id = r.assessmentId != null ? String(r.assessmentId) : `candidate:${r.candidateId}`;
         const d = TYPE_DATA[r.topType];
         const isSelected = open === id;
         const showVacancyFit = r.vacancyFitScore010 != null && r.vacancyFitScore010 !== undefined;
@@ -1270,7 +1270,7 @@ export function TeamTab({
             key={id}
             className={cn(S.cardShell, 'overflow-visible')}
             style={{
-              border: isSelected ? `1px solid ${d.color}44` : undefined,
+              border: isSelected && d ? `1px solid ${d.color}44` : undefined,
             }}
           >
             <div className="flex items-center gap-3 px-3.5 py-2.5">
