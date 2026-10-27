@@ -5,6 +5,17 @@ import { readFile } from 'node:fs/promises';
 import { ERR } from '../../lib/api-error-codes.js';
 import { buildEmployeeEnneagramInviteMail } from '../../lib/assessment/employee-enneagram-invite-mail.js';
 
+test('employee Enneagram email includes a tappable link without rendering profile text as HTML', () => {
+  const mail = buildEmployeeEnneagramInviteMail({
+    fullName: 'Ana <script>', companyName: 'Empresa & Co',
+    assessmentUrl: 'https://grow.example/t/team-token', locale: 'pt-BR',
+  });
+  assert.match(mail.text, /https:\/\/grow\.example\/t\/team-token/);
+  assert.match(mail.html, /href="https:\/\/grow\.example\/t\/team-token"/);
+  assert.match(mail.html, /Empresa &amp; Co/);
+  assert.doesNotMatch(mail.html, /<script>/);
+});
+
 test('employee Enneagram invite uses the existing team link and stays scoped to the employee', async () => {
   const sent = [];
   const queries = [];

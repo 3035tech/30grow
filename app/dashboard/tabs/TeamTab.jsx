@@ -624,13 +624,15 @@ export function TeamTab({
   } });
   const [accessInviteBusy, setAccessInviteBusy] = useState(false);
   const [enneagramInviteBusy, setEnneagramInviteBusy] = useState(false);
+  const [enneagramInviteFeedback, setEnneagramInviteFeedback] = useState(null);
   const inviteEmployeeEnneagram = async () => {
     const person = detail?.candidate;
     if (!person || enneagramInviteBusy) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(person.email || '').trim())) {
-      toast(t(locale, 'panel.team.employeeEnneagramNeedEmail'), 'error');
+      setEnneagramInviteFeedback({ candidateId: person.id, tone: 'error', message: t(locale, 'panel.team.employeeEnneagramNeedEmail') });
       return;
     }
+    setEnneagramInviteFeedback(null);
     setEnneagramInviteBusy(true);
     try {
       const response = await fetch(`/api/admin/candidates/${person.id}/enneagram-invite`, {
@@ -640,9 +642,9 @@ export function TeamTab({
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || t(locale, 'panel.team.employeeEnneagramError'));
-      toast(t(locale, 'panel.team.employeeEnneagramQueued', { email: result.sentTo }), 'ok');
+      setEnneagramInviteFeedback({ candidateId: person.id, tone: 'success', message: t(locale, 'panel.team.employeeEnneagramQueued', { email: result.sentTo }) });
     } catch (error) {
-      toast(error.message || t(locale, 'panel.team.employeeEnneagramError'), 'error');
+      setEnneagramInviteFeedback({ candidateId: person.id, tone: 'error', message: error.message || t(locale, 'panel.team.employeeEnneagramError') });
     } finally {
       setEnneagramInviteBusy(false);
     }
@@ -1446,12 +1448,19 @@ export function TeamTab({
                 {openRow.scores ? (
                   <EnneagramCross scores={openRow.scores} locale={locale} />
                 ) : (
-                  <div className="mb-4 flex flex-wrap items-center gap-3">
-                    <p className="m-0 text-prose text-ink-muted">{t(locale, 'panel.team.peopleMissingEnneagram')}</p>
-                    {detailMatchesOpen && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? (
-                      <button type="button" className={S.btnBrandSoft} disabled={enneagramInviteBusy} onClick={inviteEmployeeEnneagram}>
-                        {t(locale, 'panel.team.sendEmployeeEnneagram')}
-                      </button>
+                  <div className="mb-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="m-0 text-prose text-ink-muted">{t(locale, 'panel.team.peopleMissingEnneagram')}</p>
+                      {detailMatchesOpen && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? (
+                        <button type="button" className={cn(S.btnBrandSoft, 'inline-flex min-h-touch items-center')} aria-busy={enneagramInviteBusy} disabled={enneagramInviteBusy} onClick={inviteEmployeeEnneagram}>
+                          {t(locale, enneagramInviteBusy ? 'panel.team.sendingEmployeeEnneagram' : 'panel.team.sendEmployeeEnneagram')}
+                        </button>
+                      ) : null}
+                    </div>
+                    {detailMatchesOpen && enneagramInviteFeedback?.candidateId === detail?.candidate?.id ? (
+                      <p className={cn('mb-0 mt-2 text-sm', enneagramInviteFeedback.tone === 'error' ? 'text-danger' : 'text-success')} role={enneagramInviteFeedback.tone === 'error' ? 'alert' : 'status'}>
+                        {enneagramInviteFeedback.message}
+                      </p>
                     ) : null}
                   </div>
                 )}
