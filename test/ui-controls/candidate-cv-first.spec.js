@@ -36,3 +36,17 @@ test('PDF first creates a candidate only after review and duplicate correction',
   expect(calls[1].body).toContain('revisada@example.test');
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });
+
+test('oversized file is rejected before analysis', async ({ page }) => {
+  let called = false;
+  await page.route('**/api/admin/vacancies/7/candidates/cv-import', async (route) => {
+    called = true;
+    await route.fulfill({ status: 500 });
+  });
+  await page.goto('/candidate-cv-first');
+  await page.getByLabel('Escolher arquivo').setInputFiles({
+    name: 'grande.txt', mimeType: 'text/plain', buffer: Buffer.alloc(5 * 1024 * 1024 + 1, 65),
+  });
+  await expect(page.getByRole('button', { name: 'Ler arquivo com IA' })).toBeDisabled();
+  expect(called).toBe(false);
+});

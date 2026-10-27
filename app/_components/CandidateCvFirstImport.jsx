@@ -8,6 +8,7 @@ import { AdminRichFormDrawer } from './AdminRichFormDrawer';
 import { useAppFeedback } from './AppFeedback';
 
 const fieldOrder = ['fullName', 'email', 'phone', 'linkedinUrl', 'city', 'state', 'workHistory', 'professionalSummary'];
+const maxFileBytes = 5 * 1024 * 1024;
 
 export function CandidateCvFirstImport({ vacancyId, locale, onCreated }) {
   const { toast, notice } = useAppFeedback();
@@ -65,14 +66,19 @@ export function CandidateCvFirstImport({ vacancyId, locale, onCreated }) {
               type="file"
               accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="sr-only"
+              disabled={busy}
               onChange={(event) => {
-                setFile(event.target.files?.[0] || null);
+                const selected = event.target.files?.[0] || null;
                 setReview(null);
+                setFile(selected && selected.size > maxFileBytes ? null : selected);
+                if (selected?.size > maxFileBytes) {
+                  notice({ title: t(locale, 'panel.common.errorTitle'), message: t(locale, 'recruiting.cvCreateFileTooLarge'), tone: 'error' });
+                }
                 event.target.value = '';
               }}
             />
           </label>
-          <span className="max-w-full truncate text-xs text-ink-muted">{file?.name || ''}</span>
+          {file ? <span className="max-w-full truncate text-xs text-ink-muted" title={file.name}>{file.name}</span> : null}
           <button type="button" className={cn(S.btnPrimary, 'min-h-touch')} disabled={!file || busy} onClick={() => send('analyze')}>
             {t(locale, busy ? 'recruiting.cvAiBusy' : 'recruiting.cvCreateAnalyze')}
           </button>
@@ -100,13 +106,19 @@ export function CandidateCvFirstImport({ vacancyId, locale, onCreated }) {
           </ul> : null}
           {fieldOrder.map((key) => <label key={key} className="block text-sm font-medium text-ink">
             {t(locale, `recruiting.cvField.${key}`)}
-            <textarea
-              rows={['workHistory', 'professionalSummary'].includes(key) ? 6 : 2}
+            {['workHistory', 'professionalSummary'].includes(key) ? <textarea
+              rows={6}
               value={values[key] || ''}
               disabled={busy}
               onChange={(event) => setValues((current) => ({ ...current, [key]: event.target.value }))}
               className={cn(S.textarea, 'mt-1 w-full')}
-            />
+            /> : <input
+              type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : key === 'linkedinUrl' ? 'url' : 'text'}
+              value={values[key] || ''}
+              disabled={busy}
+              onChange={(event) => setValues((current) => ({ ...current, [key]: event.target.value }))}
+              className={cn(S.input, 'mt-1 w-full')}
+            />}
           </label>)}
         </div> : null}
       </AdminRichFormDrawer>
