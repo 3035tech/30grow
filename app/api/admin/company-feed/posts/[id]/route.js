@@ -6,7 +6,7 @@ import { z, zPositiveInt } from '../../../../../../lib/validate.js';
 import {
   softDeleteCompanyPost,
   updateCompanyPost,
-} from '../../../../../../lib/company-posts.js';
+} from '../../../../../../lib/company/company-posts.js';
 
 const patchBodySchema = z.object({
   companyId: zPositiveInt.optional(),

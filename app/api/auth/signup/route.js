@@ -3,18 +3,18 @@ import { query } from '../../../../lib/db.js';
 import {
   hashUnusablePassword,
   issuePasswordSetupInvite,
-} from '../../../../lib/user-password-invite.js';
+} from '../../../../lib/identity/user-password-invite.js';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import { enqueueTransactionalMail, isMailConfigured } from '../../../../lib/mail.js';
 import { generateUniqueCompanySlug } from '../../../../lib/slugify.js';
-import { trackLandingEvent } from '../../../../lib/landing-analytics.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../lib/turnstile.js';
+import { trackLandingEvent } from '../../../../lib/analytics/landing-analytics.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../lib/identity/turnstile.js';
 import {
   createSelfServiceSignupIdentity,
   SELF_SERVICE_COMPANY_ACTION,
-} from '../../../../lib/self-service-signup.js';
-import { normalizeSignupJobTitle } from '../../../../lib/signup-job-titles.js';
+} from '../../../../lib/identity/self-service-signup.js';
+import { normalizeSignupJobTitle } from '../../../../lib/marketing/signup-job-titles.js';
 import { contentLocale, t as i18nT } from '../../../../lib/i18n.js';
 
 /**

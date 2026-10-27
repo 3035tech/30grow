@@ -13,11 +13,11 @@ import {
   parseUsersSort,
   parseVacanciesPagination,
   parseVacanciesSort,
-} from '../../../lib/assessment-filters';
+} from '../../../lib/assessment/assessment-filters';
 import { VACANCY_LIST_FILTER, normalizeVacancyListFilter } from '../../../lib/domain-status.js';
 import { canSwitchTabClientOnly } from '../../../lib/dashboard-company-scope.js';
 
-// Must match the defaults of the parsers in lib/assessment-filters.js so omitting them is lossless.
+// Must match the defaults of the parsers in lib/assessment/assessment-filters.js so omitting them is lossless.
 const LIST_PREFIXES = ['team', 'vacancies', 'compare', 'compat', 'users', 'leads', 'fb', 'companies'];
 const LIST_PARAM_DEFAULTS = {
   ...Object.fromEntries(LIST_PREFIXES.flatMap((k) => [[`${k}Page`, '1'], [`${k}PageSize`, '20']])),

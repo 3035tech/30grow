@@ -3,7 +3,7 @@ import { withAdminApi } from '../../../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../../../../lib/validate.js';
-import { enrollLmsCandidates, listLmsEnrollments, getLmsCourseOpsSummary } from '../../../../../../../lib/lms.js';
+import { enrollLmsCandidates, listLmsEnrollments, getLmsCourseOpsSummary } from '../../../../../../../lib/development/lms.js';
 import { audit } from '../../../../../../../lib/audit.js';
 import { notifyCompanyManagers } from '../../../../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../../../../lib/manager-notification-catalog.js';
@@ -115,7 +115,7 @@ export const POST = withAdminApi(
           },
         });
         const { notifyCandidates, EMPLOYEE_NOTIF } = await import(
-          '../../../../../../../lib/employee-notifications.js'
+          '../../../../../../../lib/employee/employee-notifications.js'
         );
         const enrolledIds = Array.isArray(result.candidateIds) ? result.candidateIds : [];
         if (enrolledIds.length) {

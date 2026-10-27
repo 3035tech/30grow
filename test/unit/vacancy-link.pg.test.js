@@ -22,7 +22,7 @@ test('vacancy links renew expired tokens and serialize concurrent invitations', 
     )`);
     await db.query('CREATE UNIQUE INDEX idx_vacancy_links_vacancy_active_unique ON vacancy_links (vacancy_id) WHERE active = TRUE');
     const context = vm.createContext({});
-    const module = new vm.SourceTextModule(await readFile(new URL('../../lib/vacancy-link.js', import.meta.url), 'utf8'), { context });
+    const module = new vm.SourceTextModule(await readFile(new URL('../../lib/recruiting/vacancy-link.js', import.meta.url), 'utf8'), { context });
     await module.link(specifier => {
       const values = specifier === 'node:crypto' ? { default: crypto } : {
         query: (sql, args) => db.query(sql, args),

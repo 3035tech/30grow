@@ -3,8 +3,8 @@
  */
 import assert from 'node:assert/strict';
 import { COMPAT_PAIR_PAYLOAD_CAP, buildCompatBundles } from '../../lib/compat-bundles.js';
-import { JOB_ROLES_LIST_CAP } from '../../lib/job-roles.js';
-import { LEADERSHIP_SCORES_SAMPLE_CAP, LEADERSHIP_POTENTIALS_SCAN_CAP } from '../../lib/leadership-analytics.js';
+import { JOB_ROLES_LIST_CAP } from '../../lib/recruiting/job-roles.js';
+import { LEADERSHIP_SCORES_SAMPLE_CAP, LEADERSHIP_POTENTIALS_SCAN_CAP } from '../../lib/analytics/leadership-analytics.js';
 import {
   measureAsync,
   slowThresholdMs,

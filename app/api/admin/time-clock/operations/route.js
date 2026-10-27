@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { canManageDigitalCertificate } from '../../../../../lib/rep/certificate-admin.js';
 import { timeClockOperations } from '../../../../../lib/rep/operations.js';
 import { retryTimePush } from '../../../../../lib/people/time-clock-delivery.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import { auditFromRequest } from '../../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../lib/identity/rate-limit.js';
 const access = {
   cap: CAP.USERS_MANAGE,
   requireCompany: false,

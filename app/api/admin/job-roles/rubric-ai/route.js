@@ -6,10 +6,10 @@ import { normalizeLocale } from '../../../../../lib/i18n.js';
 import {
   isRubricAiConfigured,
   suggestJobRoleRubricFromText,
-} from '../../../../../lib/rubric-ai.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+} from '../../../../../lib/recruiting/rubric-ai.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import { z } from '../../../../../lib/validate.js';
-import { jobRoleAiDescriptionSchema } from '../../../../../lib/job-role-description.js';
+import { jobRoleAiDescriptionSchema } from '../../../../../lib/recruiting/job-role-description.js';
 
 const bodySchema = z.object({
   name: z.string().trim().min(2).max(200),

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import {
@@ -8,7 +8,7 @@ import {
   duplicatePipelineTemplate,
   restorePipelineTemplate,
   updatePipelineTemplate,
-} from '../../../../../lib/pipeline-templates.js';
+} from '../../../../../lib/recruiting/pipeline-templates.js';
 import { auditFromRequest } from '../../../../../lib/audit.js';
 
 const companyQuerySchema = z.object({ companyId: zPositiveInt.optional() });

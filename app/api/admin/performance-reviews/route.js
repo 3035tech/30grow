@@ -3,11 +3,11 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import { query as dbQuery } from '../../../../lib/db.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
-import { getPerformanceReview, updatePerformanceReview, listPerformanceGoals } from '../../../../lib/performance-reviews.js';
-import { listSideReviewsForCandidate } from '../../../../lib/performance-side-reviews.js';
+import { getPerformanceReview, updatePerformanceReview, listPerformanceGoals } from '../../../../lib/development/performance-reviews.js';
+import { listSideReviewsForCandidate } from '../../../../lib/development/performance-side-reviews.js';
 
 const querySchema = z.object({
   companyId: zPositiveInt.optional(),

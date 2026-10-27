@@ -1,14 +1,14 @@
-import { candidateContact } from '../../../../lib/candidate-contact';
+import { candidateContact } from '../../../../lib/recruiting/candidate-contact';
 import { runtimeAppUrl } from '../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
 import { query, queryRead } from '../../../../lib/db';
 
 export const dynamic = 'force-dynamic';
-import { ensureActiveVacancyLinkToken } from '../../../../lib/vacancy-link';
+import { ensureActiveVacancyLinkToken } from '../../../../lib/recruiting/vacancy-link';
 import { sendTransactionalMail } from '../../../../lib/mail';
-import { buildCandidateChallengeInviteMail } from '../../../../lib/candidate-challenge-invite-mail';
+import { buildCandidateChallengeInviteMail } from '../../../../lib/recruiting/candidate-challenge-invite-mail';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { verifyCronRequest } from '../../../../lib/cron-auth';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth';
 
 function publicAppUrlFromEnv() {
   const env = (runtimeAppUrl() || '').trim();

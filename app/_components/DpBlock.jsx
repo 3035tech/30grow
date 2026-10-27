@@ -1,7 +1,7 @@
 'use client';
 
-import { DP_ADDRESS_NUMBER_MAX_LENGTH } from '../../lib/dp-profile-constants';
-import { dpUploadValidationKey, dpUploadResponseKey } from '../../lib/dp-upload-validation';
+import { DP_ADDRESS_NUMBER_MAX_LENGTH } from '../../lib/assessment/dp-profile-constants';
+import { dpUploadValidationKey, dpUploadResponseKey } from '../../lib/assessment/dp-upload-validation';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t, tCount, localeHtmlLang, t as i18nT } from '../../lib/i18n';
@@ -27,7 +27,7 @@ import { formatDisplayDateTime } from '../../lib/format-display-date';
 import { RichTextView } from './RichTextView';
 import { LeaveBalanceSummary } from './LeaveBalanceSummary';
 import { SignatureStrokePreview } from './SignaturePadField';
-import { BR_STATES } from '../../lib/candidate-profile.js';
+import { BR_STATES } from '../../lib/recruiting/candidate-profile.js';
 import { formatCepBr, formatCpfBr, formatPhoneBr } from '../../lib/br-masks.js';
 import {
   DP_DOCUMENT_KEYS,

@@ -8,7 +8,7 @@ import {
   ERR,
   httpStatusForError,
 } from '../../../../../../lib/api-error.js';
-import { createInterviewSlot, listInterviewSlots } from '../../../../../../lib/interview-slots.js';
+import { createInterviewSlot, listInterviewSlots } from '../../../../../../lib/recruiting/interview-slots.js';
 import { audit } from '../../../../../../lib/audit.js';
 
 const listQuerySchema = z.object({

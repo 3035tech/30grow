@@ -2,18 +2,18 @@ import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import { pool, query } from '../../lib/db.js';
 import { __getMailMockLog, __resetMailMockLog } from '../../lib/mail.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import {
   completePasswordSetup,
   issuePasswordSetupInvite,
   peekPasswordSetupToken,
   requestPasswordResetByEmail,
-} from '../../lib/user-password-invite.js';
+} from '../../lib/identity/user-password-invite.js';
 import {
   issueEmployeePasswordInvite,
   requestEmployeeMagicLink,
   requestEmployeePasswordReset,
-} from '../../lib/employee-auth.js';
+} from '../../lib/employee/employee-auth.js';
 import { createAndQueueMotivatorsInvite } from '../../lib/ae/create-motivators-invite.js';
 import { emailClimateSurveyInvites } from '../../lib/people/climate-surveys.js';
 import { CLIMATE_SURVEY_STATUS, EMPLOYMENT_STATUS } from '../../lib/domain-status.js';

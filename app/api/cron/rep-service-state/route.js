@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyCronRequest } from '../../../../lib/cron-auth.js';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
 import { pool } from '../../../../lib/db.js';
 import { z } from '../../../../lib/validate.js';

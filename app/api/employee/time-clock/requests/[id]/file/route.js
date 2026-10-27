@@ -4,12 +4,12 @@
 
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../../../../lib/employee-session.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { getEmployeeSessionPayload } from '../../../../../../../lib/employee/employee-session.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 import { zPositiveInt } from '../../../../../../../lib/validate.js';
 import { dpDownloadResponse } from '../../../../../../../lib/people/dp-download-response.js';
 import { readBoundedFormData, singleFormFile } from '../../../../../../../lib/bounded-multipart.js';
-import { DP_DOC_MAX_BYTES } from '../../../../../../../lib/dp-upload-validation.js';
+import { DP_DOC_MAX_BYTES } from '../../../../../../../lib/assessment/dp-upload-validation.js';
 import {
   clearTimeRequestAttachment,
   downloadTimeRequestAttachment,

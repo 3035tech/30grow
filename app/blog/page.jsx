@@ -1,5 +1,5 @@
-import { headers } from 'next/headers';
-import { t } from '../../lib/i18n';
+import { cookies, headers } from 'next/headers';
+import { LOCALE_COOKIE, normalizeLocale, t } from '../../lib/i18n';
 import { buildBlogIndexJsonLd, buildBlogIndexMetadata, BLOG_CONTENT_LOCALE, listBlogPosts } from '../../lib/blog/index.js';
 import { BlogBreadcrumb, BlogShell } from './BlogShell';
 import { BlogPostCard } from '../_components/BlogPostCard';
@@ -8,9 +8,9 @@ export function generateMetadata() {
   return buildBlogIndexMetadata();
 }
 
-export default async function BlogIndexPage() {
+export default async function BlogIndexPage({ searchParams }) {
   const nonce = (await headers()).get('x-nonce') || undefined;
-  const locale = BLOG_CONTENT_LOCALE;
+  const locale = normalizeLocale((await searchParams)?.lang || (await cookies()).get(LOCALE_COOKIE)?.value);
   const posts = listBlogPosts();
   return (
     <BlogShell locale={locale}>
@@ -21,10 +21,10 @@ export default async function BlogIndexPage() {
         <p className="mb-0 mt-4 text-base leading-7 text-ink-muted sm:text-lg">{t(locale, 'blog.indexLead')}</p>
         {locale !== BLOG_CONTENT_LOCALE ? <p className="mb-0 mt-3 text-sm text-ink-faint">{t(locale, 'blog.contentLanguageNote')}</p> : null}
       </header>
-      <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-2 xl:grid-cols-3">
+      <ul lang={BLOG_CONTENT_LOCALE} className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-2 xl:grid-cols-3">
         {posts.map((post) => (
           <li key={post.slug}>
-            <BlogPostCard post={post} readMinutesLabel={t(locale, 'blog.readMinutes', { n: post.readingMinutes })} />
+            <BlogPostCard post={post} locale={locale} readMinutesLabel={t(locale, 'blog.readMinutes', { n: post.readingMinutes })} />
           </li>
         ))}
       </ul>

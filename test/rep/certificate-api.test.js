@@ -8,7 +8,7 @@ import {
   certificateAdminSchema,
 } from '../../lib/rep/certificate-admin.js';
 import { publicCertificateSettings } from '../../lib/rep/certificate-settings.js';
-import { CAP, can, canAny, isAdminRole } from '../../lib/permissions.js';
+import { CAP, can, canAny, isAdminRole } from '../../lib/identity/permissions.js';
 import { ERR, HTTP_STATUS } from '../../lib/api-error-codes.js';
 async function fixture({
   payload = { role: 'admin', companyId: null, userId: 1 },

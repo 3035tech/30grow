@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { queryRead } from '../../../../lib/db.js';
 import { withAdminApi } from '../../../../lib/admin-api.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import { loadNineBoxForCompany } from '../../../../lib/people/nine-box.js';
 import { apiErrorFromResult } from '../../../../lib/api-error.js';
 

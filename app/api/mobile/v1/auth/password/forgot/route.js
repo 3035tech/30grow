@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
 import { query } from '../../../../../../../lib/db.js';
-import { requestEmployeePasswordReset } from '../../../../../../../lib/employee-auth.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/rate-limit.js';
+import { requestEmployeePasswordReset } from '../../../../../../../lib/employee/employee-auth.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/identity/rate-limit.js';
 import { parseJsonBody } from '../../../../../../../lib/validate.js';
 
 const forgotSchema = z.object({ email: z.string().trim().email().max(254) });

@@ -20,7 +20,7 @@ import {
   getCompensationMarketPulse,
   setCandidateJobRole,
 } from '../../lib/people/employee-compensation.js';
-import { createJobRole } from '../../lib/job-roles.js';
+import { createJobRole } from '../../lib/recruiting/job-roles.js';
 
 async function main() {
   assert.equal(compareAmountToMarketBand('5000.00', '6000.00', '9000.00').status, 'below');

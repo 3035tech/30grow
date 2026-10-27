@@ -4,9 +4,9 @@ import { readFile } from 'node:fs/promises';
 import crypto from 'node:crypto';
 import vm from 'node:vm';
 import pg from 'pg';
-import * as permissions from '../../lib/permissions.js';
+import * as permissions from '../../lib/identity/permissions.js';
 import { ERR } from '../../lib/api-error-codes.js';
-import { normalizeCandidateProfile } from '../../lib/candidate-profile.js';
+import { normalizeCandidateProfile } from '../../lib/recruiting/candidate-profile.js';
 import { titleCasePersonName } from '../../lib/person-name.js';
 import { sanitizeRichTextHtml, isRichTextEmpty } from '../../lib/sanitize-html.js';
 

@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { query } from '../../lib/db.js';
 import { ERR } from '../../lib/api-error-codes.js';
 import { TIME_CLOCK_ACK_STATUS, TIME_PUNCH_SOURCE } from '../../lib/domain-status.js';
-import { EMPLOYEE_NOTIF } from '../../lib/employee-notification-catalog.js';
+import { EMPLOYEE_NOTIF } from '../../lib/employee/employee-notification-catalog.js';
 import { NOTIF } from '../../lib/manager-notification-catalog.js';
 import { createTimePunch, isoDayInTz, upsertCompanyTimeSchedule } from '../../lib/people/time-clock.js';
 import {

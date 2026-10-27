@@ -8,7 +8,7 @@ import {
 import { defaultPublicOgImageUrl } from '../../../lib/public-vacancy-posting';
 import { publicRemoteAggregatorPath } from '../../../lib/public-job-url';
 import { PublicVacanciesIndexView } from '../../_components/PublicVacancyPosting';
-import { publicSiteBaseUrl } from '../../../lib/public-site-url.js';
+import { publicSiteBaseUrl } from '../../../lib/marketing/public-site-url.js';
 
 export async function generateMetadata({ searchParams } = {}) {
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);

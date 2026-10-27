@@ -1,11 +1,11 @@
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth.js';
+import { COOKIE_NAME } from '../../../../lib/identity/auth.js';
 import { query } from '../../../../lib/db.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../lib/api-error.js';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities.js';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities.js';
 import { listAuditLogEntries } from '../../../../lib/audit-log-admin.js';
 import { auditAccess, tenantAuditEntry, auditCsv } from '../../../../lib/audit-access.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
 
 export const dynamic = 'force-dynamic';

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
 import {
   CAP,
   getManagerScope,
@@ -9,14 +9,14 @@ import {
 } from '../../../../../../lib/ae/require-admin';
 import { apiError, ERR, httpStatusForError } from '../../../../../../lib/api-error';
 import { queryRead } from '../../../../../../lib/db';
-import { isRubricContextFilledEnough } from '../../../../../../lib/rubric-prompt';
+import { isRubricContextFilledEnough } from '../../../../../../lib/recruiting/rubric-prompt';
 import {
   isRubricAiConfigured,
   suggestRubricContextFromVacancy,
   suggestRubricWeightsFromContext,
-} from '../../../../../../lib/rubric-ai';
+} from '../../../../../../lib/recruiting/rubric-ai';
 import { normalizeLocale } from '../../../../../../lib/i18n';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit';
 
 async function loadVacancyScoped(vacancyId, { isAdmin, companyId }) {
   const r = await queryRead(

@@ -1,11 +1,11 @@
-import { webSessionMaxAge } from '../../../../lib/session-ttl.js';
+import { webSessionMaxAge } from '../../../../lib/identity/session-ttl.js';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME, MAX_AGE, signToken, sessionCookieOptions } from '../../../../lib/auth';
+import { COOKIE_NAME, MAX_AGE, signToken, sessionCookieOptions } from '../../../../lib/identity/auth';
 import { query } from '../../../../lib/db';
 import { LOCALE_COOKIE, normalizeLocale } from '../../../../lib/i18n';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { verifySessionWithCapabilities } from '../../../../lib/session';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/session';
 
 export async function PATCH(request) {
   const cookieStore = await cookies();

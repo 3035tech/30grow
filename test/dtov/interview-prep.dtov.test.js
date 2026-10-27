@@ -7,7 +7,7 @@ import {
   ensureInterviewPrepLink,
   markInterviewPrepPrepared,
   resolveInterviewPrepByToken,
-} from '../../lib/interview-prep.js';
+} from '../../lib/recruiting/interview-prep.js';
 import { buildInterviewQuestions } from '../../lib/people/decision-brief.js';
 
 async function main() {

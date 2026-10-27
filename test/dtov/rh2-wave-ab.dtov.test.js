@@ -3,7 +3,7 @@
  */
 import assert from 'node:assert/strict';
 import { query, pool } from '../../lib/db.js';
-import { createEmployeeDirect } from '../../lib/hire.js';
+import { createEmployeeDirect } from '../../lib/recruiting/hire.js';
 import {
   ensureOnboardingCheckins,
   listOnboardingCheckins,
@@ -13,7 +13,7 @@ import {
 import {
   getEmployeeOneOnOnePrep,
   submitEmployeeOneOnOnePrep,
-} from '../../lib/employee-one-on-one-prep.js';
+} from '../../lib/employee/employee-one-on-one-prep.js';
 import { ERR } from '../../lib/api-error-codes.js';
 import { EMPLOYMENT_STATUS } from '../../lib/domain-status.js';
 

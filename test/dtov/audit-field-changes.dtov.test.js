@@ -5,8 +5,8 @@
 import assert from 'node:assert/strict';
 import { pool, query } from '../../lib/db.js';
 import { upsertDpProfile } from '../../lib/people/employee-dp.js';
-import { updateUser } from '../../lib/users-admin.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { updateUser } from '../../lib/identity/users-admin.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 
 async function main() {
   const cand = await query(

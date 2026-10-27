@@ -8,7 +8,7 @@ import {
 } from '../../../lib/public-vacancy-posting';
 import { publicCompanyPath } from '../../../lib/public-job-url';
 import { PublicCompanyPageView } from '../../_components/PublicVacancyPosting';
-import { publicSiteBaseUrl } from '../../../lib/public-site-url.js';
+import { publicSiteBaseUrl } from '../../../lib/marketing/public-site-url.js';
 
 export async function generateMetadata(props) {
   const params = await props.params;

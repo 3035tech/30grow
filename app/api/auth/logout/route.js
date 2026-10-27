@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME, sessionCookieOptions, verifyToken } from '../../../../lib/auth';
-import { bumpSessionVersion } from '../../../../lib/session';
+import { COOKIE_NAME, sessionCookieOptions, verifyToken } from '../../../../lib/identity/auth';
+import { bumpSessionVersion } from '../../../../lib/identity/session';
 
 export async function POST() {
   const token = await (await cookies()).get(COOKIE_NAME)?.value;

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { formatPublicPrice, getPublicPricing, publicPricingTextValues, PUBLIC_BRL_TIERS, PUBLIC_BRL_LAUNCH } from '../../lib/pricing-currency.js';
+import { formatPublicPrice, getPublicPricing, publicPricingTextValues, PUBLIC_BRL_TIERS, PUBLIC_BRL_LAUNCH } from '../../lib/marketing/pricing-currency.js';
 import { t, localeRegionConfig } from '../../lib/i18n.js';
-import { getProductLandingCopy, buildProductLandingJsonLd, buildProductLlmsTxt } from '../../lib/product-landing-seo.js';
-import { buildPricingJsonLd, getPricingCoreFeatures } from '../../lib/pricing-plans.js';
+import { getProductLandingCopy, buildProductLandingJsonLd, buildProductLlmsTxt } from '../../lib/marketing/product-landing-seo.js';
+import { buildPricingJsonLd, getPricingCoreFeatures } from '../../lib/marketing/pricing-plans.js';
 
 for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr-FR', 'de-DE']) {
   const amount = locale === 'pt-BR' ? 149 : 39;

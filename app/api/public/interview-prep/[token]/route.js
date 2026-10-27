@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import {
   markInterviewPrepPrepared,
   resolveInterviewPrepByToken,
-} from '../../../../../lib/interview-prep.js';
+} from '../../../../../lib/recruiting/interview-prep.js';
 import { normalizeLocale } from '../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

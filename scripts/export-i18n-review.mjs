@@ -6,7 +6,7 @@ import pt from '../lib/i18n/catalogs/pt-BR.js';
 import en from '../lib/i18n/catalogs/en-US.js';
 import fr from '../lib/i18n/catalogs/fr-FR.js';
 import de from '../lib/i18n/catalogs/de-DE.js';
-import { getPublicLegalDocument } from '../lib/public-legal.js';
+import { getPublicLegalDocument } from '../lib/marketing/public-legal.js';
 
 // Offline review artifact only. Never imports approvals into production.
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -27,7 +27,7 @@ await mkdir(output, { recursive: true });
 const sources = [
   'lib/data.js', 'lib/i18n-data.js', 'lib/type-en.js',
   'lib/ae/motivators-question-bank.js', 'lib/ae/motivators-dimensions.js',
-  'lib/ae/templates.js', 'lib/ae/motivators-radar.js', 'lib/public-legal.js',
+  'lib/ae/templates.js', 'lib/ae/motivators-radar.js', 'lib/marketing/public-legal.js',
   ...['pt-BR', 'en-US', 'fr-FR', 'de-DE'].map(locale => `lib/i18n/catalogs/${locale}.js`),
 ];
 const fingerprints = {};
@@ -49,7 +49,7 @@ for (const locale of ['fr-FR', 'de-DE', 'es-ES', 'es-419']) {
   }]));
   await writeFile(resolve(output, `legal-${locale}.json`), JSON.stringify(documents, null, 2) + '\n');
 }
-const instruments = sources.filter(source => !source.includes('/catalogs/') && source !== 'lib/public-legal.js');
+const instruments = sources.filter(source => !source.includes('/catalogs/') && source !== 'lib/marketing/public-legal.js');
 await writeFile(resolve(output, 'instrument-sources.json'), JSON.stringify({
   status: 'pending', note: 'Repository sources only; deployed Motivators questions/templates also require a versioned export by an authorized operator.',
   sources: await Promise.all(instruments.map(async path => ({ path, sha256: fingerprints[path], content: await readFile(resolve(root, path), 'utf8') }))),

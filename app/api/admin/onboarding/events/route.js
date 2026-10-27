@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
 import { query } from '../../../../../lib/db.js';
-import { CAP } from '../../../../../lib/permissions.js';
-import { recordOnboardingEvent } from '../../../../../lib/onboarding-funnel.js';
-import { checkRateLimit } from '../../../../../lib/rate-limit.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
+import { recordOnboardingEvent } from '../../../../../lib/development/onboarding-funnel.js';
+import { checkRateLimit } from '../../../../../lib/identity/rate-limit.js';
 import { z } from '../../../../../lib/validate.js';
 import { ONBOARDING_EVENTS, ONBOARDING_OBJECTIVES, ONBOARDING_STEPS } from '../../../../../lib/domain-status.js';
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
 import {
   CAP,
   getManagerScope,
@@ -11,14 +11,14 @@ import { apiError, ERR, httpStatusForError } from '../../../../../../lib/api-err
 import { queryRead } from '../../../../../../lib/db';
 import { isOpenAiConfigured } from '../../../../../../lib/openai-chat';
 import { normalizeLocale } from '../../../../../../lib/i18n';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit';
 import {
   suggestCandidateFieldsAi,
   suggestExecutiveNoteAi,
   suggestShortlistAi,
   suggestVacancyDescriptionAi,
   summarizeInterviewNotesAi,
-} from '../../../../../../lib/vacancy-assist-ai';
+} from '../../../../../../lib/recruiting/vacancy-assist-ai';
 
 async function loadVacancyScoped(vacancyId, { isAdmin, companyId }) {
   const r = await queryRead(

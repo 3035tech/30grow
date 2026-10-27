@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { apiErrorFromResult } from '../../../../../lib/api-error.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { TIME_REQUEST_STATUSES } from '../../../../../lib/domain-status.js';
 import { listTimeRequests } from '../../../../../lib/people/time-clock-requests.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';

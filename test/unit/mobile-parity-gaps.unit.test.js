@@ -102,7 +102,7 @@ test('login and refresh return the persisted locale, with a default for legacy p
     } }),
   };
   const context = vm.createContext({ console, Buffer, Date });
-  const mod = new vm.SourceTextModule(await readFile(new URL('../../lib/mobile-employee-session.js', import.meta.url), 'utf8'), { context });
+  const mod = new vm.SourceTextModule(await readFile(new URL('../../lib/mobile/mobile-employee-session.js', import.meta.url), 'utf8'), { context });
   await mod.link(async (specifier) => {
     const exports = specifier === 'node:crypto' ? { default: crypto } : deps;
     return new vm.SyntheticModule(Object.keys(exports), function () { for (const [k, v] of Object.entries(exports)) this.setExport(k, v); }, { context });

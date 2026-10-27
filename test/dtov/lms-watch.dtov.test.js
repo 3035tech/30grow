@@ -11,7 +11,7 @@ import {
   listCandidateLmsCourses,
   updateLmsCourse,
   upsertLmsWatchProgress,
-} from '../../lib/lms.js';
+} from '../../lib/development/lms.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 async function main() {

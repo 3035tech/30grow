@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { ProductScreenshot } from '../../_components/ProductScreenshot';
-import { SOLUTION_SCREENSHOTS } from '../../../lib/product-screenshots';
+import { SOLUTION_SCREENSHOTS } from '../../../lib/marketing/product-screenshots';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { normalizeLocale, localeHtmlLang } from '../../../lib/i18n';
-import { getProductLandingCopy, getPublicHeaderCopy, productLandingAbsoluteUrl } from '../../../lib/product-landing-seo';
-import { PUBLIC_MARKETING_LOCALES, publicMarketingPath, publicSolutionCanonicalPath } from '../../../lib/public-marketing-paths';
-import { getPublicSolutions, solutionCopy, buildSolutionMetadata } from '../../../lib/public-solutions';
+import { getProductLandingCopy, getPublicHeaderCopy, productLandingAbsoluteUrl } from '../../../lib/marketing/product-landing-seo';
+import { PUBLIC_MARKETING_LOCALES, publicMarketingPath, publicSolutionCanonicalPath } from '../../../lib/marketing/public-marketing-paths';
+import { getPublicSolutions, solutionCopy, buildSolutionMetadata } from '../../../lib/marketing/public-solutions';
 import { PublicSiteHeaderWithLocale } from '../../_components/PublicSiteHeader';
 import { PublicLanguageLinks } from '../../_components/PublicLanguageLinks';
 

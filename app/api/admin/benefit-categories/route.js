@@ -6,7 +6,7 @@ import { z, zPositiveInt, zQueryBool } from '../../../../lib/validate.js';
 import {
   listBenefitCategories,
   createBenefitCategory,
-} from '../../../../lib/company-benefits.js';
+} from '../../../../lib/company/company-benefits.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

@@ -5,7 +5,7 @@ import {
   CAP,
   requireCapability,
 } from '../../../../../lib/ae/require-admin.js';
-import { getJobRole, updateJobRole, deactivateJobRole } from '../../../../../lib/job-roles.js';
+import { getJobRole, updateJobRole, deactivateJobRole } from '../../../../../lib/recruiting/job-roles.js';
 
 /**
  * GET /api/admin/job-roles/[id]

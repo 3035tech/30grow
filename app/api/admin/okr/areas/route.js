@@ -8,7 +8,7 @@ import { CAP } from '../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import { audit } from '../../../../../lib/audit.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
-import { createOkrArea } from '../../../../../lib/okr-cycles.js';
+import { createOkrArea } from '../../../../../lib/development/okr-cycles.js';
 
 const createBodySchema = z.object({
   companyId: zPositiveInt.optional(),

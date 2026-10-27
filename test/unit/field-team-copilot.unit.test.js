@@ -8,7 +8,7 @@ import {
 } from '../../lib/domain-status.js';
 import { ERR, httpStatusForError } from '../../lib/api-error-codes.js';
 import { t } from '../../lib/i18n.js';
-import { EMPLOYEE_NOTIF, employeeNotificationHref } from '../../lib/employee-notification-catalog.js';
+import { EMPLOYEE_NOTIF, employeeNotificationHref } from '../../lib/employee/employee-notification-catalog.js';
 import { NOTIF, notificationHref } from '../../lib/manager-notification-catalog.js';
 import {
   COPILOT_PEOPLE_CAP,

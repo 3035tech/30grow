@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../../lib/db.js';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
-import { verifyTurnstileToken } from '../../../../../lib/turnstile.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
+import { verifyTurnstileToken } from '../../../../../lib/identity/turnstile.js';
 import {
   peekEmployeePasswordSetupToken,
   completeEmployeePasswordSetup,
-} from '../../../../../lib/employee-auth.js';
+} from '../../../../../lib/employee/employee-auth.js';
 import {
   employee2faRequired,
   signEmployee2faChallenge,
-} from '../../../../../lib/employee-2fa.js';
-import { buildEmployeeLoginResponse } from '../../../../../lib/employee-login-session.js';
+} from '../../../../../lib/employee/employee-2fa.js';
+import { buildEmployeeLoginResponse } from '../../../../../lib/employee/employee-login-session.js';
 import { contentLocale } from '../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

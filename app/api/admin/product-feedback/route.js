@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../lib/api-error.js';
 import { query } from '../../../../lib/db.js';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/permissions.js';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/identity/permissions.js';
 import {
   createProductFeedback,
   listFeedbackAssignees,
   listProductFeedback,
   summarizeProductFeedback,
 } from '../../../../lib/product-feedback.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 import { z } from '../../../../lib/validate.js';
 import { PRODUCT_FEEDBACK_KINDS, PRODUCT_FEEDBACK_SEVERITIES } from '../../../../lib/domain-status.js';
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../lib/identity/auth';
 import { queryRead } from '../../../../lib/db';
 import { audit } from '../../../../lib/audit';
 import {
@@ -9,14 +9,14 @@ import {
   parseDateFilter,
   parseNameSearch,
   parseRosterScope,
-} from '../../../../lib/assessment-filters';
+} from '../../../../lib/assessment/assessment-filters';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { canAccessAnalysisData, isSuperAdminPayload } from '../../../../lib/permissions';
+import { canAccessAnalysisData, isSuperAdminPayload } from '../../../../lib/identity/permissions';
 import {
   assessmentsCsvStream,
   exportMaxRows,
   fetchAssessmentsForExport,
-} from '../../../../lib/export-assessments-csv';
+} from '../../../../lib/assessment/export-assessments-csv';
 
 export async function GET(request) {
   const cookieStore = await cookies();

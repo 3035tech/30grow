@@ -12,7 +12,7 @@ import { cn } from '../../../lib/cn';
 import { RichTextView } from '../../_components/RichTextView';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
 import { BENEFIT_TYPES } from '../../../lib/domain-status.js';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import {
   AdminActionsCell,
   AdminActionsTh,
@@ -110,6 +110,19 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
   }
 
   function benefitFormFields(benefit) {
+    const currentCategoryId = benefit?.categoryId;
+    const legacyCategory = benefit?.category && !currentCategoryId;
+    const currentCategoryIsActive = categories.some((cat) => String(cat.id) === String(currentCategoryId));
+    const categoryOptions = [
+      { value: '', label: t('formCategoryNone') },
+      ...categories.map((cat) => ({ value: String(cat.id), label: cat.name })),
+    ];
+    if (currentCategoryId && !currentCategoryIsActive) {
+      categoryOptions.push({ value: String(currentCategoryId), label: benefit.category || t('formCategoryLabel') });
+    }
+    if (legacyCategory) {
+      categoryOptions.push({ value: 'legacy', label: benefit.category });
+    }
     return [
       {
         name: 'name',
@@ -125,6 +138,13 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
         required: false,
         value: benefit?.description || '',
         minHeight: 120,
+      },
+      {
+        name: 'categoryId',
+        label: t('formCategoryLabel'),
+        type: 'select',
+        value: currentCategoryId ? String(currentCategoryId) : legacyCategory ? 'legacy' : '',
+        options: categoryOptions,
       },
       {
         name: 'benefitType',
@@ -229,6 +249,8 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
   async function handleCreate() {
     if (categories.length === 0) {
       toast(t('noCategories'), 'info');
+      setCategoriesOpen(true);
+      return;
     }
     const result = await promptForm({
       title: t('formTitle'),
@@ -244,6 +266,7 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
           withCompanyBody({
             name: result.name,
             description: result.description,
+            categoryId: result.categoryId ? Number(result.categoryId) : null,
             benefitType: result.benefitType,
           })
         ),
@@ -268,6 +291,13 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
     if (!result) return;
 
     try {
+      const categoryId = result.categoryId && result.categoryId !== 'legacy'
+        ? Number(result.categoryId)
+        : null;
+      const currentCategoryIsInactive = benefit.categoryId &&
+        !categories.some((cat) => String(cat.id) === String(benefit.categoryId));
+      const categoryChanged = result.categoryId !== 'legacy' &&
+        (!currentCategoryIsInactive || categoryId !== Number(benefit.categoryId));
       const res = await fetch(`/api/admin/company-benefits/${benefit.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -275,6 +305,7 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
           withCompanyBody({
             name: result.name,
             description: result.description,
+            ...(categoryChanged ? { categoryId } : {}),
             benefitType: result.benefitType,
           })
         ),

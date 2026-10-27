@@ -6,8 +6,8 @@ import crypto from 'node:crypto';
 import * as status from '../../lib/domain-status.js';
 import * as magic from '../../lib/file-magic.js';
 import { ERR } from '../../lib/api-error-codes.js';
-import { DP_ADDRESS_NUMBER_MAX_LENGTH } from '../../lib/dp-profile-constants.js';
-import * as dpUpload from '../../lib/dp-upload-validation.js';
+import { DP_ADDRESS_NUMBER_MAX_LENGTH } from '../../lib/assessment/dp-profile-constants.js';
+import * as dpUpload from '../../lib/assessment/dp-upload-validation.js';
 import * as auditChanges from '../../lib/audit-changes.js';
 import { normalizeDependentRelation, normalizeEmergencyRelation } from '../../lib/kinship-relation.js';
 

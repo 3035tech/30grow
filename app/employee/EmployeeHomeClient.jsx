@@ -28,8 +28,8 @@ import { EmployeeFormalReviewsSection } from '../_components/EmployeeFormalRevie
 import { EmployeeWelcomeCard } from '../_components/EmployeeWelcomeCard';
 import { EmployeeDedicatedShell } from '../_components/EmployeeDedicatedShell';
 import { EMPLOYEE_NAV_ITEMS } from '../_components/EmployeeSidebar';
-import { redirectEmployeeIfUnauthorized } from '../../lib/employee-client-session';
-import { employeeSectionAllowedByCompanyModules, employeeSectionVisible } from '../../lib/company-modules';
+import { redirectEmployeeIfUnauthorized } from '../../lib/employee/employee-client-session';
+import { employeeSectionAllowedByCompanyModules, employeeSectionVisible } from '../../lib/company/company-modules';
 
 /** Home sections (dedicated LMS/DP/ponto live on their own routes). */
 const SECTION_KEYS = [

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveCompanyLinkByToken } from '../../../../lib/public-company-link';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 
 export async function GET(request) {
   const ip = clientIpFromRequest(request);

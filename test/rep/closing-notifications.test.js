@@ -6,8 +6,8 @@ import {
   EMPLOYEE_NOTIF,
   employeeNotificationCopySpec,
   employeeNotificationHref,
-} from '../../lib/employee-notification-catalog.js';
-import { mobilePushDestinationFor } from '../../lib/mobile-employee-push.js';
+} from '../../lib/employee/employee-notification-catalog.js';
+import { mobilePushDestinationFor } from '../../lib/mobile/mobile-employee-push.js';
 import { ERR } from '../../lib/api-error-codes.js';
 import { parseIsoDay } from '../../lib/people/time-day-summary.js';
 async function fixture(report) {

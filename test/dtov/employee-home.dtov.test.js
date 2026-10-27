@@ -4,7 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import { query, pool } from '../../lib/db.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import { EMPLOYMENT_STATUS, DEVELOPMENT_PLAN_ITEM_STATUS, DEVELOPMENT_PLAN_STATUS } from '../../lib/domain-status.js';
 import {
   completeEmployeePasswordSetup,
@@ -16,19 +16,19 @@ import {
   peekEmployeePasswordSetupToken,
   signEmployeeToken,
   verifyEmployeeToken,
-} from '../../lib/employee-auth.js';
-import { dismissEmployeeWelcome, getEmployeeHome } from '../../lib/employee-home.js';
+} from '../../lib/employee/employee-auth.js';
+import { dismissEmployeeWelcome, getEmployeeHome } from '../../lib/employee/employee-home.js';
 import {
   employeeAckOnboardingItem,
   getEmployeeOnboardingJourney,
 } from '../../lib/people/employee-onboarding-journey.js';
 import { setPreOnboardingMeetUrl } from '../../lib/people/pre-onboarding.js';
-import { updateEmployeePdiItemStatus } from '../../lib/employee-pdi.js';
+import { updateEmployeePdiItemStatus } from '../../lib/employee/employee-pdi.js';
 import {
   EMPLOYEE_NOTIF,
   notifyCandidate,
   listCandidateNotifications,
-} from '../../lib/employee-notifications.js';
+} from '../../lib/employee/employee-notifications.js';
 import {
   addDevelopmentPlanItem,
   createDevelopmentPlan,
@@ -39,7 +39,7 @@ import {
   createLmsLesson,
   enrollLmsCandidates,
   lmsEmbedUrl,
-} from '../../lib/lms.js';
+} from '../../lib/development/lms.js';
 
 async function main() {
   const emp = await query(
@@ -165,7 +165,7 @@ async function main() {
       assert.ok(multi.pickToken);
       assert.ok(Array.isArray(multi.companies) && multi.companies.length >= 2);
       assert.ok(multi.companies.every((c) => c.companyName));
-      const { completeEmployeeCompanyPick } = await import('../../lib/employee-auth.js');
+      const { completeEmployeeCompanyPick } = await import('../../lib/employee/employee-auth.js');
       const picked = await completeEmployeeCompanyPick(query, {
         pickToken: multi.pickToken,
         candidateId: person.candidateId,

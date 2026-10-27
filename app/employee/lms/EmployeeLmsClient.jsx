@@ -17,7 +17,7 @@ import { StatusToneChip } from '../../_components/StatusToneChip';
 import { FormField } from '../../_components/FormField';
 import { LmsMediaPlayer } from '../../_components/LmsMediaPlayer';
 import { RichTextView } from '../../_components/RichTextView';
-import { redirectEmployeeIfUnauthorized } from '../../../lib/employee-client-session';
+import { redirectEmployeeIfUnauthorized } from '../../../lib/employee/employee-client-session';
 
 function dueLabel(locale, course) {
   if (!course?.dueDate || course.isComplete) return null;

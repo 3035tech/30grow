@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { AppFeedbackProvider, useAppFeedback } from '../../../../app/_components/AppFeedback';
 import { PipelineExtrasProvider, usePipelineExtras } from '../../../../app/dashboard/PipelineExtrasContext';
-import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../../lib/onboarding-stage-selection';
+import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../../lib/development/onboarding-stage-selection';
 import { t } from '../../../../lib/i18n';
 import { useEmployeeAdmission } from '../../../../app/_components/useEmployeeAdmission';
 function Controls() {

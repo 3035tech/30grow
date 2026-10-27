@@ -9,7 +9,7 @@ import {
   DEFAULT_PRE_ONBOARDING_TEMPLATE,
   PRE_ONBOARDING_OWNER_ROLES,
 } from '../../lib/people/pre-onboarding-template.js';
-import { LMS_TRAIL_CAP } from '../../lib/lms-job-role-trail.js';
+import { LMS_TRAIL_CAP } from '../../lib/development/lms-job-role-trail.js';
 
 describe('journey P0 constants', () => {
   it('exposes terminate experience outcome', () => {

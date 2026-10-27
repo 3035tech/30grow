@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
-import { CAP, EMPLOYEE_SEARCH_CAPS } from '../../../../../lib/permissions.js';
+import { CAP, EMPLOYEE_SEARCH_CAPS } from '../../../../../lib/identity/permissions.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import { searchCompanyEmployees } from '../../../../../lib/people/search-employees.js';
 

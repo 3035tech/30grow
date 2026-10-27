@@ -1,7 +1,7 @@
 'use client';
 
 import { t, t as i18nT } from '../../lib/i18n';
-import { BR_STATES, AVAILABILITY_VALUES, SOURCE_VALUES } from '../../lib/candidate-profile';
+import { BR_STATES, AVAILABILITY_VALUES, SOURCE_VALUES } from '../../lib/recruiting/candidate-profile';
 import { salaryToCentsDigits, stripSalary, formatSalaryBr } from '../../lib/br-masks';
 import { formatDisplayDate } from '../../lib/format-display-date';
 import { S, AdminEditButton } from '../dashboard/dashboard-shared';

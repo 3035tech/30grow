@@ -1,13 +1,13 @@
-import { isSuperAdminPayload } from '../../../lib/permissions.js';
+import { isSuperAdminPayload } from '../../../lib/identity/permissions.js';
 import { NextResponse } from 'next/server';
 import { queryRead } from '../../../lib/db';
-import { COOKIE_NAME } from '../../../lib/auth';
+import { COOKIE_NAME } from '../../../lib/identity/auth';
 import { cookies } from 'next/headers';
-import { checkRateLimit, clientIpFromRequest } from '../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../lib/identity/rate-limit';
 import { apiError, ERR } from '../../../lib/api-error';
-import { JOB_ATTR_COOKIE } from '../../../lib/job-attribution';
-import { normalizeAssessmentTelemetry, submitAssessmentResult } from '../../../lib/assessment-submit';
-import { verifySessionWithCapabilities } from '../../../lib/session';
+import { JOB_ATTR_COOKIE } from '../../../lib/recruiting/job-attribution';
+import { normalizeAssessmentTelemetry, submitAssessmentResult } from '../../../lib/assessment/assessment-submit';
+import { verifySessionWithCapabilities } from '../../../lib/identity/session';
 
 
 // POST /api/results — salva resultado de um candidato (com área)

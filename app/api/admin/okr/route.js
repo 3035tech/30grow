@@ -10,7 +10,7 @@ import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { audit } from '../../../../lib/audit.js';
 import { OKR_OBJECTIVE_LEVELS } from '../../../../lib/domain-status.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
-import { createOkrObjective, listOkrTree } from '../../../../lib/okr.js';
+import { createOkrObjective, listOkrTree } from '../../../../lib/development/okr.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

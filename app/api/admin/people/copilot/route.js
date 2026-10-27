@@ -11,8 +11,8 @@ import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../l
 import { audit, auditRequestContext } from '../../../../../lib/audit.js';
 import { queryRead } from '../../../../../lib/db.js';
 import { normalizeLocale } from '../../../../../lib/i18n.js';
-import { CAP } from '../../../../../lib/permissions.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import {
   COPILOT_QUESTION,
   COPILOT_QUESTIONS,

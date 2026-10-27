@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile/mobile-employee-session.js';
 import { lookupCep } from '../../../../../../../lib/br-cep.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 const LOOKUP_LIMIT = 30;

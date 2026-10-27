@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
-import { CAP, requireCapability } from '../../../../lib/permissions.js';
+import { CAP, requireCapability } from '../../../../lib/identity/permissions.js';
 import { ROSTER_SCOPE, ROSTER_SCOPE_SET } from '../../../../lib/domain-status.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 import { audit, auditRequestContext } from '../../../../lib/audit.js';
 import {
   ABSENCE_DIAG_Q_MAX,

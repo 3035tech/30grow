@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import {
   listCandidateLmsCourses,
   completeLmsLesson,
   uncompleteLmsLesson,
   upsertLmsWatchProgress,
-} from '../../../../lib/lms.js';
+} from '../../../../lib/development/lms.js';
 import {
   getLessonQuiz,
   submitLessonQuiz,
-} from '../../../../lib/lms-quiz.js';
+} from '../../../../lib/development/lms-quiz.js';
 
 export const dynamic = 'force-dynamic';
 

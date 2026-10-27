@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { notifyLmsOverdueEnrollments } from '../../lib/lms.js';
+import { notifyLmsOverdueEnrollments } from '../../lib/development/lms.js';
 
 test('overdue cron uses the supplied database and scopes notifications to each company', async () => {
   const calls = [];

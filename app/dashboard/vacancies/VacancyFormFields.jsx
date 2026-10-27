@@ -4,7 +4,7 @@ import { cn } from '../../../lib/cn';
 import { t, contentLocale } from '../../../lib/i18n';
 import { formatSalaryBr, digitsOnly } from '../../../lib/br-masks';
 import { VACANCY_STATUS } from '../../../lib/domain-status.js';
-import { VACANCY_EMPLOYMENT_TYPES, employmentTypeLabelKey } from '../../../lib/vacancy-employment-type';
+import { VACANCY_EMPLOYMENT_TYPES, employmentTypeLabelKey } from '../../../lib/recruiting/vacancy-employment-type';
 import { FormField } from '../../_components/FormField';
 import { SelectField } from '../../_components/SelectField';
 import { DateField } from '../../_components/DateField';

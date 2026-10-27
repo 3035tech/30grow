@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth.js';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities.js';
+import { COOKIE_NAME } from '../../../../lib/identity/auth.js';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/permissions.js';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../lib/identity/permissions.js';
 import { queryRead } from '../../../../lib/db.js';
-import { getPlaybooksForTab } from '../../../../lib/persona-playbook-progress.js';
+import { getPlaybooksForTab } from '../../../../lib/development/persona-playbook-progress.js';
 
 export const dynamic = 'force-dynamic';
 

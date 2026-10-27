@@ -7,7 +7,7 @@ import {
   publicAppUrl,
   requireCapability,
 } from '../../../../../../lib/ae/require-admin';
-import { resendUserPasswordInvite } from '../../../../../../lib/users-admin';
+import { resendUserPasswordInvite } from '../../../../../../lib/identity/users-admin';
 
 export const dynamic = 'force-dynamic';
 

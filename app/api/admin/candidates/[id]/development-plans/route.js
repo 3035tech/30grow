@@ -118,7 +118,7 @@ export async function POST(request, props) {
     });
 
     try {
-      const { notifyCandidate, EMPLOYEE_NOTIF } = await import('../../../../../../lib/employee-notifications.js');
+      const { notifyCandidate, EMPLOYEE_NOTIF } = await import('../../../../../../lib/employee/employee-notifications.js');
       await notifyCandidate(query, {
         companyId: loaded.candidate.companyId,
         candidateId: Number(candidateId),

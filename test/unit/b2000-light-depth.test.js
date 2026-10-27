@@ -3,7 +3,7 @@
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { relativeWeightsToPercentRubric } from '../../lib/rubric-prompt.js';
+import { relativeWeightsToPercentRubric } from '../../lib/recruiting/rubric-prompt.js';
 
 describe('b2000 helpers still importable', () => {
   it('relativeWeightsToPercentRubric sanity (shared util)', () => {

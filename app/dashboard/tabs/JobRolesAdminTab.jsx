@@ -7,7 +7,7 @@ import { useListUrlState } from '../hooks/useListUrlState';
 import { useEffect, useMemo, useState } from 'react';
 import { t, contentLocale } from '../../../lib/i18n';
 import { cn } from '../../../lib/cn';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import {
   AdminActionsCell,
   AdminActionsTh,

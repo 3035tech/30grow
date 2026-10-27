@@ -9,8 +9,8 @@ import {
   lmsPdfCanEmbed,
   lmsYoutubeVideoId,
   lmsVimeoVideoId,
-} from '../../lib/lms.js';
-import { LMS_QUIZ_MAX_QUESTIONS } from '../../lib/lms-quiz.js';
+} from '../../lib/development/lms.js';
+import { LMS_QUIZ_MAX_QUESTIONS } from '../../lib/development/lms-quiz.js';
 
 assert.equal(inferLmsContentKind('https://youtu.be/abc'), 'youtube');
 assert.equal(inferLmsContentKind('https://vimeo.com/1'), 'vimeo');

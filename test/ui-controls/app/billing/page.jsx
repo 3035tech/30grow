@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { BillingTab } from '../../../../app/_components/BillingTab';
 import { CompanyLicenseSummary } from '../../../../app/_components/CompanyLicenseSummary';
-import { companyLicenseSummary } from '../../../../lib/company-license';
+import { companyLicenseSummary } from '../../../../lib/company/company-license';
 const original = companyLicenseSummary({ licenseNumber:'7',licenseStartsAt:'2025-01-01T00:00:00Z',licenseExpiresAt:'2025-02-01T00:00:00Z',licenseExpired:true,licenseOfferTier:'trial',licenseTrialDays:30 });
 export default function BillingPreview() {
   const [license,setLicense]=useState(original);

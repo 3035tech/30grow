@@ -3,11 +3,11 @@ import { withAdminApi } from '../../../../lib/admin-api.js';
 import { CAP } from '../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
-import { listCompanyModuleCatalog, modulesSelectionForPersist } from '../../../../lib/company-modules.js';
+import { listCompanyModuleCatalog, modulesSelectionForPersist } from '../../../../lib/company/company-modules.js';
 import {
   getCompanyEnabledModules,
   setCompanyEnabledModules,
-} from '../../../../lib/company-module-entitlements.js';
+} from '../../../../lib/company/company-module-entitlements.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
 
 const querySchema = z.object({

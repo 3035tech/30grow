@@ -9,9 +9,9 @@ import {
   createSuccessionPlan,
   listCompanySuccessionPlans,
   listSuccessors,
-} from '../../lib/succession-plans.js';
-import { recalculateCompanyScores } from '../../lib/hr-score.js';
-import { hydrateSessionPayload } from '../../lib/session.js';
+} from '../../lib/development/succession-plans.js';
+import { recalculateCompanyScores } from '../../lib/assessment/hr-score.js';
+import { hydrateSessionPayload } from '../../lib/identity/session.js';
 import { EMPLOYMENT_STATUS, SUCCESSION_READINESS } from '../../lib/domain-status.js';
 
 const PERF_INDEXES = [

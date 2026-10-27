@@ -14,9 +14,9 @@ const {
   listOrgPositions,
   getOrgPositionHistory,
 } = await import('../../lib/people/org-positions.js');
-const { persistCandidateHire, markCandidateHired } = await import('../../lib/hire.js');
+const { persistCandidateHire, markCandidateHired } = await import('../../lib/recruiting/hire.js');
 const { assignOrgUnit, saveOrgUnit } = await import('../../lib/people/org-units.js');
-const { updateJobRole } = await import('../../lib/job-roles.js');
+const { updateJobRole } = await import('../../lib/recruiting/job-roles.js');
 const companies = [];
 let checks = 0;
 const check = (value, message) => {

@@ -5,7 +5,7 @@ import {
   getLearningResource,
   updateLearningResource,
   deactivateLearningResource,
-} from '../../../../../lib/learning-resources.js';
+} from '../../../../../lib/development/learning-resources.js';
 
 /**
  * GET /api/admin/learning-resources/[id] — get resource

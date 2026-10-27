@@ -1,7 +1,5 @@
 # Proposta — convite de boas-vindas ao colaborador
 
-> Atualização: proposta aprovada e implementada no lote `feat/employee-welcome-access`, incluindo prévia e confirmação. A publicação do código está em andamento. Conteúdo abaixo preservado como decisão original; estado e provas em [employee-access-and-climate-release.md](employee-access-and-climate-release.md).
-
 Proposta de conteúdo de 26/10/2026; ainda sem alteração do template de envio. Aplicável ao convite criado pela opção Enviar convite de acesso no cadastro do colaborador. A recuperação de senha permanece uma mensagem própria.
 
 ## Conteúdo proposto

@@ -6,9 +6,9 @@ assertDtovTarget(env);
 Object.assign(process.env, env);
 const { pool, query } = await import('../../lib/db.js');
 const { analyzeCandidateProfile, applyCandidateProfile } = await import(
-  '../../lib/candidate-profile-import.js'
+  '../../lib/recruiting/candidate-profile-import.js'
 );
-const { getCandidateCv } = await import('../../lib/candidate-cv.js');
+const { getCandidateCv } = await import('../../lib/recruiting/candidate-cv.js');
 let companyId;
 let checks = 0;
 const check = (condition, message) => {

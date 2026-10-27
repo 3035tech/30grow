@@ -7,14 +7,14 @@ import {
   ERR,
   httpStatusForError,
 } from '../../../../../../../../lib/api-error.js';
-import { createLmsLesson } from '../../../../../../../../lib/lms.js';
+import { createLmsLesson } from '../../../../../../../../lib/development/lms.js';
 import {
   isLmsStorageConfigured,
   uploadLmsLessonPdf,
   LMS_PDF_MAX_BYTES,
-} from '../../../../../../../../lib/lms-asset.js';
+} from '../../../../../../../../lib/development/lms-asset.js';
 import { audit } from '../../../../../../../../lib/audit.js';
-import { checkRateLimit } from '../../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../../lib/identity/rate-limit.js';
 
 export const runtime = 'nodejs';
 

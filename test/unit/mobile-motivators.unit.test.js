@@ -36,7 +36,7 @@ async function domain({ row = { id: 1, status: 'opened', definitionId: 1 }, stat
     AE_SCORING_ENGINE_VERSION: 'test', notifyCompanyManagers: async (_db, input) => notifications.push(input),
     NOTIF: { MOTIVATORS_COMPLETED: 'completed' }, buildManagementHypotheses: () => ({ retentionSignals: [] }),
   };
-  return { service: await load('../../lib/employee-motivators.js', dependencies), db, calls, notifications };
+  return { service: await load('../../lib/employee/employee-motivators.js', dependencies), db, calls, notifications };
 }
 
 test('foreign, expired and cancelled invites fail before loading questions or writing', async () => {

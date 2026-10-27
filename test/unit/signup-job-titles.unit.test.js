@@ -4,7 +4,7 @@ import {
   isSignupJobTitle,
   normalizeSignupJobTitle,
   SIGNUP_JOB_TITLE,
-} from '../../lib/signup-job-titles.js';
+} from '../../lib/marketing/signup-job-titles.js';
 
 describe('signup job title taxonomy', () => {
   it('keeps canonical roles stable for analytics', () => {

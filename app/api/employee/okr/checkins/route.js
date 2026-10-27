@@ -4,10 +4,10 @@
 
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../../lib/employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit.js';
-import { createOkrActivityCheckin } from '../../../../../lib/okr-cycles.js';
-import { recordKeyResultCheckin } from '../../../../../lib/okr-hierarchy.js';
+import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
+import { createOkrActivityCheckin } from '../../../../../lib/development/okr-cycles.js';
+import { recordKeyResultCheckin } from '../../../../../lib/development/okr-hierarchy.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 
 export const dynamic = 'force-dynamic';

@@ -1,5 +1,5 @@
 import { t } from '../../../lib/i18n';
-import { unsubscribeJobAlert } from '../../../lib/job-alerts';
+import { unsubscribeJobAlert } from '../../../lib/recruiting/job-alerts';
 import { BrandMark } from '../../_components/BrandMark';
 import Link from 'next/link';
 

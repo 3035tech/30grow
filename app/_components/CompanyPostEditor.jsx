@@ -8,7 +8,7 @@ import { CompanyPostAttachments, postAttachmentUrl } from './CompanyPostAttachme
 import { useAppFeedback } from './AppFeedback';
 import { S } from '../dashboard/dashboard-shared';
 import { t,errorMessage } from '../../lib/i18n';
-import { POST_FILE_ACCEPT,POST_FILE_MAX_COUNT,postFileSelectionError } from '../../lib/company-post-file-rules';
+import { POST_FILE_ACCEPT,POST_FILE_MAX_COUNT,postFileSelectionError } from '../../lib/company/company-post-file-rules';
 
 export function CompanyPostEditor({post=null,companyId,locale='pt-BR',onClose,onSaved}){
  const {confirm}=useAppFeedback();

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';
-import { PLAYBOOK_IDS } from '../../lib/persona-playbooks.js';
+import { PLAYBOOK_IDS } from '../../lib/development/persona-playbooks.js';
 import { DisclosureToggle } from './CollapsibleBlock';
 import { MeterBar } from './MeterBar';
 

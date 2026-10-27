@@ -4,7 +4,7 @@ Referência funcional do produto, organizada por área. O README traz a visão g
 
 Convenções que valem para todos os módulos:
 
-- Isolamento por `company_id` (só `admin` é cross-tenant). Acesso por capability em `lib/permissions.js` (`CAP`).
+- Isolamento por `company_id` (só `admin` é cross-tenant). Acesso por capability em `lib/identity/permissions.js` (`CAP`).
 - Links públicos por token (`/t`, `/v`, `/r`, `/e`, `/prep`, `/clima`, `/ouvidoria`, `/feedback`) ficam fora do ACL de gestor.
 - Perfis e leituras usam linguagem de hipótese (“tende a”, “há indícios”); T1–T9 **não** é diagnóstico clínico.
 
@@ -38,7 +38,7 @@ Convenções que valem para todos os módulos:
 
 ### Planos, módulos e licenças
 
-- Página `/pricing` com calculadora por faixa de colaboradores ativos: preço fixo por faixa, equivalente por pessoa até 200 colaboradores; acima disso a página mostra "sob consulta" e troca o CTA de cadastro por contato comercial (tabela única `PUBLIC_PRICING_TIERS` em `lib/pricing-currency.js`).
+- Página `/pricing` com calculadora por faixa de colaboradores ativos: preço fixo por faixa, equivalente por pessoa até 200 colaboradores; acima disso a página mostra "sob consulta" e troca o CTA de cadastro por contato comercial (tabela única `PUBLIC_PRICING_TIERS` em `lib/marketing/pricing-currency.js`).
 - Módulos por empresa (`company_modules`): seleção vazia = só `core`; `NULL` = legado irrestrito. Remuneração é módulo sensível separado (`compensation.view` / `compensation.manage`, migration `112`).
 - Detalhe: [`company-modules.md`](company-modules.md), [`company-licenses.md`](company-licenses.md).
 
@@ -63,7 +63,7 @@ Convenções que valem para todos os módulos:
 
 ### Candidatos e avaliação
 
-- Assessment por link: `/t/<token>` (empresa) ou `/v/<token>` (vaga, noindex). `POST /api/results` grava no Postgres; scoring no servidor (`lib/assessment-score.js`).
+- Assessment por link: `/t/<token>` (empresa) ou `/v/<token>` (vaga, noindex). `POST /api/results` grava no Postgres; scoring no servidor (`lib/assessment/assessment-score.js`).
 - Pessoa = `candidates` (`company_id` + e-mail). Eneagrama, Motivadores e 1:1 no mesmo `candidate_id`.
 - **Motivadores** (Assessment Engine, `lib/ae/`): convite, resultado, sugestões “faça / evite”, sinal de retenção.
 - **Preparação de entrevista** (`/prep/<token>`): perguntas para o candidato; RH vê “Preparou-se” (migration `086`).

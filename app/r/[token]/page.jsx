@@ -12,7 +12,7 @@ import { typeFullName, typeHintTooltip, typeShortLabel } from '../../../lib/type
 import { RichTextView } from '../../_components/RichTextView';
 import { isRichTextEmpty } from '../../../lib/sanitize-html';
 import { motivatorDimensionLabel } from '../../../lib/ae/motivators-dimensions';
-import { recommendationFromStage } from '../../../lib/vacancy-report-shared';
+import { recommendationFromStage } from '../../../lib/recruiting/vacancy-report-shared';
 import { formatSalaryBr } from '../../../lib/br-masks';
 import { BrandPulseLoading, PublicFunnyError } from '../../_components/PublicStatusScreens';
 import { S } from '../../dashboard/dashboard-shared';

@@ -14,7 +14,7 @@ import { Icon } from './Icon';
 import { AppLoading } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';
 import { useEmployeeNav } from './EmployeeNavContext';
-import { redirectEmployeeIfUnauthorized } from '../../lib/employee-client-session';
+import { redirectEmployeeIfUnauthorized } from '../../lib/employee/employee-client-session';
 import { EmployeeLogoutButton } from './EmployeeLogoutButton';
 import { ProfileMenuTrigger, profileMenuPanelClass, profileMenuItemClass } from './ProfileUi';
 

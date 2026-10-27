@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { KUDO_REACTION_EMOJIS, KUDO_QUICK_REACTION_EMOJIS, supportsExpandedKudoReactions } from '../../lib/kudo-reaction-options.js';
-import { mobileCommunityBody } from '../../lib/mobile-employee-payload.js';
+import { mobileCommunityBody } from '../../lib/mobile/mobile-employee-payload.js';
 
 test('only an explicit capability opts an installed mobile client into the expanded domain', () => {
   assert.equal(supportsExpandedKudoReactions(new Request('https://example.test')), false);

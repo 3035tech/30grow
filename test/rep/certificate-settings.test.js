@@ -12,7 +12,7 @@ import {
   publicCertificateSettings,
 } from '../../lib/rep/certificate-settings.js';
 import { canManageDigitalCertificate } from '../../lib/rep/certificate-admin.js';
-import { parseDashboardTab } from '../../lib/assessment-filters.js';
+import { parseDashboardTab } from '../../lib/assessment/assessment-filters.js';
 const settings = {
   bucket: 'private-certificates',
   key: 'signing/a1.p12',

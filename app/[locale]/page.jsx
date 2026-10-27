@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import HomePage from '../page';
-import { publicMarketingRoute } from '../../lib/public-marketing-paths';
-import { buildProductLandingMetadata } from '../../lib/product-landing-seo';
+import { publicMarketingRoute } from '../../lib/marketing/public-marketing-paths';
+import { buildProductLandingMetadata } from '../../lib/marketing/product-landing-seo';
 
 async function routeLocale(params) {
   const { locale } = await params;

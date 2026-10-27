@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { COMPANY_LICENSE, companyLicenseSummary } from '../../lib/company-license.js';
+import { COMPANY_LICENSE, companyLicenseSummary } from '../../lib/company/company-license.js';
 import { t } from '../../lib/i18n.js';
 import { HELP_GUIDE_GROUPS, TAB_BY_HELP_SECTION, validateHelpGuideCoverage } from '../../lib/help-sections.js';
 

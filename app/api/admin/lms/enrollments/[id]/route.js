@@ -7,7 +7,7 @@ import {
   removeLmsEnrollment,
   resetLmsEnrollmentProgress,
   updateLmsEnrollment,
-} from '../../../../../../lib/lms.js';
+} from '../../../../../../lib/development/lms.js';
 import { audit } from '../../../../../../lib/audit.js';
 
 const patchSchema = z.object({

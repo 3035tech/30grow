@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { LOCALE_COOKIE, normalizeLocale, t, localeHtmlLang } from '../../lib/i18n';
-import { normalizeEmploymentType } from '../../lib/vacancy-employment-type';
-import { normalizeWorkplaceModality } from '../../lib/vacancy-workplace';
+import { normalizeEmploymentType } from '../../lib/recruiting/vacancy-employment-type';
+import { normalizeWorkplaceModality } from '../../lib/recruiting/vacancy-workplace';
 import {
   defaultPublicOgImageUrl,
   listOpenPublicVacancies,
@@ -13,7 +13,7 @@ import {
   resolveRemoteAggregator,
 } from '../../lib/public-job-aggregators';
 import { PublicVacanciesIndexView } from '../_components/PublicVacancyPosting';
-import { publicSiteBaseUrl } from '../../lib/public-site-url.js';
+import { publicSiteBaseUrl } from '../../lib/marketing/public-site-url.js';
 
 export async function generateMetadata({ searchParams } = {}) {
   const locale = normalizeLocale(await (await cookies()).get(LOCALE_COOKIE)?.value);

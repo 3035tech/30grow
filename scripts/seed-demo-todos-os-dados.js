@@ -31,14 +31,14 @@ import { createRequire } from 'node:module';
 import { getPgBaseConfig } from '../lib/pg-config.js';
 import { MOTIVATORS_DIMENSIONS, motivatorDimensionLabel } from '../lib/ae/motivators-dimensions.js';
 import { AE_SCORING_ENGINE_VERSION } from '../lib/ae/ae-id.js';
-import { computeAreaScore010 } from '../lib/area-fit.js';
+import { computeAreaScore010 } from '../lib/assessment/area-fit.js';
 import {
   fitTypeAlignment,
   normalizeRecommendation,
   normalizeReportWeights,
   recommendationFromStage,
   rubricWeightedTypes,
-} from '../lib/vacancy-report-shared.js';
+} from '../lib/recruiting/vacancy-report-shared.js';
 import { isRichTextEmpty, sanitizeRichTextHtml } from '../lib/sanitize-html.js';
 import { seedTodosOsDadosModules, MODULE_TOK } from './seed-demo-todos-os-dados-modules.js';
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { sanitizeLoginRedirect } from '../../lib/sanitize-login-redirect';
+import { sanitizeLoginRedirect } from '../../lib/identity/sanitize-login-redirect';
 import { errorMessage, t } from '../../lib/i18n';
 import { useLocale } from '../../lib/useLocale';
 import { cn } from '../../lib/cn';

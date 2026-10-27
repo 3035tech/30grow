@@ -1,10 +1,10 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { verifyToken, COOKIE_NAME } from '../../lib/auth';
+import { verifyToken, COOKIE_NAME } from '../../lib/identity/auth';
 import { queryRead } from '../../lib/db';
 import { normalizeLocale } from '../../lib/i18n';
-import { isManagerRole, isSuperAdminPayload } from '../../lib/permissions';
-import { attachCapabilityOverrides } from '../../lib/user-capabilities';
+import { isManagerRole, isSuperAdminPayload } from '../../lib/identity/permissions';
+import { attachCapabilityOverrides } from '../../lib/identity/user-capabilities';
 
 /**
  * Light auth for dashboard chrome (JWT + optional display name).

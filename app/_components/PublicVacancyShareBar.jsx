@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { buildJobShareCopy } from '../../lib/job-share-copy';
-import { employmentTypeLabelKey } from '../../lib/vacancy-employment-type';
+import { buildJobShareCopy } from '../../lib/recruiting/job-share-copy';
+import { employmentTypeLabelKey } from '../../lib/recruiting/vacancy-employment-type';
 
 const iconBtnClass =
   'inline-flex h-11 w-11 min-h-[44px] min-w-[44px] box-border cursor-pointer items-center justify-center rounded-xl p-0 no-underline';

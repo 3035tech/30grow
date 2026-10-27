@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { t } from '../../../lib/i18n';
 import { rejectionReasonLabel } from '../pipeline-prompts';
 import { PIPELINE_STAGE_COLORS } from '../../../lib/theme';
-import { OVERVIEW_FUNNEL_STAGES } from '../../../lib/overview-constants';
+import { OVERVIEW_FUNNEL_STAGES } from '../../../lib/analytics/overview-constants';
 import { cn } from '../../../lib/cn';
 import { S, AdminIconButton } from '../dashboard-shared';
 import { TeamBehavioralIntelBlock } from './TeamBehavioralIntelBlock';

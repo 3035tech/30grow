@@ -7,10 +7,10 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { getSessionPayload, getManagerScope, CAP, requireCapability } from '../../../../../lib/ae/require-admin.js';
-import { getAllTrends } from '../../../../../lib/analytics-trends.js';
-import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics-rate-limit.js';
+import { getAllTrends } from '../../../../../lib/analytics/analytics-trends.js';
+import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics/analytics-rate-limit.js';
 import { withApiLogging } from '../../../../../lib/monitoring.js';
-import { isValidAnalyticsMonths } from '../../../../../lib/analytics-query.js';
+import { isValidAnalyticsMonths } from '../../../../../lib/analytics/analytics-query.js';
 
 export async function GET(request) {
   const logContext = { operation: 'analytics.trends' };

@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { t, t as i18nT } from '../../lib/i18n';
-import { LOGO } from '../../lib/brand';
+import { LOGO } from '../../lib/marketing/brand';
 import { C } from '../../lib/theme';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';

@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
-import { completeEmployeeCompanyPick } from '../../../../../../../lib/employee-auth.js';
+import { completeEmployeeCompanyPick } from '../../../../../../../lib/employee/employee-auth.js';
 import {
   completeMobileEmployeeAuthentication,
   contextsFromSelectionToken,
   MOBILE_EMPLOYEE_AUTH_OUTCOME,
   signMobileEmployeeSecondFactor,
-} from '../../../../../../../lib/mobile-employee-session.js';
+} from '../../../../../../../lib/mobile/mobile-employee-session.js';
 import { query } from '../../../../../../../lib/db.js';
 import { parseJsonBody } from '../../../../../../../lib/validate.js';
 

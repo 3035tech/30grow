@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { zipSync, unzipSync } from 'fflate';
 import { ERR } from '../../lib/api-error-codes.js';
-import { CAP } from '../../lib/permissions.js';
+import { CAP } from '../../lib/identity/permissions.js';
 import { buildAfd } from '../../lib/rep/formats.js';
 const query = {
   establishmentId: 1,

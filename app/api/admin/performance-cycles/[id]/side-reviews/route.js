@@ -12,11 +12,11 @@ import {
   CAP,
   requireCapability,
 } from '../../../../../../lib/ae/require-admin.js';
-import { getPerformanceCycle } from '../../../../../../lib/performance-reviews.js';
+import { getPerformanceCycle } from '../../../../../../lib/development/performance-reviews.js';
 import {
   createSideReviewInvite,
   listSideReviewsForCandidate,
-} from '../../../../../../lib/performance-side-reviews.js';
+} from '../../../../../../lib/development/performance-side-reviews.js';
 import { audit } from '../../../../../../lib/audit.js';
 
 export async function GET(request, props) {

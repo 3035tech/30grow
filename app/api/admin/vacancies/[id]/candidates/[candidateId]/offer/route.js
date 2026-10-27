@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../../../lib/identity/auth';
 import { query, queryRead } from '../../../../../../../../lib/db';
 import { apiError, ERR } from '../../../../../../../../lib/api-error';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/permissions';
-import { verifySessionWithCapabilities } from '../../../../../../../../lib/user-capabilities';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/identity/permissions';
+import { verifySessionWithCapabilities } from '../../../../../../../../lib/identity/user-capabilities';
 import { updateCandidateOffer, mapOffer } from '../../../../../../../../lib/people/candidate-offer';
 import { audit } from '../../../../../../../../lib/audit';
 

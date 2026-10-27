@@ -7,7 +7,7 @@ import {
   createPipelineTemplate,
   createPipelineTemplateFromVacancy,
   listPipelineTemplates,
-} from '../../../../lib/pipeline-templates.js';
+} from '../../../../lib/recruiting/pipeline-templates.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
 
 const listQuerySchema = z.object({ companyId: zPositiveInt.optional() });

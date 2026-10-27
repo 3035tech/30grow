@@ -8,8 +8,8 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { getSessionPayload, CAP, requireCapability } from '../../../../../lib/ae/require-admin.js';
-import { isSuperAdminPayload } from '../../../../../lib/permissions.js';
-import { getHrScoreCacheMetrics } from '../../../../../lib/hr-score-cache.js';
+import { isSuperAdminPayload } from '../../../../../lib/identity/permissions.js';
+import { getHrScoreCacheMetrics } from '../../../../../lib/assessment/hr-score-cache.js';
 
 export async function GET(request) {
   try {

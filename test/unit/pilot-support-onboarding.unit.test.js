@@ -10,13 +10,13 @@ import {
   parseProductFeedbackListParams,
   SUPPORT_RESPONSE_BUSINESS_DAYS,
 } from '../../lib/product-feedback.js';
-import { COMPANY_MODULE, moduleForTab } from '../../lib/company-modules.js';
+import { COMPANY_MODULE, moduleForTab } from '../../lib/company/company-modules.js';
 import {
   ONBOARDING_EVENT,
   ONBOARDING_STEP,
   PRODUCT_FEEDBACK_STATUS,
 } from '../../lib/domain-status.js';
-import { normalizeFunnelDays, recordOnboardingEvent } from '../../lib/onboarding-funnel.js';
+import { normalizeFunnelDays, recordOnboardingEvent } from '../../lib/development/onboarding-funnel.js';
 
 describe('addSupportBusinessDays', () => {
   it('promises one business day by default', () => {

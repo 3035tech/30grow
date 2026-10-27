@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { t } from '../../../lib/i18n';
 import { S } from '../dashboard-shared';
-import { computeHireReadiness } from '../../../lib/hire-readiness';
+import { computeHireReadiness } from '../../../lib/recruiting/hire-readiness';
 
 /**
  * Compact advisory checklist before hire — progressive disclosure companion

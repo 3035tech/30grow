@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { REJECTION_REASONS, normalizeStartDate } from '../../lib/pipeline';
+import { REJECTION_REASONS, normalizeStartDate } from '../../lib/recruiting/pipeline';
 import { t } from '../../lib/i18n';
 import { rejectionReasonLabel } from './pipeline-prompts';
 import { DateField } from '../_components/DateField';

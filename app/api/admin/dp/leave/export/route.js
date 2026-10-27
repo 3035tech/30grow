@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../lib/admin-api.js';
 import { query } from '../../../../../../lib/db.js';
-import { CAP } from '../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../lib/identity/permissions.js';
 import { exportLeaveRequestsCsv } from '../../../../../../lib/people/employee-dp.js';
 
 /** GET /api/admin/dp/leave/export — CSV of leave inbox (filters via query) */

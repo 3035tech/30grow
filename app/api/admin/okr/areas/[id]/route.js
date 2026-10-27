@@ -9,7 +9,7 @@ import { CAP } from '../../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { audit } from '../../../../../../lib/audit.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';
-import { deleteOkrArea, updateOkrArea } from '../../../../../../lib/okr-cycles.js';
+import { deleteOkrArea, updateOkrArea } from '../../../../../../lib/development/okr-cycles.js';
 
 const patchBodySchema = z.object({
   companyId: zPositiveInt.optional(),

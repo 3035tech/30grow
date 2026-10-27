@@ -10,7 +10,7 @@ import { apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { audit } from '../../../../../../lib/audit.js';
 import { OKR_CYCLE_STATUSES } from '../../../../../../lib/domain-status.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';
-import { deleteOkrCycle, updateOkrCycle } from '../../../../../../lib/okr-cycles.js';
+import { deleteOkrCycle, updateOkrCycle } from '../../../../../../lib/development/okr-cycles.js';
 
 const patchBodySchema = z.object({
   companyId: zPositiveInt.optional(),

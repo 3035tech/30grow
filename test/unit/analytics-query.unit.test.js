@@ -5,7 +5,7 @@ import {
   isValidAnalyticsDate,
   isValidAnalyticsDateRange,
   isValidAnalyticsMonths,
-} from '../../lib/analytics-query.js';
+} from '../../lib/analytics/analytics-query.js';
 
 describe('analytics query bounds', () => {
   it('accepts bounded periods and rejects malformed or inverted dates', () => {

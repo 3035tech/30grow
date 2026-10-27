@@ -1,16 +1,16 @@
-import { candidateContact } from '../../../../../../lib/candidate-contact';
+import { candidateContact } from '../../../../../../lib/recruiting/candidate-contact';
 import crypto from 'crypto';
-import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../../../lib/identity/user-capabilities';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
 import { query } from '../../../../../../lib/db';
-import { ensureActiveVacancyLinkToken } from '../../../../../../lib/vacancy-link';
+import { ensureActiveVacancyLinkToken } from '../../../../../../lib/recruiting/vacancy-link';
 import { enqueueTransactionalMail } from '../../../../../../lib/mail';
-import { buildCandidateChallengeInviteMail } from '../../../../../../lib/candidate-challenge-invite-mail';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit';
+import { buildCandidateChallengeInviteMail } from '../../../../../../lib/recruiting/candidate-challenge-invite-mail';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit';
 import { apiError, localeFromRequest, ERR } from '../../../../../../lib/api-error';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/identity/permissions';
 import { publicAppUrl } from '../../../../../../lib/ae/require-admin';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

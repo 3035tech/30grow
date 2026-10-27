@@ -9,7 +9,7 @@ import { useLocale } from '../../../lib/useLocale';
 function VacancyEntryInner({ token, initial }) {
   const searchParams = useSearchParams();
   const inviteToken = String(searchParams?.get('invite') || '').trim();
-  const [locale] = useLocale();
+  const [locale, setLocale] = useLocale();
   const tokenValue = String(token || '').trim();
 
   useEffect(() => {
@@ -42,6 +42,7 @@ function VacancyEntryInner({ token, initial }) {
         }}
         startDisabled={true}
         initialLocale={locale}
+        onLocaleChange={setLocale}
       />
     );
   }
@@ -73,6 +74,7 @@ function VacancyEntryInner({ token, initial }) {
       startDisabled={isClosed}
       requireCandidateEmail={true}
       initialLocale={locale}
+      onLocaleChange={setLocale}
     />
   );
 }

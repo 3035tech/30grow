@@ -4,7 +4,7 @@ import { CAP } from '../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../lib/api-error.js';
 import { audit } from '../../../../../lib/audit.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
-import { listOkrHierarchy, saveAreaObjective, saveAreaKeyResult, recordKeyResultCheckin, listKeyResultCheckins, deleteAreaOkrEntity } from '../../../../../lib/okr-hierarchy.js';
+import { listOkrHierarchy, saveAreaObjective, saveAreaKeyResult, recordKeyResultCheckin, listKeyResultCheckins, deleteAreaOkrEntity } from '../../../../../lib/development/okr-hierarchy.js';
 
 const scope = { companyId: zPositiveInt.optional() };
 const objective = z.object({ ...scope, action:z.literal('objective'), objectiveId:zPositiveInt.optional(), areaId:zPositiveInt.optional(), title:z.string().trim().min(1).max(300), description:z.string().max(8000).optional(), ownerCandidateId:zPositiveInt.nullable().optional(), periodEnd:z.string() });

@@ -12,7 +12,7 @@ import {
   batchCreateMotivatorsInvites,
   listInternalMotivatorsInviteRoster,
 } from '../../../../../../lib/ae/batch-motivators-invites';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit';
 import { apiError, localeFromRequest, ERR } from '../../../../../../lib/api-error';
 import { audit } from '../../../../../../lib/audit';
 

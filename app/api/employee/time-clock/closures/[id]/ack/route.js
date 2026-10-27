@@ -5,8 +5,8 @@
 
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../../../../lib/employee-session.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { getEmployeeSessionPayload } from '../../../../../../../lib/employee/employee-session.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 import {
   CLOSURE_ACK_RATE_LIMIT,
   CLOSURE_ACK_RATE_WINDOW_MS,

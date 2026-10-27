@@ -7,9 +7,9 @@ import crypto from 'node:crypto';
 import { z } from 'zod';
 import * as domainStatus from '../../lib/domain-status.js';
 import * as fileMagic from '../../lib/file-magic.js';
-import * as dpUpload from '../../lib/dp-upload-validation.js';
+import * as dpUpload from '../../lib/assessment/dp-upload-validation.js';
 import * as boundedMultipart from '../../lib/bounded-multipart.js';
-import * as notificationCatalog from '../../lib/employee-notification-catalog.js';
+import * as notificationCatalog from '../../lib/employee/employee-notification-catalog.js';
 import { ERR, HTTP_STATUS } from '../../lib/api-error-codes.js';
 import { normalizeDependentRelation, normalizeEmergencyRelation } from '../../lib/kinship-relation.js';
 
@@ -45,7 +45,7 @@ test('colleague search: strict input, bounded page, no email and authenticated t
 });
 test('shared colleague query retains web defaults and applies parameterized stable offset/search', async () => {
   const calls = [];
-  const domain = await moduleAt('../../lib/company-kudos.js', { loadKudoReactionSummaries: async () => new Map(), asDb: (db) => db, query: null, ERR, ...domainStatus });
+  const domain = await moduleAt('../../lib/company/company-kudos.js', { loadKudoReactionSummaries: async () => new Map(), asDb: (db) => db, query: null, ERR, ...domainStatus });
   const db = { query: async (sql, values) => { calls.push({ sql, values }); return { rows: [] }; } };
   await domain.searchEmployeeColleagues(db, { companyId: 2, excludeCandidateId: 20 });
   assert.deepEqual([...calls[0].values], [2, 20, 20, 0]);
@@ -114,7 +114,7 @@ test('attachment domain checks employee/company/leave and storage prefix; upload
 });
 test('native push keeps legacy destination but sends only generic copy and an opaque reference', async () => {
   let sent;
-  const domain = await moduleAt('../../lib/mobile-employee-push.js', { asDb: (db) => db, query: null, ...notificationCatalog }, { fetch: async (_url, options) => { sent = JSON.parse(options.body); return { ok: true }; } });
+  const domain = await moduleAt('../../lib/mobile/mobile-employee-push.js', { asDb: (db) => db, query: null, ...notificationCatalog }, { fetch: async (_url, options) => { sent = JSON.parse(options.body); return { ok: true }; } });
   const db = { query: async (sql, values) => { assert.match(sql, /candidate_id = \$1 AND company_id = \$2/); assert.deepEqual([...values], [10, 1]); return { rows: [{ token: 'ExpoPushToken[test]' }] }; } };
   await domain.sendMobileEmployeePush(db, { candidateId: 10, companyId: 1, destination: 'dp', notificationId: 99, title: 'Sensitive', body: 'Health details' });
   assert.equal(sent[0].data.notificationId, '99'); assert.equal(sent[0].data.url, 'team30://workspace?destination=dp');
@@ -122,7 +122,7 @@ test('native push keeps legacy destination but sends only generic copy and an op
 });
 test('notification reference lookup binds both tenant and recipient; fanout emits only inserted recipient/ID pairs', async () => {
   const sends = [], calls = [];
-  const domain = await moduleAt('../../lib/employee-notifications.js', { asDb: (db) => db, query: null, ERR, ...domainStatus, ...notificationCatalog, mobilePushDestinationFor: () => 'lms', sendMobileEmployeePush: async (_db, input) => sends.push(input) });
+  const domain = await moduleAt('../../lib/employee/employee-notifications.js', { asDb: (db) => db, query: null, ERR, ...domainStatus, ...notificationCatalog, mobilePushDestinationFor: () => 'lms', sendMobileEmployeePush: async (_db, input) => sends.push(input) });
   const db = { query: async (sql, values) => { calls.push({ sql, values }); return { rows: sql.includes('COUNT') ? [{ n: 0, total: 0 }] : [] }; } };
   await domain.listCandidateNotifications(db, { companyId: 2, candidateId: 20, id: '99' });
   assert.deepEqual([...calls[0].values], [2, 20, 20, 0, '99']); assert.match(calls[0].sql, /company_id = \$1 AND recipient_candidate_id = \$2\s+AND id = \$5/);

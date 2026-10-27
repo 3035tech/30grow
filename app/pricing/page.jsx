@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { LOCALES, normalizeLocale } from '../../lib/i18n';
-import { buildPricingJsonLd, buildPricingMetadata } from '../../lib/pricing-plans';
-import { getPublicHeaderCopy } from '../../lib/product-landing-seo';
+import { buildPricingJsonLd, buildPricingMetadata } from '../../lib/marketing/pricing-plans';
+import { getPublicHeaderCopy } from '../../lib/marketing/product-landing-seo';
 import PricingPageClient from '../_components/PricingPageClient';
 
 export const dynamic = 'force-dynamic';

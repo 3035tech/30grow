@@ -7,13 +7,13 @@ import { RichTextView } from './RichTextView';
 import { isRichTextEmpty } from '../../lib/sanitize-html';
 import { t, errorMessage } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { brandMarkSrc } from '../../lib/brand';
-import { employmentTypeLabelKey } from '../../lib/vacancy-employment-type';
+import { brandMarkSrc } from '../../lib/marketing/brand';
+import { employmentTypeLabelKey } from '../../lib/recruiting/vacancy-employment-type';
 import {
   formatWorkplaceLabel,
   VACANCY_WORKPLACE_MODALITIES,
   workplaceModalityLabelKey,
-} from '../../lib/vacancy-workplace';
+} from '../../lib/recruiting/vacancy-workplace';
 import { formatVacancySalaryRangeDisplay } from '../../lib/br-masks';
 import { PublicVacancyShareBar } from './PublicVacancyShareBar';
 import { FormField, formFieldRowClass } from './FormField';

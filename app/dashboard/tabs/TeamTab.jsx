@@ -1,6 +1,6 @@
 'use client';
 
-import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../lib/onboarding-stage-selection.js';
+import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../lib/development/onboarding-stage-selection.js';
 
 import { ScoreExplanation } from '../../_components/ScoreExplanation';
 import { PersonOperationalSummary } from '../../_components/PersonOperationalSummary';
@@ -28,6 +28,7 @@ import { usePipelineExtras } from '../PipelineExtrasContext';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { CandidateTagsProvider, CandidateTags } from '../CandidateTags';
 import { AdminRichFormDrawer } from '../../_components/AdminRichFormDrawer';
+import { EmployeeCsvImport } from '../../_components/EmployeeCsvImport';
 import { EnneagramCross } from '../../_components/EnneagramCross';
 import { RowActionsMenu } from '../../_components/RowActionsMenu';
 import { TypeScoreChart } from '../../_components/TypeScoreChart';
@@ -50,15 +51,14 @@ import { MotivatorsRadarChart } from '../../_components/MotivatorsRadarChartLazy
 import { InlineCallout } from '../../_components/InlineCallout';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { useRehireEmployee } from '../../_components/useRehireEmployee';
-import { EmployeeCsvImport, EmployeeCsvTemplateLink } from '../../_components/EmployeeCsvImport';
 import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
 import { formatDisplayDate } from '../../../lib/format-display-date.js';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { isRichTextEmpty } from '../../../lib/sanitize-html';
-import { clusterCloseTypes, rankEnneagramScores } from '../../../lib/enneagram-cross';
-import { buildProfileSynthesis } from '../../../lib/profile-synthesis';
+import { clusterCloseTypes, rankEnneagramScores } from '../../../lib/assessment/enneagram-cross';
+import { buildProfileSynthesis } from '../../../lib/assessment/profile-synthesis';
 import { EMPLOYMENT_STATUS, ROSTER_SCOPE } from '../../../lib/domain-status.js';
-import { PIPELINE_STAGE, PIPELINE_STAGES, normalizeStartDate } from '../../../lib/pipeline';
+import { PIPELINE_STAGE, PIPELINE_STAGES, normalizeStartDate } from '../../../lib/recruiting/pipeline';
 import { DB_FANOUT_CONCURRENCY, mapWithConcurrency } from '../../../lib/concurrency';
 import {
   ABSENCE_SUGGESTION,
@@ -297,6 +297,7 @@ export function TeamTab({
   const [stageOverrides, setStageOverrides] = useState({});
   const [diagnoseBusy, setDiagnoseBusy] = useState(false);
   const [createEmployeeBusy, setCreateEmployeeBusy] = useState(false);
+  const [employeeImportOpen, setEmployeeImportOpen] = useState(false);
   const { requestPipelineExtras } = usePipelineExtras();
   const { confirm, notice, promptForm, toast } = useAppFeedback();
   const detailReqRef = useRef(null);
@@ -312,26 +313,12 @@ export function TeamTab({
     router.refresh();
   };
 
-  const previewEmployeeInvite = async (person, resend = false) => {
-    const response = await fetch('/api/admin/employees/invite-preview', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ companyId: Number(person.companyId || companyId), fullName: person.fullName, email: person.email, locale }),
-    });
-    const preview = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(preview.error || t(locale, 'panel.common.error'));
-    return confirm({ title: t(locale, 'employeeInvite.preview'),
-      message: `${person.email}\n\n${preview.subject}\n\n${preview.text}${resend ? `\n\n${t(locale, 'employeeInvite.resendHelp')}` : ''}`,
-      confirmLabel: t(locale, resend ? 'employeeInvite.resend' : 'employeeInvite.send'), preferCancel: true });
-  };
-
-  const [csvImportOpen, setCsvImportOpen] = useState(false);
   const createEmployeeDirect = async () => {
     if (!companyId || createEmployeeBusy) return;
     const values = await promptForm({
       title: t(locale, 'panel.team.addEmployeeTitle'),
       message: t(locale, 'panel.team.addEmployeeHint'),
       confirmLabel: t(locale, 'panel.team.addEmployeeConfirm'),
-      submit: async values => !values.sendAccessInvite || await previewEmployeeInvite(values),
       fields: [
         {
           key: 'fullName',
@@ -636,12 +623,37 @@ export function TeamTab({
     router.refresh();
   } });
   const [accessInviteBusy, setAccessInviteBusy] = useState(false);
+  const [enneagramInviteBusy, setEnneagramInviteBusy] = useState(false);
+  const [enneagramInviteFeedback, setEnneagramInviteFeedback] = useState(null);
+  const inviteEmployeeEnneagram = async () => {
+    const person = detail?.candidate;
+    if (!person || enneagramInviteBusy) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(person.email || '').trim())) {
+      setEnneagramInviteFeedback({ candidateId: person.id, tone: 'error', message: t(locale, 'panel.team.employeeEnneagramNeedEmail') });
+      return;
+    }
+    setEnneagramInviteFeedback(null);
+    setEnneagramInviteBusy(true);
+    try {
+      const response = await fetch(`/api/admin/candidates/${person.id}/enneagram-invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId: person.companyId, locale }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || t(locale, 'panel.team.employeeEnneagramError'));
+      setEnneagramInviteFeedback({ candidateId: person.id, tone: 'success', message: t(locale, 'panel.team.employeeEnneagramQueued', { email: result.sentTo }) });
+    } catch (error) {
+      setEnneagramInviteFeedback({ candidateId: person.id, tone: 'error', message: error.message || t(locale, 'panel.team.employeeEnneagramError') });
+    } finally {
+      setEnneagramInviteBusy(false);
+    }
+  };
   const inviteEmployeeAccess = async () => {
     const person = detail?.candidate;
-    if (!person || accessInviteBusy) return;
+    if (!person || accessInviteBusy || !await confirm({ message:t(locale,'employeeAdmission.confirmInvite',{email:person.email}) })) return;
     setAccessInviteBusy(true);
     try {
-      if (!await previewEmployeeInvite(person, person.employeeAccessState !== 'not_invited')) return;
       const response = await fetch(`/api/admin/candidates/${person.id}/employee-access`, { method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId:person.companyId,locale}) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || t(locale,'panel.common.error'));
@@ -1035,13 +1047,12 @@ export function TeamTab({
       </StatusToneChip>
       {openRow?.areaLabel ? <StatusToneChip tone="neutral">{openRow.areaLabel}</StatusToneChip> : null}
       {detail.candidate.email ? <span className="truncate">{detail.candidate.email}</span> : null}
-      {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState ? <StatusToneChip tone={detail.candidate.employeeAccessState === 'active' ? 'success' : 'neutral'}>{t(locale, detail.candidate.employeeAccessState === 'invited' ? 'employeeInvite.pending' : `employeeAdmission.access.${detail.candidate.employeeAccessState}`)}</StatusToneChip> : null}
+      {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState ? <StatusToneChip tone={detail.candidate.employeeAccessState === 'active' ? 'success' : 'neutral'}>{t(locale,`employeeAdmission.access.${detail.candidate.employeeAccessState}`)}</StatusToneChip> : null}
     </>
   ) : null;
   const personHeaderActions = focusCandidateId ? (
     <div className="flex items-center gap-1">
       {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? <button type="button" className={S.btnPrimary} disabled={Boolean(admissionBusyId)} onClick={() => admit(detail.candidate.id)}>{t(locale,'employeeAdmission.action')}</button> : null}
-      {detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? <button type="button" className={S.btnGhost} disabled={accessInviteBusy} onClick={inviteEmployeeAccess}>{t(locale, detail.candidate.employeeAccessState === 'not_invited' ? 'employeeInvite.send' : 'employeeInvite.resend')}</button> : null}
       {currentPersonIndex >= 0 ? (
         <span className="mr-1 hidden whitespace-nowrap font-ui text-prose text-ink/75 sm:inline">
           {currentPersonIndex + 1} / {personRows.length}
@@ -1073,12 +1084,21 @@ export function TeamTab({
 
   return (
     <div className="flex flex-col gap-3">
+      {employeeImportOpen && companyId ? <EmployeeCsvImport
+        key={companyId || 'none'}
+        open
+        onClose={() => setEmployeeImportOpen(false)}
+        companyId={companyId}
+        locale={locale}
+        onImported={() => router.refresh()}
+      /> : null}
       {!isPersonPage ? (
       <>
       {companyId ? (
         <div className="flex flex-wrap justify-end gap-2">
-          <EmployeeCsvTemplateLink locale={locale} />
-          <button type="button" className={S.btnGhost} onClick={() => setCsvImportOpen(true)}>{t(locale, 'employeeCsv.title')}</button>
+          <button type="button" className={S.btnGhost} onClick={() => setEmployeeImportOpen(true)}>
+            {t(locale, 'panel.team.csvImport.open')}
+          </button>
           <AdminCreateButton
             label={t(locale, 'panel.team.addEmployeeBtn')}
             onClick={createEmployeeDirect}
@@ -1086,7 +1106,6 @@ export function TeamTab({
           />
         </div>
       ) : null}
-      {csvImportOpen && companyId ? <EmployeeCsvImport key={companyId} companyId={Number(companyId)} locale={locale} onClose={() => setCsvImportOpen(false)} onImported={() => router.refresh()} /> : null}
       <AdminListFilters
         locale={locale}
         aria-label={t(locale, 'panel.team.searchAriaLabel')}
@@ -1263,7 +1282,7 @@ export function TeamTab({
       <div className="flex flex-col gap-1.5">
           {filtered.map((r) => {
         const isInternalRow = [EMPLOYMENT_STATUS.EMPLOYEE, EMPLOYMENT_STATUS.ALUMNI].includes(r.employmentStatus);
-        const id = String(r.assessmentId);
+        const id = r.assessmentId != null ? String(r.assessmentId) : `candidate:${r.candidateId}`;
         const d = TYPE_DATA[r.topType];
         const isSelected = open === id;
         const showVacancyFit = r.vacancyFitScore010 != null && r.vacancyFitScore010 !== undefined;
@@ -1277,7 +1296,7 @@ export function TeamTab({
             key={id}
             className={cn(S.cardShell, 'overflow-visible')}
             style={{
-              border: isSelected ? `1px solid ${d.color}44` : undefined,
+              border: isSelected && d ? `1px solid ${d.color}44` : undefined,
             }}
           >
             <div className="flex items-center gap-3 px-3.5 py-2.5">
@@ -1429,9 +1448,21 @@ export function TeamTab({
                 {openRow.scores ? (
                   <EnneagramCross scores={openRow.scores} locale={locale} />
                 ) : (
-                  <p className="mb-4 mt-0 text-prose text-ink-muted">
-                    {t(locale, 'panel.team.peopleMissingEnneagram')}
-                  </p>
+                  <div className="mb-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="m-0 text-prose text-ink-muted">{t(locale, 'panel.team.peopleMissingEnneagram')}</p>
+                      {detailMatchesOpen && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? (
+                        <button type="button" className={cn(S.btnBrandSoft, 'inline-flex min-h-touch items-center')} aria-busy={enneagramInviteBusy} disabled={enneagramInviteBusy} onClick={inviteEmployeeEnneagram}>
+                          {t(locale, enneagramInviteBusy ? 'panel.team.sendingEmployeeEnneagram' : 'panel.team.sendEmployeeEnneagram')}
+                        </button>
+                      ) : null}
+                    </div>
+                    {detailMatchesOpen && enneagramInviteFeedback?.candidateId === detail?.candidate?.id ? (
+                      <p className={cn('mb-0 mt-2 text-sm', enneagramInviteFeedback.tone === 'error' ? 'text-danger' : 'text-success')} role={enneagramInviteFeedback.tone === 'error' ? 'alert' : 'status'}>
+                        {enneagramInviteFeedback.message}
+                      </p>
+                    ) : null}
+                  </div>
                 )}
                 <IntegratedProfileSynthesis synthesis={synthesis} locale={locale} />
 
@@ -1575,6 +1606,23 @@ export function TeamTab({
                     <ContentEnter animKey={activePeopleSubTab}>
                       {activePeopleSubTab === 'summary' ? (
                         <div className="space-y-4 pb-1">
+                          {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? (
+                            <section aria-label={t(locale, 'employeeAdmission.portalAccessTitle')} className="rounded-card border border-brand-500/30 bg-brand-500/[0.06] p-4 sm:p-5">
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="m-0 font-ui text-base font-semibold text-ink">{t(locale, 'employeeAdmission.portalAccessTitle')}</h3>
+                                    <StatusToneChip tone="neutral">{t(locale, `employeeAdmission.access.${detail.candidate.employeeAccessState || 'not_invited'}`)}</StatusToneChip>
+                                  </div>
+                                  <p className="mb-0 mt-2 font-ui text-sm text-ink/75">{t(locale, 'employeeAdmission.inviteHelp')}</p>
+                                  {detail.candidate.email ? <p className="mb-0 mt-1 break-all font-ui text-sm text-ink/75">{t(locale, 'employeeAdmission.accessEmail', { email: detail.candidate.email })}</p> : null}
+                                </div>
+                                <button type="button" className={cn(S.btnPrimary, 'w-full shrink-0 sm:w-auto')} disabled={accessInviteBusy} onClick={inviteEmployeeAccess}>
+                                  {t(locale, !detail.candidate.employeeAccessState || detail.candidate.employeeAccessState === 'not_invited' ? 'employeeAdmission.invite' : 'employeeAdmission.resendInvite')}
+                                </button>
+                              </div>
+                            </section>
+                          ) : null}
                           <PersonOperationalSummary person={detail.operational} candidate={detail.candidate} locale={locale} />
                           {isInternalPerson ? <>
                             <CandidateOrgUnit key={`${detail.candidate.companyId}-${detail.candidate.id}`} locale={locale} companyId={detail.candidate.companyId} candidateId={detail.candidate.id} onSaved={() => router.refresh()} />
@@ -1777,18 +1825,6 @@ export function TeamTab({
             ) : null}
             {personTab === 'people' && peopleSubTab === 'dp' && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
               <ContentEnter animKey="profile">
-                {detail?.candidate?.id &&
-                detail.candidate.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
-                  <div className="mb-4">
-                    <CandidateCvBlock
-                      key={detail.candidate.id}
-                      candidateId={detail.candidate.id}
-                      locale={locale}
-                      embedded
-                      onApplied={reloadDetailSilently}
-                    />
-                  </div>
-                ) : null}
                 <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">
                   <div className="mb-2.5 flex items-center gap-2.5">
                     <span className={cn(S.label, 'mb-0')}>{t(locale, 'recruiting.candidateProfile')}</span>
@@ -1859,7 +1895,7 @@ export function TeamTab({
                               </a>
                             </div>
                           ) : null}
-                          {c?.salaryExpectation ? <div>{formatSalaryBr(c.salaryExpectation)}</div> : null}
+                          <div>{t(locale, 'recruiting.salaryExpectationLabel')}: {c?.salaryExpectation ? formatSalaryBr(c.salaryExpectation) || c.salaryExpectation : t(locale, 'panel.dp.notInformed')}</div>
                           {availabilityLabel(locale, c?.availability) ? (
                             <div>{availabilityLabel(locale, c.availability)}</div>
                           ) : null}
@@ -2111,6 +2147,19 @@ export function TeamTab({
                     </p>
                   ) : null}
                 </div>
+
+                {detail?.candidate?.id &&
+                detail.candidate.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
+                  <div className="mb-4">
+                    <CandidateCvBlock
+                      key={detail.candidate.id}
+                      candidateId={detail.candidate.id}
+                      locale={locale}
+                      embedded
+                      onApplied={reloadDetailSilently}
+                    />
+                  </div>
+                ) : null}
 
                 {!profileEditing ? (
                 <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">

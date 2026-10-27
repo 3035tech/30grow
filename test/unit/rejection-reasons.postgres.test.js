@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import pg from 'pg';
-import * as pipeline from '../../lib/pipeline.js';
+import * as pipeline from '../../lib/recruiting/pipeline.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 const enabled = process.env.REJECTION_PG_TEST === '1';

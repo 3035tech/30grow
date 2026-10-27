@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { BrandMark } from './BrandMark';
 import { ContentEnter } from './AppLoading';
-import { PRIVACY_CONTACT_EMAIL } from '../../lib/public-legal.js';
+import { PRIVACY_CONTACT_EMAIL } from '../../lib/marketing/public-legal.js';
+import { publicMarketingPath } from '../../lib/marketing/public-marketing-paths.js';
 
 export function PublicLegalDocument({ copy }) {
+  const homeHref = publicMarketingPath(copy.locale);
   const relatedHref = copy.kind === 'privacy' ? '/terms' : '/privacy';
   const relatedLabel = copy.kind === 'privacy' ? copy.common.terms : copy.common.privacy;
   const shortcuts = copy.kind === 'terms' ? copy.document.sections.filter(section => section.id) : [];
@@ -12,8 +14,8 @@ export function PublicLegalDocument({ copy }) {
     <div className="min-h-screen bg-canvas font-ui text-ink">
       <header className="border-b border-ink/8 bg-surface">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link href="/" aria-label={copy.common.back} className="no-underline"><BrandMark size={30} withWordmark /></Link>
-          <Link href="/" className="inline-flex min-h-touch items-center text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">
+          <Link href={homeHref} aria-label={copy.common.back} className="no-underline"><BrandMark size={30} withWordmark /></Link>
+          <Link href={homeHref} className="inline-flex min-h-touch items-center text-sm font-semibold text-brand-700 no-underline hover:text-brand-800">
             {copy.common.back}
           </Link>
         </div>

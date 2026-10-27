@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
-import { listCompanyPosts } from '../../../../lib/company-posts.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
+import { listCompanyPosts } from '../../../../lib/company/company-posts.js';
 
 export const dynamic = 'force-dynamic';
 

@@ -12,14 +12,14 @@ import {
   OKR_ACTIVITY_CAP_PER_AREA,
   OKR_AREA_CAP_PER_CYCLE,
   OKR_ASSIGNEE_CAP_PER_ACTIVITY,
-} from '../../lib/okr-cycles.js';
+} from '../../lib/development/okr-cycles.js';
 import {
   listOkrHierarchy,
   OKR_KR_ASSIGNEE_CAP,
   OKR_KR_CAP_PER_OBJECTIVE,
   OKR_OBJECTIVE_CAP_PER_AREA,
-} from '../../lib/okr-hierarchy.js';
-import { okrRollup } from '../../lib/okr-metrics.js';
+} from '../../lib/development/okr-hierarchy.js';
+import { okrRollup } from '../../lib/development/okr-metrics.js';
 
 const db = new pg.Client({ host: '127.0.0.1', port: 55432, database: 'enneagram_dtov', user: 'dtov', password: 'dtov_local_only', ssl: false });
 await db.connect();

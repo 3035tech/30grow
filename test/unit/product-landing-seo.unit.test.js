@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const seo = await import('../../lib/product-landing-seo.js');
+const seo = await import('../../lib/marketing/product-landing-seo.js');
 const crawler = await import('../../lib/crawler-guard.js');
 
 const pt = seo.getProductLandingCopy('pt-BR');

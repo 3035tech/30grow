@@ -7,7 +7,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../../lib/api-error.js';
 import { getSessionPayload, getManagerScope, resolveScopedCompanyId, CAP, requireCapability } from '../../../../../../lib/ae/require-admin.js';
-import { getCriticalRole, updateCriticalRole, deactivateCriticalRole } from '../../../../../../lib/succession-plans.js';
+import { getCriticalRole, updateCriticalRole, deactivateCriticalRole } from '../../../../../../lib/development/succession-plans.js';
 import { audit } from '../../../../../../lib/audit.js';
 
 

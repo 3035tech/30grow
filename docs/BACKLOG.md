@@ -12,12 +12,6 @@ Ideias de funcionalidades **ainda não implementadas**.
 
 **Prioridade de lançamento do MVP:** ver [`docs/BACKLOG-MVP-LAUNCH.md`](./BACKLOG-MVP-LAUNCH.md). A lista aberta `MVP-03`–`MVP-16` separa bloqueadores do primeiro cliente, melhorias para os pilotos e escala condicionada a métricas reais. Os gates `MVP-01` e `MVP-02` foram entregues.
 
-## Aberto — Importação antes do cadastro
-
-### B-RH-CV-LINKEDIN-CREATE — Criar candidato começando pelo arquivo
-
-A importação por IA e revisão no perfil existente foram entregues (migration 158). Evolução restante: iniciar um novo cadastro pelo currículo/PDF do LinkedIn, antes de informar nome/e-mail, reutilizando a mesma revisão e o cadastro canônico de candidatos. Validar duplicidade por e-mail e empresa e só criar a pessoa após confirmação dos dados. Hoje, cadastre/abra a pessoa e importe em Informações cadastrais.
-
 ## Como usar (humano + agente)
 
 | Ação | O que fazer |
@@ -76,7 +70,7 @@ _(entregue — B-601–B-605 + polish: revisão retenção na UI, leitura hedged
 
 - **B-I18N-01 · Revisão nativa fr-FR / de-DE.** Catálogos e landing gerados por `npm run i18n:translate`. **Revisão automatizada feita (out/2026):** 0 chaves faltando vs en, 0 placeholders divergentes, 0 textos iguais ao en ou ao pt, 0 ` — `, tom formal (vous/Sie) sem ocorrências de tu/du, termos alinhados (manager no fr, HR-Verantwortliche/Führungskräfte no de). **Validação técnica adicional (07/10/2026):** 7.973 chaves por catálogo, sem diferenças de chave/placeholder; comando `node scripts/validate-i18n-catalogs.mjs`. Ver `docs/i18n-review-2026-10-07.md`. **Ainda exige revisor nativo humano:** naturalidade e terminologia de RH local, textos longos do Guia e landing.
 - **B-I18N-02 · Conteúdo por idioma além de pt/en.** Perguntas/tipos/escala do Eneagrama (`lib/i18n-data.js`, `lib/data.js`, `lib/type-en.js`), banco e templates de Motivadores (`lib/ae/*`), prompts de IA e PDFs usam `contentLocale` (fr/de/es caem em inglês). Traduzir exige validação psicométrica das perguntas antes de trocar o texto. **Bloqueado para agente:** sem validação humana especializada não se troca o texto (fr/de continuam caindo em inglês de propósito).
-- **B-I18N-03 · Documentos legais em fr/de/es.** `lib/public-legal.js` só tem pt/en; tradução precisa de revisão jurídica. **Bloqueado para agente:** exige advogado/revisor jurídico por país; não publicar tradução automática.
+- **B-I18N-03 · Documentos legais em fr/de/es.** `lib/marketing/public-legal.js` só tem pt/en; tradução precisa de revisão jurídica. **Bloqueado para agente:** exige advogado/revisor jurídico por país; não publicar tradução automática.
 
 ---
 
@@ -182,7 +176,7 @@ Pedido (ago/2026): completar o ciclo **módulos geram → núcleo transforma →
 
 ### B-1001 — Núcleo: HR Score + predições ✅ ENTREGUE
 
-_(migration 054 + lib/hr-score.js + APIs + UI Equipe/Overview)_ Consolida 7 sinais em score 0–100. Predições: risco, gaps PDI.
+_(migration 054 + lib/assessment/hr-score.js + APIs + UI Equipe/Overview)_ Consolida 7 sinais em score 0–100. Predições: risco, gaps PDI.
 
 
 ### B-1002 — Radar de rotatividade (multi-sinal) ✅ ENTREGUE
@@ -191,15 +185,15 @@ _(lib/turnover-radar.js + API `/api/admin/turnover-radar/company` + TurnoverRada
 
 ### B-1003 — Engenharia de cargos leve ✅ ENTREGUE (UI+rubric+FK wired)
 
-_(migration 055 + lib/job-roles.js + APIs REST + i18n + JobRolesAdminTab drawer/RubricEditor + vacancies.job_role_id on create/update)_ Tabela `job_roles` com rubrica T1-T9. Vagas herdam cargo via FK `job_role_id` (persistido no create e no PATCH). CRUD completo (list, create, update, deactivate). UI admin com `AdminRichFormDrawer` + `RubricEditor`; prévia compacta da rubrica ao selecionar cargo na vaga.
+_(migration 055 + lib/recruiting/job-roles.js + APIs REST + i18n + JobRolesAdminTab drawer/RubricEditor + vacancies.job_role_id on create/update)_ Tabela `job_roles` com rubrica T1-T9. Vagas herdam cargo via FK `job_role_id` (persistido no create e no PATCH). CRUD completo (list, create, update, deactivate). UI admin com `AdminRichFormDrawer` + `RubricEditor`; prévia compacta da rubrica ao selecionar cargo na vaga.
 
 ### B-1004 — Avaliação de desempenho + metas → PDI ✅ ENTREGUE
 
-_(migration 056 + lib/performance-reviews.js + APIs + UI PerformanceReviewsAdminTab)_ Ciclo leve (gestor → colaborador; não 360). Metas no ciclo com outcome (`met`, `exceeded`, `develop`, `not_met`). Outcome `develop` gera item PDI automaticamente com `source: 'performance_review'` e `performance_goal_id`. Tabelas `performance_cycles`, `performance_goals`, `performance_reviews`. UI admin de ciclos + review form (draft → submitted).
+_(migration 056 + lib/development/performance-reviews.js + APIs + UI PerformanceReviewsAdminTab)_ Ciclo leve (gestor → colaborador; não 360). Metas no ciclo com outcome (`met`, `exceeded`, `develop`, `not_met`). Outcome `develop` gera item PDI automaticamente com `source: 'performance_review'` e `performance_goal_id`. Tabelas `performance_cycles`, `performance_goals`, `performance_reviews`. UI admin de ciclos + review form (draft → submitted).
 
 ### B-1005 — Plano de sucessão ✅ ENTREGUE
 
-_(migration 057 + lib/succession-plans.js + APIs + UI SuccessionAdminTab)_ Papéis críticos (`critical_roles`) com sucessores (`succession_plans`) + prontidão (`not_ready`, `developing`, `ready`, `now`). Readiness score combina HR Score (70%) + Leadership Potential (30%). Integra com `lib/hr-score.js` e `lib/leadership-analytics.js`. UI admin de papéis críticos + contador de sucessores.
+_(migration 057 + lib/development/succession-plans.js + APIs + UI SuccessionAdminTab)_ Papéis críticos (`critical_roles`) com sucessores (`succession_plans`) + prontidão (`not_ready`, `developing`, `ready`, `now`). Readiness score combina HR Score (70%) + Leadership Potential (30%). Integra com `lib/assessment/hr-score.js` e `lib/analytics/leadership-analytics.js`. UI admin de papéis críticos + contador de sucessores.
 
 ### B-1006 — Análise demissional ✅ ENTREGUE
 
@@ -211,11 +205,11 @@ _(lib/organizational-culture.js + API `/api/admin/organizational-culture` + Cult
 
 ### B-1008 — Academy leve (não LMS) ✅ ENTREGUE
 
-_(migration 059 + lib/learning-resources.js + APIs + LearningResourcesAdminTab)_ Catálogo simples de recursos de aprendizagem (título, descrição, tema, tipo, URL, duração). Tipos: course, article, video, book, workshop, mentoring, other. PDI pode linkar recursos via `development_plan_resource_links` (muitos-para-muitos) ou referenciar no texto. Sem player, sem SCORM, sem acompanhamento de progresso — apenas catálogo de ações/trilhas que o gestor pode apontar no plano de desenvolvimento.
+_(migration 059 + lib/development/learning-resources.js + APIs + LearningResourcesAdminTab)_ Catálogo simples de recursos de aprendizagem (título, descrição, tema, tipo, URL, duração). Tipos: course, article, video, book, workshop, mentoring, other. PDI pode linkar recursos via `development_plan_resource_links` (muitos-para-muitos) ou referenciar no texto. Sem player, sem SCORM, sem acompanhamento de progresso — apenas catálogo de ações/trilhas que o gestor pode apontar no plano de desenvolvimento.
 
 ### B-1009 — Catálogo de benefícios (não clube/folha) ✅ ENTREGUE
 
-_(migration 060 + 062 categorias + 065 enums ampliado + lib/company-benefits.js + APIs + CompanyBenefitsAdminTab)_ Catálogo simples de benefícios da empresa (nome, descrição, **categoria cadastral por empresa**, tipo enum multi-segmento) para contexto de retenção/oferta. Tipos fechados em `BENEFIT_TYPE` (saúde, PLR, home office, cesta, etc. + other). Sem adesão, sem desconto em folha, sem "clube". CRUD com filtros por categoria.
+_(migration 060 + 062 categorias + 065 enums ampliado + lib/company/company-benefits.js + APIs + CompanyBenefitsAdminTab)_ Catálogo simples de benefícios da empresa (nome, descrição, **categoria cadastral por empresa**, tipo enum multi-segmento) para contexto de retenção/oferta. Tipos fechados em `BENEFIT_TYPE` (saúde, PLR, home office, cesta, etc. + other). Sem adesão, sem desconto em folha, sem "clube". CRUD com filtros por categoria.
 
 ---
 
@@ -235,7 +229,7 @@ Transformar dados comportamentais em **inteligência acionável** para decisões
 
 ### B-1101 — Métricas de efetividade (hiring ROI) ✅ ENTREGUE
 
-_(lib/analytics-metrics.js + API /api/admin/analytics/metrics + AnalyticsTab UI)_ 
+_(lib/analytics/analytics-metrics.js + API /api/admin/analytics/metrics + AnalyticsTab UI)_
 
 Dashboard com métricas de **impacto real** do processo seletivo:
 - **Time-to-hire** (dias: vaga aberta → contratação)
@@ -262,7 +256,7 @@ Dashboard com métricas de **impacto real** do processo seletivo:
 
 ### B-1102 — Tendências temporais (time series) ✅ ENTREGUE
 
-_(lib/analytics-trends.js + API /api/admin/analytics/trends + UI com toggle Tendências)_
+_(lib/analytics/analytics-trends.js + API /api/admin/analytics/trends + UI com toggle Tendências)_
 
 Gráficos de **evolução ao longo do tempo** (últimos 6/12/24 meses):
 - HR Score médio do time (mensal)
@@ -281,7 +275,7 @@ Gráficos de **evolução ao longo do tempo** (últimos 6/12/24 meses):
 
 ### B-1103 — Comparativos (área, período, rubrica) ✅ ENTREGUE
 
-_(lib/analytics-comparisons.js + API /api/admin/analytics/compare + UI com toggle Comparar)_
+_(lib/analytics/analytics-comparisons.js + API /api/admin/analytics/compare + UI com toggle Comparar)_
 
 **Comparar** métricas entre segmentos side-by-side:
 - Área A vs Área B (clima, HR Score, turnover)
@@ -299,7 +293,7 @@ _(lib/analytics-comparisons.js + API /api/admin/analytics/compare + UI com toggl
 
 ### B-1104 — Alertas e anomalias ✅ ENTREGUE
 
-_(lib/analytics-alerts.js + API /api/admin/analytics/alerts)_
+_(lib/analytics/analytics-alerts.js + API /api/admin/analytics/alerts)_
 
 **Detecção proativa** de padrões anormais com thresholds configuráveis:
 - Clima caiu > 15% em 1 mês (área/empresa)
@@ -319,7 +313,7 @@ _(lib/analytics-alerts.js + API /api/admin/analytics/alerts)_
 
 ### B-1105 — Export estruturado (JSON/Excel) ✅ ENTREGUE
 
-_(lib/analytics-export.js + API /api/admin/analytics/export)_
+_(lib/analytics/analytics-export.js + API /api/admin/analytics/export)_
 
 Export **rico** além do CSV básico:
 - JSON (API-friendly, estruturado)
@@ -333,11 +327,11 @@ Export **rico** além do CSV básico:
 - Metadados (período, filtros, gerado em X)
 - Formato escolhido pelo usuário (CSV/JSON/XLSX)
 
-**Reuso:** `lib/export-assessments-csv.js` (já existe), estender
+**Reuso:** `lib/assessment/export-assessments-csv.js` (já existe), estender
 
 ### B-1106 — API de métricas (externas/integrações) ✅ ENTREGUE
 
-_(lib/analytics-rate-limit.js + aplicado em todas as 5 rotas + docs/analytics-api.md)_
+_(lib/analytics/analytics-rate-limit.js + aplicado em todas as 5 rotas + docs/analytics-api.md)_
 
 API REST autenticada (JWT) para expor métricas:
 - `GET /api/admin/analytics/metrics` (HR Score, clima, turnover)
@@ -357,7 +351,7 @@ API REST autenticada (JWT) para expor métricas:
 
 ### B-1107 — Relatórios agendados (email/PDF) ✅ ENTREGUE
 
-_(lib/analytics-scheduled-reports.js + API /api/cron/analytics-report)_
+_(lib/analytics/analytics-scheduled-reports.js + API /api/cron/analytics-report)_
 
 **Envio automático** de relatórios de Analytics:
 - Weekly/monthly digest com métricas de efetividade inline
@@ -407,7 +401,7 @@ Copiloto no painel para perguntas do tipo **“por que o João não aparece na m
 ### B-2601 — Diagnóstico “por que não vejo X?” (MVP Equipe) ✅ ENTREGUE
 **Entregue (UX+API MVP):** `lib/people/list-absence-diagnostics.js` (razões: no_match / homonyms / wrong_roster / alumni / soft_filters / no_assessment) + `POST /api/admin/help-diagnose` (`withAdminApi`, CAP `team.view`, rate limit, audit) + CTA “Por que não aparece?” na Equipe (EmptyState quando busca vazia) via `useAppFeedback` notice/confirm. Guia `panel.help.teamStep7`. Sem SQL gerado por LLM.
 
-**Extensão entregue (out/2026):** mesmo endpoint com `list` = `talentBank` | `vacancyPipeline` (CAP `vacancies.view`; Equipe segue `team.view`). Banco de talentos: razões `not_in_talent_bank` / `soft_filters` (vaga, etapa, perfil avaliados no SQL) / `in_list`. Pipeline da vaga: `not_in_vacancy` + `other_vacancies` (até 3 títulos) / `soft_filters` (filtros do quadro, cliente) / `in_list` com etapa; regra de pertencimento espelha `lib/vacancy-ranking.js`. CTA no EmptyState "nenhum candidato corresponde" do quadro; oferta de limpar filtros mantendo a busca. Uma query por diagnóstico, teto 12 pessoas, escopo `company_id`. Guia `talentBankStep4` / `pipelineStep10`. Prova: `test/dtov/help-diagnose-lists.dtov.test.js`.
+**Extensão entregue (out/2026):** mesmo endpoint com `list` = `talentBank` | `vacancyPipeline` (CAP `vacancies.view`; Equipe segue `team.view`). Banco de talentos: razões `not_in_talent_bank` / `soft_filters` (vaga, etapa, perfil avaliados no SQL) / `in_list`. Pipeline da vaga: `not_in_vacancy` + `other_vacancies` (até 3 títulos) / `soft_filters` (filtros do quadro, cliente) / `in_list` com etapa; regra de pertencimento espelha `lib/recruiting/vacancy-ranking.js`. CTA no EmptyState "nenhum candidato corresponde" do quadro; oferta de limpar filtros mantendo a busca. Uma query por diagnóstico, teto 12 pessoas, escopo `company_id`. Guia `talentBankStep4` / `pipelineStep10`. Prova: `test/dtov/help-diagnose-lists.dtov.test.js`.
 
 **Redação IA entregue (out/2026):** `explain: true` no mesmo endpoint devolve `explanation { summary, nextStep }` redigido por IA (`lib/people/list-absence-explain-ai.js`, feature `help_diagnose`, migration 151). O prompt leva só códigos, contagens e etapa genérica (sem nome, e-mail, busca ou título de vaga), então o cache é global; conta na cota da empresa. IA desligada, sem cota ou com falha: o diagnóstico volta igual, sem o parágrafo. Aviso mostra o texto no topo com a nota "redigido por IA" e os motivos determinísticos abaixo. Prova: `test/unit/list-absence-explain-ai.unit.test.js`.
 
@@ -901,7 +895,7 @@ Meu perfil: trocar o e-mail pede a senha atual (+ código TOTP com 2FA ativo); o
 ## Aberto — Observabilidade
 
 ### B-1701 — Logs estruturados (infra) ✅ ENTREGUE (básico)
-JSON stdout via `lib/monitoring.js` ligado a Postgres (`lib/db.js`), Redis (`lib/rate-limit.js`) e S3 (`lib/s3-object-storage.js`). Env: `LOG_LEVEL`, `LOG_SLOW_MS`.
+JSON stdout via `lib/monitoring.js` ligado a Postgres (`lib/db.js`), Redis (`lib/identity/rate-limit.js`) e S3 (`lib/s3-object-storage.js`). Env: `LOG_LEVEL`, `LOG_SLOW_MS`.
 
 ### B-1702 — Sentry (erros de app) ✅ ENTREGUE (SDK)
 `@sentry/nextjs` + `instrumentation.js` + `sentry.*.config.js` + `app/global-error.jsx`. Org `3035tech-9t` / project `30team`. Ativar com `NEXT_PUBLIC_SENTRY_DSN` (+ `SENTRY_DSN` server) e opcional `SENTRY_AUTH_TOKEN` no build (source maps).

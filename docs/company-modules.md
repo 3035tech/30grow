@@ -29,6 +29,6 @@ Commercial packs above per-user CAP. Early-adopter onboarding can pick modules; 
 
 ## Keys
 
-See `COMPANY_MODULE` in `lib/company-modules.js`.
+See `COMPANY_MODULE` in `lib/company/company-modules.js`.
 
 Schema: `migrations/109_company_module_entitlements.sql`.

@@ -6,7 +6,7 @@ import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import {
   getAnalyticsReportPrefs,
   upsertAnalyticsReportPrefs,
-} from '../../../../../lib/analytics-report-prefs.js';
+} from '../../../../../lib/analytics/analytics-report-prefs.js';
 
 const patchSchema = z.object({
   companyId: zPositiveInt.optional(),

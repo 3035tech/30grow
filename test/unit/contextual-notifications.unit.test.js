@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import vm from 'node:vm';
 import { z } from 'zod';
-import { EMPLOYEE_NOTIF } from '../../lib/employee-notification-catalog.js';
+import { EMPLOYEE_NOTIF } from '../../lib/employee/employee-notification-catalog.js';
 import { DP_DOCUMENT_KEYS } from '../../lib/domain-status.js';
 
 async function moduleAt(path, dependencies) {
@@ -12,7 +12,7 @@ async function moduleAt(path, dependencies) {
   await module.link(async () => new vm.SyntheticModule(Object.keys(dependencies), function () { for (const [name, value] of Object.entries(dependencies)) this.setExport(name, value); }, { context }));
   await module.evaluate(); return module.namespace;
 }
-const target = await moduleAt('../../lib/mobile-notification-target.js', { EMPLOYEE_NOTIF, DP_DOCUMENT_KEYS });
+const target = await moduleAt('../../lib/mobile/mobile-notification-target.js', { EMPLOYEE_NOTIF, DP_DOCUMENT_KEYS });
 test('closed target mapping preserves IDs and never exposes URLs/tokens or incorrect entity IDs', () => {
   const rows = [
     [EMPLOYEE_NOTIF.LMS_ENROLLED, 'lms_course', 'course'], [EMPLOYEE_NOTIF.LMS_OVERDUE, 'lms_enrollment', 'enrollment'],
@@ -83,7 +83,7 @@ test('anonymous/invalid/duplicate/tenant-injected requests fail before data acce
 });
 test('domain pagination SQL binds employee and company; deterministic ordering and filtered counts', async () => {
   const calls = [];
-  const domain = await moduleAt('../../lib/employee-notifications.js', {
+  const domain = await moduleAt('../../lib/employee/employee-notifications.js', {
     asDb: (db) => db, query: null, ERR: { UNAUTHORIZED: 'UNAUTHORIZED' }, EMPLOYMENT_STATUS: { EMPLOYEE: 'employee' },
     t: () => '', mobilePushDestinationFor: () => 'today', sendMobileEmployeePush: async () => {},
     EMPLOYEE_NOTIF, EMPLOYEE_NOTIF_TYPES: new Set(), employeeNotificationCopySpec: () => ({}), employeeNotificationHref: () => '',
@@ -95,7 +95,7 @@ test('domain pagination SQL binds employee and company; deterministic ordering a
 });
 test('kudo lookup binds tenant and ID in count and list, excluding deleted rows', async () => {
   const calls = [];
-  const domain = await moduleAt('../../lib/company-kudos.js', { loadKudoReactionSummaries: async () => new Map(), asDb: (db) => db, query: null, ERR: { INVALID_DATA: 'INVALID_DATA' }, EMPLOYMENT_STATUS: { EMPLOYEE: 'employee' } });
+  const domain = await moduleAt('../../lib/company/company-kudos.js', { loadKudoReactionSummaries: async () => new Map(), asDb: (db) => db, query: null, ERR: { INVALID_DATA: 'INVALID_DATA' }, EMPLOYMENT_STATUS: { EMPLOYEE: 'employee' } });
   const db = { query: async (sql, values) => { calls.push({ sql, values }); return { rows: sql.includes('COUNT') ? [{ n: 0 }] : [] }; } };
   await domain.listCompanyKudos(db, { companyId: 2, kudoId: 55, pageSize: 15 });
   assert.deepEqual([...calls[0].values], [2, 55]); assert.deepEqual([...calls[1].values], [2, 55, 15, 0]);

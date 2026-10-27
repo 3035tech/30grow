@@ -20,14 +20,14 @@ Hardening após auditoria estática das ~171 rotas API (auth, rate limit, sessã
 | Item | Mudança |
 |------|---------|
 | Upload logo / PDF LMS | Magic bytes (`lib/file-magic.js`) — PNG/JPEG/WebP/PDF além de MIME |
-| CSP enforced (opt-in) | `ENABLE_CSP=true` → `Content-Security-Policy` via `lib/security-csp.js` (YouTube/Vimeo + Turnstile no `frame-src`) |
+| CSP enforced (opt-in) | `ENABLE_CSP=true` → `Content-Security-Policy` via `lib/identity/security-csp.js` (YouTube/Vimeo + Turnstile no `frame-src`) |
 | Health metrics secret | `/api/health` detalhado só via `Authorization: Bearer` ou `X-Health-Metrics-Token` — **sem** `?token=` |
 
 ## Correções aplicadas (fase 3)
 
 | Item | Mudança |
 |------|---------|
-| Turnstile no signup | `lib/turnstile.js` + widget em `/signup`; opcional se `TURNSTILE_SECRET_KEY` unset |
+| Turnstile no signup | `lib/identity/turnstile.js` + widget em `/signup`; opcional se `TURNSTILE_SECRET_KEY` unset |
 | Revogação no Proxy | `session_version` via Redis + `GET /api/auth/session-edge`; dashboard/API admin revalidam. Fallback: se o self-fetch do Proxy falhar, confia no JWT assinado; se Edge não validar JWT mas session-edge OK, deixa passar. |
 | Health status token | `/api/health/status` — só header/Bearer; `?token=` rejeitado |
 | Sanitizer HTML | Allowlist de tags em notas ricas (`allowlistInterviewNotesHtml`) |
@@ -59,7 +59,7 @@ Hardening após auditoria estática das ~171 rotas API (auth, rate limit, sessã
 | Auth colaborador multi-empresa | Após senha OK: se 2+ vínculos, escolhe empresa **pelo nome** (`needsCompanyPick` + `pickToken`). Lista só empresas cuja senha bateu. Magic/forgot: um e-mail por vínculo (sem slug). |
 | Signup anti-enum | Conta já ativa → `{ ok: true }` + e-mail de lembrete (sem 409 `EMAIL_ALREADY_REGISTERED`) |
 | Login gestor | `password_setup_token` pendente → mesmo `INVALID_CREDENTIALS` + delay (sem `PASSWORD_SETUP_PENDING`) |
-| Tokens públicos | `/e` TTL default **14** dias (máx. 90); `/r` default 14; `lib/redact-secrets.js` em audit metadata |
+| Tokens públicos | `/e` TTL default **14** dias (máx. 90); `/r` default 14; `lib/identity/redact-secrets.js` em audit metadata |
 | Vagas públicas | Sem `publicShowCompanyInfo`: não expõe `companyId` / `slug` no payload |
 | Turnstile | Também em `/a/set-password`, magic `POST /session` e set-password colaborador |
 
@@ -71,7 +71,7 @@ Hardening após auditoria estática das ~171 rotas API (auth, rate limit, sessã
 | Extensão no uso (colaborador) | Proxy `/employee` + `/api/employee`: mesma janela de 2h → cookie **12h** |
 | Sem refresh token | Mesmos cookies (`team30_session` / `team30_employee_session`); claims/`sv` preservados; JWT expirado **não** renova |
 | Idle implícito | Sem request autenticado pelo TTL respectivo → cai; revoke por `session_version` inalterado |
-| Edge-safe TTL/cookie | `lib/session-ttl.js`, `lib/session-cookie.js`, `EMPLOYEE_SESSION_MAX_AGE` em constants (Proxy sem bcrypt) |
+| Edge-safe TTL/cookie | `lib/identity/session-ttl.js`, `lib/identity/session-cookie.js`, `EMPLOYEE_SESSION_MAX_AGE` em constants (Proxy sem bcrypt) |
 
 ### Ops / tokens
 
@@ -108,7 +108,7 @@ O hardening **não** adicionou login ao teste T1–T9 nem ao submit de candidato
 
 1. **`SIGNUP_DOMAIN_MATCH`** — deixar unset/`false` salvo intenção explícita.
 2. **`REDIS_URL`** — recomendado em multi-instância (rate limit + cache `session_version`).
-3. **`ENABLE_CSP=true`** — após smoke em staging (Next ainda precisa `unsafe-inline` / `unsafe-eval` no script-src). A política padrão em `lib/security-csp.js` já permite Turnstile (`challenges.cloudflare.com`) e **Cloudflare Web Analytics** (`static.cloudflareinsights.com` + `connect-src` para `cloudflareinsights.com`) — o beacon é injetado pela borda Cloudflare quando Insights está ligado na zona.
+3. **`ENABLE_CSP=true`** — após smoke em staging (Next ainda precisa `unsafe-inline` / `unsafe-eval` no script-src). A política padrão em `lib/identity/security-csp.js` já permite Turnstile (`challenges.cloudflare.com`) e **Cloudflare Web Analytics** (`static.cloudflareinsights.com` + `connect-src` para `cloudflareinsights.com`) — o beacon é injetado pela borda Cloudflare quando Insights está ligado na zona.
 4. **`CSP_POLICY`** — override opcional da política padrão.
 5. **`HEALTH_METRICS_SECRET`** / **`HEALTH_STATUS_TOKEN`** — usar header, não query string.
 6. **Turnstile** — `TURNSTILE_SECRET_KEY` + `NEXT_PUBLIC_TURNSTILE_SITE_KEY` no gitops quando ativar CAPTCHA.

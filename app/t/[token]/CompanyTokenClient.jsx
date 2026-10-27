@@ -8,7 +8,7 @@ import { useLocale } from '../../../lib/useLocale';
  * Client shell for /t/[token] — link payload comes from RSC (no loading flash).
  */
 export default function CompanyTokenClient({ token, initial }) {
-  const [locale] = useLocale();
+  const [locale, setLocale] = useLocale();
   const tokenValue = String(token || '').trim();
 
   if (!initial?.ok) {
@@ -28,6 +28,7 @@ export default function CompanyTokenClient({ token, initial }) {
         }}
         startDisabled={true}
         initialLocale={locale}
+        onLocaleChange={setLocale}
       />
     );
   }
@@ -43,6 +44,7 @@ export default function CompanyTokenClient({ token, initial }) {
       notice={notice}
       requireCandidateEmail={true}
       initialLocale={locale}
+      onLocaleChange={setLocale}
     />
   );
 }

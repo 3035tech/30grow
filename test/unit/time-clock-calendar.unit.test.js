@@ -21,6 +21,7 @@ import {
   nationalHolidays,
   normalizeEmployeeSchedule,
   normalizeWeekdays,
+  saveHoliday,
 } from '../../lib/people/time-clock-calendar.js';
 import {
   isWorkdayIso,
@@ -120,6 +121,27 @@ describe('normalizeEmployeeSchedule / normalizeWeekdays', () => {
 });
 
 describe('holidays', () => {
+  it('saves a holiday after checking closed periods', async () => {
+    const calls = [];
+    const db = { query: async (sql, values) => {
+      calls.push({ sql, values });
+      if (sql.includes('FROM time_clock_closures')) return { rows: [], rowCount: 0 };
+      if (sql.includes('FROM org_units')) return { rows: [], rowCount: 0 };
+      if (sql.includes('INSERT INTO company_holidays')) return { rows: [{ id: 42 }], rowCount: 1 };
+      throw new Error(`Unexpected query: ${sql}`);
+    } };
+
+    const result = await saveHoliday(db, {
+      companyId: 7,
+      name: 'Feriado local',
+      day: '2026-10-27',
+      recurrence: HOLIDAY_RECURRENCE.ONCE,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.id, 42);
+    assert.equal(calls.length, 3);
+  });
   it('Easter and Good Friday 2026', () => {
     assert.equal(easterSunday(2026), '2026-04-05');
     const days = nationalHolidays(2026).map((h) => h.day);

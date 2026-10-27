@@ -10,8 +10,8 @@ import {
   verifyEmployeeToken,
   isEmployeeSessionPayload,
   isValidEmployeeEmail,
-} from '../../lib/employee-auth.js';
-import { EMPLOYEE_COOKIE_NAME as COOKIE_CONST } from '../../lib/employee-auth-constants.js';
+} from '../../lib/employee/employee-auth.js';
+import { EMPLOYEE_COOKIE_NAME as COOKIE_CONST } from '../../lib/employee/employee-auth-constants.js';
 
 assert.equal(EMPLOYEE_COOKIE_NAME, 'team30_employee_session');
 assert.equal(COOKIE_CONST, EMPLOYEE_COOKIE_NAME);

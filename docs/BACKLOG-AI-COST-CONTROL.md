@@ -10,8 +10,8 @@ Registro da análise de out/2026. **B-2701–B-2706 entregues** (ver abaixo); s�
 
 | Funcionalidade | Arquivo | `maxTokens` | Rota / rate limit por usuário |
 |---|---|---|---|
-| Sugestão de rubrica (vaga e cargo) | `lib/rubric-ai.js` | 900 | `admin/vacancies/[id]/rubric-ai`, `admin/job-roles/rubric-ai` · 20/15 min |
-| Assistentes da vaga (5 prompts: rascunho, descrição, shortlist, campos de fit etc.) | `lib/vacancy-assist-ai.js` | 500–1400 | `admin/vacancies/[id]/assist-ai` 30/15 min · `admin/vacancies/assist-ai` 20/15 min |
+| Sugestão de rubrica (vaga e cargo) | `lib/recruiting/rubric-ai.js` | 900 | `admin/vacancies/[id]/rubric-ai`, `admin/job-roles/rubric-ai` · 20/15 min |
+| Assistentes da vaga (5 prompts: rascunho, descrição, shortlist, campos de fit etc.) | `lib/recruiting/vacancy-assist-ai.js` | 500–1400 | `admin/vacancies/[id]/assist-ai` 30/15 min · `admin/vacancies/assist-ai` 20/15 min |
 | Interpretação de sinais da pessoa | `lib/people/interpret-ai.js` | 700 | `admin/people/interpret-ai` |
 | Assistente de Ajuda | `lib/help-assistant.js` | 360 | `admin/help-chat` · 40/h |
 | Tradução de catálogo (offline, dev) | `scripts/i18n-translate-catalog.mjs` | — | script local |

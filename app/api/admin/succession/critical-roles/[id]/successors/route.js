@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../../../lib/api-error.js';
 import { getSessionPayload, getManagerScope, CAP, requireCapability } from '../../../../../../../lib/ae/require-admin.js';
-import { listSuccessors } from '../../../../../../../lib/succession-plans.js';
+import { listSuccessors } from '../../../../../../../lib/development/succession-plans.js';
 
 export async function GET(request, props) {
   const params = await props.params;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { t, localeNumberLocale } from '../../lib/i18n';
 import { LAUNCH_PRICE } from '../../lib/billing/catalog';
-import { publicPricingCurrency } from '../../lib/pricing-currency';
+import { publicPricingCurrency } from '../../lib/marketing/pricing-currency';
 import { S } from '../dashboard/dashboard-shared';
 import { InlineCallout } from './InlineCallout';
 import { StatusToneChip } from './StatusToneChip';

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
 import { query } from '../../../../../../../lib/db.js';
-import { getEmployeeSessionPayload } from '../../../../../../../lib/employee-session.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { getEmployeeSessionPayload } from '../../../../../../../lib/employee/employee-session.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 import { auditFromRequest, AUDIT_ACTOR_KIND } from '../../../../../../../lib/audit.js';
 import { DP_DOCUMENT_KEYS } from '../../../../../../../lib/domain-status.js';
 import { dpDownloadResponse } from '../../../../../../../lib/people/dp-download-response.js';

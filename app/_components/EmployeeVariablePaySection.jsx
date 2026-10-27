@@ -10,7 +10,7 @@ import { AppLoading, ContentEnter } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';
 import { StatusToneChip } from './StatusToneChip';
 import { COMPENSATION_APPROVAL_STATUS } from '../../lib/domain-status.js';
-import { redirectEmployeeIfUnauthorized } from '../../lib/employee-client-session';
+import { redirectEmployeeIfUnauthorized } from '../../lib/employee/employee-client-session';
 import { useRouter } from 'next/navigation';
 
 function formatDate(value, locale) {

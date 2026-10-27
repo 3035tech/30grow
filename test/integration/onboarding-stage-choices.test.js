@@ -12,10 +12,10 @@ if (process.env.ONBOARDING_TEST_PG_PORT !== undefined) {
 }
 Object.assign(process.env, env);
 const { query, pool, withTransaction } = await import('../../lib/db.js');
-const { createEmployeeDirect, persistCandidateHire, markCandidateHired, notifyHireOnboardingKit } = await import('../../lib/hire.js');
-const { findEmployeesByEmail, issueEmployeePasswordInvite, completeEmployeePasswordSetup, loginEmployeeWithPassword } = await import('../../lib/employee-auth.js');
+const { createEmployeeDirect, persistCandidateHire, markCandidateHired, notifyHireOnboardingKit } = await import('../../lib/recruiting/hire.js');
+const { findEmployeesByEmail, issueEmployeePasswordInvite, completeEmployeePasswordSetup, loginEmployeeWithPassword } = await import('../../lib/employee/employee-auth.js');
 const { __getMailMockLog } = await import('../../lib/mail.js');
-const { closeRateLimitRedis } = await import('../../lib/rate-limit.js');
+const { closeRateLimitRedis } = await import('../../lib/identity/rate-limit.js');
 const { ensurePreOnboardingChecklist } = await import('../../lib/people/pre-onboarding.js');
 const { ensureOnboardingCheckins } = await import('../../lib/people/onboarding-checkins.js');
 const { getEmployeeOnboardingJourney, buildOnboardingTasksFromJourney } = await import('../../lib/people/employee-onboarding-journey.js');

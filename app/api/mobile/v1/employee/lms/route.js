@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { completeLmsLesson, listCandidateLmsCourses, uncompleteLmsLesson, upsertLmsWatchProgress } from '../../../../../../lib/lms.js';
-import { mobileLmsBody } from '../../../../../../lib/mobile-employee-payload.js';
-import { getLessonQuiz, submitLessonQuiz } from '../../../../../../lib/lms-quiz.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { completeLmsLesson, listCandidateLmsCourses, uncompleteLmsLesson, upsertLmsWatchProgress } from '../../../../../../lib/development/lms.js';
+import { mobileLmsBody } from '../../../../../../lib/mobile/mobile-employee-payload.js';
+import { getLessonQuiz, submitLessonQuiz } from '../../../../../../lib/development/lms-quiz.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store, private' });

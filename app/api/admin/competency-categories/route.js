@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { z, zPositiveInt, zQueryBool } from '../../../../lib/validate.js';
 import { withTransaction } from '../../../../lib/db.js';

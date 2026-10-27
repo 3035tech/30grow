@@ -8,14 +8,14 @@ test('email lifecycle: hire → corporate contact → exit → personal contact 
   // Fixed disposable target. No .env, real mail or production credentials.
   Object.assign(process.env, { POSTGRES_HOST: '127.0.0.1', POSTGRES_PORT: '55488', POSTGRES_USER: 'postgres', POSTGRES_PASSWORD: 'local-rejection-test', POSTGRES_DB: 'rejection_validation', POSTGRES_SSL: 'false', SMTP_MOCK: '1', NEXT_PUBLIC_APP_URL: 'https://email-test.example' });
   const { pool, query, withTransaction } = await import('../../lib/db.js');
-  const { persistCandidateHire, rehireEmployee } = await import('../../lib/hire.js');
-  const { finishHireEmail } = await import('../../lib/hire-email.js');
+  const { persistCandidateHire, rehireEmployee } = await import('../../lib/recruiting/hire.js');
+  const { finishHireEmail } = await import('../../lib/recruiting/hire-email.js');
   const { createExitRecord } = await import('../../lib/exit-analysis.js');
   const { upsertCandidate } = await import('../../lib/ae/candidate-upsert.js');
-  const { candidateContact } = await import('../../lib/candidate-contact.js');
-  const { finishEmployeeEmailChange, revokeEmployeeAccessForEmailChange, consumeEmployeeMagicToken } = await import('../../lib/employee-auth.js');
+  const { candidateContact } = await import('../../lib/recruiting/candidate-contact.js');
+  const { finishEmployeeEmailChange, revokeEmployeeAccessForEmailChange, consumeEmployeeMagicToken } = await import('../../lib/employee/employee-auth.js');
   const { __getMailMockLog, __resetMailMockLog } = await import('../../lib/mail.js');
-  const { closeRateLimitRedis } = await import('../../lib/rate-limit.js');
+  const { closeRateLimitRedis } = await import('../../lib/identity/rate-limit.js');
   let companyId;
   try {
     companyId = (await query("INSERT INTO companies(name,slug) VALUES('Email lifecycle fixture','email-fixture-' || gen_random_uuid()::text) RETURNING id")).rows[0].id;

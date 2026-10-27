@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.js';
-import { beginEmployee2faSetup, disableEmployee2fa, enableEmployee2fa, loadEmployee2faState } from '../../../../../../../lib/employee-2fa.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/rate-limit.js';
+import { beginEmployee2faSetup, disableEmployee2fa, enableEmployee2fa, loadEmployee2faState } from '../../../../../../../lib/employee/employee-2fa.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store, private' });

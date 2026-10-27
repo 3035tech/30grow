@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../../../../lib/api-error.js';
 import { query, withTransaction } from '../../../../../../../../../lib/db.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../../../../lib/mobile/mobile-employee-session.js';
 import { DP_DOC_MAX_BYTES, clearLeaveAttachment, downloadLeaveAttachment, getEmployeeDisplayName, getEmployeeDpHome, uploadLeaveAttachment } from '../../../../../../../../../lib/people/employee-dp.js';
-import { checkRateLimit } from '../../../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../../../lib/identity/rate-limit.js';
 import { notifyCompanyManagers } from '../../../../../../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../../../../../../lib/manager-notification-catalog.js';
 import { readBoundedFormData, singleFormFile } from '../../../../../../../../../lib/bounded-multipart.js';

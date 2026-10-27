@@ -7,7 +7,7 @@ import {
   getSessionPayload,
   requireAnyCapability,
 } from '../../../../../../../../../lib/ae/require-admin.js';
-import { checkRateLimit } from '../../../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../../../lib/identity/rate-limit.js';
 import { auditFromRequest } from '../../../../../../../../../lib/audit.js';
 import { DP_DOCUMENT_KEYS } from '../../../../../../../../../lib/domain-status.js';
 import { zPositiveInt } from '../../../../../../../../../lib/validate.js';

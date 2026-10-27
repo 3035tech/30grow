@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../../lib/admin-api.js';
 import { apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
-import { CAP } from '../../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../../lib/identity/permissions.js';
 import { z, zPositiveInt } from '../../../../../../../lib/validate.js';
-import { getLessonQuiz, replaceLessonQuiz, LMS_QUIZ_MAX_QUESTIONS } from '../../../../../../../lib/lms-quiz.js';
+import { getLessonQuiz, replaceLessonQuiz, LMS_QUIZ_MAX_QUESTIONS } from '../../../../../../../lib/development/lms-quiz.js';
 import { audit } from '../../../../../../../lib/audit.js';
 
 const putBodySchema = z.object({

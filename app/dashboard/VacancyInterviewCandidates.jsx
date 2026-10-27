@@ -20,6 +20,7 @@ import { VacancyOfferBlock } from './vacancies/VacancyOfferBlock';
 import { HireReadinessBlock } from './vacancies/HireReadinessBlock';
 import { VacancyFitDecisionStrip } from './vacancies/VacancyFitDecisionStrip';
 import { CandidateCvBlock } from '../_components/CandidateCvBlock';
+import { CandidateCvFirstImport } from '../_components/CandidateCvFirstImport';
 import { FormField, formFieldGrowClass, formFieldRowClass } from '../_components/FormField';
 import { VacancyInterviewSlotsBlock } from '../_components/VacancyInterviewSlotsBlock';
 import { DisclosureToggle, disclosureToggleButtonClass } from '../_components/CollapsibleBlock';
@@ -885,6 +886,12 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
         >
           {t(locale, 'recruiting.newCandidate')}
         </span>
+        <CandidateCvFirstImport vacancyId={vacancyId} locale={locale} onCreated={load} />
+        <div className="mb-4 flex items-center gap-3">
+          <span className="h-px flex-1 bg-ink/10" aria-hidden="true" />
+          <span className="text-xs font-medium text-ink-muted">{t(locale, 'recruiting.cvCreateManualDivider')}</span>
+          <span className="h-px flex-1 bg-ink/10" aria-hidden="true" />
+        </div>
         <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <FormField label={t(locale, 'recruiting.fullNamePh')} className="min-w-0">
             <input

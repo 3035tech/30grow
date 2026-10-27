@@ -6,7 +6,7 @@ import { z, zPositiveInt } from '../../../../../lib/validate.js';
 import {
   createCompanyPost,
   listCompanyPosts,
-} from '../../../../../lib/company-posts.js';
+} from '../../../../../lib/company/company-posts.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),

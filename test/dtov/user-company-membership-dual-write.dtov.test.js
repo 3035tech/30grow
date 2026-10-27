@@ -1,8 +1,8 @@
 /** DTOV proof — admin user CRUD keeps legacy fields and memberships atomic. */
 import assert from 'node:assert/strict';
 import { pool, query } from '../../lib/db.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
-import { createUser, deactivateUser, updateUser } from '../../lib/users-admin.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
+import { createUser, deactivateUser, updateUser } from '../../lib/identity/users-admin.js';
 
 async function main() {
   const suffix = Date.now();

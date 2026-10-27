@@ -1,0 +1,11 @@
+# Cadastro de candidato começando pelo currículo
+
+Em Vagas → detalhe → Candidatos → Novo candidato, o RH pode escolher um currículo em PDF, DOCX, TXT, PNG ou JPG antes de informar nome ou e-mail. A IA sugere campos profissionais em uma revisão editável; campos ausentes ficam em branco. Nome e e-mail são exigidos somente na confirmação. O cadastro manual anterior continua disponível como alternativa completa.
+
+A prévia não cria pessoa, vínculo ou objeto no S3. Ela valida o tipo pelo conteúdo e limita o arquivo a 5 MB. PDF e DOCX passam por extração local de texto; TXT é lido como UTF-8; PNG e JPG usam a entrada visual do modelo. PDFs sem texto usam a entrada de arquivo do modelo. A resposta usa o mesmo schema e a mesma cota de IA da importação no perfil existente. Uma revisão assinada por 30 minutos liga ator, empresa, vaga e hash do arquivo. Mudar o arquivo exige nova análise.
+
+Se o e-mail extraído já existe na empresa, a revisão aponta a duplicidade e bloqueia a confirmação com esse e-mail. O servidor verifica novamente no momento da gravação; a unicidade no banco protege também chamadas concorrentes. Não há merge ou sobrescrita de candidato existente. Após confirmar, uma transação cria o candidato canônico sem consentimento presumido, vincula-o à vaga na etapa Entrevista e grava os campos revisados e a referência ao arquivo. Falha no armazenamento desfaz a transação; falha no commit remove o objeto enviado. Não há convite automático nem avaliação ou ranking gerado do CV.
+
+Sem migration: reutiliza `candidates`, `vacancy_candidates`, armazenamento de CV e campos da migration 158. O escopo desta entrega é o cadastro no contexto de uma vaga; o Banco de talentos permanece uma lista de pessoas vinculadas a vagas.
+
+Provas em 27/10/2026: integração PostgreSQL DTOV com S3 local simulado e IA simulada cobriu prévia, revisão assinada, vínculo à vaga, persistência de PDF e TXT, preservação de `consent_at`, duplicidade, replay e rollback por falha de upload; Playwright em 390 px cobriu prévia, bloqueio de duplicado, correção e confirmação; unitários, lint e build aprovados. A qualidade da leitura com CVs reais e PDFs digitalizados ainda depende de aceite operacional do RH com documentos autorizados e fornecedor configurado.

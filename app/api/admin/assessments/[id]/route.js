@@ -1,8 +1,8 @@
-import { normalizeOnboardingStages } from '../../../../../lib/onboarding-stage-selection.js';
+import { normalizeOnboardingStages } from '../../../../../lib/development/onboarding-stage-selection.js';
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../lib/identity/auth';
 import { query, queryRead, withTransaction } from '../../../../../lib/db';
 import { audit } from '../../../../../lib/audit';
 import { apiError, apiErrorFromResult, localeFromRequest, ERR } from '../../../../../lib/api-error';
@@ -10,10 +10,10 @@ import {
   PIPELINE_STAGE,
   normalizeRejectionReasons,
   normalizeStartDate,
-} from '../../../../../lib/pipeline';
-import { resolveRecruitingPipelineStage } from '../../../../../lib/pipeline-templates';
-import { canAccessCandidateRecord, isSuperAdminPayload } from '../../../../../lib/permissions';
-import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/job-funnel';
+} from '../../../../../lib/recruiting/pipeline';
+import { resolveRecruitingPipelineStage } from '../../../../../lib/recruiting/pipeline-templates';
+import { canAccessCandidateRecord, isSuperAdminPayload } from '../../../../../lib/identity/permissions';
+import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/recruiting/job-funnel';
 
 export async function PATCH(request, props) {
   const params = await props.params;

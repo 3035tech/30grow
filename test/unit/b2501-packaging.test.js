@@ -4,13 +4,13 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildShortlistCompositionRisks, buildShortlistPairTensions } from '../../lib/shortlist-composition-risks.js';
+import { buildShortlistCompositionRisks, buildShortlistPairTensions } from '../../lib/recruiting/shortlist-composition-risks.js';
 import {
   getReportNoteTemplate,
   inferReportTemplateKind,
   REPORT_TEMPLATE_KINDS,
-} from '../../lib/vacancy-report-note-templates.js';
-import { playbooksForTab, PLAYBOOK_IDS } from '../../lib/persona-playbooks.js';
+} from '../../lib/recruiting/vacancy-report-note-templates.js';
+import { playbooksForTab, PLAYBOOK_IDS } from '../../lib/development/persona-playbooks.js';
 
 describe('B-2501 packaging', () => {
   it('inferReportTemplateKind heuristics', () => {

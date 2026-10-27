@@ -28,7 +28,7 @@ import { parseTagList } from '../../lib/tag-list';
 import { CompanyLogoCropDialog } from './CompanyLogoCropDialog';
 import { FormField } from './FormField';
 import { DialogCloseButton } from './DialogCloseButton';
-import { COMPANY_LOGO_ACCEPT } from '../../lib/company-logo-limits';
+import { COMPANY_LOGO_ACCEPT } from '../../lib/company/company-logo-limits';
 import { digitsOnly, formatSalaryDisplay, formatCepBr, formatCpfBr, formatPhoneBr, stripCep, stripCpf, stripPhone } from '../../lib/br-masks';
 
 /**

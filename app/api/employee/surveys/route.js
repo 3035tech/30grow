@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import {
   listEmployeeSurveyInbox,
   submitEmployeeClimateSurvey,
   submitEmployeeTeamPulse,
-} from '../../../../lib/employee-surveys.js';
+} from '../../../../lib/employee/employee-surveys.js';
 import { normalizeLocale } from '../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

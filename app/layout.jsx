@@ -6,7 +6,7 @@ import { cookies, headers } from 'next/headers';
 import { DEFAULT_LOCALE, LOCALE_COOKIE, localeHtmlLang, normalizeLocale, t } from '../lib/i18n';
 import { I18nBoot } from './_components/I18nBoot';
 import { DarkModeProvider } from './_components/DarkModeProvider';
-import { versionedIcon } from '../lib/brand';
+import { versionedIcon } from '../lib/marketing/brand';
 import { themeInitScript } from '../lib/theme-mode';
 
 export async function generateMetadata() {

@@ -4,7 +4,7 @@ import { apiError, HTTP_STATUS, ERR } from '../../../../../../../lib/api-error.j
 import {
   mobileEmployeeBearerToken,
   switchMobileEmployeeCompany,
-} from '../../../../../../../lib/mobile-employee-session.js';
+} from '../../../../../../../lib/mobile/mobile-employee-session.js';
 import { parseJsonBody } from '../../../../../../../lib/validate.js';
 
 const switchSchema = z.object({

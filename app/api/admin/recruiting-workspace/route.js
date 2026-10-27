@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
 import { apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { auditFromRequest } from '../../../../lib/audit.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import {
   assignRecruitingCandidate,
   deleteRecruitingView,
   getRecruitingWorkspace,
   saveRecruitingView,
-} from '../../../../lib/recruiting-workspace.js';
+} from '../../../../lib/recruiting/recruiting-workspace.js';
 import { z, zPositiveInt } from '../../../../lib/validate.js';
 
 const querySchema = z.object({

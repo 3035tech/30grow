@@ -9,12 +9,12 @@ import {
   updateDevelopmentPlan,
   updateDevelopmentPlanItem,
 } from '../../../../../../../lib/people/development-plans';
-import { linkResourceToPdi, unlinkResourceFromPdi } from '../../../../../../../lib/learning-resources';
+import { linkResourceToPdi, unlinkResourceFromPdi } from '../../../../../../../lib/development/learning-resources';
 import {
   enrollLmsCandidates,
   linkLmsCourseToPdi,
   unlinkLmsCourseFromPdi,
-} from '../../../../../../../lib/lms.js';
+} from '../../../../../../../lib/development/lms.js';
 
 async function loadCandidateScope(candidateId, scope) {
   const c = await query(
@@ -31,7 +31,7 @@ async function loadCandidateScope(candidateId, scope) {
 async function notifyEmployeePdi(companyId, candidateId, { planId, planTitle, itemTitle }) {
   try {
     const { notifyCandidate, EMPLOYEE_NOTIF } = await import(
-      '../../../../../../../lib/employee-notifications.js'
+      '../../../../../../../lib/employee/employee-notifications.js'
     );
     await notifyCandidate(query, {
       companyId,

@@ -3,7 +3,7 @@
 import { localeHtmlLang, t } from '../../lib/i18n';
 import { C, PIPELINE_STAGE_COLORS } from '../../lib/theme';
 import { cn } from '../../lib/cn';
-import { PIPELINE_STAGE } from '../../lib/pipeline';
+import { PIPELINE_STAGE } from '../../lib/recruiting/pipeline';
 import { rejectionReasonLabel } from '../dashboard/pipeline-prompts';
 
 /** Funil principal (ordem). Rejeitado/arquivado entram como desvio visual. */

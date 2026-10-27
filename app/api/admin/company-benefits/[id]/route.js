@@ -7,7 +7,7 @@ import {
   getCompanyBenefit,
   updateCompanyBenefit,
   deactivateCompanyBenefit,
-} from '../../../../../lib/company-benefits.js';
+} from '../../../../../lib/company/company-benefits.js';
 
 const patchBodySchema = z.object({
   companyId: zPositiveInt.optional(),

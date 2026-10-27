@@ -14,8 +14,8 @@ import {
   getLmsCertificatePayload,
   getLmsCohortReport,
   listCandidateLmsCourses,
-} from '../../lib/lms.js';
-import { replaceLessonQuiz, submitLessonQuiz } from '../../lib/lms-quiz.js';
+} from '../../lib/development/lms.js';
+import { replaceLessonQuiz, submitLessonQuiz } from '../../lib/development/lms-quiz.js';
 
 async function main() {
   const emp = await query(

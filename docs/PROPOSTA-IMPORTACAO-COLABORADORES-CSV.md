@@ -1,8 +1,6 @@
 # Proposta — carga de colaboradores por CSV
 
-> Atualização: proposta aprovada e implementada no lote `feat/employee-welcome-access`, incluindo prévia e confirmação. A publicação do código está em andamento. Conteúdo abaixo preservado como decisão original; estado e provas em [employee-access-and-climate-release.md](employee-access-and-climate-release.md).
-
-Proposta de 26/10/2026, ainda sem implementação. Foco inicial recomendado: carga de pessoas que já trabalham na empresa, reaproveitando o cadastro direto e suas regras. A inclusão de novas admissões com onboarding depende da decisão do responsável.
+Proposta de 26/10/2026. A primeira versão para colaboradores atuais foi implementada nos commits `dfc23739` e `5c3fe65a`, com prévia, validação por linha e importação. A inclusão de novas admissões com onboarding continua fora desse fluxo.
 
 ## Modelo mínimo
 

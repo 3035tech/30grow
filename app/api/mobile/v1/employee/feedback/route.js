@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { searchEmployeeColleagues } from '../../../../../../lib/company-kudos.js';
+import { searchEmployeeColleagues } from '../../../../../../lib/company/company-kudos.js';
 import { FEEDBACK_REQUEST_STATUS } from '../../../../../../lib/domain-status.js';
-import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../../lib/employee-notifications.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
+import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../../lib/employee/employee-notifications.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
 import { answerFeedbackRequest, createFeedbackRequest, listFeedbackForSubject, listFeedbackInbox } from '../../../../../../lib/people/continuous-feedback.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 import { query } from '../../../../../../lib/db.js';
 
 export const dynamic = 'force-dynamic';

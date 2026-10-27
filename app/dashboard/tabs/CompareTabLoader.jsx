@@ -4,7 +4,7 @@ import { SelectField } from '../../_components/SelectField';
 
 import { useEffect, useState } from 'react';
 import { t } from '../../../lib/i18n';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { cn } from '../../../lib/cn';
 import { S } from '../dashboard-shared';
 import { CompareTab } from './CompareTab';

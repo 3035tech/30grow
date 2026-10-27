@@ -11,6 +11,9 @@ import { titleCasePersonName } from '../../../lib/person-name';
 import { rejectionReasonLabel } from '../pipeline-prompts';
 import { daysInStage } from './vacancy-admin-shared';
 import { useEmployeeAdmission } from '../../_components/useEmployeeAdmission';
+import { formatSalaryBr } from '../../../lib/br-masks';
+import { typeShortLabel } from '../../../lib/type-en';
+import { motivatorDimensionLabel } from '../../../lib/ae/motivators-dimensions';
 
 export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruiters, workspaceLoading, onAssign, onClose, onPersonClick, canAdmitCandidate = false }) {
   const [data, setData] = useState(null);
@@ -23,6 +26,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
   const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: () => { onClose(); onPersonClick?.(row.candidateId); } });
   const stageLabel = (key) => stages.find((stage) => stage.id === key)?.label || key || '—';
   const days = daysInStage(row.stageEnteredAt || row.createdAt);
+  const motivators = Array.isArray(data?.motivatorsRanking) ? data.motivatorsRanking.slice(0, 3) : [];
 
   useEffect(() => {
     const controller = new AbortController();
@@ -82,6 +86,34 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
         {loading ? <AppLoading variant="inline" /> : error ? (
           <div role="alert"><p className="text-sm text-danger">{error}</p><button type="button" className={dialogBtnGhostClass} onClick={() => setRetry((n) => n + 1)}>{t(locale, 'recruiting.candidateDialogRetry')}</button></div>
         ) : <>
+          <section className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h3 className="mb-2 text-sm font-semibold text-ink">{t(locale, 'recruiting.candidateDialogTests')}</h3>
+              <p className="m-0 text-sm text-ink-muted">
+                {t(locale, 'recruiting.candidateDialogProfile')}: {data?.profileTopType
+                  ? `T${data.profileTopType} · ${typeShortLabel(data.profileTopType, locale)}`
+                  : t(locale, 'recruiting.candidateDialogNoResult')}
+              </p>
+              <p className="mb-0 mt-1 text-sm text-ink-muted">
+                {t(locale, 'recruiting.candidateDialogMotivators')}: {motivators.length
+                  ? motivators.map((key) => motivatorDimensionLabel(key, locale)).join(' · ')
+                  : t(locale, 'recruiting.candidateDialogNoResult')}
+              </p>
+            </div>
+            <div className="space-y-1 text-sm text-ink-muted">
+              {data?.linkedinUrl ? <p className="m-0 break-all">{t(locale, 'recruiting.linkedinLabel')}: {' '}
+                {/^https:\/\//i.test(data.linkedinUrl)
+                  ? <a href={data.linkedinUrl} target="_blank" rel="noreferrer" className="text-brand-600 underline">{data.linkedinUrl}</a>
+                  : data.linkedinUrl}
+              </p> : null}
+              {data?.salaryExpectation ? <p className="m-0">{t(locale, 'recruiting.salaryExpectationLabel')}: {formatSalaryBr(data.salaryExpectation) || data.salaryExpectation}</p> : null}
+              <p className="m-0">{t(locale, 'recruiting.candidateDialogCv')}: {' '}
+                {data?.cvUrl && /^https:\/\//i.test(data.cvUrl)
+                  ? <a href={data.cvUrl} target="_blank" rel="noreferrer" className="text-brand-600 underline">{t(locale, 'recruiting.cvOpenPdf')}</a>
+                  : t(locale, 'recruiting.candidateDialogCvMissing')}
+              </p>
+            </div>
+          </section>
           {data?.professionalSummary ? <section><h3 className="mb-2 text-sm font-semibold text-ink">{t(locale, 'recruiting.candidateDialogSummary')}</h3><RichTextView html={data.professionalSummary} /></section> : null}
           <section>
             <h3 className="mb-2 text-sm font-semibold text-ink">{t(locale, 'recruiting.interviewNotesTitle')}</h3>

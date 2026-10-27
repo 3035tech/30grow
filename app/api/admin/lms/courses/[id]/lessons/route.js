@@ -3,7 +3,7 @@ import { withAdminApi } from '../../../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../../../../lib/validate.js';
-import { createLmsLesson } from '../../../../../../../lib/lms.js';
+import { createLmsLesson } from '../../../../../../../lib/development/lms.js';
 import { audit } from '../../../../../../../lib/audit.js';
 
 const createBodySchema = z.object({

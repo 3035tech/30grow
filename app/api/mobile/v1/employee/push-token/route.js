@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
-import { MOBILE_PUSH_PLATFORM, registerMobileEmployeePushToken, unregisterMobileEmployeePushToken } from '../../../../../../lib/mobile-employee-push.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
+import { MOBILE_PUSH_PLATFORM, registerMobileEmployeePushToken, unregisterMobileEmployeePushToken } from '../../../../../../lib/mobile/mobile-employee-push.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
 import { parseJsonBody } from '../../../../../../lib/validate.js';
 
 const tokenSchema = z.object({

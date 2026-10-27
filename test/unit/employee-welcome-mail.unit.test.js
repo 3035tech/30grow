@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildUserPasswordInviteMail } from '../../lib/user-access-mail.js';
-import { PASSWORD_SETUP_TTL_MS } from '../../lib/user-password-invite.js';
+import { PASSWORD_SETUP_TTL_MS } from '../../lib/identity/user-password-invite.js';
 
 const base = { email: 'ana@empresa.example', displayName: '<Ana> Silva', setupUrl: 'https://app.example/employee/set-password?token=abc&other=1' };
 test('employee welcome has corporate access, setup and permanent portal links in every locale', () => {

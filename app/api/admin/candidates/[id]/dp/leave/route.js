@@ -8,7 +8,7 @@ import {
   requireAnyCapability,
 } from '../../../../../../../lib/ae/require-admin.js';
 import { createLeaveRequest } from '../../../../../../../lib/people/employee-dp.js';
-import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../../../lib/employee-notifications.js';
+import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../../../../lib/employee/employee-notifications.js';
 import { auditFromRequest } from '../../../../../../../lib/audit.js';
 
 const DP_OR_TEAM = Object.freeze([CAP.DP_VIEW, CAP.TEAM_VIEW]);

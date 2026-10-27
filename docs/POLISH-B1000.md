@@ -145,7 +145,8 @@ Princípio: **valor rápido** (< 1 dia por item) + **reutilizar** componentes/pa
 ### P-1022 — Succession: alerta de gap de sucessão
 **O quê:** Notificação "Papel crítico [X] sem sucessor 'ready'" quando não há sucessor prontidão ≥ ready  
 **Por quê:** RH/direção prioriza desenvolver sucessores  
-**Onde:** `lib/succession-plans.js` + notificação  
+**Onde:** `lib/development/succession-plans.js` + notificação
+
 **Esforço:** 🟡 Médio — query + lógica de gap
 
 ### P-1023 — Exit: digest mensal de motivos
@@ -173,7 +174,8 @@ Princípio: **valor rápido** (< 1 dia por item) + **reutilizar** componentes/pa
 ### P-1026 — HR Score: cache de scores na sessão
 **O quê:** Evitar recalcular score toda vez que Overview/Equipe carrega  
 **Por quê:** Overview pode ficar lento com muitas pessoas  
-**Onde:** `lib/hr-score.js` (TTL de 1h ou cache em memória)  
+**Onde:** `lib/assessment/hr-score.js` (TTL de 1h ou cache em memória)
+
 **Esforço:** 🟠 Alto — arquitetura de cache + invalidação
 
 ---

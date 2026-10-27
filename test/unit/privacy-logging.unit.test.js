@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { redactSensitiveValue } from '../../lib/redact-secrets.js';
+import { redactSensitiveValue } from '../../lib/identity/redact-secrets.js';
 import { logger, withApiLogging, getMetricsSnapshot, resetMetrics } from '../../lib/monitoring.js';
 
 test('sensitive nested fields are removed without hiding operational evidence', () => {

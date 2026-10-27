@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR, HTTP_STATUS } from '../../../../../../lib/api-error.js';
 import { query } from '../../../../../../lib/db.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
 import { getDpProfile, getEmployeeDpHome, upsertDpProfile } from '../../../../../../lib/people/employee-dp.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 import { AUDIT_ACTOR_KIND, auditFromRequest } from '../../../../../../lib/audit.js';
 
 export const dynamic = 'force-dynamic';

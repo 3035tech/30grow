@@ -16,7 +16,7 @@ import {
   createCompanyPipelineStage,
   slugifyStageKey,
   updateCompanyPipelineStage,
-} from '../../lib/company-pipeline-stages.js';
+} from '../../lib/company/company-pipeline-stages.js';
 
 describe('B-RH2-12 company pipeline stages', () => {
   it('exposes PIPELINE_STAGE_* error codes', () => {

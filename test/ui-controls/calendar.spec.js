@@ -72,3 +72,16 @@ test('real prompt: focus, select above modal, calendar, cancel and one submissio
   await save.click();
   await expect(page.getByTestId('submits')).toHaveText('2');
 });
+
+test('prompt sends selected date and scope values', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Abrir formulário' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Formulário de teste' });
+  await dialog.getByRole('textbox', { name: 'Nome', exact: true }).fill('Feriado local');
+  await dialog.getByRole('combobox', { name: 'Área do formulário' }).click();
+  await page.getByRole('option', { name: 'Área B', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Data do formulário' }).click();
+  await page.getByRole('dialog', { name: 'Selecionar data' }).locator('[data-day="2026-09-21"]').click();
+  await dialog.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.getByTestId('submitted-values')).toHaveText(JSON.stringify({ name: 'Feriado local', area: 'b', date: '2026-09-21' }));
+});

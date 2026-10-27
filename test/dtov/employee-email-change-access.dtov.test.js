@@ -11,9 +11,9 @@ import {
   finishEmployeeEmailChange,
   loginEmployeeWithPassword,
   revokeEmployeeAccessForEmailChange,
-} from '../../lib/employee-auth.js';
-import { isEmployeeSessionVersionCurrent } from '../../lib/employee-session-revocation.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+} from '../../lib/employee/employee-auth.js';
+import { isEmployeeSessionVersionCurrent } from '../../lib/employee/employee-session-revocation.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 
 const DEMO_EMAIL = 'colaborador@todos-os-dados.demo';
 const DEMO_PASSWORD = 'DemoTodosDados!2026';

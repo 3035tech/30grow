@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../lib/identity/auth';
 import {
   CAP,
   requireCapability,
@@ -9,8 +9,8 @@ import {
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error';
 import { isOpenAiConfigured } from '../../../../../lib/openai-chat';
 import { normalizeLocale } from '../../../../../lib/i18n';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/rate-limit';
-import { suggestVacancyDescriptionAi } from '../../../../../lib/vacancy-assist-ai';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit';
+import { suggestVacancyDescriptionAi } from '../../../../../lib/recruiting/vacancy-assist-ai';
 
 /**
  * POST /api/admin/vacancies/assist-ai

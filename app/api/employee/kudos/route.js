@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import {
   createCompanyKudo,
   listCompanyKudos,
-} from '../../../../lib/company-kudos.js';
-import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee-notifications.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit.js';
+} from '../../../../lib/company/company-kudos.js';
+import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee/employee-notifications.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 

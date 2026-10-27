@@ -1,35 +1,20 @@
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../lib/identity/auth';
 import { query, queryRead } from '../../../../lib/db';
-import crypto from 'node:crypto';
-import { PAGE_SIZE_OPTIONS, sqlCompaniesOrderBy } from '../../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS, sqlCompaniesOrderBy } from '../../../../lib/assessment/assessment-filters';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { CAP, requireCapability } from '../../../../lib/permissions';
+import { CAP, requireCapability } from '../../../../lib/identity/permissions';
 import { EMPLOYMENT_STATUS } from '../../../../lib/domain-status';
-import { parseCompanyProfileFromBody } from '../../../../lib/company-profile';
-import { isCompanyLogoStorageConfigured } from '../../../../lib/company-logo';
+import { parseCompanyProfileFromBody } from '../../../../lib/company/company-profile';
+import { isCompanyLogoStorageConfigured } from '../../../../lib/company/company-logo';
+import { ensureActiveCompanyLink } from '../../../../lib/public-company-link';
 import { aiDefaultCompanyMonthlyLimit } from '../../../../lib/ai-usage';
 import {
   checkCompanySlugAvailable,
   generateUniqueCompanySlug,
 } from '../../../../lib/slugify';
-
-async function ensureActiveLink(companyId) {
-  const existing = await queryRead(
-    `SELECT token FROM company_links WHERE company_id = $1 AND active = TRUE AND expires_at > NOW() LIMIT 1`,
-    [companyId]
-  );
-  if (existing.rowCount > 0) return existing.rows[0].token;
-  const token = crypto.randomBytes(24).toString('hex');
-  await query(
-    `INSERT INTO company_links (company_id, token, active, expires_at)
-     VALUES ($1, $2, TRUE, NOW() + INTERVAL '7 days')`,
-    [companyId, token]
-  );
-  return token;
-}
 
 const COMPANY_SORT_KEYS = new Set(['id', 'name', 'slug', 'active', 'createdAt']);
 
@@ -208,7 +193,7 @@ export async function POST(request) {
       throw err;
     }
 
-    const linkToken = await ensureActiveLink(ins.rows[0].id);
+    const linkToken = await ensureActiveCompanyLink(ins.rows[0].id);
     return NextResponse.json({ ...ins.rows[0], activeToken: linkToken }, { status: 201 });
   } catch (err) {
     console.error('POST /api/admin/companies error:', err);

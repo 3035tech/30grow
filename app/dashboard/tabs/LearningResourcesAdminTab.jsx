@@ -11,7 +11,7 @@ import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/Admi
 import { TagChips } from '../../_components/TagInput';
 import { AdminListFilters, AdminListFilterSelect, AdminListResults } from '../../_components/AdminListFilters';
 import { formatTagList, parseTagList } from '../../../lib/tag-list';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import {
   AdminActionsCell,
   AdminActionsTh,

@@ -1,6 +1,6 @@
 import { t } from '../../lib/i18n';
-import { normalizeStartDate } from '../../lib/pipeline';
-import { ONBOARDING_STAGES, onboardingStageOptions } from '../../lib/onboarding-stage-selection';
+import { normalizeStartDate } from '../../lib/recruiting/pipeline';
+import { ONBOARDING_STAGES, onboardingStageOptions } from '../../lib/development/onboarding-stage-selection';
 
 /** Shared UI contract: an explicit activation, distinct from the recruiting stage. */
 export function employeeAdmissionFields(locale, person, hiringLinks = []) {

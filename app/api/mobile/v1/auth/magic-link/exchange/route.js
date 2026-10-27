@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { query } from '../../../../../../../lib/db.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../../../../lib/api-error.js';
-import { consumeEmployeeMagicToken } from '../../../../../../../lib/employee-auth.js';
-import { employee2faRequired } from '../../../../../../../lib/employee-2fa.js';
-import { completeMobileEmployeeAuthentication, MOBILE_EMPLOYEE_AUTH_OUTCOME, signMobileEmployeeSecondFactor } from '../../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/rate-limit.js';
+import { consumeEmployeeMagicToken } from '../../../../../../../lib/employee/employee-auth.js';
+import { employee2faRequired } from '../../../../../../../lib/employee/employee-2fa.js';
+import { completeMobileEmployeeAuthentication, MOBILE_EMPLOYEE_AUTH_OUTCOME, signMobileEmployeeSecondFactor } from '../../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../../lib/identity/rate-limit.js';
 import { parseJsonBody } from '../../../../../../../lib/validate.js';
 
 export const dynamic = 'force-dynamic';

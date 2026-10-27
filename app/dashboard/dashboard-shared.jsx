@@ -8,11 +8,11 @@ import Link from 'next/link';
 import { createContext, useContext, useEffect, useRef } from 'react';
 import { TYPE_DATA } from '../../lib/data';
 import { t, contentLocale } from '../../lib/i18n';
-import { PAGE_SIZE_OPTIONS } from '../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../lib/assessment/assessment-filters';
 import { buildAdminPagerPages } from '../../lib/admin-list-pager.js';
 import { typeHintTooltip, typeShortLabel } from '../../lib/type-en';
 import { C, PIPELINE_STAGE_COLORS, PIPELINE_STAGE_COLORS_DARK, typeChipSurfaceStyle } from '../../lib/theme';
-import { PIPELINE_STAGE } from '../../lib/pipeline';
+import { PIPELINE_STAGE } from '../../lib/recruiting/pipeline';
 import { cn } from '../../lib/cn';
 import {
   fieldInputClass,

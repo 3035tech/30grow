@@ -8,10 +8,10 @@ Checklist operacional após os sprints Perf-A/B/C e P3 (colaborador). Não subst
 |------|------|
 | SSR só da aba ativa | `app/dashboard/page.jsx` + `load-dashboard-data.js` |
 | Caps compat / intel | `COMPAT_PEOPLE_CAP`, `COMPAT_PAIR_PAYLOAD_CAP` |
-| Vagas paginadas | `lib/vacancies-admin.js` |
+| Vagas paginadas | `lib/recruiting/vacancies-admin.js` |
 | Índices | `migrations/006_performance_indexes.sql`, `061_performance_indexes.sql`, `079_candidates_name_trgm.sql` |
 | Pool PG | `PG_POOL_MAX` em `lib/db.js` |
-| Export streamado + cap | `lib/export-assessments-csv.js` / `EXPORT_MAX_ROWS` |
+| Export streamado + cap | `lib/assessment/export-assessments-csv.js` / `EXPORT_MAX_ROWS` |
 | Slow query log | `LOG_SLOW_MS` + `lib/monitoring.js` / `lib/db.js` |
 | Troca de aba percebida | `useDashboardNavigation` (`router.push` em `useTransition` → `navPending` / `pendingTab`): destaque do menu, título, `NavLoadBar` e skeleton na hora do clique |
 | Pré-carga de aba | `app/dashboard/dashboard-tab-preload.js`: chunk JS da aba no hover/focus/touch do menu (mesmo `import()` do `dynamic()`) |
@@ -22,16 +22,16 @@ Checklist operacional após os sprints Perf-A/B/C e P3 (colaborador). Não subst
 
 | Peça | Onde |
 |------|------|
-| Home colaborador paralelo + PDI batch | `lib/employee-home.js`, `listActiveDevelopmentPlansWithItems` |
+| Home colaborador paralelo + PDI batch | `lib/employee/employee-home.js`, `listActiveDevelopmentPlansWithItems` |
 | Portal `/e` | `lib/people/employee-portal.js` |
-| Inbox pesquisas (batch invite + reads) | `lib/employee-surveys.js` — 1 upsert batch, sem N+1 |
+| Inbox pesquisas (batch invite + reads) | `lib/employee/employee-surveys.js` — 1 upsert batch, sem N+1 |
 | Jornada GET sem ensure | `getEmployeeOnboardingJourney({ ensure })` — ensure no hire/admin |
 | Clima aggregate SQL + benchmark batch | `lib/people/climate-surveys.js` |
-| Sucessão readiness batch | `lib/succession-plans.js` |
+| Sucessão readiness batch | `lib/development/succession-plans.js` |
 | HR Score cache TTL | `getHrScore` → `hr-score-cache.js`; invalidate em `saveHrScore` |
 | Caps assessments / timeline | `candidates/[id]` LIMIT 30; `buildCandidateTimeline` caps |
 | LMS lessons por curso | `ROW_NUMBER` ≤ `LMS_LESSON_CAP` |
-| `notifyCandidates` unnest | `lib/employee-notifications.js` |
+| `notifyCandidates` unnest | `lib/employee/employee-notifications.js` |
 | Crons em chunks paralelos (20) | LMS overdue + vacancy deadlines |
 | Mail retry (até 3) | `lib/mail.js` / `MAIL_RETRY_ATTEMPTS` |
 | HTTP cache público curto | `/api/public/vacancy-link`, `company-link`; `/api/health` max-age=5 |

@@ -7,11 +7,11 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
-import { CAP } from '../../../../../lib/permissions.js';
-import { getHiringEffectivenessMetrics } from '../../../../../lib/analytics-metrics.js';
-import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics-rate-limit.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
+import { getHiringEffectivenessMetrics } from '../../../../../lib/analytics/analytics-metrics.js';
+import { checkAnalyticsRateLimit, addRateLimitHeaders } from '../../../../../lib/analytics/analytics-rate-limit.js';
 import { withApiLogging } from '../../../../../lib/monitoring.js';
-import { isValidAnalyticsDateRange } from '../../../../../lib/analytics-query.js';
+import { isValidAnalyticsDateRange } from '../../../../../lib/analytics/analytics-query.js';
 
 export const GET = withAdminApi({
   cap: CAP.OVERVIEW_VIEW,

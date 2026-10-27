@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import { after, describe, it } from 'node:test';
 import { pool, query } from '../../lib/db.js';
-import { getRecruitingUxMetrics } from '../../lib/recruiting-ux-metrics.js';
-import { getVacancyFunnelAnalytics } from '../../lib/job-funnel.js';
-import { getVacancyRanking } from '../../lib/vacancy-ranking.js';
-import { getVacancyById, listVacancies } from '../../lib/vacancies-admin.js';
+import { getRecruitingUxMetrics } from '../../lib/recruiting/recruiting-ux-metrics.js';
+import { getVacancyFunnelAnalytics } from '../../lib/recruiting/job-funnel.js';
+import { getVacancyRanking } from '../../lib/recruiting/vacancy-ranking.js';
+import { getVacancyById, listVacancies } from '../../lib/recruiting/vacancies-admin.js';
 import {
   assignRecruitingCandidate,
   getRecruitingWorkspace,
   saveRecruitingView,
-} from '../../lib/recruiting-workspace.js';
+} from '../../lib/recruiting/recruiting-workspace.js';
 
 const dtov = process.env.DTOV === '1';
 

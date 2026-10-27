@@ -4,8 +4,7 @@ import { CAP } from '../../../../../../lib/ae/require-admin.js';
 import { apiErrorFromResult, ERR } from '../../../../../../lib/api-error.js';
 import { z, zLocale, zPositiveInt } from '../../../../../../lib/validate.js';
 import { query } from '../../../../../../lib/db.js';
-import { issueEmployeePasswordInvite } from '../../../../../../lib/employee-auth.js';
-import { checkRateLimit } from '../../../../../../lib/rate-limit.js';
+import { issueEmployeePasswordInvite } from '../../../../../../lib/employee/employee-auth.js';
 import { audit } from '../../../../../../lib/audit.js';
 import { EMPLOYMENT_STATUS } from '../../../../../../lib/domain-status.js';
 
@@ -42,8 +41,6 @@ export const POST = withAdminApi(
     if (owned.rows[0].employmentStatus !== EMPLOYMENT_STATUS.EMPLOYEE) {
       return apiErrorFromResult(request, { ok: false, errorCode: ERR.INVALID_DATA });
     }
-    const rate = await checkRateLimit(`employee-access-invite:${payload.userId}:${companyId}`, 120, 15 * 60 * 1000);
-    if (!rate.ok) return apiErrorFromResult(request, { ok: false, errorCode: ERR.RATE_LIMIT });
     const result = await issueEmployeePasswordInvite(query, {
       candidateId,
       companyId,

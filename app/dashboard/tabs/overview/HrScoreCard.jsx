@@ -12,7 +12,7 @@ import { AppLoading, ContentEnter } from '../../../_components/AppLoading';
 import { useAppFeedback } from '../../../_components/AppFeedback';
 import { CategoryBars } from '../../../_components/CategoryBars';
 import { ChartPanel } from '../../../_components/ChartPanel';
-import { hrScoreAreaBars } from '../../../../lib/chart-aggregates';
+import { hrScoreAreaBars } from '../../../../lib/analytics/chart-aggregates';
 
 /**
  * Card de HR Score na Overview

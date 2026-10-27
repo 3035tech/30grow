@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runtimeAppUrl } from '../../lib/app-url.js';
-import { buildCandidateChallengeInviteMail } from '../../lib/candidate-challenge-invite-mail.js';
+import { buildCandidateChallengeInviteMail } from '../../lib/recruiting/candidate-challenge-invite-mail.js';
 
 test('runtime app URL switches environments without reloading modules', () => {
   const original = { APP_URL: process.env.APP_URL, NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL, NODE_ENV: process.env.NODE_ENV };

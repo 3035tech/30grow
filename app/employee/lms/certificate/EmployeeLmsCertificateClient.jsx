@@ -10,7 +10,7 @@ import { S } from '../../../dashboard/dashboard-shared';
 import { ContentEnter } from '../../../_components/AppLoading';
 import { EmptyState } from '../../../_components/EmptyState';
 import { useAppFeedback } from '../../../_components/AppFeedback';
-import { redirectEmployeeIfUnauthorized } from '../../../../lib/employee-client-session';
+import { redirectEmployeeIfUnauthorized } from '../../../../lib/employee/employee-client-session';
 
 function formatCertDate(value, locale) {
   if (!value) return '';

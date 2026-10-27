@@ -13,7 +13,7 @@ import { FormField } from '../../_components/FormField';
 import { InlineCallout } from '../../_components/InlineCallout';
 import { SegmentedControl } from '../../_components/SegmentedControl';
 import TurnstileField from '../../_components/TurnstileField';
-import { EMPLOYEE_PATH } from '../../../lib/employee-paths';
+import { EMPLOYEE_PATH } from '../../../lib/employee/employee-paths';
 
 /**
  * Collaborator login — password primary; forgot + magic via SegmentedControl.

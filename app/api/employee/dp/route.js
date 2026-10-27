@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { query } from '../../../../lib/db.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
 import {
   createLeaveRequest,
   getDpProfile,
@@ -10,7 +10,7 @@ import {
 } from '../../../../lib/people/employee-dp.js';
 import { notifyCompanyManagers } from '../../../../lib/manager-notifications.js';
 import { NOTIF } from '../../../../lib/manager-notification-catalog.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 import { AUDIT_ACTOR_KIND, auditFromRequest } from '../../../../lib/audit.js';
 
 export const dynamic = 'force-dynamic';

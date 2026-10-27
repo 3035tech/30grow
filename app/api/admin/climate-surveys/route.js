@@ -57,6 +57,7 @@ export async function POST(request) {
       status: body.status || 'draft',
       createdByUserId: payload.userId || null,
       seedDefaultQuestions: body.seedDefaultQuestions !== false,
+      locale: normalizeLocale(body.locale || payload?.locale || 'pt-BR'),
       prompts: isNr1
         ? psychosocialSurveyPrompts(normalizeLocale(body.locale || payload?.locale || 'pt-BR'))
         : body.prompts,

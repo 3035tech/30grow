@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { oldestOverdueDays, organizeOverviewAttention } from '../../lib/overview-attention.js';
+import { oldestOverdueDays, organizeOverviewAttention } from '../../lib/analytics/overview-attention.js';
 
 test('calendar deadlines distinguish yesterday from today and unknown age', () => {
   const now = new Date('2026-10-22T00:02:00Z');

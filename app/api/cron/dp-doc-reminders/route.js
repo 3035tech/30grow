@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { verifyCronRequest } from '../../../../lib/cron-auth';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth';
 import { notifyDpPendingDocuments } from '../../../../lib/people/employee-dp.js';
 
 export const dynamic = 'force-dynamic';

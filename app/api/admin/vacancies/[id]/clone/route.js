@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
-import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabilities';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
+import { verifySessionWithCapabilities } from '../../../../../../lib/identity/user-capabilities';
 import { query } from '../../../../../../lib/db';
 import { apiError, localeFromRequest, ERR } from '../../../../../../lib/api-error';
 import { audit } from '../../../../../../lib/audit';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
-import { cloneVacancy } from '../../../../../../lib/vacancy-clone';
-import { ensureActiveVacancyLinkToken } from '../../../../../../lib/vacancy-link';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/identity/permissions';
+import { cloneVacancy } from '../../../../../../lib/recruiting/vacancy-clone';
+import { ensureActiveVacancyLinkToken } from '../../../../../../lib/recruiting/vacancy-link';
 
 /** POST /api/admin/vacancies/[id]/clone */
 export async function POST(request, props) {

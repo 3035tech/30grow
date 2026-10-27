@@ -1,6 +1,6 @@
 import { query, withTransaction } from '../../../../lib/db.js';
 import { apiError, ERR, HTTP_STATUS } from '../../../../lib/api-error.js';
-import { verifyCronRequest } from '../../../../lib/cron-auth.js';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth.js';
 import { purgeAuditLog } from '../../../../lib/audit-retention.js';
 import { audit, AUDIT_ACTOR_KIND } from '../../../../lib/audit.js';
 export const dynamic = 'force-dynamic';

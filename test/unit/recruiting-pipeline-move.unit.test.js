@@ -1,9 +1,9 @@
-import { normalizeOnboardingStages } from '../../lib/onboarding-stage-selection.js';
+import { normalizeOnboardingStages } from '../../lib/development/onboarding-stage-selection.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
-import { PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, rejectionReasonsSql } from '../../lib/pipeline.js';
+import { PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, rejectionReasonsSql } from '../../lib/recruiting/pipeline.js';
 import { ERR } from '../../lib/api-error-codes.js';
 
 async function load(path, deps) {
@@ -122,7 +122,7 @@ test('resolver uses vacancy snapshot rather than the company catalog and rejects
   let companyReads = 0;
   const stages = [{ id: 1, companyId: 3, stageKey: 'c_forwarded', canonicalKey: 'screening' }];
   const queryRead = async (sql, args) => { queries.push(args); return { rowCount: 1, rows: sql.includes('FROM vacancy_pipeline_stages') ? stages : [] }; };
-  const lib = await load('lib/pipeline-templates.js', { queryRead, query: queryRead, pool: {}, ERR, createCompanyPipelineStage: () => {}, listCompanyPipelineStages: async () => { companyReads++; return [{ stageKey: 'interview', canonicalKey: 'interview' }]; } });
+  const lib = await load('lib/recruiting/pipeline-templates.js', { queryRead, query: queryRead, pool: {}, ERR, createCompanyPipelineStage: () => {}, listCompanyPipelineStages: async () => { companyReads++; return [{ stageKey: 'interview', canonicalKey: 'interview' }]; } });
   assert.equal((await lib.resolveRecruitingPipelineStage({ companyId: 3, vacancyId: 29, stageKey: 'c_forwarded' })).canonicalKey, 'screening');
   assert.equal(await lib.resolveRecruitingPipelineStage({ companyId: 3, vacancyId: 29, stageKey: 'interview' }), null);
   assert.equal(companyReads, 0);

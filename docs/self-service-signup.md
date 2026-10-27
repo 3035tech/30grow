@@ -147,7 +147,7 @@ CREATE INDEX idx_users_onboarding_pending
 
 | Arquivo | Função |
 |---------|--------|
-| `lib/landing-analytics.js` | `trackLandingEvent()` |
+| `lib/analytics/landing-analytics.js` | `trackLandingEvent()` |
 | `lib/trial-limits.js` | `isTrialCompany()`, `checkTrialLimit()` |
 | `lib/slugify.js` | `generateUniqueCompanySlug()` |
 

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR, httpStatusForError } from '../../../../../lib/api-error.js';
-import { getEmployeeSessionPayload } from '../../../../../lib/employee-session.js';
+import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
 import {
   beginEmployee2faSetup,
   disableEmployee2fa,
   enableEmployee2fa,
   loadEmployee2faState,
-} from '../../../../../lib/employee-2fa.js';
+} from '../../../../../lib/employee/employee-2fa.js';
 
 export const dynamic = 'force-dynamic';
 

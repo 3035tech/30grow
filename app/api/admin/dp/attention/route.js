@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../lib/admin-api.js';
 import { query } from '../../../../../lib/db.js';
-import { CAP } from '../../../../../lib/permissions.js';
+import { CAP } from '../../../../../lib/identity/permissions.js';
 import { getAbsenteeismPulse, getDpAttentionPulse } from '../../../../../lib/people/employee-dp.js';
 import { DP_LEAVE_STATUS } from '../../../../../lib/domain-status.js';
 import { countPendingTimeRequests } from '../../../../../lib/people/time-clock-requests.js';

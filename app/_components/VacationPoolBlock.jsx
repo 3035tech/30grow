@@ -12,7 +12,7 @@ import {
   CHART_MIN_N,
   vacationPoolTotals,
   vacationPoolByAreaBars,
-} from '../../lib/chart-aggregates';
+} from '../../lib/analytics/chart-aggregates';
 
 /**
  * B-3029 — Company vacation pool (used / pending / available) above the DP leave inbox.

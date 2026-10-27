@@ -3,7 +3,7 @@ import { withAdminApi } from '../../../../../../lib/admin-api.js';
 import { CAP } from '../../../../../../lib/ae/require-admin.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../../lib/api-error.js';
 import { z, zPositiveInt } from '../../../../../../lib/validate.js';
-import { softDeleteCompanyKudo } from '../../../../../../lib/company-kudos.js';
+import { softDeleteCompanyKudo } from '../../../../../../lib/company/company-kudos.js';
 
 function parseId(params) {
   const id = Number(params?.id);

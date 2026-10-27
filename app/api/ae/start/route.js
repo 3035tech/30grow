@@ -4,7 +4,7 @@ import { drawMotivatorsQuestions } from '../../../../lib/ae/draw-questions';
 import { upsertCandidate, normalizeEmail } from '../../../../lib/ae/candidate-upsert';
 import { titleCasePersonName } from '../../../../lib/person-name';
 import { toPublicQuestions } from '../../../../lib/ae/to-public-questions';
-import { checkRateLimit, clientIpFromRequest } from '../../../../lib/rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '../../../../lib/identity/rate-limit';
 import { apiError, ERR } from '../../../../lib/api-error';
 import { contentLocale } from '../../../../lib/i18n.js';
 

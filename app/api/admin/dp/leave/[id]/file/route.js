@@ -4,12 +4,12 @@ import { downloadLeaveAttachment } from '../../../../../../../lib/people/employe
 import { withAdminApi } from '../../../../../../../lib/admin-api.js';
 import { apiError, apiErrorFromResult, ERR } from '../../../../../../../lib/api-error.js';
 import { query } from '../../../../../../../lib/db.js';
-import { CAP } from '../../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../../lib/identity/permissions.js';
 import {
   clearLeaveAttachment,
   uploadLeaveAttachment,
 } from '../../../../../../../lib/people/employee-dp.js';
-import { checkRateLimit } from '../../../../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../../../../lib/identity/rate-limit.js';
 import { zPositiveInt } from '../../../../../../../lib/validate.js';
 
 /** Authenticated private leave attachment download. */

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import QRCode from 'qrcode';
-import { buildOtpAuthUrl } from '../../lib/totp.js';
+import { buildOtpAuthUrl } from '../../lib/identity/totp.js';
 
 test('the TOTP setup URI can be rendered as a local QR Code', async () => {
   const uri = buildOtpAuthUrl({

@@ -6,14 +6,14 @@ function source(path) { return readFileSync(new URL(`../../${path}`, import.meta
 
 describe('mobile employee session contract', () => {
   it('uses employee identity without manager roles or capabilities', () => {
-    const session = source('lib/mobile-employee-session.js');
+    const session = source('lib/mobile/mobile-employee-session.js');
     assert.match(session, /EMPLOYMENT_STATUS\.EMPLOYEE/);
     assert.match(session, /candidateId/);
     assert.match(session, /companyId/);
     assert.doesNotMatch(session, /CAP\.|activeMembership|user_company_memberships/);
   });
   it('persists only refresh hashes and password-proven contexts', () => {
-    const session = source('lib/mobile-employee-session.js');
+    const session = source('lib/mobile/mobile-employee-session.js');
     const migration = source('migrations/117_mobile_employee_refresh_sessions.sql');
     assert.match(session, /createHash\('sha256'\)/);
     assert.match(session, /FOR UPDATE/);

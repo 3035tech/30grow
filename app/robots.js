@@ -1,5 +1,5 @@
 import { buildRobotsRules } from '../lib/crawler-guard.js';
-import { publicSiteBaseUrl } from '../lib/public-site-url.js';
+import { publicSiteBaseUrl } from '../lib/marketing/public-site-url.js';
 
 /**
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots

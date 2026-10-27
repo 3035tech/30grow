@@ -6,9 +6,9 @@ import {
   shouldSlideSession,
   SESSION_SLIDE_WITHIN_SEC,
   MANAGER_SESSION_MAX_AGE_SEC,
-} from '../../lib/session-ttl.js';
-import { EMPLOYEE_SESSION_MAX_AGE } from '../../lib/employee-auth-constants.js';
-import { COOKIE_NAME, sessionCookieOptions } from '../../lib/session-cookie.js';
+} from '../../lib/identity/session-ttl.js';
+import { EMPLOYEE_SESSION_MAX_AGE } from '../../lib/employee/employee-auth-constants.js';
+import { COOKIE_NAME, sessionCookieOptions } from '../../lib/identity/session-cookie.js';
 
 assert.equal(COOKIE_NAME, 'team30_session');
 assert.equal(sessionCookieOptions({ maxAge: 10 }).maxAge, 10);

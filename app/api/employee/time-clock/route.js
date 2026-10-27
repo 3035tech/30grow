@@ -6,8 +6,8 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, ERR } from '../../../../lib/api-error.js';
 import { query } from '../../../../lib/db.js';
-import { getEmployeeSessionPayload } from '../../../../lib/employee-session.js';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { getEmployeeSessionPayload } from '../../../../lib/employee/employee-session.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 import { TIME_PUNCH_KINDS } from '../../../../lib/domain-status.js';
 import { parsePunchCoordinates } from '../../../../lib/time-clock-format.js';
 import {

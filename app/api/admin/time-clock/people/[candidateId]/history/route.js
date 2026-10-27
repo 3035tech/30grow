@@ -5,7 +5,7 @@ import {
   apiErrorFromResult,
   ERR,
 } from '../../../../../../../lib/api-error.js';
-import { CAP } from '../../../../../../../lib/permissions.js';
+import { CAP } from '../../../../../../../lib/identity/permissions.js';
 import { z, zPositiveInt } from '../../../../../../../lib/validate.js';
 import { correctTimeEmploymentHistory } from '../../../../../../../lib/people/time-clock-history-admin.js';
 import { auditFromRequest } from '../../../../../../../lib/audit.js';

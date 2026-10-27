@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { mobileIdempotencyKey } from '../../lib/mobile-idempotency.js';
+import { mobileIdempotencyKey } from '../../lib/mobile/mobile-idempotency.js';
 
 function requestWith(value) { return { headers: { get: (name) => name === 'idempotency-key' ? value : null } }; }
 

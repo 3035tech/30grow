@@ -8,7 +8,7 @@ import {
   PRODUCT_FEEDBACK_SEVERITY,
   PRODUCT_FEEDBACK_STATUS,
 } from '../../lib/domain-status.js';
-import { COMPANY_MODULE } from '../../lib/company-modules.js';
+import { COMPANY_MODULE } from '../../lib/company/company-modules.js';
 import {
   createProductFeedback,
   listProductFeedback,

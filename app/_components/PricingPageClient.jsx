@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { publicMarketingPath } from '../../lib/public-marketing-paths';
+import { publicMarketingPath } from '../../lib/marketing/public-marketing-paths';
 import { PublicLanguageLinks } from './PublicLanguageLinks';
 import { PublicSiteHeader } from './PublicSiteHeader';
 import { useLocale } from '../../lib/useLocale';
 import { localeHtmlLang, normalizeLocale, t } from '../../lib/i18n';
-import { formatPublicPrice, getPublicPricing, publicPricingTextValues } from '../../lib/pricing-currency';
-import { getPricingCoreFeatures } from '../../lib/pricing-plans';
+import { formatPublicPrice, getPublicPricing, publicPricingTextValues } from '../../lib/marketing/pricing-currency';
+import { getPricingCoreFeatures } from '../../lib/marketing/pricing-plans';
 import { PublicPricingPlans } from './PublicPricingPlans';
 
 export default function PricingPageClient({ locale: initialLocale, headerCopyByLocale }) {

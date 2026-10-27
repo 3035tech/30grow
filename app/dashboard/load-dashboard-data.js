@@ -1,7 +1,7 @@
 import { loadOperationalSummaries } from '../../lib/people/operational-summary.js';
 import { query, queryRead } from '../../lib/db';
 import { ORG_UNIT, parseOrgUnitFilter } from '../../lib/org-unit-constants.js';
-import { EMPLOYMENT_STATUS } from '../../lib/domain-status.js';
+import { EMPLOYMENT_STATUS, ROSTER_SCOPE } from '../../lib/domain-status.js';
 import {
   parseDashboardPagination,
   parseDashboardTab,
@@ -16,7 +16,7 @@ import {
   parseRosterScope,
   parseTeamListFilter,
   sqlWhere,
-} from '../../lib/assessment-filters';
+} from '../../lib/assessment/assessment-filters';
 import { enrichAssessmentDashboardRow, toNum } from '../../lib/dashboard-assessment-row';
 import {
   buildAreaSummaries,
@@ -25,13 +25,14 @@ import {
   rubricAlignmentShare,
   LEADERSHIP_SCORES_SAMPLE_CAP,
   LEADERSHIP_POTENTIALS_SCAN_CAP,
-} from '../../lib/leadership-analytics';
-import { buildOverviewMetrics } from '../../lib/overview-metrics';
-import { OVERVIEW_FUNNEL_STAGES } from '../../lib/overview-constants.js';
+} from '../../lib/analytics/leadership-analytics';
+import { buildOverviewMetrics } from '../../lib/analytics/overview-metrics';
+import { OVERVIEW_FUNNEL_STAGES } from '../../lib/analytics/overview-constants.js';
 import { buildCompatBundles, COMPAT_PEOPLE_CAP } from '../../lib/compat-bundles';
-import { getOnboardingProgress } from '../../lib/onboarding-progress';
+import { getOnboardingProgress } from '../../lib/development/onboarding-progress';
+import { loadInternalTeamRoster } from '../../lib/people/internal-team-roster.js';
 import { ANNIVERSARY_WINDOW_DAYS, getUpcomingAnniversaries } from '../../lib/people/upcoming-anniversaries.js';
-import { isSuperAdminPayload } from '../../lib/permissions';
+import { isSuperAdminPayload } from '../../lib/identity/permissions';
 import { measureAsync } from '../../lib/monitoring.js';
 import { COHORT_TABS, needsAdminCompaniesList } from '../../lib/dashboard-company-scope.js';
 
@@ -399,6 +400,10 @@ LEFT JOIN vacancies v ON v.id = ass.vacancy_id
         : whereParts;
       const extParams = nameSearch ? [...params, `%${nameSearch}%`] : params;
       const candidateWhere = sqlWhere(extWhereParts);
+      const useInternalRoster = needTeam && selectedRoster === ROSTER_SCOPE.INTERNAL
+        && effectiveCompanyId != null && selectedArea === 'all' && selectedVacancy === 'all'
+        && enneagram === 'all' && selectedPipeline === 'all'
+        && !selectedDateFrom && !selectedDateTo && !selectedListFilter && !selectedTeamGroup;
 
       let listTotal = 0;
       let typeCountAgg = { ...EMPTY_TYPE_COUNT };
@@ -460,7 +465,7 @@ LEFT JOIN vacancies v ON v.id = ass.vacancy_id
         );
       };
       // Speculative: requested page in parallel with the count; re-run only if the page gets clamped.
-      const speculativeTeamPage = needTeam ? runTeamPage(page) : null;
+      const speculativeTeamPage = needTeam && !useInternalRoster ? runTeamPage(page) : null;
       speculativeTeamPage?.catch(() => {});
 
       if (needListMetrics) {
@@ -561,10 +566,26 @@ LEFT JOIN vacancies v ON v.id = ass.vacancy_id
       }
 
       if (needTeam) {
+        const rosterPage = useInternalRoster
+          ? await loadInternalTeamRoster(queryRead, {
+              companyId: effectiveCompanyId,
+              nameSearch,
+              orgUnitFilter: needTeam ? parseOrgUnitFilter(searchParams.orgUnit) : null,
+              page,
+              pageSize,
+              sort: teamSortState.sort,
+              dir: teamSortState.dir,
+            })
+          : null;
+        if (rosterPage) {
+          listTotal = rosterPage.total;
+          pagination = { page: rosterPage.page, pageSize, total: rosterPage.total, totalPages: rosterPage.totalPages };
+          compatMetrics = { ...compatMetrics, total: rosterPage.total, rosterPeopleCount: true };
+        }
         const effectivePage = pagination.page;
-        const pageRes = effectivePage === page
+        const pageRes = rosterPage || (effectivePage === page
           ? await speculativeTeamPage
-          : await runTeamPage(effectivePage);
+          : await runTeamPage(effectivePage));
 
         const pageVacIds = [
           ...new Set(

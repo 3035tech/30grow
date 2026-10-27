@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchCitiesByUf } from '../../lib/br-cities.js';
 import { BR_CITIES_BY_UF } from '../../lib/data/br-cities.js';
-import { BR_UF_SET } from '../../lib/candidate-profile.js';
+import { BR_UF_SET } from '../../lib/recruiting/candidate-profile.js';
 
 test('static IBGE base covers every UF without network', async () => {
   for (const uf of BR_UF_SET) {

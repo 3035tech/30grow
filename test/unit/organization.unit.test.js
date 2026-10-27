@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { ORG_UNIT, parseOrgUnitFilter, orgUnitOptions } from '../../lib/org-unit-constants.js';
-import { parseDashboardTab } from '../../lib/assessment-filters.js';
-import { CAP } from '../../lib/permissions.js';
+import { parseDashboardTab } from '../../lib/assessment/assessment-filters.js';
+import { CAP } from '../../lib/identity/permissions.js';
 import { t } from '../../lib/i18n.js';
 import { HELP_GUIDE_SECTIONS, HELP_SECTION_STEP_COUNTS } from '../../lib/help-sections.js';
 

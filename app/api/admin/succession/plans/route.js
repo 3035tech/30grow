@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { getSessionPayload, getManagerScope, CAP, requireCapability } from '../../../../../lib/ae/require-admin.js';
-import { listCompanySuccessionPlans, createSuccessionPlan } from '../../../../../lib/succession-plans.js';
+import { listCompanySuccessionPlans, createSuccessionPlan } from '../../../../../lib/development/succession-plans.js';
 import { audit } from '../../../../../lib/audit.js';
 
 export async function GET(request) {

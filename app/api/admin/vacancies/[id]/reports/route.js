@@ -1,17 +1,17 @@
 import { runtimeAppUrl } from '../../../../../../lib/app-url.js';
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../../../lib/identity/auth';
 import {
   createReportShare,
   listReportShares,
   loadVacancyReportSource,
-} from '../../../../../../lib/vacancy-report';
+} from '../../../../../../lib/recruiting/vacancy-report';
 import { apiError, ERR } from '../../../../../../lib/api-error';
-import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/permissions';
+import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../lib/identity/permissions';
 import { loadCompanyInternalNucleus } from '../../../../../../lib/people/company-nucleus.js';
-import { buildShortlistCompositionRisks } from '../../../../../../lib/shortlist-composition-risks.js';
+import { buildShortlistCompositionRisks } from '../../../../../../lib/recruiting/shortlist-composition-risks.js';
 import { queryRead } from '../../../../../../lib/db.js';
 import { normalizeLocale } from '../../../../../../lib/i18n.js';
 

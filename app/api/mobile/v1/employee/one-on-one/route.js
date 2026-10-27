@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
-import { getEmployeeOneOnOne } from '../../../../../../lib/employee-home.js';
-import { mobileOneOnOneBody } from '../../../../../../lib/mobile-employee-payload.js';
-import { submitEmployeeOneOnOnePrep } from '../../../../../../lib/employee-one-on-one-prep.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
+import { getEmployeeOneOnOne } from '../../../../../../lib/employee/employee-home.js';
+import { mobileOneOnOneBody } from '../../../../../../lib/mobile/mobile-employee-payload.js';
+import { submitEmployeeOneOnOnePrep } from '../../../../../../lib/employee/employee-one-on-one-prep.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
 import { normalizeLocale } from '../../../../../../lib/i18n.js';
 
 export const dynamic = 'force-dynamic';

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { verifySessionWithCapabilities } from '../../../../lib/user-capabilities';
+import { verifySessionWithCapabilities } from '../../../../lib/identity/user-capabilities';
 import { cookies } from 'next/headers';
-import { COOKIE_NAME } from '../../../../lib/auth';
+import { COOKIE_NAME } from '../../../../lib/identity/auth';
 import { queryRead } from '../../../../lib/db';
 import {
   assessmentListWhereParts,
@@ -9,9 +9,9 @@ import {
   parseNameSearch,
   parseRosterScope,
   sqlWhere,
-} from '../../../../lib/assessment-filters';
+} from '../../../../lib/assessment/assessment-filters';
 import { apiError, ERR } from '../../../../lib/api-error';
-import { canAccessAnalysisData, isSuperAdminPayload } from '../../../../lib/permissions';
+import { canAccessAnalysisData, isSuperAdminPayload } from '../../../../lib/identity/permissions';
 
 const BASE_JOIN = `
 FROM assessments ass

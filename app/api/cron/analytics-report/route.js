@@ -9,8 +9,8 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db.js';
 import { apiError, ERR } from '../../../../lib/api-error.js';
-import { verifyCronRequest } from '../../../../lib/cron-auth.js';
-import { runScheduledAnalyticsReports } from '../../../../lib/analytics-scheduled-reports.js';
+import { verifyCronRequest } from '../../../../lib/identity/cron-auth.js';
+import { runScheduledAnalyticsReports } from '../../../../lib/analytics/analytics-scheduled-reports.js';
 
 export const dynamic = 'force-dynamic';
 

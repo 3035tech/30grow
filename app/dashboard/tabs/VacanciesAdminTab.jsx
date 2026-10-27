@@ -10,7 +10,7 @@ import {
   PAGE_SIZE_OPTIONS,
   parseVacanciesPagination,
   parseVacanciesSort,
-} from '../../../lib/assessment-filters';
+} from '../../../lib/assessment/assessment-filters';
 import {
   clientSortNextDir,
   PanelSubNav,
@@ -45,9 +45,9 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
-import { employmentTypeLabelKey } from '../../../lib/vacancy-employment-type';
+import { employmentTypeLabelKey } from '../../../lib/recruiting/vacancy-employment-type';
 import { VACANCY_LIST_FILTER, VACANCY_STATUS, normalizeVacancyListFilter } from '../../../lib/domain-status.js';
-import { formatWorkplaceLabel } from '../../../lib/vacancy-workplace';
+import { formatWorkplaceLabel } from '../../../lib/recruiting/vacancy-workplace';
 import { DateField } from '../../_components/DateField';
 import { publicVacancyPath } from '../../../lib/public-job-url';
 import { formatPublicVacancyDate } from '../../../lib/public-vacancy-lifecycle';
@@ -66,7 +66,7 @@ import { PipelineStagesEditor } from '../vacancies/PipelineStagesEditor';
 import { PipelineTemplatesManager } from '../vacancies/PipelineTemplatesManager';
 import { CopyableLink } from '../../_components/CopyableLink';
 import { fieldInputClass } from '../../_components/form-control-styles';
-import { RECRUITING_UX_EVENT } from '../../../lib/recruiting-ux-events';
+import { RECRUITING_UX_EVENT } from '../../../lib/recruiting/recruiting-ux-events';
 import { VacancyDescriptionHtml } from '../vacancies/VacancyDescriptionHtml';
 import { Icon } from '../../_components/Icon';
 

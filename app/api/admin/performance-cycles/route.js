@@ -11,7 +11,7 @@ import {
   CAP, requireCapability,
   resolveScopedCompanyId,
 } from '../../../../lib/ae/require-admin.js';
-import { listPerformanceCycles, createPerformanceCycle } from '../../../../lib/performance-reviews.js';
+import { listPerformanceCycles, createPerformanceCycle } from '../../../../lib/development/performance-reviews.js';
 import { audit } from '../../../../lib/audit.js';
 
 export async function GET(request) {

@@ -12,14 +12,14 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { RichTextView } from '../../_components/RichTextView';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { htmlToPlainText } from '../../../lib/sanitize-html';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
 import { ChartPanel, ChartLegend } from '../../_components/ChartPanel';
 import { StackedSegmentBar } from '../../_components/StackedSegmentBar';
 import { cn } from '../../../lib/cn';
-import { successionCoverage } from '../../../lib/chart-aggregates';
+import { successionCoverage } from '../../../lib/analytics/chart-aggregates';
 import {
   AdminActionsCell,
   AdminActionsTh,

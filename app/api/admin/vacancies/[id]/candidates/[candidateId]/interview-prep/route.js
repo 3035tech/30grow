@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../../../../../lib/admin-api.js';
-import { CAP, isSuperAdminPayload } from '../../../../../../../../lib/permissions.js';
+import { CAP, isSuperAdminPayload } from '../../../../../../../../lib/identity/permissions.js';
 import { apiError, apiErrorFromResult, ERR, httpStatusForError } from '../../../../../../../../lib/api-error.js';
 import {
   ensureInterviewPrepLink,
   getInterviewPrepStatus,
-} from '../../../../../../../../lib/interview-prep.js';
+} from '../../../../../../../../lib/recruiting/interview-prep.js';
 import { query } from '../../../../../../../../lib/db.js';
 
 export const dynamic = 'force-dynamic';

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { apiError, apiErrorFromResult, HTTP_STATUS, ERR } from '../../../../../../lib/api-error.js';
 import { OKR_CYCLE_STATUS } from '../../../../../../lib/domain-status.js';
-import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile-employee-session.js';
-import { createOkrActivityCheckin, listOkrActivitiesForCandidate } from '../../../../../../lib/okr-cycles.js';
-import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/rate-limit.js';
-import { listAssignedKeyResults, recordKeyResultCheckin } from '../../../../../../lib/okr-hierarchy.js';
+import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../../../../lib/mobile/mobile-employee-session.js';
+import { createOkrActivityCheckin, listOkrActivitiesForCandidate } from '../../../../../../lib/development/okr-cycles.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../lib/identity/rate-limit.js';
+import { listAssignedKeyResults, recordKeyResultCheckin } from '../../../../../../lib/development/okr-hierarchy.js';
 
 export const dynamic = 'force-dynamic';
 const OKR_CHECKIN_NOTE_MAX_LENGTH = 500;

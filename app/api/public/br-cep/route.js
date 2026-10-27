@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, ERR, httpStatusForError } from '../../../../lib/api-error';
 import { lookupCep } from '../../../../lib/br-cep';
-import { checkRateLimit } from '../../../../lib/rate-limit.js';
+import { checkRateLimit } from '../../../../lib/identity/rate-limit.js';
 
 export const dynamic = 'force-dynamic';
 

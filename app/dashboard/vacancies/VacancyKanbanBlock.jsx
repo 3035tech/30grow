@@ -9,7 +9,7 @@ import { cn } from '../../../lib/cn';
 import { DisclosureToggle } from '../../_components/CollapsibleBlock';
 import { t } from '../../../lib/i18n';
 import { titleCasePersonName } from '../../../lib/person-name';
-import { PIPELINE_STAGE } from '../../../lib/pipeline';
+import { PIPELINE_STAGE } from '../../../lib/recruiting/pipeline';
 import { OFFER_STATUS } from '../../../lib/domain-status';
 import { useDarkMode } from '../../_components/DarkModeProvider';
 import { getKanbanStages } from '../dashboard-shared';

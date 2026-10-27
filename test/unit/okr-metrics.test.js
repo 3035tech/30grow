@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { keyResultProgress, okrRollup } from '../../lib/okr-metrics.js';
+import { keyResultProgress, okrRollup } from '../../lib/development/okr-metrics.js';
 
 test('numeric OKRs: increase, decrease, bounds and invalid baseline', () => {
   assert.equal(keyResultProgress(10,30,20),50);

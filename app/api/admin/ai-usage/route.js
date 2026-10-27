@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAdminApi } from '../../../../lib/admin-api.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import { queryRead } from '../../../../lib/db.js';
 import { z } from '../../../../lib/validate.js';
 import { AI_FEATURE, aiDefaultCompanyMonthlyLimit, listAiUsageReport } from '../../../../lib/ai-usage.js';

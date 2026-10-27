@@ -1,7 +1,7 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { publicSiteBaseUrl } from '../../lib/public-site-url.js';
-import { productLandingAbsoluteUrl } from '../../lib/product-landing-seo.js';
+import { publicSiteBaseUrl } from '../../lib/marketing/public-site-url.js';
+import { productLandingAbsoluteUrl } from '../../lib/marketing/product-landing-seo.js';
 import { publicVacancyAbsoluteUrl } from '../../lib/public-job-url.js';
 
 const saved = { site: process.env.NEXT_PUBLIC_SITE_URL, app: process.env.NEXT_PUBLIC_APP_URL };

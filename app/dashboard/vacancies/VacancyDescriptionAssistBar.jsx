@@ -7,7 +7,7 @@ import { AppLoading } from '../../_components/AppLoading';
 import {
   buildVacancyDescriptionTemplate,
   isVacancyDescriptionSparse,
-} from '../../../lib/vacancy-description-template';
+} from '../../../lib/recruiting/vacancy-description-template';
 import { descAssistBtnClass } from './vacancy-admin-shared';
 
 /**

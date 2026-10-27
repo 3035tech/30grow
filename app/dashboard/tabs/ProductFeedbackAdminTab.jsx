@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/cn';
 import { t, localeHtmlLang } from '../../../lib/i18n';
-import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment-filters';
+import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import {
   PRODUCT_FEEDBACK_KIND,
   PRODUCT_FEEDBACK_KINDS,
@@ -13,7 +13,7 @@ import {
   PRODUCT_FEEDBACK_STATUS,
   PRODUCT_FEEDBACK_STATUSES,
 } from '../../../lib/domain-status';
-import { COMPANY_MODULES } from '../../../lib/company-modules';
+import { COMPANY_MODULES } from '../../../lib/company/company-modules';
 import {
   S,
   AdminListPager,

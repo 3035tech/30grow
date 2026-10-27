@@ -1,7 +1,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const {GROW,GREEN}=require('../../lib/brand-tokens.cjs');
+const {GROW,GREEN}=require('../../lib/marketing/brand-tokens.cjs');
 function luminance(hex){const rgb=hex.slice(1).match(/../g).map(x=>parseInt(x,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
 test('Grow identity and accessible action colors are separate',()=>{
@@ -23,7 +23,7 @@ test('brand vector and favicon assets exist in canonical paths',()=>{
  assert.ok(svg.includes(GROW.primary));assert.ok(svg.includes(GROW.navy));assert.ok(!svg.includes('<image'));
 });
 test('assets and BrandMark use the official brand kit vectors',()=>{
- const {LOGO_PATHS}=require('../../lib/brand-tokens.cjs');
+ const {LOGO_PATHS}=require('../../lib/marketing/brand-tokens.cjs');
  const symbol=fs.readFileSync('public/brand/logo-symbol.svg','utf8');
  const wordmark=fs.readFileSync('public/brand/logo-wordmark.svg','utf8');
  assert.ok(symbol.includes(LOGO_PATHS.three)&&symbol.includes(LOGO_PATHS.zero));

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from '../../lib/useLocale';
 import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { canAccessDashboardTab } from '../../lib/permissions';
+import { canAccessDashboardTab } from '../../lib/identity/permissions';
 import { S } from '../dashboard/dashboard-shared';
 
 const TOUR_STORAGE_KEY = 'team30_tour_completed';

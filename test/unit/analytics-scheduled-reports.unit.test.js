@@ -21,7 +21,7 @@ for (const recipientUserIds of [[], [7]]) {
       t: () => 'Relatório',
       contentLocale: () => 'pt-BR',
     };
-    const module = new vm.SourceTextModule(await readFile(new URL('../../lib/analytics-scheduled-reports.js', import.meta.url), 'utf8'), { context });
+    const module = new vm.SourceTextModule(await readFile(new URL('../../lib/analytics/analytics-scheduled-reports.js', import.meta.url), 'utf8'), { context });
     await module.link(() => new vm.SyntheticModule(Object.keys(deps), function () {
       for (const [key, value] of Object.entries(deps)) this.setExport(key, value);
     }, { context }));

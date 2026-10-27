@@ -182,12 +182,12 @@ Gap vs roteiro de demo concorrentes (cliente oculto): `docs/GAP-cliente-oculto-r
 - People / jornada: lib/people/* (decision-brief, onboarding-checkins, pre-onboarding, candidate-offer, development-plans, climate-*, team-pulses, employee-portal…)
 - Equipe UI: PeopleManagementPanel, HireJourneyBlock, HrActionBrief, OnboardingCheckinsBlock
 - Motivadores: lib/ae/*, app/api/ae/*, app/api/admin/ae/*
-- Vagas/pipeline: lib/pipeline.js, lib/hire.js, app/dashboard/vacancies/*, VacancyFitDecisionStrip, VacancyOfferBlock
+- Vagas/pipeline: lib/recruiting/pipeline.js, lib/recruiting/hire.js, app/dashboard/vacancies/*, VacancyFitDecisionStrip, VacancyOfferBlock
 - Público SEO: docs/job-seo-and-distribution.md, app/jobs, lib/job-*
-- Landpage SEO: `app/page.jsx`, `lib/product-landing-seo.js`, `ProductLandingClient`, `/llms.txt`
+- Landpage SEO: `app/page.jsx`, `lib/marketing/product-landing-seo.js`, `ProductLandingClient`, `/llms.txt`
 - Blog: `app/blog/*`, `lib/blog/*` (artigos estáticos pt-BR), `BlogPostCard`; entra em `app/sitemap.js` e `/llms.txt`
 - Guia / mapa / assistente: HelpTab, HelpSystemMap, HelpAssistantWidget + panel.help.* / panel.assistant.*
-- Auth reset: lib/user-password-invite.js, POST /api/auth/forgot-password
+- Auth reset: lib/identity/user-password-invite.js, POST /api/auth/forgot-password
 ```
 
 ---

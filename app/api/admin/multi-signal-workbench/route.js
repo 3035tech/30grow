@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { queryRead } from '../../../../lib/db.js';
 import { withAdminApi } from '../../../../lib/admin-api.js';
-import { CAP } from '../../../../lib/permissions.js';
+import { CAP } from '../../../../lib/identity/permissions.js';
 import { normalizeLocale } from '../../../../lib/i18n.js';
 import { buildMultiSignalWorkbench } from '../../../../lib/people/multi-signal-workbench.js';
 import { getCompanyClimatePulse } from '../../../../lib/people/climate-surveys.js';
 import { getCompanyPdiPulse } from '../../../../lib/people/development-plans.js';
-import { getCompanyHrScoreRollup } from '../../../../lib/hr-score.js';
+import { getCompanyHrScoreRollup } from '../../../../lib/assessment/hr-score.js';
 import { getCompanyTurnoverRisks } from '../../../../lib/turnover-radar.js';
 import { listCompanyRetentionWatches } from '../../../../lib/people/retention-watch.js';
 import { loadTeamBehavioralIntel } from '../../../../lib/people/load-team-behavioral-intel.js';

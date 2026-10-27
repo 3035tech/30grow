@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
-import { PUBLIC_MARKETING_LOCALES, SOLUTION_SLUGS, publicMarketingRoute, publicMarketingPath, publicLanguageAlternates, publicHreflang, publicSolutionCanonicalPath } from '../../lib/public-marketing-paths.js';
-import { publicMarketingSitemapEntries } from '../../lib/public-marketing-sitemap.js';
-import { buildProductLandingMetadata, buildProductLandingJsonLd } from '../../lib/product-landing-seo.js';
-import { buildPricingMetadata } from '../../lib/pricing-plans.js';
-import { getPublicSolutions, buildSolutionMetadata } from '../../lib/public-solutions.js';
+import { PUBLIC_MARKETING_LOCALES, SOLUTION_SLUGS, publicBlogPath, publicMarketingRoute, publicMarketingPath, publicLanguageAlternates, publicHreflang, publicSolutionCanonicalPath } from '../../lib/marketing/public-marketing-paths.js';
+import { publicMarketingSitemapEntries } from '../../lib/marketing/public-marketing-sitemap.js';
+import { buildProductLandingMetadata, buildProductLandingJsonLd } from '../../lib/marketing/product-landing-seo.js';
+import { buildPricingMetadata } from '../../lib/marketing/pricing-plans.js';
+import { getPublicSolutions, buildSolutionMetadata } from '../../lib/marketing/public-solutions.js';
 import { runtimeAppUrl } from '../../lib/app-url.js';
 import { isCrawlerNoIndexPath } from '../../lib/crawler-guard.js';
 
@@ -19,6 +19,12 @@ function configure() {
   process.env.NEXT_PUBLIC_APP_URL = 'https://app.30grow.com';
   process.env.APP_URL = 'https://app.30grow.com';
 }
+
+test('blog links carry the selected UI locale without changing canonical article paths', () => {
+  assert.equal(publicBlogPath('pt-BR'), '/blog');
+  assert.equal(publicBlogPath('en'), '/blog?lang=en');
+  assert.equal(publicBlogPath('es-ES', 'pesquisa-de-clima-e-enps'), '/blog/pesquisa-de-clima-e-enps?lang=es-ES');
+});
 
 test('localized routes whitelist marketing only and reject protected-path aliases', () => {
   assert.equal(publicMarketingRoute('/').locale, 'pt-BR');
@@ -122,7 +128,7 @@ test('search images keep the product brand distinct from its publisher and expos
 
 test('solution previews match the module shown and do not reuse another module for DP', async () => {
   configure();
-  const { SOLUTION_SCREENSHOTS } = await import('../../lib/product-screenshots.js');
+  const { SOLUTION_SCREENSHOTS } = await import('../../lib/marketing/product-screenshots.js');
   const { existsSync } = await import('node:fs');
   for (const locale of PUBLIC_MARKETING_LOCALES) {
     SOLUTION_SCREENSHOTS.forEach((image, index) => {

@@ -4,22 +4,22 @@
 import assert from 'node:assert/strict';
 import { query, pool } from '../../lib/db.js';
 import { EMPLOYMENT_STATUS } from '../../lib/domain-status.js';
-import { closeRateLimitRedis } from '../../lib/rate-limit.js';
+import { closeRateLimitRedis } from '../../lib/identity/rate-limit.js';
 import {
   changeEmployeePassword,
   getEmployeeProfile,
   updateEmployeeProfile,
-} from '../../lib/employee-profile.js';
+} from '../../lib/employee/employee-profile.js';
 import {
   EMPLOYEE_NOTIF,
   listCandidateNotifications,
   notifyCandidate,
-} from '../../lib/employee-notifications.js';
+} from '../../lib/employee/employee-notifications.js';
 import {
   completeEmployeePasswordSetup,
   issueEmployeePasswordInvite,
-} from '../../lib/employee-auth.js';
-import { loadEmployeeSessionVersion } from '../../lib/employee-session-revocation.js';
+} from '../../lib/employee/employee-auth.js';
+import { loadEmployeeSessionVersion } from '../../lib/employee/employee-session-revocation.js';
 
 async function main() {
   const emp = await query(
