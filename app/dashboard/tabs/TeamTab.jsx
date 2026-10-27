@@ -1787,18 +1787,6 @@ export function TeamTab({
             ) : null}
             {personTab === 'people' && peopleSubTab === 'dp' && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
               <ContentEnter animKey="profile">
-                {detail?.candidate?.id &&
-                detail.candidate.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
-                  <div className="mb-4">
-                    <CandidateCvBlock
-                      key={detail.candidate.id}
-                      candidateId={detail.candidate.id}
-                      locale={locale}
-                      embedded
-                      onApplied={reloadDetailSilently}
-                    />
-                  </div>
-                ) : null}
                 <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">
                   <div className="mb-2.5 flex items-center gap-2.5">
                     <span className={cn(S.label, 'mb-0')}>{t(locale, 'recruiting.candidateProfile')}</span>
@@ -1869,7 +1857,7 @@ export function TeamTab({
                               </a>
                             </div>
                           ) : null}
-                          {c?.salaryExpectation ? <div>{formatSalaryBr(c.salaryExpectation)}</div> : null}
+                          <div>{t(locale, 'recruiting.salaryExpectationLabel')}: {c?.salaryExpectation ? formatSalaryBr(c.salaryExpectation) || c.salaryExpectation : t(locale, 'panel.dp.notInformed')}</div>
                           {availabilityLabel(locale, c?.availability) ? (
                             <div>{availabilityLabel(locale, c.availability)}</div>
                           ) : null}
@@ -2121,6 +2109,19 @@ export function TeamTab({
                     </p>
                   ) : null}
                 </div>
+
+                {detail?.candidate?.id &&
+                detail.candidate.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
+                  <div className="mb-4">
+                    <CandidateCvBlock
+                      key={detail.candidate.id}
+                      candidateId={detail.candidate.id}
+                      locale={locale}
+                      embedded
+                      onApplied={reloadDetailSilently}
+                    />
+                  </div>
+                ) : null}
 
                 {!profileEditing ? (
                 <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">

@@ -12,7 +12,7 @@ async function fixture({ authorized = true, companyId = 3, admin = false, found 
     normalizeOnboardingStages,
     ...pipeline, localeFromRequest: () => 'pt-BR', ERR, NextResponse: { json: Response.json }, COOKIE_NAME: 'session', cookies: async () => ({ get: () => ({ value: 'fixture' }) }),
     verifySessionWithCapabilities: async () => ({ companyId }), requireCapability: () => authorized, CAP: { VACANCIES_VIEW: 'view', VACANCIES_MANAGE: 'manage' }, isSuperAdminPayload: () => admin,
-    query: async (sql, values) => { calls.push({sql,values}); return calls.length === 1 ? {rowCount:found?1:0,rows:found?[{companyId:3,candidateId:12,interviewNotes:'Saved notes'}]:[]} : {rowCount:events.length,rows:events}; },
+    query: async (sql, values) => { calls.push({sql,values}); return calls.length === 1 ? {rowCount:found?1:0,rows:found?[{companyId:3,candidateId:12,interviewNotes:'Saved notes',linkedinUrl:'https://linkedin.com/in/example',salaryExpectation:'9000',cvUrl:'https://example.com/cv.pdf',profileTopType:3,motivatorsRanking:['autonomia']}]:[]} : {rowCount:events.length,rows:events}; },
     withTransaction: () => { throw new Error('GET must never write'); }, sanitizeInterviewNotesHtml: (x) => x,
     apiError: (_,code,status) => Response.json({code},{status}), apiErrorFromResult: () => {}, resolveRecruitingPipelineStage: () => {},
     persistCandidateHire: () => {}, runCandidateHireEffects: () => {}, maybeCloseVacancyIfFilled: () => {}, notifyHireOnboardingKit: () => {},
@@ -40,9 +40,13 @@ test('dialog reads the vacancy and candidate within the session company, includi
   assert.deepEqual(Array.from(f.calls[0].values),[29,12,3]);
   assert.deepEqual(Array.from(f.calls[1].values),[29,12,3]);
   assert.match(f.calls[0].sql,/c.company_id = v.company_id/);
+  assert.match(f.calls[0].sql,/a.company_id = v.company_id AND a.candidate_id = c.id AND a.status = 'completed'/);
   assert.match(f.calls[0].sql,/vc.id IS NOT NULL OR EXISTS/); // Assessments imported without a vacancy_candidates row remain accessible.
   assert.match(f.calls[1].sql,/assessment_pipeline_history/);assert.match(f.calls[1].sql,/vacancy_candidate_pipeline_history/);
   assert.deepEqual(data.history[0].reasons,['salary','skill_gap']);assert.equal(data.interviewNotes,'Saved notes');
+  assert.equal(data.linkedinUrl,'https://linkedin.com/in/example');assert.equal(data.salaryExpectation,'9000');
+  assert.equal(data.cvUrl,'https://example.com/cv.pdf');assert.equal(data.profileTopType,3);
+  assert.deepEqual(data.motivatorsRanking,['autonomia']);
 });
 test('platform admin history is scoped to the company of the loaded candidature, not URL state',async()=>{
   const f=await fixture({admin:true,companyId:999});await f.get();assert.deepEqual(Array.from(f.calls[0].values),[29,12]);assert.equal(f.calls[1].values[2],3);

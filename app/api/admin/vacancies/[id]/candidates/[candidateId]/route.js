@@ -63,11 +63,25 @@ export async function GET(request, props) {
     const detail = await query(
       `SELECT c.id AS "candidateId", v.company_id AS "companyId", v.title AS "vacancyTitle",
               c.full_name AS name, c.email, c.phone, c.city, c.state, c.employment_status AS "employmentStatus",
-              c.professional_summary AS "professionalSummary", vc.interview_notes AS "interviewNotes"
+              c.linkedin_url AS "linkedinUrl", c.salary_expectation AS "salaryExpectation", c.cv_url AS "cvUrl",
+              c.professional_summary AS "professionalSummary", vc.interview_notes AS "interviewNotes",
+              profile.top_type AS "profileTopType", motivators.ranking AS "motivatorsRanking"
        FROM vacancies v
        JOIN candidates c ON c.id = $2 AND c.company_id = v.company_id
        JOIN companies co ON co.id = v.company_id AND co.deleted = FALSE
        LEFT JOIN vacancy_candidates vc ON vc.vacancy_id = v.id AND vc.candidate_id = c.id AND vc.company_id = v.company_id
+       LEFT JOIN LATERAL (
+         SELECT a.top_type FROM assessments a
+         WHERE a.vacancy_id = v.id AND a.candidate_id = c.id AND a.company_id = v.company_id
+           AND a.top_type BETWEEN 1 AND 9
+         ORDER BY a.created_at DESC, a.id DESC LIMIT 1
+       ) profile ON TRUE
+       LEFT JOIN LATERAL (
+         SELECT a.ranking FROM ae_attempts a
+         JOIN ae_definitions d ON d.id = a.definition_id AND LOWER(d.slug) = 'motivators'
+         WHERE a.company_id = v.company_id AND a.candidate_id = c.id AND a.status = 'completed'
+         ORDER BY a.completed_at DESC NULLS LAST, a.id DESC LIMIT 1
+       ) motivators ON TRUE
        WHERE v.id = $1 AND v.deleted = FALSE ${!isAdmin ? 'AND v.company_id = $3' : ''}
          AND (vc.id IS NOT NULL OR EXISTS (
            SELECT 1 FROM assessments a WHERE a.vacancy_id = v.id AND a.candidate_id = c.id AND a.company_id = v.company_id
