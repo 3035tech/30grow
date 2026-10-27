@@ -10,6 +10,7 @@ import {
   dialogBtnSolidClass,
   dialogCardClass,
   dialogOverlayClass,
+  dialogOverlayElevatedClass,
 } from './app-dialog-styles';
 
 /**
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   locale = 'pt-BR',
   danger = false,
   preferCancel = false,
+  elevated = false,
   confirmLabel,
   cancelLabel,
   onConfirm,
@@ -56,7 +58,7 @@ export function ConfirmDialog({
 
   return createPortal(
     <div
-      className={cn('app-dialog-overlay', dialogOverlayClass)}
+      className={cn('app-dialog-overlay', elevated ? dialogOverlayElevatedClass : dialogOverlayClass)}
       role="presentation"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel?.();

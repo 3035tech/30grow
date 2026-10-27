@@ -24,7 +24,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
   const router = useRouter();
   const searchParams = useSearchParams();
   const [locale, setLocale] = useLocale(localeProp);
-  const [mode, setMode] = useState('login'); // login | forgot | magic
+  const [mode, setMode] = useState(() => searchParams?.get('mode') === 'forgot' ? 'forgot' : 'login'); // login | forgot | magic
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);

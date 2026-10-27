@@ -101,6 +101,7 @@ function groupFieldsByRow(fields) {
 
 export function PromptFormDialog({
   open,
+  suspended = false,
   title,
   message,
   fields = [],
@@ -705,6 +706,8 @@ export function PromptFormDialog({
   return createPortal(
     <>
       <div
+        inert={suspended}
+        aria-hidden={suspended || undefined}
         className={cn('app-dialog-overlay', dialogOverlayClass)}
         role="presentation"
         onClick={(e) => {

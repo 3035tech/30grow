@@ -193,6 +193,10 @@ function SetPasswordForm() {
           <InlineCallout tone="danger" role="alert">
             {errorMessage(locale, tokenError, t(locale, 'employeeHome.invalidLink'))}
           </InlineCallout>
+          <p className={S.muted}>{t(locale, 'employeeInvite.expiredHelp')}</p>
+          <Link href="/employee/login?mode=forgot" className={cn(S.btnPrimary, 'min-h-touch justify-center no-underline')}>
+            {t(locale, 'employeeInvite.requestLink')}
+          </Link>
           <Link href="/employee/login" className={cn(S.btnBrandSoft, 'min-h-touch justify-center no-underline')}>
             {t(locale, 'employeeHome.backToLogin')}
           </Link>

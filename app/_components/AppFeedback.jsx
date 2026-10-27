@@ -50,6 +50,7 @@ export function AppFeedbackProvider({ children, locale = 'pt-BR' }) {
         title: opts.title,
         message,
         danger: Boolean(opts.danger),
+        preferCancel: Boolean(opts.preferCancel),
         confirmLabel: opts.confirmLabel,
         cancelLabel: opts.cancelLabel,
         resolve,
@@ -112,6 +113,8 @@ export function AppFeedbackProvider({ children, locale = 'pt-BR' }) {
           title={confirmState.title}
           message={confirmState.message}
           danger={confirmState.danger}
+          preferCancel={confirmState.preferCancel}
+          elevated={Boolean(promptState)}
           confirmLabel={confirmState.confirmLabel}
           cancelLabel={confirmState.cancelLabel}
           onCancel={() => {
@@ -144,6 +147,7 @@ export function AppFeedbackProvider({ children, locale = 'pt-BR' }) {
           title={promptState.title}
           message={promptState.message}
           fields={promptState.fields}
+          suspended={Boolean(confirmState)}
           confirmLabel={promptState.confirmLabel}
           cancelLabel={promptState.cancelLabel}
           size={promptState.size}
@@ -153,7 +157,7 @@ export function AppFeedbackProvider({ children, locale = 'pt-BR' }) {
           }}
           onSubmit={async (values) => {
             // Optional persistence hook: rejection leaves the form and its values open.
-            if (promptState.submit) await promptState.submit(values);
+            if (promptState.submit && await promptState.submit(values) === false) return;
             promptState.resolve(values);
             setPromptState(null);
           }}
