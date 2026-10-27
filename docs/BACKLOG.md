@@ -12,12 +12,6 @@ Ideias de funcionalidades **ainda não implementadas**.
 
 **Prioridade de lançamento do MVP:** ver [`docs/BACKLOG-MVP-LAUNCH.md`](./BACKLOG-MVP-LAUNCH.md). A lista aberta `MVP-03`–`MVP-16` separa bloqueadores do primeiro cliente, melhorias para os pilotos e escala condicionada a métricas reais. Os gates `MVP-01` e `MVP-02` foram entregues.
 
-## Aberto — Importação antes do cadastro
-
-### B-RH-CV-LINKEDIN-CREATE — Criar candidato começando pelo arquivo
-
-A importação por IA e revisão no perfil existente foram entregues (migration 158). Evolução restante: iniciar um novo cadastro pelo currículo/PDF do LinkedIn, antes de informar nome/e-mail, reutilizando a mesma revisão e o cadastro canônico de candidatos. Validar duplicidade por e-mail e empresa e só criar a pessoa após confirmação dos dados. Hoje, cadastre/abra a pessoa e importe em Informações cadastrais.
-
 ## Como usar (humano + agente)
 
 | Ação | O que fazer |
