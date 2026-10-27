@@ -623,6 +623,30 @@ export function TeamTab({
     router.refresh();
   } });
   const [accessInviteBusy, setAccessInviteBusy] = useState(false);
+  const [enneagramInviteBusy, setEnneagramInviteBusy] = useState(false);
+  const inviteEmployeeEnneagram = async () => {
+    const person = detail?.candidate;
+    if (!person || enneagramInviteBusy) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(person.email || '').trim())) {
+      toast(t(locale, 'panel.team.employeeEnneagramNeedEmail'), 'error');
+      return;
+    }
+    setEnneagramInviteBusy(true);
+    try {
+      const response = await fetch(`/api/admin/candidates/${person.id}/enneagram-invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId: person.companyId, locale }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || t(locale, 'panel.team.employeeEnneagramError'));
+      toast(t(locale, 'panel.team.employeeEnneagramQueued', { email: result.sentTo }), 'ok');
+    } catch (error) {
+      toast(error.message || t(locale, 'panel.team.employeeEnneagramError'), 'error');
+    } finally {
+      setEnneagramInviteBusy(false);
+    }
+  };
   const inviteEmployeeAccess = async () => {
     const person = detail?.candidate;
     if (!person || accessInviteBusy || !await confirm({ message:t(locale,'employeeAdmission.confirmInvite',{email:person.email}) })) return;
@@ -1422,9 +1446,14 @@ export function TeamTab({
                 {openRow.scores ? (
                   <EnneagramCross scores={openRow.scores} locale={locale} />
                 ) : (
-                  <p className="mb-4 mt-0 text-prose text-ink-muted">
-                    {t(locale, 'panel.team.peopleMissingEnneagram')}
-                  </p>
+                  <div className="mb-4 flex flex-wrap items-center gap-3">
+                    <p className="m-0 text-prose text-ink-muted">{t(locale, 'panel.team.peopleMissingEnneagram')}</p>
+                    {detailMatchesOpen && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? (
+                      <button type="button" className={S.btnBrandSoft} disabled={enneagramInviteBusy} onClick={inviteEmployeeEnneagram}>
+                        {t(locale, 'panel.team.sendEmployeeEnneagram')}
+                      </button>
+                    ) : null}
+                  </div>
                 )}
                 <IntegratedProfileSynthesis synthesis={synthesis} locale={locale} />
 
