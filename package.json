@@ -60,7 +60,7 @@
     "@sentry/nextjs": "10.75.2",
     "@signpdf/placeholder-pdf-lib": "^4.0.0",
     "@signpdf/signpdf": "^4.0.0",
-    "@signpdf/utils": "^3.3.0",
+    "@signpdf/utils": "^4.0.0",
     "bcryptjs": "^3.0.3",
     "fflate": "^0.8.3",
     "ioredis": "^6.0.0",
