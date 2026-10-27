@@ -650,6 +650,7 @@ export default function AssessmentFlow({
   startDisabled = false,
   requireCandidateEmail = false,
   initialLocale = 'pt-BR',
+  onLocaleChange,
 }) {
   const [locale, setLocale] = useLocale(initialLocale);
   const [screen, setScreen] = useState('home'); // home | test | result
@@ -793,7 +794,7 @@ export default function AssessmentFlow({
       inviteToken={inviteToken}
       vacancyToken={vacancyToken}
       locale={locale}
-      setLocale={setLocale}
+      setLocale={(next) => { setLocale(next); onLocaleChange?.(next); }}
     />
   );
 }

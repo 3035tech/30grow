@@ -11,6 +11,9 @@ import {
   t,
 } from '../../lib/i18n.js';
 import { buildProductLandingMetadata, getProductLandingCopy } from '../../lib/marketing/product-landing-seo.js';
+import { drawLocalizedQuestions, getScaleLabels, localizeAreaLabel } from '../../lib/i18n-data.js';
+import enCatalog from '../../lib/i18n/catalogs/en-US.js';
+import { REGIONAL_MESSAGES } from '../../lib/i18n/regional.js';
 
 test('regional locales normalize with stable aliases and region metadata', () => {
   assert.deepEqual(LOCALES, ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr-FR', 'de-DE']);
@@ -70,4 +73,20 @@ test('Spain and Latin America retain distinct terminology and shared Spanish cop
   assert.equal(t('en', 'dashboard.notifInterviewScheduledTitle'), 'Interview scheduled');
   assert.equal(buildProductLandingMetadata('es-ES').openGraph.locale, 'es_ES');
   assert.equal(getProductLandingCopy('es-ES').navPricing, 'Precios');
+});
+
+test('candidate assessment is translated throughout in both Spanish locales', () => {
+  for (const locale of ['es-419', 'es-ES']) {
+    for (const key of Object.keys(enCatalog.candidate)) {
+      assert.ok(Object.hasOwn(REGIONAL_MESSAGES['es-419'].candidate, key) || key === 'brand', `${locale}: ${key}`);
+    }
+    assert.equal(t(locale, 'candidate.mapTitle'), 'Mapa de perfil');
+    assert.notEqual(t(locale, 'candidate.intro'), t('en', 'candidate.intro'));
+    assert.equal(t(locale, 'candidate.inviteHello', { name: 'María' }), 'Hola, María');
+    assert.equal(getScaleLabels(locale)[0], 'Nada como yo');
+    assert.equal(localizeAreaLabel({ key: 'rh', label: 'RH' }, locale), 'Recursos humanos');
+    const questions = drawLocalizedQuestions(locale);
+    assert.equal(questions.length, 54);
+    assert.ok(questions.every((question) => question.text && !/^I |^Sometimes I /.test(question.text)));
+  }
 });
