@@ -744,7 +744,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
           key: 'entitlementDays',
           type: 'number',
           label: t(locale, 'panel.dp.balanceEntitlement'),
-          defaultValue: String(balance?.entitlementDays ?? 30),
+          defaultValue: String(balance?.periods?.[0]?.entitlementDays ?? balance?.entitlementDays ?? 30),
           required: true,
           min: 0,
           max: 365,
@@ -753,24 +753,23 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
           key: 'adjustmentDays',
           type: 'number',
           label: t(locale, 'panel.dp.balanceAdjustment'),
-          defaultValue: String(balance?.adjustmentDays ?? 0),
+          defaultValue: String(balance?.periods?.[0]?.adjustmentDays ?? balance?.adjustmentDays ?? 0),
           min: -365,
           max: 365,
         },
-        {
+        ...(!balance?.legalAccrual ? [{
           key: 'periodStart',
           row: 'period',
           type: 'date',
           label: t(locale, 'panel.dp.balancePeriodStart'),
           defaultValue: balance?.periodStart || '',
-        },
-        {
+        }, {
           key: 'periodEnd',
           row: 'period',
           type: 'date',
           label: t(locale, 'panel.dp.balancePeriodEnd'),
           defaultValue: balance?.periodEnd || '',
-        },
+        }] : []),
         {
           key: 'notes',
           type: 'textarea',
@@ -1293,7 +1292,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
           <div>
             <span className={cn(S.cardSection, 'block')}>{t(locale, 'panel.dp.balanceTitle')}</span>
-            <p className={cn(S.muted, 'mb-0 mt-1 text-xs')}>{t(locale, 'panel.dp.balanceHint')}</p>
+            <p className={cn(S.muted, 'mb-0 mt-1 text-xs')}>{t(locale, balance?.legalAccrual ? 'panel.dp.balanceLegalHint' : 'panel.dp.balanceHint')}</p>
           </div>
           {!readOnly ? (
             <AdminEditButton

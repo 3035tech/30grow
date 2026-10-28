@@ -28,9 +28,9 @@ test('S3 uploads preserve public asset caching but accept private document cachi
   assert.equal(sent[1].ACL, undefined, 'cache policy must not silently change bucket/ACL configuration');
 });
 
-test('both DP upload paths request private caching', async () => {
+test('all DP upload paths request private caching', async () => {
   const source = await readFile(new URL('../../lib/people/employee-dp.js', import.meta.url), 'utf8');
   const uploads = [...source.matchAll(/await putObject\(\{([\s\S]*?)\}\)/g)];
-  assert.equal(uploads.length, 2);
+  assert.equal(uploads.length, 3);
   for (const [, options] of uploads) assert.match(options, /cacheControl: 'private, no-store'/);
 });

@@ -20,6 +20,7 @@ const dependencies = {
   sanitizeRichTextHtml: (value) => value, stripCep: (value) => value,
   stripCpf: (value) => value, stripPhone: (value) => value,
   normalizeDependentRelation, normalizeEmergencyRelation,
+  calculateVacationAccrual: () => null,
   DB_FANOUT_CONCURRENCY: 4,
 };
 const context = vm.createContext({ Buffer });

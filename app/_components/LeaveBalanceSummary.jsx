@@ -56,7 +56,22 @@ export function LeaveBalanceSummary({
           label={t(locale, 'panel.dp.balancePending')}
         />
       </div>
-      {showPeriod && balance.periodStart && balance.periodEnd ? (
+      {balance.legalAccrual && Array.isArray(balance.periods) ? (
+        <div className="mt-3 space-y-2">
+          {balance.periods.map(period => (
+            <div key={period.periodStart} className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-ink/10 bg-surface px-3 py-2 text-xs">
+              <span>{formatDisplayDate(period.periodStart, locale)} – {formatDisplayDate(period.periodEnd, locale)}</span>
+              <span className="font-medium">
+                {period.acquired
+                  ? t(locale, 'panel.dp.balanceAcquiredPeriod', { n: period.availableDays })
+                  : t(locale, 'panel.dp.balanceFormingPeriod', { n: period.formingDays })}
+              </span>
+            </div>
+          ))}
+          <p className={cn(S.faint, 'mb-0')}>{t(locale, 'panel.dp.balanceLegalNote')}</p>
+        </div>
+      ) : null}
+      {showPeriod && !balance.legalAccrual && balance.periodStart && balance.periodEnd ? (
         <p className={cn(S.faint, 'mb-0 mt-2')}>
           {t(locale, 'panel.dp.balancePeriodMeta', {
             start: formatDisplayDate(balance.periodStart, locale),

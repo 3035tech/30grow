@@ -51,14 +51,15 @@ async function fixture() {
     sanitizeRichTextHtml: value => value,
     stripCep: value => value, stripCpf: value => value, stripPhone: value => value,
     normalizeDependentRelation, normalizeEmergencyRelation,
+    calculateVacationAccrual: () => null,
   };
   const context = vm.createContext({ Buffer, console });
-  const module = new vm.SourceTextModule(await readFile(new URL('../../lib/people/employee-dp.js', import.meta.url), 'utf8'), { context });
-  await module.link(() => new vm.SyntheticModule(Object.keys(dependencies), function () {
+  const sourceModule = new vm.SourceTextModule(await readFile(new URL('../../lib/people/employee-dp.js', import.meta.url), 'utf8'), { context });
+  await sourceModule.link(() => new vm.SyntheticModule(Object.keys(dependencies), function () {
     for (const [name, value] of Object.entries(dependencies)) this.setExport(name, value);
   }, { context }));
-  await module.evaluate();
-  return { domain: module.namespace, db, documents, storage, deleted };
+  await sourceModule.evaluate();
+  return { domain: sourceModule.namespace, db, documents, storage, deleted };
 }
 
 test('notice and receipt belong to the same vacation, remain private and can be replaced independently', async () => {

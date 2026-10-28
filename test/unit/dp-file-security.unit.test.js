@@ -70,6 +70,7 @@ async function fixture(options = {}) {
     leaveInclusiveDays: () => 1, expandLeaveCalendarByDay: () => [], sanitizeRichTextHtml: value => value,
     stripCep: value => value, stripCpf: value => value, stripPhone: value => value,
     normalizeDependentRelation, normalizeEmergencyRelation,
+    calculateVacationAccrual: () => null,
     DB_FANOUT_CONCURRENCY: 4,
     privateAttachmentResponse,
     checkRateLimit: async key => { state.rateKeys.push(key); return { ok: !options.rateLimited }; },

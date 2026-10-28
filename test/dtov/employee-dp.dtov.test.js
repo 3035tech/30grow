@@ -128,7 +128,7 @@ async function main() {
     userId,
   });
   assert.equal(seedBal.ok, true, seedBal.errorCode);
-  assert.equal(seedBal.balance.periodStart, '2030-01-01');
+  if (!seedBal.balance.legalAccrual) assert.equal(seedBal.balance.periodStart, '2030-01-01');
   assert.equal(seedBal.balance.customPeriod, true);
 
   const leave = await createLeaveRequest({ query }, {
@@ -139,6 +139,7 @@ async function main() {
     endsOn: '2030-01-20',
     reason: 'DTOV leave',
     requestedBy: 'employee',
+    allowOverBalance: true,
   });
   assert.equal(leave.ok, true, leave.errorCode);
   assert.equal(leave.item.status, DP_LEAVE_STATUS.REQUESTED);
@@ -247,15 +248,15 @@ async function main() {
     userId,
   });
   assert.equal(setBal.ok, true, setBal.errorCode);
-  assert.equal(setBal.balance.entitlementDays, 5);
-  assert.equal(setBal.balance.periodStart, '2031-01-01');
+  assert.equal(setBal.balance.legalAccrual ? setBal.balance.periods[0].entitlementDays : setBal.balance.entitlementDays, 5);
+  if (!setBal.balance.legalAccrual) assert.equal(setBal.balance.periodStart, '2031-01-01');
 
   const over = await createLeaveRequest({ query }, {
     companyId,
     candidateId,
     leaveType: DP_LEAVE_TYPE.VACATION,
     startsOn: '2031-02-01',
-    endsOn: '2031-02-10',
+    endsOn: '2031-08-19',
     reason: 'should fail',
     requestedBy: 'employee',
   });
