@@ -11,4 +11,9 @@ Reaplicar a migration deve manter as tabelas e dados. Rollback da aplicação: v
 
 ## Validação local
 
-Em 28/10/2026, a migration 175 foi aplicada no PostgreSQL DTOV local e reaplicada duas vezes com uma publicação, um comentário e reações sintéticas presentes. O teste confirmou preservação do corpo e das interações, unicidade da reação por pessoa, rejeição de associação entre empresas pela FK, isolamento nas consultas e exclusão lógica do comentário pelo próprio autor. Nenhuma migration foi aplicada em Dublin ou produção nesta entrega.
+Em 28/10/2026, a migration 175 foi aplicada no PostgreSQL DTOV local e reaplicada duas vezes com uma publicação, um comentário e reações sintéticas presentes. O teste confirmou preservação do corpo e das interações, unicidade da reação por pessoa, rejeição de associação entre empresas pela FK, isolamento nas consultas e exclusão lógica do comentário pelo próprio autor.
+
+## Aplicação remota em 28/10/2026
+
+- Dublin: base `team`, role `3035tech`; migration 174 já registrada, 175 aplicada e registrada. As tabelas de reações e comentários foram criadas. A transação preservou 6 publicações, 2 anexos e 220 candidatos.
+- Produção: base `grow30`, role owner `admin3035tech`; migration 174 já registrada, 175 aplicada e registrada. As tabelas de reações e comentários foram criadas, e os privilégios necessários de `grow30_app` foram verificados. A transação preservou 2 publicações, 1 anexo e 131 candidatos.
