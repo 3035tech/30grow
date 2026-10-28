@@ -34,6 +34,7 @@ const REQUIRED_SCHEMA = Object.freeze({
   time_clock_health_observations:['kind','offset_ms','observed_at'],
   employee_time_schedules:['shift_pattern','cycle_anchor','night_rule'],
   employee_hour_bank_participation:['company_id','candidate_id','valid_from','enabled'],
+  employee_vacation_documents:['company_id','candidate_id','leave_request_id','document_type','file_key','file_name'],
   time_clock_closure_people:['night_minutes','night_equivalent_minutes','calculation_version'],
   rep_establishments: ['id', 'company_id', 'employer_document', 'last_nsr', 'last_punch_hash'],
   rep_workers: ['id', 'company_id', 'candidate_id', 'cpf', 'weekly_rest_day'],

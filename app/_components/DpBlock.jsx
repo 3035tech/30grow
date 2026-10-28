@@ -200,8 +200,10 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
   const [editingDependents, setEditingDependents] = useState(false);
   const [uploadKey, setUploadKey] = useState(null);
   const [leaveUploadId, setLeaveUploadId] = useState(null);
+  const [vacationUpload, setVacationUpload] = useState(null);
   const fileInputRef = useRef(null);
   const leaveFileRef = useRef(null);
+  const vacationFileRef = useRef(null);
 
   const readOnly = employmentStatus === EMPLOYMENT_STATUS.ALUMNI;
   const visible =
@@ -936,6 +938,55 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
     }
   };
 
+  const vacationDocumentUrl = (leaveId, kind) =>
+    `/api/admin/dp/leave/${encodeURIComponent(leaveId)}/documents/${kind}?companyId=${encodeURIComponent(scopedCompanyId)}`;
+
+  const onVacationFilePicked = async (ev) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = '';
+    const target = vacationUpload;
+    if (!file || !target || !scopedCompanyId) {
+      setVacationUpload(null);
+      return;
+    }
+    setBusy(true);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch(vacationDocumentUrl(target.id, target.kind), { method: 'POST', body });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || t(locale, 'panel.dp.uploadError'));
+      await load();
+      toast(t(locale, 'panel.dp.uploadOk'), 'ok');
+    } catch (error) {
+      toast(error?.message || t(locale, 'panel.dp.uploadError'), 'error');
+    } finally {
+      setBusy(false);
+      setVacationUpload(null);
+    }
+  };
+
+  const removeVacationDocument = async (row, kind) => {
+    const ok = await confirm({
+      message: t(locale, 'panel.dp.deleteFileConfirm'),
+      confirmLabel: t(locale, 'panel.dp.docDeleteFile'),
+      tone: 'danger',
+    });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const response = await fetch(vacationDocumentUrl(row.id, kind), { method: 'DELETE' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || t(locale, 'panel.dp.fileDeleteError'));
+      await load();
+      toast(t(locale, 'panel.dp.fileDeleted'), 'ok');
+    } catch (error) {
+      toast(error?.message || t(locale, 'panel.dp.fileDeleteError'), 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (loading) return <AppLoading variant="panel" label={t(locale, 'panel.common.loading')} />;
 
   const orderedDocs = [...documents].sort((a, b) => {
@@ -971,6 +1022,13 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         accept="application/pdf,image/jpeg,image/png"
         className="hidden"
         onChange={(e) => void onLeaveFilePicked(e)}
+      />
+      <input
+        ref={vacationFileRef}
+        type="file"
+        accept="application/pdf,image/jpeg,image/png"
+        className="hidden"
+        onChange={(e) => void onVacationFilePicked(e)}
       />
 
         {readOnly ? (
@@ -1278,7 +1336,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
                 key={row.id}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-ink/10 bg-surface px-3 py-2.5"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1 basis-96">
                   <div className="font-ui text-sm text-ink">
                     {leaveTypeLabel(locale, row.leaveType)}
                   </div>
@@ -1313,6 +1371,35 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
                         <PrivateAttachment href={`/api/admin/dp/leave/${encodeURIComponent(row.id)}/file?companyId=${encodeURIComponent(scopedCompanyId)}`} fileName={row.fileName} locale={locale} />
                       </div>
                     ) : null}
+                  {row.leaveType === DP_LEAVE_TYPE.VACATION && scopedCompanyId ? (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {(['notice', 'receipt']).map((kind) => {
+                        const doc = row.vacationDocuments?.[kind];
+                        const label = t(locale, kind === 'notice' ? 'panel.dp.vacationNotice' : 'panel.dp.vacationReceipt');
+                        return (
+                          <div key={kind} className="min-w-0 rounded-control border border-ink/12 bg-canvas/40 p-3">
+                            <p className="m-0 text-xs font-semibold text-ink">{label}</p>
+                            {doc ? (
+                              <div className="mt-2">
+                                <PrivateAttachment href={vacationDocumentUrl(row.id, kind)} fileName={doc.fileName} updatedAt={doc.uploadedAt} locale={locale} />
+                              </div>
+                            ) : <p className="mb-0 mt-1 text-xs text-ink-muted">{t(locale, 'panel.dp.vacationDocumentMissing')}</p>}
+                            {!readOnly ? (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {![DP_LEAVE_STATUS.CANCELLED, DP_LEAVE_STATUS.REJECTED].includes(row.status) ? (
+                                <button type="button" className={cn(S.btnGhost, 'min-h-touch text-sm')} disabled={busy}
+                                  onClick={() => { setVacationUpload({ id: row.id, kind }); vacationFileRef.current?.click(); }}>
+                                  {t(locale, doc ? 'panel.dp.vacationDocumentReplace' : 'panel.dp.vacationDocumentAttach')}
+                                </button>) : null}
+                                {doc ? <button type="button" className={cn(S.btnGhost, 'min-h-touch text-sm')} disabled={busy}
+                                  onClick={() => void removeVacationDocument(row, kind)}>{t(locale, 'panel.dp.docDeleteFile')}</button> : null}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                 </div>
                 {!readOnly && scopedCompanyId ? (
                   <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
