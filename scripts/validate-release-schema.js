@@ -33,6 +33,7 @@ const REQUIRED_SCHEMA = Object.freeze({
   time_clock_push_attempts:['delivery_id','attempt_no','outcome','finished_at'],
   time_clock_health_observations:['kind','offset_ms','observed_at'],
   employee_time_schedules:['shift_pattern','cycle_anchor','night_rule'],
+  employee_hour_bank_participation:['company_id','candidate_id','valid_from','enabled'],
   time_clock_closure_people:['night_minutes','night_equivalent_minutes','calculation_version'],
   rep_establishments: ['id', 'company_id', 'employer_document', 'last_nsr', 'last_punch_hash'],
   rep_workers: ['id', 'company_id', 'candidate_id', 'cpf', 'weekly_rest_day'],

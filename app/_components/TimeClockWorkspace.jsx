@@ -3,10 +3,10 @@
 import { TimeClockValidationNotice } from './TimeClockValidationNotice';
 import { ListLoadError } from './ListLoadError';
 
-import { useCallback, useEffect, useState } from 'react';
-import { t } from '../../lib/i18n';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
-import { formatMinutesClock } from '../../lib/time-clock-format.js';
+import { formatMinutesClock, localIsoToday } from '../../lib/time-clock-format.js';
 import { TIME_CLOCK_REASON } from '../../lib/people/time-clock-eligibility.js';
 import {
   S,
@@ -47,17 +47,17 @@ function useDebounced(value, ms = 300) {
 
 function usePagedList(url, params, deps) {
   const { toast } = useAppFeedback();
-  const [state, setState] = useState({ items: [], total: 0, loading: true, error: null });
+  const [state, setState] = useState({ items: [], total: 0, schedule: null, loading: true, error: null });
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await fetch(`${url}?${new URLSearchParams(params)}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || String(res.status));
-      setState({ items: data.items || [], total: Number(data.total) || 0, loading: false });
+      setState({ items: data.items || [], total: Number(data.total) || 0, schedule: data.schedule || null, loading: false, error: null });
     } catch (e) {
       toast(e?.message || String(e), 'error');
-      setState({ items: [], total: 0, loading: false, error: e?.message || String(e) });
+      setState({ items: [], total: 0, schedule: null, loading: false, error: e?.message || String(e) });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
@@ -101,7 +101,6 @@ function PeopleList({ locale, companyId, onOpen, reloadKey }) {
   const q = useDebounced(qDraft);
   const [orgUnit, setOrgUnit] = useState('');
   const [page, setPage] = useState(1);
-  useEffect(() => setPage(1), [q, orgUnit]);
   const params = {
     companyId: String(companyId),
     page: String(page),
@@ -125,15 +124,16 @@ function PeopleList({ locale, companyId, onOpen, reloadKey }) {
         onClear={() => {
           setQDraft('');
           setOrgUnit('');
+          setPage(1);
         }}
       >
         <AdminListSearch
           locale={locale}
           value={qDraft}
-          onChange={setQDraft}
+          onChange={(value) => { setQDraft(value); setPage(1); }}
           placeholder={t(locale, `${K}.searchPeople`)}
         />
-        <OrgUnitFilter companyId={companyId} locale={locale} value={orgUnit} onChange={setOrgUnit} />
+        <OrgUnitFilter companyId={companyId} locale={locale} value={orgUnit} onChange={(value) => { setOrgUnit(value); setPage(1); }} />
       </AdminListFilters>
 
       {error ? (
@@ -213,11 +213,26 @@ function PeopleList({ locale, companyId, onOpen, reloadKey }) {
   );
 }
 
-function BankBalances({ locale, companyId, onOpen, reloadKey }) {
+function BankBalances({ locale, companyId, onOpen, reloadKey, participationFlowKey = 0, onCloseParticipationFlow }) {
+  const [savingPerson, setSavingPerson] = useState(null);
+  const [pendingChoice, setPendingChoice] = useState(null);
+  const [participationError, setParticipationError] = useState('');
+  const [saveNotice, setSaveNotice] = useState('');
+  const [manualManaging, setManualManaging] = useState(false);
+  const managing = manualManaging || participationFlowKey > 0;
+  const [effectiveFrom, setEffectiveFrom] = useState(localIsoToday);
+  const managerRef = useRef(null);
+  const headingRef = useRef(null);
+  const manageButtonRef = useRef(null);
+  useEffect(() => {
+    if (!managing) return;
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    managerRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+    headingRef.current?.focus({ preventScroll: true });
+  }, [managing]);
   const [qDraft, setQDraft] = useState('');
   const q = useDebounced(qDraft);
   const [page, setPage] = useState(1);
-  useEffect(() => setPage(1), [q]);
   const params = {
     companyId: String(companyId),
     mode: 'balances',
@@ -225,27 +240,116 @@ function BankBalances({ locale, companyId, onOpen, reloadKey }) {
     offset: String((page - 1) * PAGE_SIZE),
     ...(q.trim() ? { q: q.trim() } : {}),
   };
-  const { items, total, loading, error, reload } = usePagedList(
+  const { items, total, schedule, loading, error, reload } = usePagedList(
     '/api/admin/hour-bank',
     params,
     [companyId, page, q, reloadKey]
   );
 
+  const saveParticipation = async (row, enabled, validFrom) => {
+    setSavingPerson(row.candidateId);
+    setPendingChoice({ id: row.candidateId, enabled });
+    setParticipationError('');
+    setSaveNotice('');
+    try {
+      const response = await fetch('/api/admin/hour-bank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId, action: 'participation', candidateId: row.candidateId,
+          participationEnabled: enabled, validFrom,
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result?.error || t(locale, 'panel.hourBank.saveError'));
+      await reload();
+      setSaveNotice(t(locale, validFrom > localIsoToday() ? 'panel.hourBank.participationScheduledName' : 'panel.hourBank.participationSavedName', { name: row.candidateName, date: validFrom }));
+    } catch (error) {
+      setParticipationError(error?.message || t(locale, 'panel.hourBank.saveError'));
+    } finally {
+      setPendingChoice(null);
+      setSavingPerson(null);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={managerRef} className="scroll-mt-24 flex flex-col gap-3">
+      {schedule?.hourBankEnabled && !managing ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className={cn(S.muted, 'm-0 text-prose')}>{t(locale, 'panel.hourBank.participationDefault')}</p>
+          <button
+            ref={manageButtonRef}
+            type="button"
+            className={cn(S.btnBrandSoft, 'min-h-touch text-sm')}
+            onClick={() => { setParticipationError(''); setSaveNotice(''); setManualManaging(true); }}
+          >
+            {t(locale, 'panel.hourBank.participationManage')}
+          </button>
+        </div>
+      ) : null}
+      {managing && schedule?.hourBankEnabled ? (
+        <section aria-labelledby="hour-bank-participation-title" className="rounded-control border border-brand-500/25 bg-brand-500/[0.04] p-4 sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
+            <div className="max-w-[62ch]">
+              <h3 ref={headingRef} tabIndex={-1} id="hour-bank-participation-title" className="m-0 font-ui text-lg font-semibold text-ink focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-brand-500">
+                {t(locale, 'panel.hourBank.participationManage')}
+              </h3>
+              <p className={cn(S.muted, 'm-0 mt-1 text-prose')}>{t(locale, 'panel.hourBank.participationManageHelp')}</p>
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="flex flex-col gap-1 font-ui text-sm text-ink">
+                <span>{t(locale, 'panel.hourBank.participationFrom')}</span>
+                <input
+                  type="date"
+                  className={S.input}
+                  min={schedule.hourBankStartedOn || undefined}
+                  value={effectiveFrom}
+                  onChange={(event) => { setEffectiveFrom(event.target.value); setSaveNotice(''); setParticipationError(''); }}
+                  required
+                />
+              </label>
+              <button
+                type="button"
+                className={cn(S.btnGhost, 'min-h-touch text-sm')}
+                disabled={savingPerson != null}
+                onClick={() => {
+                  setManualManaging(false);
+                  onCloseParticipationFlow?.();
+                  requestAnimationFrame(() => manageButtonRef.current?.focus());
+                }}
+              >
+                {t(locale, 'panel.hourBank.participationDone')}
+              </button>
+            </div>
+          </div>
+          {participationError ? (
+            <p role="alert" className="m-0 mt-3 text-sm text-danger">{participationError}</p>
+          ) : null}
+          {saveNotice ? (
+            <p role="status" className="m-0 mt-3 text-sm text-success">{saveNotice}</p>
+          ) : null}
+        </section>
+      ) : null}
       <AdminListFilters
         aria-label={t(locale, `${K}.bankFilters`)}
         locale={locale}
         clearEnabled={Boolean(qDraft.trim())}
-        onClear={() => setQDraft('')}
+        onClear={() => { setQDraft(''); setPage(1); }}
       >
         <AdminListSearch
           locale={locale}
           value={qDraft}
-          onChange={setQDraft}
+          onChange={(value) => { setQDraft(value); setPage(1); }}
           placeholder={t(locale, `${K}.searchPeople`)}
         />
       </AdminListFilters>
+      {!loading && !error ? (
+        <p className={cn(S.muted, 'm-0 text-prose')}>
+          {schedule?.hourBankEnabled
+            ? t(locale, 'panel.hourBank.balanceSince', { date: schedule.hourBankStartedOn || '—' })
+            : t(locale, 'panel.hourBank.hintOff')}
+        </p>
+      ) : null}
       {error ? (
         <ListLoadError locale={locale} message={t(locale, 'panel.timeClock.loadError')} onRetry={reload} />
       ) : loading && items.length === 0 ? (
@@ -256,7 +360,7 @@ function BankBalances({ locale, companyId, onOpen, reloadKey }) {
         <>
           <AdminTableShell
             locale={locale}
-            minWidth="400px"
+            minWidth="900px"
             animKey={`tc-bank|${page}|${q}|${total}`}
             ariaLabel={t(locale, `${K}.bankAria`)}
           >
@@ -265,6 +369,7 @@ function BankBalances({ locale, companyId, onOpen, reloadKey }) {
                 <AdminTh>{t(locale, `${K}.colPerson`)}</AdminTh>
                 <AdminTh className={WIDE_COL}>{t(locale, `${K}.colRole`)}</AdminTh>
                 <AdminTh className={WIDE_COL}>{t(locale, `${K}.colUnit`)}</AdminTh>
+                <AdminTh>{t(locale, 'panel.hourBank.participationColumn')}</AdminTh>
                 <AdminTh align="right">{t(locale, `${K}.colBalance`)}</AdminTh>
                 <AdminTh>{t(locale, `${K}.colPending`)}</AdminTh>
                 <AdminActionsTh className={ACTIONS_COL}>{t(locale, `${K}.colActions`)}</AdminActionsTh>
@@ -280,9 +385,43 @@ function BankBalances({ locale, companyId, onOpen, reloadKey }) {
                   </td>
                   <td className={cn(WIDE_COL, 'px-4 py-2.5 align-middle text-ink-muted')}>{row.jobRoleName || '·'}</td>
                   <td className={cn(WIDE_COL, 'px-4 py-2.5 align-middle text-ink-muted')}>{row.orgUnitPath || t(locale, 'panel.orgUnits.none')}</td>
+                  <td className="px-4 py-2.5 align-middle">
+                    {managing && schedule?.hourBankEnabled ? (
+                      <label className="flex items-center gap-2 whitespace-nowrap text-sm">
+                        <input
+                          type="checkbox"
+                          aria-label={t(locale, 'panel.hourBank.participationToggle', { name: row.candidateName })}
+                          checked={pendingChoice?.id === row.candidateId ? pendingChoice.enabled : row.bankParticipant}
+                          disabled={savingPerson != null || !effectiveFrom}
+                          onChange={(event) => void saveParticipation(row, event.target.checked, effectiveFrom)}
+                        />
+                        {t(locale, (pendingChoice?.id === row.candidateId ? pendingChoice.enabled : row.bankParticipant)
+                          ? 'panel.hourBank.participationOn' : 'panel.hourBank.participationOff')}
+                        {savingPerson === row.candidateId ? (
+                          <span className={S.faint}>{t(locale, 'panel.hourBank.participationSaving')}</span>
+                        ) : null}
+                      </label>
+                    ) : (
+                      <StatusToneChip tone={!schedule?.hourBankEnabled ? 'neutral' : row.bankParticipant ? 'success' : 'neutral'}>
+                        {schedule?.hourBankEnabled
+                          ? t(locale, row.bankParticipant ? 'panel.hourBank.participationOn' : 'panel.hourBank.participationOff')
+                          : t(locale, 'panel.hourBank.disabledBalance')}
+                      </StatusToneChip>
+                    )}
+                    {row.nextBankParticipation ? (
+                      <span className={cn(S.faint, 'mt-1 block text-xs')}>
+                        {t(locale, 'panel.hourBank.participationNext', {
+                          date: new Date(`${row.nextBankParticipation.validFrom}T12:00:00Z`).toLocaleDateString(localeHtmlLang(locale), { timeZone: 'UTC' }),
+                          status: t(locale, row.nextBankParticipation.enabled ? 'panel.hourBank.participationOn' : 'panel.hourBank.participationOff'),
+                        })}
+                      </span>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-2.5 text-right align-middle">
-                    <StatusToneChip tone={row.balanceMinutes < 0 ? 'danger' : row.balanceMinutes > 0 ? 'success' : 'neutral'}>
-                      <span className="font-mono tabular-nums">{formatMinutesClock(row.balanceMinutes)}</span>
+                    <StatusToneChip tone={!schedule?.hourBankEnabled ? 'neutral' : row.balanceMinutes < 0 ? 'danger' : row.balanceMinutes > 0 ? 'success' : 'neutral'}>
+                      <span className="font-mono tabular-nums">
+                        {schedule?.hourBankEnabled ? formatMinutesClock(row.balanceMinutes) : t(locale, 'panel.hourBank.disabledBalance')}
+                      </span>
                     </StatusToneChip>
                   </td>
                   <td className="px-4 py-2.5 align-middle">
@@ -337,6 +476,9 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
   };
   const [personId, setPersonId] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [participationFlow, setParticipationFlow] = useState({ companyId: null, sequence: 0, open: false });
+  const participationFlowKey = participationFlow.companyId === companyId && participationFlow.open ? participationFlow.sequence : 0;
+  const bankKey = `${companyId}|${participationFlow.companyId === companyId ? participationFlow.sequence : 0}`;
   const bump = useCallback(() => setReloadKey((n) => n + 1), []);
 
   if (!companyId) return null;
@@ -392,7 +534,7 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
 
       {view === 'bank' ? (
         <>
-          <BankBalances locale={locale} companyId={companyId} onOpen={openPerson} reloadKey={reloadKey} />
+          <BankBalances key={bankKey} locale={locale} companyId={companyId} onOpen={openPerson} reloadKey={reloadKey} participationFlowKey={participationFlowKey} onCloseParticipationFlow={() => setParticipationFlow((flow) => ({ ...flow, open: false }))} />
           <HourBankAdminBlock
             locale={locale}
             companyId={companyId}
@@ -401,6 +543,7 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
             title={t(locale, `${K}.bankEntriesTitle`)}
             reloadKey={reloadKey}
             onChanged={bump}
+            onActivated={() => setParticipationFlow((flow) => ({ companyId, sequence: flow.sequence + 1, open: true }))}
           />
         </>
       ) : null}

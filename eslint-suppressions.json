@@ -414,9 +414,6 @@
     }
   },
   "app/_components/TimeClockWorkspace.jsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 2
-    },
     "react-hooks/use-memo": {
       "count": 1
     }

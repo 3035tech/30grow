@@ -108,7 +108,7 @@ export function EmployeeHourBankSection({ locale = 'pt-BR' }) {
     return (
       <ContentEnter animKey="emp-hour-bank-off">
         <InlineCallout tone="info">
-          {t(locale, 'employeeHome.hourBank.disabledHint')}
+          {t(locale, data.bankParticipant === false ? 'employeeHome.hourBank.disabledPersonHint' : 'employeeHome.hourBank.disabledHint')}
         </InlineCallout>
       </ContentEnter>
     );

@@ -22,6 +22,7 @@ import {
   listHourBankEntries,
 } from '../../../../lib/people/hour-bank.js';
 import { upsertCompanyTimeSchedule } from '../../../../lib/people/time-clock.js';
+import { saveHourBankParticipation } from '../../../../lib/people/hour-bank-participation.js';
 
 const listQuerySchema = z.object({
   companyId: zPositiveInt.optional(),
@@ -36,13 +37,15 @@ const listQuerySchema = z.object({
 
 const postBodySchema = z.object({
   companyId: zPositiveInt.optional(),
-  action: z.enum(['manual', 'settings']),
+  action: z.enum(['manual', 'settings', 'participation']),
   candidateId: zPositiveInt.optional(),
   entryKind: z.enum(/** @type {[string, ...string[]]} */ (HOUR_BANK_ENTRY_KINDS)).optional(),
   minutes: z.coerce.number().int().min(1).max(1440).optional(),
   workOn: z.string().max(16).optional(),
   note: z.string().max(500).optional().nullable(),
   hourBankEnabled: z.boolean().optional(),
+  participationEnabled: z.boolean().optional(),
+  validFrom: z.iso.date().optional(),
   hourBankMaxMinutes: z.coerce.number().int().min(0).max(20000).optional(),
   workdayStart: z.string().max(8).optional(),
   workdayEnd: z.string().max(8).optional(),
@@ -118,6 +121,25 @@ export const POST = withAdminApi(
     logLabel: 'hour-bank-post',
   },
   async ({ request, companyId, body, payload }) => {
+    if (body.action === 'participation') {
+      const result = await saveHourBankParticipation(null, {
+        companyId,
+        candidateId: body.candidateId,
+        validFrom: body.validFrom,
+        enabled: body.participationEnabled,
+        userId: payload.userId || null,
+      });
+      if (!result.ok) return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA });
+      await audit({
+        actorUserId: payload.userId || null,
+        action: 'hour_bank.participation',
+        companyId,
+        targetType: 'candidate',
+        targetId: body.candidateId,
+        metadata: { validFrom: result.item.validFrom, enabled: result.item.enabled },
+      });
+      return NextResponse.json(result);
+    }
     if (body.action === 'settings') {
       const result = await upsertCompanyTimeSchedule(null, {
         companyId,

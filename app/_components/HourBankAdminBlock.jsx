@@ -38,6 +38,7 @@ export function HourBankAdminBlock({
   title = null,
   reloadKey = 0,
   onChanged = null,
+  onActivated = null,
 }) {
   const { toast, promptForm } = useAppFeedback();
   const [month, setMonth] = useState(localYearMonth);
@@ -102,8 +103,10 @@ export function HourBankAdminBlock({
   };
 
   const saveSettings = async () => {
+    const wasEnabled = Boolean(schedule?.hourBankEnabled);
     const values = await promptForm({
       title: t(locale, 'panel.hourBank.settingsTitle'),
+      message: t(locale, 'panel.hourBank.settingsHelp'),
       confirmLabel: t(locale, 'panel.hourBank.settingsSave'),
       fields: [
         {
@@ -141,6 +144,7 @@ export function HourBankAdminBlock({
       setSchedule(data.schedule);
       toast(t(locale, 'panel.hourBank.settingsSaved'), 'ok');
       await reloadAll();
+      if (!wasEnabled && data.schedule?.hourBankEnabled) onActivated?.();
     } catch (e) {
       toast(e?.message || t(locale, 'panel.hourBank.saveError'), 'error');
     } finally {

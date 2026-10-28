@@ -6,6 +6,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { TIME_PUNCH_KIND } from '../../lib/domain-status.js';
+import { hourBankDayNet } from '../../lib/people/hour-bank-balance.js';
+import { hourBankParticipantOn } from '../../lib/people/hour-bank-participation.js';
+import { stepHourBank, summarizeTimeDay } from '../../lib/people/time-day-summary.js';
 import {
   expectedNetMinutes,
   formatMinutesHm,
@@ -66,6 +69,36 @@ describe('overtimeMinutes', () => {
       }),
       20
     );
+  });
+});
+
+describe('missed workday balance', () => {
+  it('debits a past workday with no punches', () => {
+    const summary = summarizeTimeDay({
+      punches: [],
+      schedule: {
+        workdayStart: '09:00', workdayEnd: '18:00', breakMinutes: 60,
+        lateGraceMinutes: 5,
+      },
+      isWorkday: true,
+      isToday: false,
+    });
+    assert.equal(summary.missingMinutes, 480);
+    assert.equal(stepHourBank(0, { net: hourBankDayNet(summary, true), cap: 2400 }).balance, -480);
+  });
+});
+
+describe('individual time bank participation', () => {
+  it('follows the company until an individual exclusion and preserves date transitions', () => {
+    const choices = [
+      { validFrom: '2026-11-01', enabled: false },
+      { validFrom: '2026-12-01', enabled: true },
+    ];
+    assert.equal(hourBankParticipantOn([], '2026-11-01'), true);
+    assert.equal(hourBankParticipantOn(choices, '2026-10-31'), true);
+    assert.equal(hourBankParticipantOn(choices, '2026-11-01'), false);
+    assert.equal(hourBankDayNet({ extraMinutes: 30, missingMinutes: 480 }, hourBankParticipantOn(choices, '2026-11-15')), 0);
+    assert.equal(hourBankParticipantOn(choices, '2026-12-01'), true);
   });
 });
 
