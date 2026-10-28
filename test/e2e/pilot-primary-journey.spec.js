@@ -126,9 +126,15 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
       await candidate.getByRole('button', { name: 'Candidatar-se', exact: true }).click();
       await candidate.getByRole('textbox', { name: 'Nome completo', exact: true }).fill(candidateName);
       await candidate.getByRole('textbox', { name: 'E-mail', exact: true }).fill(candidateEmail);
+      await candidate.getByRole('textbox', { name: 'LinkedIn (opcional)', exact: true }).fill('https://www.linkedin.com/in/candidato-teste');
+      await candidate.getByLabel('Currículo em PDF').setInputFiles({
+        name: 'curriculo-teste.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.from('%PDF-1.4\n% synthetic browser fixture\n'),
+      });
       await candidate.getByRole('checkbox').check();
       await candidate.getByRole('button', { name: 'Enviar candidatura', exact: true }).click();
-      await expect(candidate.getByText('Candidatura registrada. A equipe entrará em contato se precisar de mais etapas.', { exact: true })).toBeVisible();
+      await expect(candidate.getByText(/Candidatura registrada\./)).toBeVisible();
       await expect(page.getByRole('tab', { name: 'Candidatos', exact: true })).toBeVisible();
       await page.getByRole('tab', { name: 'Candidatos', exact: true }).click();
       await page.getByRole('button', { name: 'Convidar por e-mail', exact: true }).click();

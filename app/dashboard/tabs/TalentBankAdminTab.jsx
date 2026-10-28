@@ -405,7 +405,16 @@ function TalentBankContent({ tagRefresh, locale = 'pt-BR', companyId, navigateDa
           <p className={cn(S.faint, 'm-0')}>
             {t(locale, 'panel.talentBank.count', { n: total })}
           </p>
-          <AdminTableShell locale={locale} minWidth="56rem" animKey={`${q}|${vacancyId}|${stage}|${topType}|${page}|${pageSize}`}>
+          <AdminTableShell locale={locale} minWidth="80rem" tableClassName="table-fixed" animKey={`${q}|${vacancyId}|${stage}|${topType}|${page}|${pageSize}`}>
+              <colgroup>
+                <col className="w-[15%]" />
+                <col className="w-[18%]" />
+                <col className="w-[17%]" />
+                <col className="w-[10%]" />
+                <col className="w-[7%]" />
+                <col className="w-[11%]" />
+                <col className="w-[22%]" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-ink/10 bg-canvas/80">
                   <SortableTh
@@ -467,7 +476,7 @@ function TalentBankContent({ tagRefresh, locale = 'pt-BR', companyId, navigateDa
                       <div className="font-mono text-2xs text-ink-faint">#{row.id}</div>
                       <CandidateTags candidateId={row.id} name={row.fullName} tags={row.tags || []} locale={locale} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-ink-muted">{row.email || '—'}</td>
+                    <td className="break-words px-4 py-3 text-sm text-ink-muted">{row.email || '—'}</td>
                     <td className="px-4 py-3 text-sm text-ink">
                       {row.vacancyTitle || (row.vacancyId ? `#${row.vacancyId}` : '—')}
                     </td>

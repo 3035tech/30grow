@@ -255,6 +255,8 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
           label: t(locale, 'panel.admin.userModulesLabel'),
           options: moduleOptions(locale),
           defaultValue: [],
+          selectAllLabel: t(locale, 'panel.admin.selectAllModules'),
+          clearAllLabel: t(locale, 'panel.admin.clearAllModules'),
         },
       ],
     });

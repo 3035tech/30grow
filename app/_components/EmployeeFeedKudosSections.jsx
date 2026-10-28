@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { EmptyState } from './EmptyState';
 import { CompanyPostAttachments } from './CompanyPostAttachments';
+import { CompanyPostInteractions } from './CompanyPostInteractions';
 import { KudoReactions } from './KudoReactions';
 import { RichTextView } from './RichTextView';
 import { useAppFeedback } from './AppFeedback';
@@ -72,7 +73,8 @@ export function EmployeeFeedPanel({
                 <RichTextView html={p.bodyHtml} />
               </div>
             ) : null}
-            <CompanyPostAttachments postId={p.id} files={p.attachments || []} locale={locale} />
+            <CompanyPostAttachments postId={p.id} files={p.attachments || []} locale={locale} featured />
+            <CompanyPostInteractions postId={p.id} initialReactions={p.reactions || []} initialCommentCount={p.commentCount || 0} locale={locale} />
           </li>
         ))}
       </ul>

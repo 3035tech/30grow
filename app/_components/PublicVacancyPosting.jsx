@@ -163,6 +163,8 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
   const [applyName, setApplyName] = useState('');
   const [applyEmail, setApplyEmail] = useState('');
   const [applyPhone, setApplyPhone] = useState('');
+  const [applyLinkedIn, setApplyLinkedIn] = useState('');
+  const [applyCv, setApplyCv] = useState(null);
   const [applyConsent, setApplyConsent] = useState(false);
   const [applyBusy, setApplyBusy] = useState(false);
   const [applyMsg, setApplyMsg] = useState('');
@@ -183,6 +185,8 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
     setApplyName('');
     setApplyEmail('');
     setApplyPhone('');
+    setApplyLinkedIn('');
+    setApplyCv(null);
     setApplyConsent(false);
   }, [posting?.vacancyId]);
 
@@ -198,19 +202,28 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       setApplyErr(t(locale, 'publicVacancy.applyFormNeedConsent'));
       return;
     }
+    if (!applyCv) {
+      setApplyErr(t(locale, 'publicVacancy.applyFormNeedCv'));
+      return;
+    }
+    if (applyCv.size > 5 * 1024 * 1024) {
+      setApplyErr(errorMessage(locale, 'INVALID_CV_FILE_SIZE', t(locale, 'panel.common.error')));
+      return;
+    }
     setApplyBusy(true);
     trackJobFunnel('apply_start', posting.vacancyId);
     try {
+      const form = new FormData();
+      form.set('vacancyId', String(posting.vacancyId));
+      form.set('fullName', applyName);
+      form.set('email', applyEmail);
+      form.set('phone', applyPhone);
+      form.set('linkedinUrl', applyLinkedIn);
+      form.set('consent', String(applyConsent));
+      form.set('cv', applyCv);
       const res = await fetch('/api/public/vacancy-apply', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vacancyId: posting.vacancyId,
-          fullName: applyName,
-          email: applyEmail,
-          phone: applyPhone || undefined,
-          consent: applyConsent,
-        }),
+        body: form,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -224,7 +237,7 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       setApplyMsg(
         data.alreadyLinked
           ? t(locale, 'publicVacancy.applyFormAlready')
-          : t(locale, 'publicVacancy.applyFormOk')
+          : t(locale, data.confirmationSent ? 'publicVacancy.applyFormOkEmail' : 'publicVacancy.applyFormOk')
       );
     } catch (err) {
       setApplyErr(err?.message || t(locale, 'panel.common.error'));
@@ -490,6 +503,30 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                             autoComplete="tel"
                             disabled={applyBusy}
                           />
+                        </FormField>
+                        <FormField label={t(locale, 'publicVacancy.applyFormLinkedIn')}>
+                          <input
+                            className={SC.input}
+                            type="text"
+                            inputMode="url"
+                            value={applyLinkedIn}
+                            onChange={(e) => setApplyLinkedIn(e.target.value)}
+                            maxLength={500}
+                            placeholder="https://www.linkedin.com/in/…"
+                            autoComplete="url"
+                            disabled={applyBusy}
+                          />
+                        </FormField>
+                        <FormField label={t(locale, 'publicVacancy.applyFormCv')}>
+                          <input
+                            className={SC.input}
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={(e) => setApplyCv(e.target.files?.[0] || null)}
+                            required
+                            disabled={applyBusy}
+                          />
+                          <span className="mt-1 block text-xs text-ink-muted">{t(locale, 'publicVacancy.applyFormCvHint')}</span>
                         </FormField>
                         <label className="flex items-start gap-2 font-ui text-prose text-ink">
                           <input

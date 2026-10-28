@@ -19,6 +19,7 @@ export async function GET(request) {
       companyId: session.companyId,
       page: Number.isFinite(page) ? page : 1,
       pageSize: Number.isFinite(pageSize) ? pageSize : 10,
+      viewerCandidateId: session.candidateId,
     });
     if (!result.ok) return apiErrorFromResult(request, result);
     return NextResponse.json(result);

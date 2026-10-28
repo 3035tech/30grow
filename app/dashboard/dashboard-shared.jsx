@@ -789,6 +789,7 @@ function AdminTableShell({
   children,
   minWidth = '640px',
   className,
+  tableClassName,
   animKey,
   locale = 'pt-BR',
   ariaLabel,
@@ -796,7 +797,7 @@ function AdminTableShell({
   const shell = (
     <HorizontalScrollRegion table locale={locale} ariaLabel={ariaLabel} className={className}>
       <table
-        className="w-full border-collapse text-left text-prose"
+        className={cn('w-full border-collapse text-left text-prose', tableClassName)}
         style={minWidth ? { minWidth } : undefined}
       >
         {children}
