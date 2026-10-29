@@ -15,7 +15,7 @@ export function SignatureStrokePreview({
   alt = '',
   caption = '',
   className = '',
-  maxHeightClass = 'max-h-20',
+  maxHeightClass = 'max-h-32',
 }) {
   if (!src) return null;
   return (
@@ -29,7 +29,7 @@ export function SignatureStrokePreview({
         src={src}
         alt={alt}
         className={cn(
-          'block w-full object-contain object-left px-2.5 py-2',
+          'block h-auto w-auto max-w-full object-contain object-left px-2.5 py-2',
           maxHeightClass
         )}
       />

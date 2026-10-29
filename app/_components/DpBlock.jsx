@@ -1260,7 +1260,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
                       src={doc.signerStrokePng}
                       alt={t(locale, 'panel.dp.sigStrokeAlt')}
                       caption={t(locale, 'panel.dp.sigStrokeLabel')}
-                      maxHeightClass="max-h-20"
+                      maxHeightClass="max-h-32"
                     />
                   ) : null}
                   {sig === DP_DOCUMENT_SIGNATURE_STATUS.REQUESTED ? (

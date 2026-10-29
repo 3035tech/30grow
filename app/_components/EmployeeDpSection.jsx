@@ -713,7 +713,7 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                         src={doc.signerStrokePng}
                         alt={t(locale, 'panel.dp.sigStrokeAlt')}
                         caption={t(locale, 'panel.dp.sigStrokeLabel')}
-                        maxHeightClass="max-h-16"
+                        maxHeightClass="max-h-32"
                       />
                     ) : null}
                     {doc.status === DP_DOCUMENT_STATUS.REJECTED && doc.rejectionReason ? (
