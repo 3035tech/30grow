@@ -177,6 +177,13 @@ function isPublicEmployeeSurface(pathname) {
   );
 }
 
+function isAppPage(pathname) {
+  return pathname === '/login' ||
+    pathname === '/dashboard' || pathname.startsWith('/dashboard/') ||
+    pathname === '/employee' || pathname.startsWith('/employee/') ||
+    pathname === '/a/set-password';
+}
+
 const SESSION_EDGE_PATH = '/api/auth/session-edge';
 const EMPLOYEE_SESSION_EDGE_PATH = '/api/auth/employee/session-edge';
 
@@ -282,6 +289,11 @@ export async function proxy(request) {
     const target = new URL(pathname, publicBase);
     target.search = request.nextUrl.search;
     return secureResponse(request, NextResponse.redirect(target, 308));
+  }
+  if (['30grow.com', 'www.30grow.com'].includes(publicRequestHost) && isAppPage(pathname)) {
+    const target = new URL(pathname, 'https://app.30grow.com');
+    target.search = request.nextUrl.search;
+    return secureResponse(request, NextResponse.redirect(target, 307));
   }
   // Blog articles are written in Brazilian Portuguese; keep their SSR language stable.
   if (pathname === '/blog' || pathname.startsWith('/blog/')) request.headers.set(PUBLIC_LOCALE_HEADER, 'pt-BR');
