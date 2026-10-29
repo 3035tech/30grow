@@ -717,9 +717,12 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                       />
                     ) : null}
                     {doc.status === DP_DOCUMENT_STATUS.REJECTED && doc.rejectionReason ? (
-                      <p className={cn(S.muted, 'mb-0 mt-1 text-xs text-danger')}>
-                        {t(locale, 'panel.dp.docRejectReason')}: {doc.rejectionReason}
-                      </p>
+                      <div className="mt-1 text-xs">
+                        <p className="mb-1 text-danger">
+                          {t(locale, 'panel.dp.docRejectReason')}: {doc.rejectionReason}
+                        </p>
+                        <p className={cn(S.muted, 'mb-0')}>{t(locale, 'panel.dp.docReplaceHint')}</p>
+                      </div>
                     ) : null}
                   </div>
                   {!isSigning ? (

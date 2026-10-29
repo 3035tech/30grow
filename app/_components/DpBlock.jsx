@@ -514,10 +514,11 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
           key: 'status',
           type: 'select',
           label: t(locale, 'panel.dp.docStatusLabel'),
-          defaultValue: doc.status === DP_DOCUMENT_STATUS.REJECTED
-            ? DP_DOCUMENT_STATUS.PENDING : (doc.status || DP_DOCUMENT_STATUS.PENDING),
+          defaultValue: doc.status || DP_DOCUMENT_STATUS.PENDING,
           required: true,
-          options: DP_DOCUMENT_STATUSES.filter((s) => s !== DP_DOCUMENT_STATUS.REJECTED).map((s) => ({
+          options: DP_DOCUMENT_STATUSES.filter((s) =>
+            s !== DP_DOCUMENT_STATUS.REJECTED || doc.status === DP_DOCUMENT_STATUS.REJECTED
+          ).map((s) => ({
             value: s,
             label: docStatusLabel(locale, s),
           })),
@@ -540,7 +541,10 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: values.status, notes: values.notes }),
+          body: JSON.stringify({
+            ...(values.status === DP_DOCUMENT_STATUS.REJECTED ? {} : { status: values.status }),
+            notes: values.notes,
+          }),
         }
       );
       const data = await res.json().catch(() => ({}));
@@ -557,8 +561,9 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
   };
 
   const rejectDocument = async (doc) => {
-    const values = await promptForm({
+    await promptForm({
       title: t(locale, 'panel.dp.docRejectTitle'),
+      message: t(locale, 'panel.dp.docRejectHint'),
       confirmLabel: t(locale, 'panel.dp.docReject'),
       fields: [{
         key: 'rejectionReason',
@@ -568,29 +573,21 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         rows: 3,
         maxLength: 2000,
       }],
-      submit: (entry) => {
-        if (String(entry.rejectionReason || '').trim()) return true;
-        toast(t(locale, 'panel.dp.docRejectReasonRequired'), 'error');
-        return false;
+      submit: async (entry) => {
+        const reason = String(entry.rejectionReason || '').trim();
+        if (!reason) throw new Error(t(locale, 'panel.dp.docRejectReasonRequired'));
+        const res = await fetch(`${baseUrl}/documents/${encodeURIComponent(doc.docKey)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: DP_DOCUMENT_STATUS.REJECTED, rejectionReason: reason }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || t(locale, 'panel.dp.saveError'));
+        setDocuments((prev) => prev.map((item) => item.docKey === doc.docKey ? data.item : item));
+        toast(t(locale, 'panel.dp.docRejected'), 'ok');
+        return true;
       },
     });
-    if (!values) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`${baseUrl}/documents/${encodeURIComponent(doc.docKey)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: DP_DOCUMENT_STATUS.REJECTED, rejectionReason: values.rejectionReason.trim() }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'reject');
-      setDocuments((prev) => prev.map((item) => item.docKey === doc.docKey ? data.item : item));
-      toast(t(locale, 'panel.dp.docRejected'), 'ok');
-    } catch (e) {
-      toast(e?.message || t(locale, 'panel.dp.saveError'), 'error');
-    } finally {
-      setBusy(false);
-    }
   };
 
   const startUpload = (docKey) => {
