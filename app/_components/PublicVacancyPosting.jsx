@@ -227,9 +227,13 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        const responseError = data?.error || (data?.errorCode
+          ? errorMessage(locale, data.errorCode)
+          : '');
         throw new Error(
-          data?.error ||
-            errorMessage(locale, data?.errorCode, t(locale, 'panel.common.error'))
+          typeof responseError === 'string' && !responseError.startsWith('errors.')
+            ? responseError
+            : t(locale, 'panel.common.error')
         );
       }
       setApplyDone(true);

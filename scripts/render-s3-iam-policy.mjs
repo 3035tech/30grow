@@ -45,6 +45,7 @@ const policy = {
       Resource: [
         `${objectArn}/dp-docs/*`,
         `${objectArn}/dp-leave/*`,
+        `${objectArn}/candidates/*`,
         `${objectArn}/lms/*`,
         `${objectArn}/company-posts/*`,
         `${bucketArn}/image/logo/companies/*`,
