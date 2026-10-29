@@ -90,6 +90,7 @@ function docStatusTone(status, hasFile) {
   if (status === DP_DOCUMENT_STATUS.RECEIVED && !hasFile) return 'neutral';
   if (status === DP_DOCUMENT_STATUS.RECEIVED) return 'success';
   if (status === DP_DOCUMENT_STATUS.WAIVED) return 'neutral';
+  if (status === DP_DOCUMENT_STATUS.REJECTED) return 'danger';
   return 'warning';
 }
 
@@ -240,6 +241,7 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
           label: t(locale, 'panel.dp.emergencyName'),
           defaultValue: profile?.emergencyName || '',
           maxLength: 120,
+          help: t(locale, 'panel.dp.emergencyNameHelp'),
         },
         {
           key: 'emergencyPhone',
@@ -649,7 +651,7 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                 .sort((a, b) => {
                   const rank = (d) => {
                     if ((d.signatureStatus || '') === DP_DOCUMENT_SIGNATURE_STATUS.REQUESTED) return 0;
-                    return d.status === DP_DOCUMENT_STATUS.PENDING ? 1 : 2;
+                    return d.status === DP_DOCUMENT_STATUS.PENDING || d.status === DP_DOCUMENT_STATUS.REJECTED ? 1 : 2;
                   };
                   return rank(a) - rank(b);
                 })
@@ -713,6 +715,11 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                         caption={t(locale, 'panel.dp.sigStrokeLabel')}
                         maxHeightClass="max-h-16"
                       />
+                    ) : null}
+                    {doc.status === DP_DOCUMENT_STATUS.REJECTED && doc.rejectionReason ? (
+                      <p className={cn(S.muted, 'mb-0 mt-1 text-xs text-danger')}>
+                        {t(locale, 'panel.dp.docRejectReason')}: {doc.rejectionReason}
+                      </p>
                     ) : null}
                   </div>
                   {!isSigning ? (

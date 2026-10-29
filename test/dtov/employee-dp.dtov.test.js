@@ -17,6 +17,7 @@ import {
   ensureDpDocuments,
   getDpAttentionPulse,
   getDpProfile,
+  getEmployeeDpHome,
   getLeaveBalance,
   listLeaveCalendar,
   listLeaveRequests,
@@ -116,6 +117,48 @@ async function main() {
   });
   assert.equal(doc.ok, true, doc.errorCode);
   assert.equal(doc.item.status, DP_DOCUMENT_STATUS.RECEIVED);
+
+  await query(
+    `UPDATE employee_dp_documents SET file_url = NULL, file_key = NULL
+     WHERE company_id = $1 AND candidate_id = $2 AND doc_key = 'id_document'`,
+    [companyId, candidateId]
+  );
+
+  const withoutFile = await updateDpDocument({ query }, {
+    companyId, candidateId, docKey: 'id_document',
+    status: DP_DOCUMENT_STATUS.REJECTED,
+    rejectionReason: 'É necessário anexar um arquivo.', userId,
+  });
+  assert.equal(withoutFile.ok, false);
+
+  await query(
+    `UPDATE employee_dp_documents SET file_url = 'https://example.test/dtov-document'
+     WHERE company_id = $1 AND candidate_id = $2 AND doc_key = 'id_document'`,
+    [companyId, candidateId]
+  );
+  const withoutReason = await updateDpDocument({ query }, {
+    companyId, candidateId, docKey: 'id_document',
+    status: DP_DOCUMENT_STATUS.REJECTED, rejectionReason: '   ', userId,
+  });
+  assert.equal(withoutReason.ok, false);
+  const rejected = await updateDpDocument({ query }, {
+    companyId, candidateId, docKey: 'id_document',
+    status: DP_DOCUMENT_STATUS.REJECTED,
+    rejectionReason: 'O arquivo está ilegível. Envie uma nova cópia.', userId,
+  });
+  assert.equal(rejected.ok, true, rejected.errorCode);
+  assert.equal(rejected.item.status, DP_DOCUMENT_STATUS.REJECTED);
+  assert.equal(rejected.item.rejectionReason, 'O arquivo está ilegível. Envie uma nova cópia.');
+  const employeeHome = await getEmployeeDpHome({ query }, { companyId, candidateId });
+  assert.equal(employeeHome.ok, true);
+  assert.equal(employeeHome.documents.find((item) => item.docKey === 'id_document').rejectionReason,
+    'O arquivo está ilegível. Envie uma nova cópia.');
+  const reopened = await updateDpDocument({ query }, {
+    companyId, candidateId, docKey: 'id_document',
+    status: DP_DOCUMENT_STATUS.RECEIVED, userId,
+  });
+  assert.equal(reopened.ok, true, reopened.errorCode);
+  assert.equal(reopened.item.rejectionReason, '');
 
   const seedBal = await upsertLeaveBalance({ query }, {
     companyId,

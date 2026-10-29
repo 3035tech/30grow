@@ -4782,3 +4782,23 @@ DO $$ BEGIN
 END $$;
 INSERT INTO schema_migrations(name) VALUES('177_vacation_documents.sql') ON CONFLICT(name) DO NOTHING;
 COMMIT;
+
+-- 178: recusa de documento do colaborador com justificativa visível.
+BEGIN;
+ALTER TABLE employee_dp_documents
+  ADD COLUMN IF NOT EXISTS rejection_reason TEXT NOT NULL DEFAULT '';
+ALTER TABLE employee_dp_documents
+  DROP CONSTRAINT IF EXISTS employee_dp_documents_status_chk;
+ALTER TABLE employee_dp_documents
+  ADD CONSTRAINT employee_dp_documents_status_chk
+  CHECK (status IN ('pending', 'received', 'waived', 'rejected'));
+ALTER TABLE employee_dp_documents
+  DROP CONSTRAINT IF EXISTS employee_dp_documents_rejection_reason_chk;
+ALTER TABLE employee_dp_documents
+  ADD CONSTRAINT employee_dp_documents_rejection_reason_chk
+  CHECK (char_length(rejection_reason) <= 2000
+    AND (status <> 'rejected' OR char_length(btrim(rejection_reason)) > 0));
+COMMENT ON COLUMN employee_dp_documents.rejection_reason IS
+  'Visible to the employee while a document is rejected; cleared on replacement or status change.';
+INSERT INTO schema_migrations(name) VALUES('178_dp_document_rejection.sql') ON CONFLICT(name) DO NOTHING;
+COMMIT;

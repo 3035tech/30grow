@@ -145,6 +145,7 @@ function leaveStatusLabel(locale, status) {
 function docStatusTone(status) {
   if (status === DP_DOCUMENT_STATUS.RECEIVED) return 'success';
   if (status === DP_DOCUMENT_STATUS.WAIVED) return 'neutral';
+  if (status === DP_DOCUMENT_STATUS.REJECTED) return 'danger';
   return 'warning';
 }
 
@@ -480,6 +481,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
           label: t(locale, 'panel.dp.emergencyName'),
           defaultValue: profile?.emergencyName || '',
           maxLength: 120,
+          help: t(locale, 'panel.dp.emergencyNameHelp'),
           section: i18nT(locale, 'ui.dpBlock.emergency'),
           row: 'emergency',
           rowWeight: 2,
@@ -512,9 +514,10 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
           key: 'status',
           type: 'select',
           label: t(locale, 'panel.dp.docStatusLabel'),
-          defaultValue: doc.status || DP_DOCUMENT_STATUS.PENDING,
+          defaultValue: doc.status === DP_DOCUMENT_STATUS.REJECTED
+            ? DP_DOCUMENT_STATUS.PENDING : (doc.status || DP_DOCUMENT_STATUS.PENDING),
           required: true,
-          options: DP_DOCUMENT_STATUSES.map((s) => ({
+          options: DP_DOCUMENT_STATUSES.filter((s) => s !== DP_DOCUMENT_STATUS.REJECTED).map((s) => ({
             value: s,
             label: docStatusLabel(locale, s),
           })),
@@ -546,6 +549,43 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         prev.map((d) => (d.docKey === doc.docKey ? data.item || { ...d, ...values } : d))
       );
       toast(t(locale, 'panel.dp.saved'), 'ok');
+    } catch (e) {
+      toast(e?.message || t(locale, 'panel.dp.saveError'), 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const rejectDocument = async (doc) => {
+    const values = await promptForm({
+      title: t(locale, 'panel.dp.docRejectTitle'),
+      confirmLabel: t(locale, 'panel.dp.docReject'),
+      fields: [{
+        key: 'rejectionReason',
+        type: 'textarea',
+        label: t(locale, 'panel.dp.docRejectReason'),
+        required: true,
+        rows: 3,
+        maxLength: 2000,
+      }],
+      submit: (entry) => {
+        if (String(entry.rejectionReason || '').trim()) return true;
+        toast(t(locale, 'panel.dp.docRejectReasonRequired'), 'error');
+        return false;
+      },
+    });
+    if (!values) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`${baseUrl}/documents/${encodeURIComponent(doc.docKey)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: DP_DOCUMENT_STATUS.REJECTED, rejectionReason: values.rejectionReason.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'reject');
+      setDocuments((prev) => prev.map((item) => item.docKey === doc.docKey ? data.item : item));
+      toast(t(locale, 'panel.dp.docRejected'), 'ok');
     } catch (e) {
       toast(e?.message || t(locale, 'panel.dp.saveError'), 'error');
     } finally {
@@ -993,7 +1033,9 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
     const ib = DP_DOCUMENT_KEYS.indexOf(b.docKey);
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
   });
-  const pendingDocCount = orderedDocs.filter((d) => d.status === DP_DOCUMENT_STATUS.PENDING).length;
+  const pendingDocCount = orderedDocs.filter((d) =>
+    d.status === DP_DOCUMENT_STATUS.PENDING || d.status === DP_DOCUMENT_STATUS.REJECTED
+  ).length;
   const requestedLeaveCount = leaves.filter((l) => l.status === DP_LEAVE_STATUS.REQUESTED).length;
   const timeClockEnabled = resolveTimeClockEligibility({
     workFormat: candidate?.workFormat,
@@ -1232,6 +1274,11 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
                   {doc.notes ? (
                     <p className={cn(S.muted, 'mb-0 mt-1 text-xs')}>{doc.notes}</p>
                   ) : null}
+                  {doc.status === DP_DOCUMENT_STATUS.REJECTED && doc.rejectionReason ? (
+                    <p className={cn(S.muted, 'mb-0 mt-1 text-xs text-danger')}>
+                      {t(locale, 'panel.dp.docRejectReason')}: {doc.rejectionReason}
+                    </p>
+                  ) : null}
                 </div>
                 {!readOnly ? (
                   <div className="flex w-full min-w-0 flex-wrap gap-1 sm:w-auto">
@@ -1240,6 +1287,18 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
                       onClick={() => void editDocument(doc)}
                       disabled={busy}
                     />
+                    {doc.status === DP_DOCUMENT_STATUS.RECEIVED && doc.hasFile
+                      && sig !== DP_DOCUMENT_SIGNATURE_STATUS.SIGNED
+                      && sig !== DP_DOCUMENT_SIGNATURE_STATUS.REQUESTED ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        className={cn(S.btnGhost, 'min-h-touch text-xs text-danger')}
+                        onClick={() => void rejectDocument(doc)}
+                      >
+                        {t(locale, 'panel.dp.docReject')}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       disabled={busy || uploadKey === doc.docKey}

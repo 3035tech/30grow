@@ -109,6 +109,7 @@ export async function PATCH(request, props) {
       docKey,
       status: body.status,
       notes: body.notes,
+      rejectionReason: body.rejectionReason,
       userId: payload.userId,
     });
     if (!result.ok) return apiErrorFromResult(request, result);
@@ -116,10 +117,13 @@ export async function PATCH(request, props) {
       actorUserId: payload.userId || null,
       actorKind: AUDIT_ACTOR_KIND.MANAGER,
       companyId,
-      action: 'dp_doc.updated',
+      action: result.item.status === 'rejected' ? 'dp_doc.rejected' : 'dp_doc.updated',
       targetType: 'employee_dp_document',
       targetId: result.item.id,
-      metadata: { candidateId: Number(candidateId), docKey, status: result.item.status },
+      metadata: {
+        candidateId: Number(candidateId), docKey, status: result.item.status,
+        ...(result.item.status === 'rejected' ? { rejectionReason: result.item.rejectionReason } : {}),
+      },
       ...auditRequestContext(request),
     });
     return NextResponse.json({ ok: true, item: result.item });
