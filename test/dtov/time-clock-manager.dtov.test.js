@@ -152,7 +152,7 @@ async function main() {
   const listed = await listCompanyTimePunches({ query }, { companyId, day: workDay, limit: 80 });
   assert.ok(!listed.items.some((p) => p.id === ids[3]), 'voided punch excluded from day list');
 
-  const badAdj = await adjustTimeDay({ companyId, candidateId, day: workDay, voidPunchIds: [ids[3]], reason: 'again', userId });
+  const badAdj = await adjustTimeDay({ companyId, candidateId, day: workDay, voidPunchIds: [ids[3]], reason: 'Tentar remover novamente', userId });
   assert.equal(badAdj.ok, false);
   assert.equal(badAdj.errorCode, ERR.NOT_FOUND, 'already voided cannot be voided twice');
   const noReason = await adjustTimeDay({ companyId, candidateId, day: workDay, add: [{ time: '19:00', kind: 'in' }], reason: '', userId });
@@ -196,7 +196,7 @@ async function main() {
   assert.equal(futureClose.errorCode, ERR.TIME_CLOCK_CLOSURE_FUTURE);
 
   const lockedAdj = await adjustTimeDay({
-    companyId, candidateId, day: workDay, add: [{ time: '19:00', kind: 'in' }], reason: 'teste trava', userId,
+    companyId, candidateId, day: workDay, add: [{ time: '19:00', kind: 'in' }], reason: 'Teste de período fechado', userId,
   });
   assert.equal(lockedAdj.errorCode, ERR.TIME_CLOCK_PERIOD_CLOSED);
   const lockedJust = await upsertTimeDayJustification({

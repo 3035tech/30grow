@@ -47,15 +47,19 @@ function useDebounced(value, ms = 300) {
 
 function usePagedList(url, params, deps) {
   const { toast } = useAppFeedback();
+  const requestId = useRef(0);
   const [state, setState] = useState({ items: [], total: 0, schedule: null, loading: true, error: null });
   const load = useCallback(async () => {
+    const currentRequest = ++requestId.current;
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await fetch(`${url}?${new URLSearchParams(params)}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || String(res.status));
+      if (currentRequest !== requestId.current) return;
       setState({ items: data.items || [], total: Number(data.total) || 0, schedule: data.schedule || null, loading: false, error: null });
     } catch (e) {
+      if (currentRequest !== requestId.current) return;
       toast(e?.message || String(e), 'error');
       setState({ items: [], total: 0, schedule: null, loading: false, error: e?.message || String(e) });
     }
@@ -221,6 +225,7 @@ function BankBalances({ locale, companyId, onOpen, reloadKey, participationFlowK
   const [manualManaging, setManualManaging] = useState(false);
   const managing = manualManaging || participationFlowKey > 0;
   const [effectiveFrom, setEffectiveFrom] = useState(localIsoToday);
+  const selectionDay = managing && effectiveFrom ? effectiveFrom : null;
   const managerRef = useRef(null);
   const headingRef = useRef(null);
   const manageButtonRef = useRef(null);
@@ -238,12 +243,13 @@ function BankBalances({ locale, companyId, onOpen, reloadKey, participationFlowK
     mode: 'balances',
     limit: String(PAGE_SIZE),
     offset: String((page - 1) * PAGE_SIZE),
+    ...(selectionDay ? { participationOn: selectionDay } : {}),
     ...(q.trim() ? { q: q.trim() } : {}),
   };
   const { items, total, schedule, loading, error, reload } = usePagedList(
     '/api/admin/hour-bank',
     params,
-    [companyId, page, q, reloadKey]
+    [companyId, page, q, selectionDay, reloadKey]
   );
 
   const saveParticipation = async (row, enabled, validFrom) => {
@@ -304,6 +310,7 @@ function BankBalances({ locale, companyId, onOpen, reloadKey, participationFlowK
                   className={S.input}
                   min={schedule.hourBankStartedOn || undefined}
                   value={effectiveFrom}
+                  disabled={savingPerson != null}
                   onChange={(event) => { setEffectiveFrom(event.target.value); setSaveNotice(''); setParticipationError(''); }}
                   required
                 />
@@ -392,7 +399,7 @@ function BankBalances({ locale, companyId, onOpen, reloadKey, participationFlowK
                           type="checkbox"
                           aria-label={t(locale, 'panel.hourBank.participationToggle', { name: row.candidateName })}
                           checked={pendingChoice?.id === row.candidateId ? pendingChoice.enabled : row.bankParticipant}
-                          disabled={savingPerson != null || !effectiveFrom}
+                          disabled={loading || savingPerson != null || !effectiveFrom}
                           onChange={(event) => void saveParticipation(row, event.target.checked, effectiveFrom)}
                         />
                         {t(locale, (pendingChoice?.id === row.candidateId ? pendingChoice.enabled : row.bankParticipant)

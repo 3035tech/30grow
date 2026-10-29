@@ -1,6 +1,6 @@
 /**
  * GET   /api/admin/hour-bank — balances | entries | export CSV
- * POST  /api/admin/hour-bank — manual entry | settings
+ * POST  /api/admin/hour-bank — manual entry | settings | individual participation
  * PATCH /api/admin/hour-bank — approve/reject pending entry
  */
 
@@ -31,6 +31,7 @@ const listQuerySchema = z.object({
   candidateId: zPositiveInt.optional(),
   month: z.string().max(8).optional(),
   q: z.string().max(80).optional(),
+  participationOn: z.iso.date().optional(),
   limit: z.coerce.number().int().min(1).max(300).optional(),
   offset: z.coerce.number().int().min(0).max(100000).optional(),
 });
@@ -102,6 +103,7 @@ export const GET = withAdminApi(
     const result = await listHourBankBalances(null, {
       companyId,
       q: query.q || '',
+      participationOn: query.participationOn,
       limit: query.limit,
       offset: query.offset,
     });

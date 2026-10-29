@@ -125,6 +125,20 @@ async function main() {
   });
   assert.equal(future.errorCode, ERR.INVALID_DATE);
 
+  const wrongOrder = await createTimeRequest({
+    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay,
+    justification: 'Troquei a ordem das marcações',
+    add: [{ time: '13:00', kind: TIME_PUNCH_KIND.OUT }],
+  });
+  assert.equal(wrongOrder.errorCode, ERR.INVALID_DATA, 'requests cannot create consecutive exits');
+
+  const duplicateTime = await createTimeRequest({
+    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay,
+    justification: 'Repeti o horário da marcação',
+    add: [{ time: '12:00', kind: TIME_PUNCH_KIND.IN }],
+  });
+  assert.equal(duplicateTime.errorCode, ERR.INVALID_DATA, 'requests cannot repeat a punch time');
+
   const created = await createTimeRequest({
     companyId,
     candidateId,
@@ -141,7 +155,7 @@ async function main() {
   assert.ok(created.item.changes.some((c) => c.action === 'void' && c.time === '17:00'), 'void shows original time');
 
   const dup = await createTimeRequest({
-    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay, justification: 'outra vez',
+    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay, justification: 'Outra solicitação de ajuste',
     add: [{ time: '13:00', kind: 'in' }],
   });
   assert.equal(dup.errorCode, ERR.TIME_REQUEST_DUPLICATE);
@@ -181,19 +195,19 @@ async function main() {
   // Stale: the punch to void was already voided by the manager after the request.
   const active = day.punches.filter((p) => !p.voidedAt);
   const stale = await createTimeRequest({
-    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay, justification: 'remover a saída',
+    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay, justification: 'Remover a saída incorreta',
     voidPunchIds: [active[active.length - 1].id],
   });
   assert.equal(stale.ok, true, stale.errorCode);
   const mgr = await adjustTimeDay({
     companyId, candidateId, day: adjDay, voidPunchIds: [active[active.length - 1].id],
-    add: [{ time: '18:05', kind: TIME_PUNCH_KIND.OUT }], reason: 'RH corrigiu', userId,
+    add: [{ time: '18:05', kind: TIME_PUNCH_KIND.OUT }], reason: 'RH corrigiu o horário de saída', userId,
   });
   assert.equal(mgr.ok, true, mgr.errorCode);
   const staleDecide = await decideTimeRequest({ companyId, id: stale.item.id, decision: TIME_REQUEST_DECISION.APPROVE, userId });
   assert.equal(staleDecide.errorCode, ERR.TIME_REQUEST_STALE);
   const voidedTwice = await createTimeRequest({
-    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay, justification: 'remover de novo',
+    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: adjDay, justification: 'Remover marcação novamente',
     voidPunchIds: [ids[2]],
   });
   assert.ok([ERR.TIME_REQUEST_STALE, ERR.TIME_REQUEST_DUPLICATE].includes(voidedTwice.errorCode));
@@ -271,7 +285,7 @@ async function main() {
   const closure = await createTimeClockClosure({ companyId, periodStart: lockDay, periodEnd: lockDay, userId });
   assert.equal(closure.ok, true, closure.errorCode);
   const lockedCreate = await createTimeRequest({
-    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: lockDay, justification: 'ajuste',
+    companyId, candidateId, kind: TIME_REQUEST_KIND.ADJUSTMENT, day: lockDay, justification: 'Ajuste de período fechado',
     add: [{ time: '12:00', kind: 'out' }],
   });
   assert.equal(lockedCreate.errorCode, ERR.TIME_CLOCK_PERIOD_CLOSED);

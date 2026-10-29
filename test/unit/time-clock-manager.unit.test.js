@@ -156,16 +156,19 @@ describe('request validation', () => {
     const r = normalizeTimeAdjustment({
       voidPunchIds: [3, '3', 0, 'x'],
       add: [{ time: '8:05', kind: 'IN' }],
-      reason: '  esqueci  ',
+      reason: '  Esqueci a saída  ',
     });
     assert.equal(r.ok, true);
     assert.deepEqual(r.voids, [3]);
     assert.deepEqual(r.adds, [{ time: '08:05', kind: TIME_PUNCH_KIND.IN }]);
+    assert.equal(r.why, 'Esqueci a saída');
   });
 
   it('rejects empty, short reason, bad kind and too many adds', () => {
     assert.equal(normalizeTimeAdjustment({ reason: 'motivo' }).errorCode, ERR.INVALID_DATA);
     assert.equal(normalizeTimeAdjustment({ voidPunchIds: [1], reason: 'ab' }).errorCode, ERR.INVALID_DATA);
+    assert.equal(normalizeTimeAdjustment({ voidPunchIds: [1], reason: '12345678901234' }).errorCode, ERR.INVALID_DATA);
+    assert.equal(normalizeTimeAdjustment({ voidPunchIds: [1], reason: '123456789012345' }).ok, true);
     assert.equal(normalizeTimeAdjustment({ add: [{ time: '09:00', kind: 'lunch' }], reason: 'motivo' }).ok, false);
     const many = Array.from({ length: TIME_ADJUST_MAX_ADD + 1 }, () => ({ time: '09:00', kind: 'in' }));
     assert.equal(normalizeTimeAdjustment({ add: many, reason: 'motivo' }).ok, false);

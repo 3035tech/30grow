@@ -15,6 +15,7 @@ import { DP_DOC_ALLOWED_MIMES, DP_DOC_MAX_BYTES } from '../../lib/assessment/dp-
 import {
   TIME_ADJUST_MAX_ADD,
   TIME_ADJUST_MAX_VOID,
+  TIME_ADJUST_REASON_MIN_LENGTH,
   formatMinutesClock,
   hmInZone,
   hmSpanMinutes,
@@ -169,7 +170,10 @@ function adjustmentDiff(rows, day, tz) {
 
 function alternates(rows) {
   const seq = rows.filter((r) => !r.removed && r.time).sort((a, b) => a.time.localeCompare(b.time));
-  return seq.every((r, i) => r.kind === (i % 2 === 0 ? TIME_PUNCH_KIND.IN : TIME_PUNCH_KIND.OUT));
+  return seq.every((r, i) =>
+    r.kind === (i % 2 === 0 ? TIME_PUNCH_KIND.IN : TIME_PUNCH_KIND.OUT)
+    && (i === 0 || r.time !== seq[i - 1].time)
+  );
 }
 
 function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
@@ -201,10 +205,13 @@ function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
     e.preventDefault();
     setError('');
     if (rows.some((r) => !r.removed && !r.time)) return setError(t(locale, `${KR}.timeMissing`));
+    if (!ordered) return setError(t(locale, `${KR}.sequenceWarning`));
     if (!diff.voidPunchIds.length && !diff.add.length) return setError(t(locale, `${KR}.nothingChanged`));
     if (diff.add.length > TIME_ADJUST_MAX_ADD) return setError(t(locale, `${KR}.tooManyChanges`, { max: TIME_ADJUST_MAX_ADD }));
     if (diff.voidPunchIds.length > TIME_ADJUST_MAX_VOID) return setError(t(locale, `${KR}.tooManyChanges`, { max: TIME_ADJUST_MAX_VOID }));
-    if (justification.trim().length < 3) return setError(t(locale, `${KR}.justificationShort`));
+    if (justification.trim().length < TIME_ADJUST_REASON_MIN_LENGTH) {
+      return setError(t(locale, 'formValidation.minimumText', { limit: TIME_ADJUST_REASON_MIN_LENGTH }));
+    }
     if (proofError(file, locale)) return setError(proofError(file, locale));
     setBusy(true);
     try {
@@ -239,8 +246,8 @@ function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
         <h3 className={cn(S.label, 'm-0')}>{t(locale, `${KR}.punchesLabel`)}</h3>
         {rows.length === 0 ? <p className={cn(S.faint, 'm-0')}>{t(locale, `${KM}.noPunch`)}</p> : null}
         {rows.map((r) => (
-          <div key={r.key} className={cn('flex flex-wrap items-start gap-2 rounded-control border px-3 py-2', r.removed ? 'border-ink/8 bg-ink/[0.02]' : 'border-ink/10')}>
-            <FormField label={t(locale, `${KR}.timeLabel`)} className="w-[8.5rem]">
+          <div key={r.key} className={cn('grid min-w-0 grid-cols-2 items-end gap-2 rounded-control border px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]', r.removed ? 'border-ink/8 bg-ink/[0.02]' : 'border-ink/10')}>
+            <FormField label={t(locale, `${KR}.timeLabel`)}>
               <input
                 type="time"
                 className={cn(S.input, r.removed && 'line-through opacity-60')}
@@ -250,7 +257,7 @@ function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
                 aria-label={t(locale, `${KR}.timeLabel`)}
               />
             </FormField>
-            <FormField label={t(locale, `${KR}.kindLabel`)} className="w-[9rem]">
+            <FormField label={t(locale, `${KR}.kindLabel`)}>
               <select
                 className={S.select}
                 value={r.kind}
@@ -261,7 +268,7 @@ function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
                 <option value={TIME_PUNCH_KIND.OUT}>{punchKindLabel(locale, TIME_PUNCH_KIND.OUT)}</option>
               </select>
             </FormField>
-            <div className="flex min-h-touch items-end self-end">
+            <div className="col-span-2 flex items-end sm:col-span-1">
               {r.punchId ? (
                 <button type="button" className={cn(S.btnGhost, 'min-h-touch')} disabled={busy} onClick={() => update(r.key, { removed: !r.removed })}>
                   {t(locale, r.removed ? `${KR}.undoRemove` : `${KR}.removePunch`)}
@@ -277,9 +284,9 @@ function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
         <button type="button" className={cn(S.btnGhost, 'min-h-touch self-start')} disabled={busy} onClick={addRow}>
           {t(locale, `${KR}.addPunch`)}
         </button>
-        {!ordered ? <InlineCallout tone="warning">{t(locale, `${KR}.sequenceWarning`)}</InlineCallout> : null}
+        {!ordered ? <InlineCallout tone="danger">{t(locale, `${KR}.sequenceWarning`)}</InlineCallout> : null}
       </section>
-      <FormField label={t(locale, `${KR}.justificationLabel`)}>
+      <FormField label={t(locale, `${KR}.justificationLabel`)} hint={t(locale, 'formValidation.minimumText', { limit: TIME_ADJUST_REASON_MIN_LENGTH })}>
         <textarea
           className={S.textarea}
           rows={3}
@@ -293,7 +300,7 @@ function AdjustForm({ day, tz, locale, onCancel, onSubmitted }) {
       <ProofPicker file={file} onChange={setFile} locale={locale} disabled={busy} />
       {error ? <InlineCallout tone="danger">{error}</InlineCallout> : null}
       <div className="flex flex-wrap gap-2">
-        <button type="submit" className={cn(S.btnPrimary, 'min-h-touch')} disabled={busy}>
+        <button type="submit" className={cn(S.btnPrimary, 'min-h-touch')} disabled={busy || !ordered}>
           {busy ? t(locale, 'panel.common.loading') : t(locale, `${KR}.submit`)}
         </button>
         <button type="button" className={cn(S.btnGhost, 'min-h-touch')} disabled={busy} onClick={onCancel}>

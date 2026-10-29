@@ -118,7 +118,10 @@ test('search images keep the product brand distinct from its publisher and expos
     assert.equal(image.url, 'https://30grow.com/product/visao-geral.webp');
     assert.ok(image.width >= 1200);
     const metadata = buildProductLandingMetadata(locale);
-    assert.equal(metadata.openGraph.images[0].url, image.url);
+    assert.equal(metadata.openGraph.images[0].url, 'https://30grow.com/brand/30grow-share.png');
+    assert.equal(metadata.openGraph.images[0].width, 1200);
+    assert.equal(metadata.openGraph.images[0].height, 630);
+    assert.equal(metadata.twitter.images[0], metadata.openGraph.images[0].url);
     assert.ok(metadata.openGraph.images[0].alt?.length > 20);
   }
   const entries = publicMarketingSitemapEntries('https://30grow.com');

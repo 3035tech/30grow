@@ -14,7 +14,7 @@ import {
   TIME_REQUEST_STATUS,
   TIME_SCHEDULE_SOURCE,
 } from '../../lib/domain-status.js';
-import { formatMinutesClock, hmInZone, localIsoToday, timeClockPeriodFor as periodFor } from '../../lib/time-clock-format.js';
+import { TIME_ADJUST_REASON_MIN_LENGTH, formatMinutesClock, hmInZone, localIsoToday, timeClockPeriodFor as periodFor } from '../../lib/time-clock-format.js';
 import { TIME_CLOCK_REASON } from '../../lib/people/time-clock-eligibility.js';
 import {
   S,
@@ -396,9 +396,9 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
       key,
       row,
       rowWeight: 2,
-      type: 'text',
+      type: 'time',
       label: t(locale, `${K}.addTime`),
-      placeholder: 'HH:MM',
+      step: 60,
       validate: (v) => (!v || HM_RE.test(String(v).trim()) ? null : t(locale, `${K}.timeInvalid`)),
     });
     await promptForm({
@@ -426,7 +426,9 @@ export function TimeClockMirror({ locale = 'pt-BR', companyId, candidateId, onBa
           type: 'textarea',
           label: t(locale, `${K}.reasonLabel`),
           required: true,
-          validate: (v) => (String(v || '').trim().length >= 3 ? null : t(locale, `${K}.reasonShort`)),
+          help: t(locale, 'formValidation.minimumText', { limit: TIME_ADJUST_REASON_MIN_LENGTH }),
+          maxLength: 500,
+          validate: (v) => (String(v || '').trim().length >= TIME_ADJUST_REASON_MIN_LENGTH ? null : t(locale, 'formValidation.minimumText', { limit: TIME_ADJUST_REASON_MIN_LENGTH })),
         },
       ],
       submit: async (values) => {

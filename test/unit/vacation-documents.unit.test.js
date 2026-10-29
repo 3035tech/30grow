@@ -19,8 +19,8 @@ async function fixture() {
   const db = {
     async query(sql, values) {
       if (sql.includes('FROM employee_leave_requests WHERE id')) {
-        return { rows: Number(values[0]) === 7 && Number(values[1]) === 1
-          ? [{ id: 7, candidateId: 42, leaveType: 'vacation', status: 'approved' }] : [], rowCount: Number(values[0]) === 7 && Number(values[1]) === 1 ? 1 : 0 };
+        const ownsLeave = Number(values[0]) === 7 && Number(values[1]) === 1 && (values[2] == null || Number(values[2]) === 42);
+        return { rows: ownsLeave ? [{ id: 7, candidateId: 42, leaveType: 'vacation', status: 'approved' }] : [], rowCount: ownsLeave ? 1 : 0 };
       }
       if (sql.includes('SELECT file_key') && sql.includes('FROM employee_vacation_documents')) {
         const item = documents.get(values.at(-1));
@@ -72,6 +72,8 @@ test('notice and receipt belong to the same vacation, remain private and can be 
   assert.equal(notice.fileName, 'notice.pdf');
   assert.deepEqual(notice.body, pdf);
   assert.equal((await f.domain.downloadVacationDocument(f.db, { id: 7, companyId: 2, documentType: 'notice' })).errorCode, ERR.NOT_FOUND);
+  assert.equal((await f.domain.downloadVacationDocument(f.db, { id: 7, companyId: 1, candidateId: 99, documentType: 'notice' })).errorCode, ERR.NOT_FOUND);
+  assert.equal((await f.domain.downloadVacationDocument(f.db, { id: 7, companyId: 1, candidateId: 42, documentType: 'notice' })).fileName, 'notice.pdf');
   assert.equal((await f.domain.uploadVacationDocument(f.db, { ...input, documentType: '../receipt' })).errorCode, ERR.INVALID_DATA);
   await f.domain.uploadVacationDocument(f.db, { ...input, documentType: 'notice', file: { ...input.file, originalName: 'notice-new.pdf' } });
   assert.equal(f.deleted.length, 1);

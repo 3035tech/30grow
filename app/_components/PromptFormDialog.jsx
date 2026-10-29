@@ -35,7 +35,7 @@ import { digitsOnly, formatSalaryDisplay, formatCepBr, formatCpfBr, formatPhoneB
  * Multi-field form dialog (replaces window.prompt chains).
  * fields: [{
  *   key (or legacy name), label, defaultValue? (or legacy value?),
- *   type?: 'text'|'password'|'textarea'|'richText'|'tags'|'entitySearch'|'select'|'boolean'|'checkboxGroup'|'imageUpload'|'file'|'date'|'datetime-local'|'number'|'range'|'salary'|'cep'|'cpf'|'phone',
+ *   type?: 'text'|'password'|'textarea'|'richText'|'tags'|'entitySearch'|'select'|'boolean'|'checkboxGroup'|'imageUpload'|'file'|'date'|'datetime-local'|'time'|'number'|'range'|'salary'|'cep'|'cpf'|'phone',
  *   options?: [{value,label}],
  *   suggestions?: string[], // tags
  *   maxTags?: number, tagMax?: number, // tags
