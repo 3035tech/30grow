@@ -1,6 +1,7 @@
 const {test,expect}=require('@playwright/test');
 for(const employee of [false,true])for(const rememberMe of [false,true])test(`${employee?'employee':'manager'} login: remember ${rememberMe}`,async({page},testInfo)=>{
  await page.route('**/api/**',async route=>{
+   if(route.request().url().endsWith('/api/auth/session-edge'))return route.fulfill({status:401,json:{ok:false}});
    if(route.request().url().endsWith('/api/auth/employee/session'))return route.fulfill({status:401,json:{}});
    if(employee && rememberMe && route.request().method()==='POST' && !route.request().postDataJSON().pickToken)return route.fulfill({json:{ok:true,needsCompanyPick:true,pickToken:'synthetic-pick',companies:[{candidateId:7,companyId:3,companyName:'Empresa de teste'}]}});
    if(route.request().method()==='POST')return route.fulfill({json:{ok:true,requires2fa:true,challengeToken:'synthetic-challenge'}});
@@ -24,4 +25,11 @@ for(const employee of [false,true])for(const rememberMe of [false,true])test(`${
    await page.getByRole('button',{name:'Empresa de teste'}).click();
    expect((await picked).postDataJSON()).toMatchObject({rememberMe:true,pickToken:'synthetic-pick',candidateId:7});
  }
+});
+
+test('manager with a valid remembered session bypasses the login form',async({page})=>{
+ await page.route('**/api/auth/session-edge',route=>route.fulfill({json:{ok:true}}));
+ await page.route('**/dashboard**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>Dashboard</title>'}));
+ await page.goto('/login?redirect=%2Fdashboard%3Ftab%3Dteam');
+ await expect(page).toHaveURL(/\/dashboard\?tab=team$/);
 });

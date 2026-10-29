@@ -66,6 +66,21 @@ function LoginForm() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/session-edge', { cache: 'no-store' });
+        if (!cancelled && res.ok) router.replace(redirect);
+      } catch {
+        /* stay on login */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [redirect, router]);
+
   const login = async () => {
     if (!email || !password) return;
     setLoading(true); setError(''); setSuccess('');
