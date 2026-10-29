@@ -178,7 +178,7 @@ function isPublicEmployeeSurface(pathname) {
 }
 
 function isAppPage(pathname) {
-  return pathname === '/login' ||
+  return pathname === '/login' || pathname === '/signup' ||
     pathname === '/dashboard' || pathname.startsWith('/dashboard/') ||
     pathname === '/employee' || pathname.startsWith('/employee/') ||
     pathname === '/a/set-password';
