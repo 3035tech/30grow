@@ -1042,9 +1042,11 @@ export function TeamTab({
   };
   const personHeaderMeta = detailMatchesOpen && detail?.candidate ? (
     <>
-      <StatusToneChip tone={detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? 'success' : 'neutral'}>
-        {t(locale, detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? 'employeeAdmission.employmentActive' : `panel.team.employment.${detail.candidate.employmentStatus}`)}
-      </StatusToneChip>
+      {detail.candidate.employmentStatus !== EMPLOYMENT_STATUS.EMPLOYEE || detail.candidate.employeeAccessState !== 'active' ? (
+        <StatusToneChip tone={detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? 'success' : 'neutral'}>
+          {t(locale, detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ? 'employeeAdmission.employmentActive' : `panel.team.employment.${detail.candidate.employmentStatus}`)}
+        </StatusToneChip>
+      ) : null}
       {openRow?.areaLabel ? <StatusToneChip tone="neutral">{openRow.areaLabel}</StatusToneChip> : null}
       {detail.candidate.email ? <span className="truncate">{detail.candidate.email}</span> : null}
       {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState ? <StatusToneChip tone={detail.candidate.employeeAccessState === 'active' ? 'success' : 'neutral'}>{t(locale,`employeeAdmission.access.${detail.candidate.employeeAccessState}`)}</StatusToneChip> : null}
