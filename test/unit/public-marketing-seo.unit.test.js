@@ -3,7 +3,8 @@ import test, { afterEach } from 'node:test';
 import { PUBLIC_MARKETING_LOCALES, SOLUTION_SLUGS, publicBlogPath, publicMarketingRoute, publicMarketingPath, publicLanguageAlternates, publicHreflang, publicSolutionCanonicalPath } from '../../lib/marketing/public-marketing-paths.js';
 import { publicMarketingSitemapEntries } from '../../lib/marketing/public-marketing-sitemap.js';
 import { buildProductLandingMetadata, buildProductLandingJsonLd } from '../../lib/marketing/product-landing-seo.js';
-import { buildPricingMetadata } from '../../lib/marketing/pricing-plans.js';
+import { buildPricingMetadata, buildPricingJsonLd } from '../../lib/marketing/pricing-plans.js';
+import { buildBlogIndexJsonLd, buildBlogPostJsonLd, listBlogPosts } from '../../lib/blog/index.js';
 import { getPublicSolutions, buildSolutionMetadata } from '../../lib/marketing/public-solutions.js';
 import { runtimeAppUrl } from '../../lib/app-url.js';
 import { isCrawlerNoIndexPath } from '../../lib/crawler-guard.js';
@@ -106,14 +107,18 @@ test('public SEO configuration does not change invitation/authentication link or
 });
 
 
-test('search images keep the product brand distinct from its publisher and expose a real landing image', () => {
+test('search images and brand entity use the public 30Grow organization', () => {
   configure();
   for (const locale of PUBLIC_MARKETING_LOCALES) {
     const graph = JSON.parse(buildProductLandingJsonLd(locale))['@graph'];
     const organization = graph.find((item) => item['@type'] === 'Organization');
-    assert.equal(organization.name, '3035Tech');
-    assert.equal(organization.brand.name, '30Grow');
-    assert.equal(organization.brand.logo.url, 'https://30grow.com/brand/logo-512.png');
+    assert.equal(organization.name, '30Grow');
+    assert.equal(organization.logo.url, 'https://30grow.com/brand/logo-512.png');
+    assert.deepEqual(organization.sameAs, ['https://www.linkedin.com/company/30grow/', 'https://www.instagram.com/30grow/']);
+    assert.equal(organization.parentOrganization['@id'], 'https://3035tech.com/#organization');
+    assert.equal(graph.find((item) => item['@id'] === 'https://3035tech.com/#organization').name, '3035Tech');
+    assert.equal(graph.find((item) => item['@type'] === 'WebSite').publisher['@id'], organization['@id']);
+    assert.equal(graph.find((item) => item['@type'] === 'SoftwareApplication').publisher['@id'], organization['@id']);
     const image = graph.find((item) => item['@type'] === 'WebPage').primaryImageOfPage;
     assert.equal(image.url, 'https://30grow.com/product/visao-geral.webp');
     assert.ok(image.width >= 1200);
@@ -126,6 +131,29 @@ test('search images keep the product brand distinct from its publisher and expos
   }
   const entries = publicMarketingSitemapEntries('https://30grow.com');
   assert.equal(entries.filter((entry) => entry.images?.length).length, PUBLIC_MARKETING_LOCALES.length * 6 - 10);
+});
+
+test('public JSON-LD graphs resolve internal references on landing, pricing and blog', () => {
+  configure();
+  const documents = [
+    ...PUBLIC_MARKETING_LOCALES.flatMap((locale) => [buildProductLandingJsonLd(locale), buildPricingJsonLd(locale)]),
+    buildBlogIndexJsonLd(),
+    buildBlogPostJsonLd(listBlogPosts()[0]),
+  ];
+  for (const document of documents) {
+    const graph = JSON.parse(document)['@graph'];
+    const ids = new Set(graph.map((node) => node['@id']).filter(Boolean));
+    assert.ok(ids.has('https://30grow.com/#organization'));
+    assert.ok(ids.has('https://3035tech.com/#organization'));
+    assert.ok(ids.has('https://30grow.com/#website'));
+    const visit = (value) => {
+      if (Array.isArray(value)) return value.forEach(visit);
+      if (!value || typeof value !== 'object') return;
+      if (value['@id']) assert.ok(ids.has(value['@id']), value['@id']);
+      Object.values(value).forEach(visit);
+    };
+    graph.forEach(visit);
+  }
 });
 
 

@@ -14,7 +14,12 @@ export async function generateMetadata() {
   const locale = normalizeLocale((await headers()).get('x-public-locale') || cookieStore.get(LOCALE_COOKIE)?.value);
   return {
     title: '30Grow',
-    verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
+    verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? {
+          ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } : {}),
+          ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ? { other: { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } } : {}),
+        }
+      : undefined,
     description: t(locale, 'home.metaDescription'),
     icons: {
       icon: [

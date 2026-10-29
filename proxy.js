@@ -247,6 +247,12 @@ export async function proxy(request) {
   request.headers.delete(PUBLIC_LOCALE_HEADER);
   const marketing = publicMarketingRoute(pathname);
   if (marketing) {
+    // Retire duplicate public pages on the homologation host, keeping its app/API routes usable.
+    if (publicRequestHost === 'team.3035service.com') {
+      const target = new URL(pathname, 'https://30grow.com');
+      target.search = request.nextUrl.search;
+      return secureResponse(request, NextResponse.redirect(target, 301));
+    }
     request.headers.set(PUBLIC_LOCALE_HEADER, marketing.locale);
     // Preserve legacy ?lang links without keeping duplicate language URLs.
     const queryLocale = request.nextUrl.searchParams.get('lang');
@@ -266,6 +272,11 @@ export async function proxy(request) {
   }
   // Consolidate existing public content too, while app/auth/token routes keep their origin.
   const publicContent = pathname === '/blog' || pathname.startsWith('/blog/') || pathname === '/jobs' || pathname.startsWith('/jobs/') || pathname.startsWith('/companies/') || ['/privacy', '/terms', '/robots.txt', '/sitemap.xml', '/llms.txt'].includes(pathname);
+  if (publicContent && publicRequestHost === 'team.3035service.com') {
+    const target = new URL(pathname, 'https://30grow.com');
+    target.search = request.nextUrl.search;
+    return secureResponse(request, NextResponse.redirect(target, 301));
+  }
   const publicBase = publicSiteBaseUrl();
   if (publicContent && publicBase && ['30grow.com', 'www.30grow.com', 'app.30grow.com'].includes(publicRequestHost) && publicRequestHost !== new URL(publicBase).host) {
     const target = new URL(pathname, publicBase);
