@@ -13,6 +13,7 @@ import { expandLeaveCalendarByDay, leaveInclusiveDays } from '../../lib/leave-da
 import {
   buildLeaveExportCsv,
   cancelEmployeeLeaveRequest,
+  clearDpDocumentFile,
   createLeaveRequest,
   ensureDpDocuments,
   getDpAttentionPulse,
@@ -159,6 +160,13 @@ async function main() {
   });
   assert.equal(reopened.ok, true, reopened.errorCode);
   assert.equal(reopened.item.rejectionReason, '');
+
+  const cleared = await clearDpDocumentFile({ query }, {
+    companyId, candidateId, docKey: 'id_document', userId,
+  });
+  assert.equal(cleared.ok, true, cleared.errorCode);
+  assert.equal(cleared.item.status, DP_DOCUMENT_STATUS.PENDING);
+  assert.equal(cleared.item.hasFile, false);
 
   const seedBal = await upsertLeaveBalance({ query }, {
     companyId,
