@@ -204,6 +204,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
       fields: [
         {
           key: 'email',
+          type: 'email',
           label: t(locale, 'panel.admin.editUserEmail'),
           placeholder: t(locale, 'panel.admin.emailPh'),
           defaultValue: '',
@@ -393,6 +394,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
       fields: [
         {
           key: 'email',
+          type: 'email',
           label: t(locale, 'panel.admin.editUserEmail'),
           defaultValue: u?.email ?? '',
           disabled: emailLocked,

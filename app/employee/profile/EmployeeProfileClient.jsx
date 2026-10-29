@@ -20,6 +20,8 @@ import { TotpQrCode } from '../../_components/TotpQrCode';
 import LanguageSelect from '../../_components/LanguageSelect';
 import { useEmployeeNav } from '../../_components/EmployeeNavContext';
 import { BR_STATES } from '../../../lib/recruiting/candidate-profile';
+import { formatPhoneBr, stripPhone } from '../../../lib/br-masks';
+import { isValidPhoneBr, isValidWebUrl } from '../../../lib/form-validation';
 import { redirectEmployeeIfUnauthorized } from '../../../lib/employee/employee-client-session';
 
 const profilePanelClass = cn(S.cardShell, 'p-4 sm:p-6');
@@ -186,6 +188,14 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
 
   const saveProfile = async (e) => {
     e.preventDefault();
+    if (form.phone && !isValidPhoneBr(form.phone)) {
+      toast(t(locale, 'formValidation.phone'), 'error');
+      return;
+    }
+    if (form.linkedinUrl && !isValidWebUrl(form.linkedinUrl)) {
+      toast(t(locale, 'formValidation.url'), 'error');
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch('/api/employee/me', {
@@ -193,7 +203,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: form.fullName,
-          phone: form.phone,
+          phone: stripPhone(form.phone) || '',
           linkedinUrl: form.linkedinUrl,
           city: form.city,
           state: form.state || null,
@@ -307,10 +317,10 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                 <FormField label={t(locale, 'employeeHome.phoneLabel')} className={formFieldGrowClass}>
                   <input
                     className={cn(S.input, 'w-full')}
-                    value={form.phone}
+                    value={formatPhoneBr(form.phone)}
                     type="tel"
                     autoComplete="tel"
-                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                    onChange={(e) => setForm((f) => ({ ...f, phone: stripPhone(e.target.value) || '' }))}
                     disabled={busy}
                   />
                 </FormField>
@@ -321,6 +331,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                   <input
                     className={cn(S.input, 'w-full')}
                     value={form.linkedinUrl}
+                    type="url"
                     onChange={(e) => setForm((f) => ({ ...f, linkedinUrl: e.target.value }))}
                     disabled={busy}
                   />

@@ -13,6 +13,7 @@ import { BrStateSelect } from './BrStateSelect';
 import { BrCitySelect } from './BrCitySelect';
 import { FormField, formFieldCandLabelClass, formFieldRowClass } from './FormField';
 import { formatPhoneBr, stripPhone } from '../../lib/br-masks';
+import { isValidPhoneBr, isValidWebUrl } from '../../lib/form-validation';
 import { titleCasePersonName } from '../../lib/person-name';
 import { fieldCheckboxClass, fieldInputClass, fieldSelectBlockClass } from './form-control-styles';
 import { InlineCallout } from './InlineCallout';
@@ -151,7 +152,9 @@ function HomeScreen({
   const effectiveEmail = email.trim();
 
   const emailOk = !(requireCandidateEmail || identityFromInvite) || EMAIL_RE.test(effectiveEmail);
-  const ready = effectiveName.trim().length > 1 && !!areaKey && consent && emailOk;
+  const phoneOk = !phone || isValidPhoneBr(phone);
+  const linkedInOk = !linkedinUrl.trim() || isValidWebUrl(linkedinUrl.trim());
+  const ready = effectiveName.trim().length > 1 && !!areaKey && consent && emailOk && phoneOk && linkedInOk;
   const canStart =
     ready &&
     !startDisabled &&
@@ -164,6 +167,8 @@ function HomeScreen({
   const missingItems = [
     effectiveName.trim().length > 1 ? null : t(locale, 'candidate.missingName'),
     emailOk ? null : t(locale, 'candidate.missingEmail'),
+    phoneOk ? null : t(locale, 'formValidation.phone'),
+    linkedInOk ? null : t(locale, 'formValidation.url'),
     consent ? null : t(locale, 'candidate.missingConsent'),
   ].filter(Boolean);
   const showMissingHint =
@@ -318,6 +323,7 @@ function HomeScreen({
               placeholder={t(locale, 'candidate.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              type="email"
               inputMode="email"
               autoComplete="email"
             />
@@ -330,6 +336,7 @@ function HomeScreen({
             placeholder={t(locale, 'candidate.phonePlaceholder')}
             value={formatPhoneBr(phone)}
             onChange={(e) => setPhone(stripPhone(e.target.value) || '')}
+            type="tel"
             inputMode="tel"
             autoComplete="tel"
           />
@@ -337,6 +344,7 @@ function HomeScreen({
 
         <FormField label={t(locale, 'candidate.linkedin')} labelClassName={formFieldCandLabelClass} className="w-full">
           <input
+            type="url"
             className={SC.input}
             placeholder={t(locale, 'candidate.linkedinPlaceholder')}
             value={linkedinUrl}

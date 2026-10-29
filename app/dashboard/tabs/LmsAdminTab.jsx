@@ -375,7 +375,7 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
         {
           name: 'contentUrl',
           label: t(locale, 'panel.lms.fieldVideoUrl'),
-          type: 'text',
+          type: 'url',
           required: true,
           placeholder: 'https://…',
           showWhen: (formValues) => formValues.lessonType === 'link',
@@ -466,7 +466,7 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
         {
           name: 'contentUrl',
           label: t(locale, 'panel.lms.fieldUrl'),
-          type: 'text',
+          type: 'url',
           required: true,
           defaultValue: lesson.contentUrl,
         },

@@ -657,10 +657,14 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
       fields: [
         {
           key: 'count',
+          type: 'number',
           label: t(locale, 'panel.climate.batchCount'),
           placeholder: '10',
           defaultValue: '5',
           required: true,
+          min: 1,
+          max: 50,
+          step: 1,
         },
       ],
     });
@@ -695,6 +699,9 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
           label: t(locale, 'panel.climate.emailList'),
           placeholder: t(locale, 'panel.climate.emailPh'),
           required: true,
+          validate: (value) => String(value || '').split(/[\s,;]+/).filter(Boolean)
+            .every(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+            ? null : t(locale, 'formValidation.email'),
         },
       ],
     });

@@ -93,14 +93,14 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
       fields: [
         {
           key: 'workdayStart',
-          type: 'text',
+          type: 'time',
           label: t(locale, 'panel.timeClock.startLabel'),
           defaultValue: schedule?.workdayStart || '09:00',
           required: true,
         },
         {
           key: 'workdayEnd',
-          type: 'text',
+          type: 'time',
           label: t(locale, 'panel.timeClock.endLabel'),
           defaultValue: schedule?.workdayEnd || '18:00',
           required: true,
@@ -126,6 +126,15 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
           type: 'text',
           label: t(locale, 'panel.timeClock.tzLabel'),
           defaultValue: schedule?.timezone || 'America/Sao_Paulo',
+          validate: (value) => {
+            if (!String(value || '').trim()) return null;
+            try {
+              new Intl.DateTimeFormat('en-US', { timeZone: String(value).trim() });
+              return null;
+            } catch {
+              return t(locale, 'formValidation.invalid');
+            }
+          },
         },
       ],
     });

@@ -127,7 +127,7 @@ export function VacancyInterviewSlotsBlock({
         },
         {
           name: 'meetUrl',
-          type: 'text',
+          type: 'url',
           label: t(locale, 'recruiting.interviewSlotsMeetUrl'),
           required: true,
           placeholder: 'https://meet.google.com/...',

@@ -73,7 +73,7 @@ export function OnboardingCheckinsBlock({
     const fields = [
       {
         key: 'meetUrl',
-        type: 'text',
+        type: 'url',
         label: t(locale, 'panel.onboarding.meetUrlLabel'),
         placeholder: t(locale, 'panel.onboarding.meetUrlPh'),
         initialValue: row.meetUrl || '',
@@ -173,7 +173,7 @@ export function OnboardingCheckinsBlock({
       fields: [
         {
           key: 'meetUrl',
-          type: 'text',
+          type: 'url',
           label: t(locale, 'panel.onboarding.meetUrlLabel'),
           placeholder: t(locale, 'panel.onboarding.meetUrlPh'),
           initialValue: row.meetUrl || '',

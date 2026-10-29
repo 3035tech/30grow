@@ -27,6 +27,7 @@ export function VacancyInviteByEmail({ vacancyId, onSent, locale = 'pt-BR' }) {
         },
         {
           key: 'email',
+          type: 'email',
           label: t(locale, 'recruiting.inviteCandidateEmailPh'),
           placeholder: t(locale, 'recruiting.inviteCandidateEmailPh'),
           defaultValue: '',

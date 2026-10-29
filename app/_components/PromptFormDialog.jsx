@@ -35,7 +35,7 @@ import { digitsOnly, formatSalaryDisplay, formatCepBr, formatCpfBr, formatPhoneB
  * Multi-field form dialog (replaces window.prompt chains).
  * fields: [{
  *   key (or legacy name), label, defaultValue? (or legacy value?),
- *   type?: 'text'|'password'|'textarea'|'richText'|'tags'|'entitySearch'|'select'|'boolean'|'checkboxGroup'|'imageUpload'|'file'|'date'|'datetime-local'|'time'|'number'|'range'|'salary'|'cep'|'cpf'|'phone',
+ *   type?: 'text'|'email'|'url'|'password'|'textarea'|'richText'|'tags'|'entitySearch'|'select'|'boolean'|'checkboxGroup'|'imageUpload'|'file'|'date'|'datetime-local'|'time'|'number'|'range'|'salary'|'cep'|'cpf'|'phone',
  *   options?: [{value,label}],
  *   suggestions?: string[], // tags
  *   maxTags?: number, tagMax?: number, // tags
@@ -682,7 +682,7 @@ export function PromptFormDialog({
 
     return (
       <input
-        type={f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : f.type === 'time' ? 'time' : f.type === 'email' ? 'email' : 'text'}
+        type={['password', 'number', 'time', 'email', 'url'].includes(f.type) ? f.type : 'text'}
         value={values[fk] ?? ''}
         onChange={(e) => setField(fk, e.target.value)}
         placeholder={f.placeholder || ''}

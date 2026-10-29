@@ -104,6 +104,7 @@ function InviteForm({ locale, isAdmin, companies, companyId, onSent, onActionsRe
       },
       {
         key: 'email',
+        type: 'email',
         label: t(locale, 'panel.motivatorsAdmin.invite.emailPh'),
         placeholder: t(locale, 'panel.motivatorsAdmin.invite.emailPh'),
         help: t(locale, 'panel.motivatorsAdmin.invite.newPersonHelp'),

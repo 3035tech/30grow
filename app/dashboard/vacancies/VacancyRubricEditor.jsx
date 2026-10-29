@@ -110,8 +110,11 @@ export function VacancyRubricEditor({ vacancyId, locale, vacancyTitle = '', vaca
     for (let typeNum = 1; typeNum <= 9; typeNum++) {
       const raw = String(weightsState[typeNum] ?? '').trim();
       if (!raw) continue;
-      const n = parseFloat(raw);
-      if (Number.isFinite(n) && n > 0) wObj[String(typeNum)] = n;
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < 0 || n > 100) {
+        throw new Error(t(locale, 'formValidation.invalid'));
+      }
+      if (n > 0) wObj[String(typeNum)] = n;
     }
     const res = await fetch(`/api/admin/vacancies/${encodeURIComponent(vacancyId)}`, {
       method: 'PATCH',
@@ -217,6 +220,11 @@ export function VacancyRubricEditor({ vacancyId, locale, vacancyTitle = '', vaca
               <span className="block truncate text-2xs text-ink-muted">{typeShortLabel(typeNum, locale)}</span>
             </span>
             <input
+              type="number"
+              min="0"
+              max="100"
+              step="any"
+              inputMode="decimal"
               value={weights[typeNum] ?? ''}
               onChange={(e) => setWeights((prev) => ({ ...prev, [typeNum]: e.target.value }))}
               placeholder="0"

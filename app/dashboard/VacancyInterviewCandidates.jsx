@@ -9,6 +9,7 @@ import { RichTextEditor } from '../_components/RichTextEditor';
 import { BrStateSelect } from '../_components/BrStateSelect';
 import { BrCitySelect } from '../_components/BrCitySelect';
 import { formatPhoneBr, formatSalaryBr, stripPhone, salaryToCentsDigits, stripSalary, digitsOnly } from '../../lib/br-masks';
+import { isValidPhoneBr, isValidWebUrl } from '../../lib/form-validation';
 import { titleCasePersonName } from '../../lib/person-name';
 import { S } from './dashboard-shared';
 import { useAppFeedback } from '../_components/AppFeedback';
@@ -228,6 +229,8 @@ function CandidateCard({
   const saveProfile = async () => {
     setProfileBusy(true);
     try {
+      if (phone && !isValidPhoneBr(phone)) throw new Error(t(locale, 'formValidation.phone'));
+      if (linkedinUrl && !isValidWebUrl(linkedinUrl)) throw new Error(t(locale, 'formValidation.url'));
       const res = await fetch(`/api/admin/candidates/${encodeURIComponent(row.candidateId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -547,6 +550,7 @@ function CandidateCard({
               <input
                 value={formatPhoneBr(phone)}
                 onChange={(e) => setPhone(stripPhone(e.target.value) || '')}
+                type="tel"
                 placeholder={t(locale, 'recruiting.phonePh')}
                 inputMode="tel"
                 aria-label={t(locale, 'recruiting.phoneLabel')}
@@ -555,6 +559,7 @@ function CandidateCard({
             </FormField>
             <FormField label={t(locale, 'recruiting.linkedinLabel')} className="min-w-0 flex-[2_1_200px]">
               <input
+                type="url"
                 value={linkedinUrl}
                 onChange={(e) => setLinkedinUrl(e.target.value)}
                 placeholder={t(locale, 'recruiting.linkedinPh')}
@@ -791,6 +796,8 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
     setErr('');
     setCreateMsg('');
     try {
+      if (phone && !isValidPhoneBr(phone)) throw new Error(t(locale, 'formValidation.phone'));
+      if (linkedinUrl && !isValidWebUrl(linkedinUrl)) throw new Error(t(locale, 'formValidation.url'));
       const res = await fetch(`/api/admin/vacancies/${encodeURIComponent(vacancyId)}/candidates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -917,6 +924,7 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
             <input
               value={formatPhoneBr(phone)}
               onChange={(e) => setPhone(stripPhone(e.target.value) || '')}
+              type="tel"
               placeholder={t(locale, 'recruiting.phonePh')}
               inputMode="tel"
               aria-label={t(locale, 'recruiting.phoneLabel')}
@@ -925,6 +933,7 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
           </FormField>
           <FormField label={t(locale, 'recruiting.linkedinLabel')} className="min-w-0">
             <input
+              type="url"
               value={linkedinUrl}
               onChange={(e) => setLinkedinUrl(e.target.value)}
               placeholder={t(locale, 'recruiting.linkedinPh')}

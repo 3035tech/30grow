@@ -14,7 +14,8 @@ import {
   VACANCY_WORKPLACE_MODALITIES,
   workplaceModalityLabelKey,
 } from '../../lib/recruiting/vacancy-workplace';
-import { formatVacancySalaryRangeDisplay } from '../../lib/br-masks';
+import { formatPhoneBr, formatVacancySalaryRangeDisplay, stripPhone } from '../../lib/br-masks';
+import { isValidPhoneBr, isValidWebUrl } from '../../lib/form-validation';
 import { PublicVacancyShareBar } from './PublicVacancyShareBar';
 import { FormField, formFieldRowClass } from './FormField';
 import { EmptyState } from './EmptyState';
@@ -198,6 +199,14 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       setApplyErr(errorMessage(locale, 'CANDIDATE_NAME_REQUIRED', t(locale, 'panel.common.error')));
       return;
     }
+    if (applyPhone && !isValidPhoneBr(applyPhone)) {
+      setApplyErr(t(locale, 'formValidation.phone'));
+      return;
+    }
+    if (applyLinkedIn && !isValidWebUrl(applyLinkedIn)) {
+      setApplyErr(t(locale, 'formValidation.url'));
+      return;
+    }
     if (!applyConsent) {
       setApplyErr(t(locale, 'publicVacancy.applyFormNeedConsent'));
       return;
@@ -217,7 +226,7 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       form.set('vacancyId', String(posting.vacancyId));
       form.set('fullName', applyName);
       form.set('email', applyEmail);
-      form.set('phone', applyPhone);
+      form.set('phone', stripPhone(applyPhone) || '');
       form.set('linkedinUrl', applyLinkedIn);
       form.set('consent', String(applyConsent));
       form.set('cv', applyCv);
@@ -501,9 +510,9 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                           <input
                             className={SC.input}
                             type="tel"
-                            value={applyPhone}
-                            onChange={(e) => setApplyPhone(e.target.value)}
-                            maxLength={40}
+                            value={formatPhoneBr(applyPhone)}
+                            onChange={(e) => setApplyPhone(stripPhone(e.target.value) || '')}
+                            maxLength={16}
                             autoComplete="tel"
                             disabled={applyBusy}
                           />
@@ -511,7 +520,7 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                         <FormField label={t(locale, 'publicVacancy.applyFormLinkedIn')}>
                           <input
                             className={SC.input}
-                            type="text"
+                            type="url"
                             inputMode="url"
                             value={applyLinkedIn}
                             onChange={(e) => setApplyLinkedIn(e.target.value)}

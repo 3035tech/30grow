@@ -91,7 +91,7 @@ export function PreOnboardingChecklistBlock({ locale, candidateId, employmentSta
     if (allowsMeet(row)) {
       fields.unshift({
         key: 'meetUrl',
-        type: 'text',
+        type: 'url',
         label: t(locale, 'panel.preOnboarding.meetUrlLabel'),
         placeholder: t(locale, 'panel.preOnboarding.meetUrlPh'),
         initialValue: row.meetUrl || '',
@@ -140,7 +140,7 @@ export function PreOnboardingChecklistBlock({ locale, candidateId, employmentSta
       fields: [
         {
           key: 'meetUrl',
-          type: 'text',
+          type: 'url',
           label: t(locale, 'panel.preOnboarding.meetUrlLabel'),
           placeholder: t(locale, 'panel.preOnboarding.meetUrlPh'),
           initialValue: row.meetUrl || '',

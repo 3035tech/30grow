@@ -427,7 +427,7 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
     if (is360) {
       fields.push(
         { name: 'externalName', label: tf(locale, 'externalName'), type: 'text', required: true },
-        { name: 'externalEmail', label: tf(locale, 'externalEmail'), type: 'text', required: true },
+        { name: 'externalEmail', label: tf(locale, 'externalEmail'), type: 'email', required: true },
         { name: 'externalTitle', label: tf(locale, 'externalTitle'), type: 'text' }
       );
     }

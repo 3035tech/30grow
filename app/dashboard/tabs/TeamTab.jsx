@@ -22,6 +22,7 @@ import { DateField } from '../../_components/DateField';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { EmptyState } from '../../_components/EmptyState';
 import { formatPhoneBr, formatSalaryBr, stripPhone, salaryToCentsDigits, stripSalary, digitsOnly } from '../../../lib/br-masks';
+import { isValidPhoneBr, isValidWebUrl } from '../../../lib/form-validation';
 import { titleCasePersonName } from '../../../lib/person-name';
 import { rejectionReasonLabel } from '../pipeline-prompts';
 import { usePipelineExtras } from '../PipelineExtrasContext';
@@ -820,6 +821,8 @@ export function TeamTab({
     setProfileBusy(true);
     setProfileMsg('');
     try {
+      if (profileDraft.phone && !isValidPhoneBr(profileDraft.phone)) throw new Error(t(locale, 'formValidation.phone'));
+      if (profileDraft.linkedinUrl && !isValidWebUrl(profileDraft.linkedinUrl)) throw new Error(t(locale, 'formValidation.url'));
       const res = await fetch(`/api/admin/candidates/${encodeURIComponent(detail.candidate.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1961,6 +1964,7 @@ export function TeamTab({
                         >
                           <input
                             value={formatPhoneBr(profileDraft.phone)}
+                            type="tel"
                             onChange={(e) =>
                               setProfileDraft((p) => ({ ...p, phone: stripPhone(e.target.value) || '' }))
                             }
@@ -1975,6 +1979,7 @@ export function TeamTab({
                           className="min-w-0 flex-[2_1_200px]"
                         >
                           <input
+                            type="url"
                             value={profileDraft.linkedinUrl}
                             onChange={(e) =>
                               setProfileDraft((p) => ({ ...p, linkedinUrl: e.target.value }))

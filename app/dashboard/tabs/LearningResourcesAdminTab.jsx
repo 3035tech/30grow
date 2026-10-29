@@ -145,12 +145,15 @@ export function LearningResourcesAdminTab({ locale = 'pt-BR', companyId }) {
       {
         name: 'durationHours',
         label: t('formDurationLabel'),
-        type: 'text',
+        type: 'number',
+        min: 1,
+        max: 1000,
+        step: 'any',
         required: false,
         value: resource?.durationHours != null ? String(resource.durationHours) : '',
         row: 'typeDuration',
       },
-      { name: 'url', label: t('formUrlLabel'), type: 'text', required: false, value: resource?.url || '' },
+      { name: 'url', label: t('formUrlLabel'), type: 'url', required: false, value: resource?.url || '' },
     ];
   }
 
