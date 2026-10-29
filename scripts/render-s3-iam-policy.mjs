@@ -44,6 +44,7 @@ const policy = {
       Action: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject'],
       Resource: [
         `${objectArn}/dp-docs/*`,
+        `${objectArn}/dp-leave/*`,
         `${objectArn}/lms/*`,
         `${objectArn}/company-posts/*`,
         `${bucketArn}/image/logo/companies/*`,
