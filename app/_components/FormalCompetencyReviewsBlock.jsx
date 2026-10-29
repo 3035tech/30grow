@@ -311,26 +311,23 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
     if (!values) return;
     values.openQuestions = String(values.openQuestionsText || '').split('\n').map(line => line.trim()).filter(Boolean);
     delete values.openQuestionsText;
-    let questionnaire;
-    if (draft) {
-      questionnaire = (values.competencyIds || []).map(id => {
-        const previous = draft.questionnaire?.find(item => String(item.competencyId) === String(id));
-        const catalog = choices.find(item => String(item.id) === String(id));
-        return { competencyId: Number(id), selfDescription: previous?.selfDescription || catalog?.selfDescription || '' };
+    let questionnaire = (values.competencyIds || []).map(id => {
+      const previous = draft?.questionnaire?.find(item => String(item.competencyId) === String(id));
+      const catalog = choices.find(item => String(item.id) === String(id));
+      return { competencyId: Number(id), selfDescription: previous?.selfDescription || catalog?.selfDescription || '' };
+    });
+    if (values.includeSelf && questionnaire.length) {
+      const wording = await promptForm({
+        title: i18nT(locale, 'ui.formalCompetencyReviewsBlock.reviewSelfAssessmentWording'),
+        fields: [...questionnaire.map(item => {
+          const catalog = choices.find(c => Number(c.id) === item.competencyId);
+          return { key: `self_${item.competencyId}`, label: catalog?.name || String(item.competencyId), type: 'textarea', required: true, maxLength: 4000, defaultValue: item.selfDescription || suggestSelfAssessment(catalog?.description, catalog?.name, locale),
+            help: catalog?.description || '' };
+        }), { key: 'reviewed', type: 'boolean', defaultValue: false, label: i18nT(locale, 'ui.formalCompetencyReviewsBlock.iReviewedTheWordingAnd') }],
       });
-      if (values.includeSelf && questionnaire.length) {
-        const wording = await promptForm({
-          title: i18nT(locale, 'ui.formalCompetencyReviewsBlock.reviewSelfAssessmentWording'),
-          fields: [...questionnaire.map(item => {
-            const catalog = choices.find(c => Number(c.id) === item.competencyId);
-            return { key: `self_${item.competencyId}`, label: catalog?.name || String(item.competencyId), type: 'textarea', required: true, maxLength: 4000, defaultValue: item.selfDescription || suggestSelfAssessment(catalog?.description, catalog?.name, locale),
-              help: catalog?.description || '' };
-          }), { key: 'reviewed', type: 'boolean', defaultValue: false, label: i18nT(locale, 'ui.formalCompetencyReviewsBlock.iReviewedTheWordingAnd') }],
-        });
-        if (!wording) return;
-        if (!wording.reviewed) { toast(i18nT(locale, 'ui.formalCompetencyReviewsBlock.reviewAndConfirmTheWording'), 'error'); return; }
-        questionnaire = questionnaire.map(item => ({ ...item, selfDescription: wording[`self_${item.competencyId}`] }));
-      }
+      if (!wording) return;
+      if (!wording.reviewed) { toast(i18nT(locale, 'ui.formalCompetencyReviewsBlock.reviewAndConfirmTheWording'), 'error'); return; }
+      questionnaire = questionnaire.map(item => ({ ...item, selfDescription: wording[`self_${item.competencyId}`] }));
     }
     setBusy(true);
     try {
@@ -338,7 +335,7 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
       const res = await fetch(draft ? `/api/admin/formal-review-cycles/${draft.id}` : '/api/admin/formal-review-cycles', {
         method: draft ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(withCompany(draft ? { ...configuration, questionnaire } : values)),
+        body: JSON.stringify(withCompany(draft ? { ...configuration, questionnaire } : { ...values, questionnaire })),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(apiToastError(locale, json, 'saveError'));
@@ -380,6 +377,10 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
 
   const publishCycle = async () => {
     if (!selectedCycle || busy) return;
+    if (selectedCycle.includeSelf && selectedCycle.questionnaire?.some(item => !item.selfDescription?.trim())) {
+      toast(i18nT(locale, 'ui.formalCompetencyReviewsBlock.selfWordingRequired'), 'error');
+      return;
+    }
     setBusy(true);
     try {
       const matrixRes = await fetch(`/api/admin/formal-review-cycles/${selectedCycle.id}/respondents${companyQs()}`);
@@ -774,6 +775,9 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
           />
           {selectedCycle.includeSelf ? (
             <InlineCallout tone="info">{tf(locale, 'includeSelfHint')}</InlineCallout>
+          ) : null}
+          {selectedCycle.status === FORMAL_REVIEW_CYCLE_STATUS.DRAFT && selectedCycle.includeSelf && selectedCycle.questionnaire?.some(item => !item.selfDescription?.trim()) ? (
+            <InlineCallout tone="warning">{i18nT(locale, 'ui.formalCompetencyReviewsBlock.selfWordingRequired')}</InlineCallout>
           ) : null}
           <section className={`${S.card} ${S.stack}`} aria-label={i18nT(locale, 'ui.formalCompetencyReviewsBlock.cycleConfiguration')}>
             <h3 className={`m-0 ${S.cardTitle}`}>{i18nT(locale, 'ui.formalCompetencyReviewsBlock.cycleConfiguration')}</h3>

@@ -24,6 +24,28 @@ test('draft rejects impossible dates and reversed ranges before writing', async 
   }
   assert.equal((await createFormalReviewCycle(db, { companyId: 1, title: 'Invalid', periodStart: '2026-02-30' })).ok, false);
 });
+test('new cycle stores reviewed self-assessment wording in its questionnaire snapshot', async () => {
+  const calls = [];
+  const db = { query: async (sql, params) => {
+    calls.push({ sql, params });
+    if (sql.includes('FROM company_competencies')) return { rowCount: 1, rows: [{ competencyId: 7, label: 'Comunicação', description: 'Expressa ideias', selfDescription: '' }] };
+    if (sql.startsWith('INSERT INTO formal_review_cycles')) return { rowCount: 1, rows: [{ ...draft, id: 42 }] };
+    return { rowCount: 0, rows: [] };
+  } };
+  const result = await createFormalReviewCycle(db, {
+    companyId: 2, title: 'Novo ciclo', includeSelf: true, competencyIds: [7],
+    questionnaireOverrides: [{ competencyId: 7, selfDescription: 'Expresso minhas ideias' }],
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.cycle.questionnaire[0].selfDescription, 'Expresso minhas ideias');
+  assert.deepEqual(calls.find(call => call.sql.includes('INSERT INTO formal_cycle_competencies')).params[5], ['Expresso minhas ideias']);
+  const invalid = await createFormalReviewCycle(db, {
+    companyId: 2, title: 'Inválido', competencyIds: [7],
+    questionnaireOverrides: [{ competencyId: 8, selfDescription: 'Outro' }],
+  });
+  assert.equal(invalid.ok, false);
+  assert.equal(calls.filter(call => call.sql.startsWith('INSERT INTO formal_review_cycles')).length, 1);
+});
 test('closed cycle rejects even an otherwise collecting public questionnaire', async () => {
   const db = { query: async () => ({ rowCount: 1, rows: [{ cycleStatus: 'closed', reviewStatus: 'collecting', role: 'self' }] }) };
   assert.equal((await resolveFormalRaterByToken(db, 'test-token-long-enough')).ok, false);
