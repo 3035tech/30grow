@@ -115,7 +115,7 @@ export async function POST(request) {
             to: emailClean,
             subject,
             text,
-            html: `<p>${text.replace(/\n/g, '<br/>')}</p>`,
+            locale: loc,
           });
         }
         await trackLandingEvent({
