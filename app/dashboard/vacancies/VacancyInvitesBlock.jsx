@@ -108,7 +108,7 @@ export function VacancyInvitesBlock({ vacancyId, locale, refreshKey }) {
         {rows.map((inv) => {
           const lastReminder = inv.lastReminderAt ? new Date(inv.lastReminderAt) : null;
           const reminderCount = inv.reminderCount ?? 0;
-          const canRemind = ['sent', 'opened'].includes(String(inv.status || ''));
+          const canRemind = ['sent', 'opened'].includes(String(inv.status || '')) && reminderCount < 2;
           return (
             <tr key={inv.id} className="hover:bg-canvas-alt/50">
               <td className="px-4 py-3">

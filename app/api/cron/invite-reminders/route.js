@@ -41,7 +41,7 @@ export async function POST(request) {
        JOIN companies c ON c.id = v.company_id AND c.deleted = FALSE
        WHERE ci.status IN ('sent', 'opened')
          AND ci.expires_at > NOW()
-         AND ci.reminder_count < 5
+         AND ci.reminder_count < 2
          AND ci.sent_at < NOW() - INTERVAL '2 days'
          AND (ci.last_reminder_at IS NULL OR ci.last_reminder_at < NOW() - INTERVAL '3 days')
        ORDER BY ci.sent_at ASC

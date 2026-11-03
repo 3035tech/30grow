@@ -60,6 +60,12 @@ export async function POST(request, props) {
     if (!['sent', 'opened'].includes(String(row.status || ''))) {
       return apiError(request, ERR.INVITE_NOT_PENDING, 400);
     }
+    if (Number(row.reminderCount || 0) >= 2) {
+      return NextResponse.json(
+        { ok: false, error: 'Este convite já recebeu os dois lembretes permitidos.' },
+        { status: 400 }
+      );
+    }
 
     if (row.candidateId == null) {
       const contact = await candidateContact(queryRead, { companyId: row.inviteCompanyId, email: row.candidateEmail });
@@ -95,7 +101,7 @@ export async function POST(request, props) {
     const up = await query(
       `UPDATE candidate_invites
        SET last_reminder_at = NOW(), reminder_count = reminder_count + 1
-       WHERE id = $1
+       WHERE id = $1 AND reminder_count < 2
        RETURNING last_reminder_at AS "lastReminderAt", reminder_count AS "reminderCount"`,
       [inviteId]
     );
