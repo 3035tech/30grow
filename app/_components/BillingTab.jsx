@@ -130,7 +130,7 @@ export function BillingTab({ locale, role, companyId, companyName, onLicenseChan
       </section> : null}
       {!platform ? <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
         <a href="/terms#cancelamento-e-reembolso" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-touch items-center text-brand-700 underline underline-offset-4">{copy('policiesHint')}</a>
-        <a href="mailto:contact@3035tech.com?subject=Cancelamento%20ou%20reembolso%2030Grow" className="inline-flex min-h-touch items-center text-brand-700 underline underline-offset-4">{copy('refundRequest')}</a>
+        <a href="mailto:info@30grow.com?subject=Cancelamento%20ou%20reembolso%2030Grow" className="inline-flex min-h-touch items-center text-brand-700 underline underline-offset-4">{copy('refundRequest')}</a>
       </div> : null}
       {!platform && data ? <section className={panelClass}>
         <h2 className="m-0 text-lg font-semibold">{copy('invoices')}</h2>

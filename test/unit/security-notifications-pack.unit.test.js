@@ -9,7 +9,7 @@ describe('buildManagerEmailChangedMail', () => {
   const mail = buildManagerEmailChangedMail({
     oldEmail: 'gestora@empresa.com',
     newEmail: 'nova.conta@outro.com',
-    supportEmail: 'contact@3035tech.com',
+    supportEmail: 'info@30grow.com',
     locale: 'pt-BR',
     displayName: 'Ana Souza',
   });

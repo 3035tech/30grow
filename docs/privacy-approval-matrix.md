@@ -6,7 +6,7 @@ Status em 29/09/2026: proposta técnica; nenhuma aprovação jurídica inferida.
 
 | Decisão | Proposta para revisão | Confirmação necessária |
 |---|---|---|
-| Canal | contact@3035tech.com, assunto Privacidade 30Grow | Responsável nominal e substituto; monitoramento e prazo de triagem |
+| Canal | info@30grow.com, assunto Privacidade 30Grow | Responsável nominal e substituto; monitoramento e prazo de triagem |
 | Recrutamento/gestão | Cliente define finalidade; plataforma opera conforme contrato | Controlador por fluxo, instruções e bases legais |
 | Site/conta/segurança | 3035Tech administra esses fluxos | Identificação jurídica completa e bases por finalidade |
 | Avaliações e IA | Apoio a decisão humana; revisar contexto e critérios | Uso permitido, dados enviados, revisão e informação ao titular |

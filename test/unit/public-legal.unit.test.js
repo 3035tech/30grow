@@ -41,7 +41,7 @@ describe('public legal documents', () => {
       assert.match(refunds, /7 (dias|days)/);
       assert.doesNotMatch(refunds, /garantia comercial|commercial guarantee/i);
       assert.match(refunds, /proporcional|proportional/);
-      assert.match(sections.find(s => s.id === 'solicitar-reembolso').paragraphs.join(' '), /contact@3035tech.com/);
+      assert.match(sections.find(s => s.id === 'solicitar-reembolso').paragraphs.join(' '), /info@30grow.com/);
       assert.match(terms.common.contactLabel, /Atendimento|Support/);
     }
     assert.equal(CANCELLATION_POLICY_PATH, '/terms#cancelamento-e-reembolso');

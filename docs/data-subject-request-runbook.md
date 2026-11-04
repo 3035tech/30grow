@@ -1,6 +1,6 @@
 # Runbook de pedido do titular
 
-Canal inicial: `contact@3035tech.com`, assunto **Privacidade 30Grow**. Não solicitar documento completo, senha, token ou conteúdo sensível no primeiro e-mail.
+Canal inicial: `info@30grow.com`, assunto **Privacidade 30Grow**. Não solicitar documento completo, senha, token ou conteúdo sensível no primeiro e-mail.
 
 ## Triagem
 

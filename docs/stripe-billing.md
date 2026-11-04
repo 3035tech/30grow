@@ -106,7 +106,7 @@ As regras públicas ficam em `/terms#cancelamento-e-reembolso`, com versão pró
 
 Novos checkouts exigem `consent_collection.terms_of_service=required`, com links para os Termos e a política. O Stripe é a fonte do registro de aceite (`Checkout Session.consent.terms_of_service`); a sessão e a assinatura levam a versão, URLs, empresa e usuário que iniciou o checkout em metadata. Esse usuário iniciador não é apresentado como prova de identidade de quem marcou o aceite. O ID da sessão já é persistido na conta de cobrança. Não se cria uma tabela de consentimento duplicada nem se afirma aceite de sessões antigas. O histórico do Git preserva o texto de cada versão; futuras revisões devem receber nova versão.
 
-Na conta Stripe, configurar os URLs públicos de Terms of service e Privacy policy antes de publicar a exigência. O checkout não inicia assinatura sem a confirmação exigida pelo Stripe. O aceite não implica renúncia ao CDC e não é consentimento de marketing. Cancelamento de renovação já é self-service; estornos e encerramento antecipado são processados pelo atendimento em `contact@3035tech.com`. A área operacional de assinantes e reembolsos do superadmin ainda não está implementada.
+Na conta Stripe, configurar os URLs públicos de Terms of service e Privacy policy antes de publicar a exigência. O checkout não inicia assinatura sem a confirmação exigida pelo Stripe. O aceite não implica renúncia ao CDC e não é consentimento de marketing. Cancelamento de renovação já é self-service; estornos e encerramento antecipado são processados pelo atendimento em `info@30grow.com`. A área operacional de assinantes e reembolsos do superadmin ainda não está implementada.
 
 ## Gestão global de assinaturas (superadmin)
 

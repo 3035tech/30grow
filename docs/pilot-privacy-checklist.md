@@ -16,7 +16,7 @@ Objetos usam `companies/{companyId}/...` e nome opaco. Tokens são credenciais e
 
 ## Pedido do titular
 
-Canal inicial definido: `contact@3035tech.com`, assunto **Privacidade 30Grow**. Procedimento completo: [`data-subject-request-runbook.md`](./data-subject-request-runbook.md). Política operacional: [`privacy-retention-policy.md`](./privacy-retention-policy.md).
+Canal inicial definido: `info@30grow.com`, assunto **Privacidade 30Grow**. Procedimento completo: [`data-subject-request-runbook.md`](./data-subject-request-runbook.md). Política operacional: [`privacy-retention-policy.md`](./privacy-retention-policy.md).
 
 1. Registrar identidade validada, empresa, escopo e prazo.
 2. Localizar por `company_id` + e-mail; nunca mesclar por nome.

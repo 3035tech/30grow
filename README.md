@@ -254,7 +254,7 @@ docker compose up -d --build                                 # rebuild
 
 ## Suporte
 
-contact@3035tech.com · +55 51 99644-2104
+info@30grow.com · +55 51 99644-2104
 
 ### Tags de candidatos
 

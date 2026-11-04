@@ -1,6 +1,6 @@
 # Suporte e feedback do piloto
 
-Fluxo operacional do primeiro cliente. O canal principal dentro do produto é **Pergunte à IA → Sugerir melhoria**. E-mail alternativo: `contact@3035tech.com`.
+Fluxo operacional do primeiro cliente. O canal principal dentro do produto é **Pergunte à IA → Sugerir melhoria**. E-mail alternativo: `info@30grow.com`.
 
 ## Classificação e prazo
 
