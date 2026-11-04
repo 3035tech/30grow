@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import vm from 'node:vm';
-import { getLeaveBalance } from '../../lib/people/employee-dp.js';
+import { getCompanyVacationPool, getLeaveBalance } from '../../lib/people/employee-dp.js';
 
 const sourceModule = new vm.SourceTextModule(
   await readFile(new URL('../../lib/people/vacation-accrual.js', import.meta.url), 'utf8'),
@@ -64,4 +64,23 @@ test('the balance API uses hire date instead of an old manually configured windo
   assert.equal(result.balance.legalAccrual, true);
   assert.equal(result.balance.periods[0].availableDays, 20);
   assert.equal(result.balance.periods[0].periodStart, '2025-03-02');
+});
+
+test('company pool does not treat a forming cycle reservation as acquired debt', async () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const query = async (sql) => {
+    if (sql.includes('FROM candidates c')) return { rows: [{
+      candidateId: 42, startDate: today, hiredAt: null,
+      entitlementDays: 30, adjustmentDays: 0, periodStart: null, periodEnd: null,
+      jobRoleName: 'Design',
+    }] };
+    if (sql.includes('FROM employee_leave_requests')) return { rows: [{
+      candidateId: 42, status: 'requested', startsOn: today, endsOn: today, days: 1,
+    }] };
+    throw new Error(`Unexpected SQL: ${sql}`);
+  };
+  const result = await getCompanyVacationPool({ query }, { companyId: 1 });
+  assert.equal(result.pool.pendingDays, 1);
+  assert.equal(result.pool.availableDays, 0);
+  assert.equal(result.pool.byJobRole[0].availableDays, 0);
 });

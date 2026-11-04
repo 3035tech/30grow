@@ -1,6 +1,6 @@
 # Participação individual no banco de horas
 
-O banco de horas continua tendo um controle geral por empresa. Quando ele é ativado, a seleção de colaboradores abre automaticamente acima da tabela. A seleção também pode ser aberta depois por **Selecionar colaboradores** em **DP → Controle de horas → Banco de horas**. Colaboradores com ponto habilitado participam por padrão; cada caixa marcada ou desmarcada é salva na data de vigência escolhida. Busca e paginação permitem percorrer a equipe.
+O banco de horas continua tendo um controle geral por empresa. Quando ele é ativado, a seleção de colaboradores abre automaticamente acima da tabela. A seleção também pode ser aberta depois por **Selecionar colaboradores** em **DP → Controle de horas → Banco de horas**. Colaboradores com ponto habilitado participam por padrão; as caixas mostram a participação na data escolhida e cada mudança é salva nessa data de vigência. Busca e paginação permitem percorrer a equipe.
 
 `employee_hour_bank_participation` guarda somente as mudanças individuais. A chave `(company_id, candidate_id, valid_from)` impede versões duplicadas na mesma data; a chave estrangeira composta impede associação entre empresas. `enabled` é booleano, e a ausência de versão anterior significa seguir a empresa. Esse cadastro é separado da jornada porque mudar a escala não deve alterar a participação, nem o contrário.
 
