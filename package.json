@@ -55,8 +55,8 @@
     "lint:inventory": "eslint app lib scripts test --format json"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1156.0",
-    "@aws-sdk/client-secrets-manager": "3.1156.0",
+    "@aws-sdk/client-s3": "3.1161.0",
+    "@aws-sdk/client-secrets-manager": "3.1161.0",
     "@sentry/nextjs": "10.75.2",
     "@signpdf/placeholder-pdf-lib": "^4.0.0",
     "@signpdf/signpdf": "^4.0.0",
