@@ -9,6 +9,7 @@ import { StatusToneChip } from './StatusToneChip';
 import { InlineCallout } from './InlineCallout';
 
 function licensePlanLabel(locale, license) {
+  if (license?.billing?.freePlan) return t(locale, 'billing.freePlanTitle');
   if (license?.billing?.source === 'stripe') {
     return t(locale, 'billing.licenseSubscription');
   }
@@ -40,7 +41,7 @@ export function CompanyLicenseSummary({ license, locale, onManage }) {
           {[
             ['dashboard.licenseNumber', license.number, null],
             ['dashboard.licenseStartsAt', formatDisplayDateTime(license.startsAt, locale), license.startsAt],
-            [billing?.source === 'stripe' ? 'billing.validUntil' : 'dashboard.licenseExpiresAt', formatDisplayDateTime(license.expiresAt, locale), license.expiresAt],
+            [billing?.freePlan ? 'billing.freePlanExpiry' : billing?.source === 'stripe' ? 'billing.validUntil' : 'dashboard.licenseExpiresAt', billing?.freePlan ? t(locale, 'billing.freePlanNoExpiry') : formatDisplayDateTime(license.expiresAt, locale), billing?.freePlan ? null : license.expiresAt],
           ].map(([label, value, dateTime]) => <div key={label} className="min-w-0">
             <dt className={S.muted}>{t(locale, label)}</dt>
             <dd className={cn('m-0 mt-1.5 break-words text-sm text-ink tabular-nums',
@@ -52,7 +53,7 @@ export function CompanyLicenseSummary({ license, locale, onManage }) {
         <p className="mb-0 mt-3 max-w-prose text-sm leading-relaxed text-ink-muted">{t(locale, 'dashboard.licenseEmployeeFree')}</p>
         {billing?.source === 'stripe' ? <details className="mt-3 text-sm text-ink-muted"><summary className="cursor-pointer py-2 focus-visible:outline-brand-500">{t(locale, 'billing.licenseHistory')}</summary><p className="mb-0 mt-1 leading-6">{t(locale, 'billing.originalLicenseTerm', { date: formatDisplayDateTime(license.originalExpiresAt, locale) })}</p></details> : null}
         {billing?.cancelAtPeriodEnd ? <p className="mb-0 mt-3 text-sm text-ink-muted">{t(locale, 'billing.cancellation')}</p> : null}
-        {expired ? <InlineCallout tone="warning" className="mt-3">
+        {expired && !billing?.freePlan ? <InlineCallout tone="warning" className="mt-3">
           {t(locale, billing?.source === 'stripe' ? (billing.status === 'canceled' ? 'billing.subscriptionInactive' : 'billing.paymentAttention') : billing?.managed ? 'billing.trialExpired' : 'dashboard.licenseExpiredNotice')}
         </InlineCallout> : null}
         {billing && onManage ? <button type="button" onClick={onManage} className={cn(S.btnGhost, 'mt-4')}>{t(locale, 'billing.viewSubscription')}</button> : null}

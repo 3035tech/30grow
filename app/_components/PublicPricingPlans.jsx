@@ -3,17 +3,32 @@ import Link from 'next/link';
 import { t } from '../../lib/i18n';
 import { formatPublicPrice, PUBLIC_BRL_TIERS, publicPricingTextValues } from '../../lib/marketing/pricing-currency';
 
-/** BRL launch offer. Shared by the landing and pricing page. */
-export function PublicPricingPlans({ locale, showLaunchOffer = false }) {
+export function FreePlanBanner({ locale, className = '' }) {
+  const values = publicPricingTextValues(locale);
+  const copy = (key) => t(locale, `pricing.${key}`, values);
+  return (
+    <aside aria-label={copy('freePlanTitle')} className={`flex flex-col gap-4 border-l-4 border-brand-500 bg-brand-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${className}`}>
+      <div>
+        <h2 className="m-0 text-lg font-semibold text-ink">{copy('freePlanTitle')}</h2>
+        <p className="mb-0 mt-1 max-w-2xl text-sm leading-6 text-ink-muted">{copy('freePlanBody')}</p>
+      </div>
+      <span className="inline-flex min-h-touch shrink-0 items-center justify-center rounded-control bg-white px-5 py-2 text-lg font-bold text-brand-800">{copy('freePlanPrice')}</span>
+    </aside>
+  );
+}
+
+/** Public BRL tiers shared by the landing and pricing page. */
+export function PublicPricingPlans({ locale }) {
   const values = publicPricingTextValues(locale);
   const copy = (key, extra) => t(locale, `pricing.${key}`, { ...values, ...extra });
   return (
     <div>
+      <FreePlanBanner locale={locale} className="mb-5" />
       <div className="grid gap-4 md:grid-cols-3">
-        {PUBLIC_BRL_TIERS.map((tier) => (
+        {PUBLIC_BRL_TIERS.map((tier, index) => (
           <article key={tier.id} className="flex min-w-0 flex-col rounded-card border border-brand-200 bg-surface p-6 sm:p-7">
             <h3 className="m-0 text-lg font-semibold text-ink">
-              {copy(tier.min === 1 ? 'firstTierRange' : 'tierRange', tier)}
+              {copy(index === 0 ? 'firstTierRange' : 'tierRange', tier)}
             </h3>
             <p className="mb-0 mt-6 text-4xl font-bold tracking-tight tabular-nums text-ink">
               {formatPublicPrice(locale, tier.monthlyTotal, { whole: true })}
@@ -36,13 +51,6 @@ export function PublicPricingPlans({ locale, showLaunchOffer = false }) {
       <TimeClockValidationNotice locale={locale} className="mt-6" />
       <p className="mb-0 mt-4 text-xs leading-5 text-ink-muted">{copy('billingDefinition')}</p>
       <p className="mb-0 mt-2 text-xs leading-5 text-ink-muted">{copy('usageNote')}</p>
-      {showLaunchOffer ? (
-        <aside className="mt-8 rounded-card border border-brand-200 bg-brand-50 p-6 sm:p-8">
-          <h3 className="m-0 text-xl font-semibold text-ink">{copy('launchTitle')}</h3>
-          <p className="mb-0 mt-3 max-w-3xl text-sm leading-7 text-ink-muted">{copy('launchBody')}</p>
-          <Link href="/signup" className="mt-4 inline-flex min-h-touch items-center font-semibold text-brand-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-700">{copy('ctaSignup')}</Link>
-        </aside>
-      ) : null}
     </div>
   );
 }

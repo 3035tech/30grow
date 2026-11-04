@@ -92,7 +92,7 @@ export function BillingTab({ locale, role, companyId, companyName, onLicenseChan
         {platform && data ? <dl className="mt-5 grid gap-5 sm:grid-cols-2"><div><dt className="text-sm text-ink-muted">{copy('activeCompanies')}</dt><dd className="m-0 mt-2 text-lg font-semibold">{data.activeCompanies}</dd></div><div><dt className="text-sm text-ink-muted">{copy('lastWebhook')}</dt><dd className="m-0 mt-2">{data.lastWebhookAt ? date(data.lastWebhookAt) : copy('noWebhook')}</dd></div></dl> : null}
         {!platform && data?.status ? <>
           <dl className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[[copy('status'), copy(`status_${data.status}`)], [copy('employeeCount'), data.employeeCount], [copy(hasSubscription ? 'nextDate' : 'trialEnds'), date(hasSubscription ? data.periodEnd : data.trialEndsAt)]].map(([label, value]) => <div key={label}><dt className="text-sm text-ink-muted">{label}</dt><dd className="m-0 mt-2 font-semibold text-ink">{value}</dd></div>)}
+            {[[copy('status'), data.freePlan ? copy('freePlanTitle') : copy(`status_${data.status}`)], [copy('employeeCount'), data.employeeCount], [copy(data.freePlan ? 'freePlanExpiry' : hasSubscription ? 'nextDate' : 'trialEnds'), data.freePlan ? copy('freePlanNoExpiry') : date(hasSubscription ? data.periodEnd : data.trialEndsAt)]].map(([label, value]) => <div key={label}><dt className="text-sm text-ink-muted">{label}</dt><dd className="m-0 mt-2 font-semibold text-ink">{value}</dd></div>)}
           </dl>
           {!data.access && !hasSubscription ? <InlineCallout tone="warning">{copy('trialExpired')}</InlineCallout> : null}
           {paymentNeedsAttention ? <InlineCallout tone="warning">{copy('paymentAttention')}</InlineCallout> : null}

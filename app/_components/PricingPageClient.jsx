@@ -8,7 +8,7 @@ import { useLocale } from '../../lib/useLocale';
 import { localeHtmlLang, normalizeLocale, t } from '../../lib/i18n';
 import { formatPublicPrice, getPublicPricing, publicPricingTextValues } from '../../lib/marketing/pricing-currency';
 import { getPricingCoreFeatures } from '../../lib/marketing/pricing-plans';
-import { PublicPricingPlans } from './PublicPricingPlans';
+import { FreePlanBanner, PublicPricingPlans } from './PublicPricingPlans';
 
 export default function PricingPageClient({ locale: initialLocale, headerCopyByLocale }) {
   const [locale, setLocale] = useLocale(initialLocale);
@@ -28,9 +28,9 @@ export default function PricingPageClient({ locale: initialLocale, headerCopyByL
           <section className="mx-auto max-w-6xl px-5 pb-14 sm:px-8" aria-labelledby="plans-title">
             <h2 id="plans-title" className="mb-3 text-2xl font-semibold">{copy('plansTitle')}</h2>
             <p className="mb-7 max-w-3xl text-sm leading-7 text-ink-muted">{copy('plansLead')}</p>
-            <PublicPricingPlans locale={locale} showLaunchOffer />
+            <PublicPricingPlans locale={locale} />
           </section>
-        ) : null}
+        ) : <section className="mx-auto max-w-5xl px-5 pb-10 sm:px-8"><FreePlanBanner locale={locale} /></section>}
         <section className={`mx-auto grid max-w-5xl gap-10 px-5 pb-16 sm:px-8 ${pricing.currency === 'BRL' ? '' : 'lg:grid-cols-[1fr_360px]'}`} aria-labelledby="plan-title">
           <div className="order-last lg:order-first">
             <h2 id="plan-title" className="mb-3 text-2xl font-semibold">{copy('planName')}</h2>
