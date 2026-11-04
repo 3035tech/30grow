@@ -8,6 +8,9 @@ updates:
       time: '07:00'
       timezone: America/Sao_Paulo
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: tailwindcss
+        update-types: ["version-update:semver-major"]
     groups:
       next-react:
         patterns: ['next', 'react', 'react-dom', 'eslint-config-next']
