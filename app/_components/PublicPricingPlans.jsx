@@ -23,8 +23,16 @@ export function PublicPricingPlans({ locale }) {
   const copy = (key, extra) => t(locale, `pricing.${key}`, { ...values, ...extra });
   return (
     <div>
-      <FreePlanBanner locale={locale} className="mb-5" />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <article aria-label={copy('freePlanTitle')} className="flex min-w-0 flex-col rounded-card border border-brand-500 bg-brand-50 p-6 sm:p-7">
+          <h3 className="m-0 text-lg font-semibold text-ink">{copy('freePlanTitle')}</h3>
+          <p className="mb-0 mt-6 text-4xl font-bold tracking-tight text-brand-800">{copy('freePlanPrice')}</p>
+          <p className="mb-0 mt-2 text-sm leading-6 text-ink-muted">{copy('freePlanBody')}</p>
+          <p className="mb-0 mt-5 border-t border-brand-200 pt-4 text-sm font-medium text-brand-700">{copy('featuresIncluded')}</p>
+          <div className="mt-auto pt-6">
+            <Link href="/signup" className="inline-flex min-h-touch w-full items-center justify-center rounded-control bg-action px-4 py-3 text-center text-sm font-semibold text-action-ink no-underline hover:bg-action-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-700">{copy('ctaSignup')}</Link>
+          </div>
+        </article>
         {PUBLIC_BRL_TIERS.map((tier, index) => (
           <article key={tier.id} className="flex min-w-0 flex-col rounded-card border border-brand-200 bg-surface p-6 sm:p-7">
             <h3 className="m-0 text-lg font-semibold text-ink">

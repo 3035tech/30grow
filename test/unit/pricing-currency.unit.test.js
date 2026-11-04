@@ -30,8 +30,8 @@ for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr-FR', 'de-DE
     const commercial = JSON.stringify({ hero: copy.heroBody, badge: copy.earlyBadge, proof: copy.ui.heroProof, offer: copy.earlyBody, faqs: copy.faqs });
     assert.doesNotMatch(commercial, /90 days|90 dias|firstTierMax|monthlyPrice|20%/);
     if (locale === 'pt-BR') {
-      assert.match(copy.earlyTitle, /primeiras 20 empresas/);
-      assert.match(copy.earlyBody, /99.*12 meses.*20 colaboradores.*149/);
+      assert.match(copy.earlyTitle, /até 5 colaboradores ativos/i);
+      assert.match(copy.earlyBody, /após o teste de 30 dias.*até 5 colaboradores ativos.*grátis/i);
       assert.doesNotMatch(commercial, /sem faixas|R\$\s*69|ilimitad/i);
     } else {
       assert.doesNotMatch(commercial, /first 20|primeiras 20|R\$/);
@@ -53,11 +53,14 @@ test('crawler offer describes BRL tiers and bounded launch terms', () => {
 });
 
 test('BRL launch and annual terms agree with rendered copy', () => {
-  assert.deepEqual(PUBLIC_BRL_TIERS.map(tier => [tier.min, tier.max, tier.monthlyTotal]), [[1, 20, 149], [21, 50, 249], [51, 100, 399]]);
+  assert.deepEqual(PUBLIC_BRL_TIERS.map(tier => [tier.min, tier.max, tier.monthlyTotal]), [[6, 20, 149], [21, 50, 249], [51, 100, 399]]);
   assert.equal(PUBLIC_BRL_TIERS[0].annualTotal, PUBLIC_BRL_TIERS[0].monthlyTotal * 10);
   assert.equal(PUBLIC_BRL_LAUNCH.monthlyTotal, 99);
   const values = publicPricingTextValues('pt-BR');
-  for (const key of ['faq5A', 'launchBody', 'launchSignupNote']) {
+  const freePlanFaq = t('pt-BR', 'pricing.faq5A', values);
+  assert.match(freePlanFaq, /até 5 colaboradores ativos.*plano grátis/i);
+  assert.match(freePlanFaq, /acima de 5.*plano pago/i);
+  for (const key of ['launchBody', 'launchSignupNote']) {
     const text = t('pt-BR', `pricing.${key}`, values);
     for (const expected of [/99/, /12 meses/, /20 colaboradores/, /149/]) assert.match(text, expected);
     assert.doesNotMatch(text, /\{\w+\}/);
