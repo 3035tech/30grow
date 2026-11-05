@@ -25,6 +25,7 @@ import { EmployeeFeedbackSection } from '../_components/ContinuousFeedbackBlock'
 import { EmployeeFeedPanel, EmployeeKudosPanel } from '../_components/EmployeeFeedKudosSections';
 import { Icon } from '../_components/Icon';
 import { EmployeeFormalReviewsSection } from '../_components/EmployeeFormalReviewsSection';
+import { EmployeeTimeClockSection } from '../_components/EmployeeTimeClockSection';
 import { EmployeeWelcomeCard } from '../_components/EmployeeWelcomeCard';
 import { EmployeeDedicatedShell } from '../_components/EmployeeDedicatedShell';
 import { EMPLOYEE_NAV_ITEMS } from '../_components/EmployeeSidebar';
@@ -146,6 +147,10 @@ function EmpEmpty({ children }) {
   );
 }
 
+function EmployeeTimeClockTodayCard({ locale, onBadge }) {
+  return <EmployeeTimeClockSection locale={locale} compact onBadge={onBadge} />;
+}
+
 /**
  * Authenticated collaborator home: “Hoje” scroll + teasers for dedicated modules.
  */
@@ -256,21 +261,13 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
     let cancelled = false;
     (async () => {
       try {
-        const [dpRes, tcRes] = await Promise.all([
-          fetch('/api/employee/dp'),
-          fetch('/api/employee/time-clock'),
-        ]);
-        if (cancelled) return;
-        if (dpRes.ok) {
-          const json = await dpRes.json().catch(() => ({}));
+        const res = await fetch('/api/employee/dp');
+        if (!cancelled && res.ok) {
+          const json = await res.json().catch(() => ({}));
           setDpBadge(Number(json.badge) || 0);
         }
-        if (tcRes.ok) {
-          const json = await tcRes.json().catch(() => ({}));
-          setTimeClockBadge(json.open ? 1 : 0);
-        }
       } catch {
-        /* ignore badge errors */
+        // Keep the badge empty when the dedicated module is temporarily unavailable.
       }
     })();
     return () => {
@@ -590,19 +587,32 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
             {t(locale, 'employeeHome.hello', { name: data.person?.fullName || '' })}
           </h1>
           <p className={cn(S.muted, 'm-0 mt-2 max-w-[58ch]')}>{t(locale, 'employeeHome.hint')}</p>
-          <section className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-3" aria-label={t(locale, 'employeeHome.todaySummary')}>
-            <a href="#tasks" onClick={() => focusSection('tasks')} className="rounded-control border border-ink/12 bg-surface px-3 py-3 no-underline hover:border-brand-500/40 focus-visible:outline-brand-500">
-              <div className="font-ui text-2xl font-semibold tabular-nums text-ink">{tasks.length}</div>
-              <div className="mt-1 text-prose font-medium text-ink-muted">{t(locale, 'employeeHome.todaySummaryTasks')}</div>
-            </a>
-            {sectionOk('surveys') ? <a href="#surveys" onClick={() => focusSection('surveys')} className="rounded-control border border-ink/12 bg-surface px-3 py-3 no-underline hover:border-brand-500/40 focus-visible:outline-brand-500">
-              <div className="font-ui text-2xl font-semibold tabular-nums text-ink">{surveyMeta.openCount ?? '—'}</div>
-              <div className="mt-1 text-prose font-medium text-ink-muted">{t(locale, 'employeeHome.todaySummarySurveys')}</div>
-            </a> : null}
-            <div className={cn('rounded-control border px-3 py-3', attentionCount > 0 ? 'border-warning/25 bg-warning/[0.045]' : 'border-success/20 bg-success/[0.04]')}>
-              <div className="font-ui text-2xl font-semibold tabular-nums text-ink">{attentionCount}</div>
-              <div className="mt-1 text-prose font-medium text-ink-muted">{t(locale, 'employeeHome.todaySummaryAttention')}</div>
-              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-prose">
+          <section className={cn(
+            'mt-5 grid grid-cols-1 items-stretch gap-3',
+            sectionOk('timeClock')
+              ? 'lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)]'
+              : 'lg:max-w-4xl lg:grid-cols-1'
+          )} aria-label={t(locale, 'employeeHome.todaySummary')}>
+            {sectionOk('timeClock') ? (
+              <EmployeeTimeClockTodayCard locale={locale} onBadge={(count) => setTimeClockBadge(Number(count) || 0)} />
+            ) : null}
+            <div className="rounded-card border border-ink/12 bg-surface p-4 sm:p-5">
+              <h2 className="m-0 font-ui text-base font-semibold text-ink">{t(locale, 'employeeHome.todaySummary')}</h2>
+              <div className={cn('mt-4 grid grid-cols-2 gap-2.5', sectionOk('surveys') ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
+                <a href="#tasks" onClick={() => focusSection('tasks')} className="rounded-control border border-ink/10 bg-canvas px-3 py-3 no-underline transition-colors hover:border-brand-500/40 focus-visible:outline-brand-500">
+                  <div className="font-ui text-2xl font-semibold tabular-nums text-ink">{tasks.length}</div>
+                  <div className="mt-1 text-prose font-medium text-ink-muted">{t(locale, 'employeeHome.todaySummaryTasks')}</div>
+                </a>
+                {sectionOk('surveys') ? <a href="#surveys" onClick={() => focusSection('surveys')} className="rounded-control border border-ink/10 bg-canvas px-3 py-3 no-underline transition-colors hover:border-brand-500/40 focus-visible:outline-brand-500">
+                  <div className="font-ui text-2xl font-semibold tabular-nums text-ink">{surveyMeta.openCount ?? '—'}</div>
+                  <div className="mt-1 text-prose font-medium text-ink-muted">{t(locale, 'employeeHome.todaySummarySurveys')}</div>
+                </a> : null}
+                <div className={cn('rounded-control border px-3 py-3', attentionCount > 0 ? 'border-warning/25 bg-warning/[0.045]' : 'border-success/20 bg-success/[0.04]')}>
+                  <div className="font-ui text-2xl font-semibold tabular-nums text-ink">{attentionCount}</div>
+                  <div className="mt-1 text-prose font-medium text-ink-muted">{t(locale, 'employeeHome.todaySummaryAttention')}</div>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-prose">
                 {[
                   ['okr', okrUrgentCount, '#okr', 'employeeHome.okrTitle'],
                   ['lms', lmsOverdueCount, '/employee/lms', 'employeeHome.lmsTitle'],
@@ -611,6 +621,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
                 ].filter(([id, count]) => count > 0 && sectionOk(id)).map(([id, count, href, label]) => (
                   <a key={id} href={href} onClick={() => { if (href.startsWith('#')) focusSection(id); }} className={S.cardLink}>{t(locale, label)}: {count}</a>
                 ))}
+                {attentionCount === 0 ? <span className={S.cardMuted}>{t(locale, 'employeeHome.tasksEmpty')}</span> : null}
               </div>
             </div>
           </section>

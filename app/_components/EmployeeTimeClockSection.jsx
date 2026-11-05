@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import { TIME_PUNCH_KIND } from '../../lib/domain-status.js';
 import { cn } from '../../lib/cn';
@@ -32,7 +33,7 @@ function formatTime(value, locale, timeZone) {
  * Collaborator web time clock: location status (get / refresh before punching), last
  * punch location and the punch button. Location is supplementary and its failure does not prevent recording.
  */
-export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onPunched = null }) {
+export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onPunched = null, compact = false }) {
   const { toast } = useAppFeedback();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -103,8 +104,32 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
     }
   };
 
-  if (loading && !data) return <AppLoading variant="panel" />;
+  if (loading && !data) {
+    return compact
+      ? <div className="h-full min-h-64 rounded-card border border-ink/12 bg-surface p-4 sm:p-5 motion-safe:animate-pulse" aria-label={t(locale, 'common.loading')} />
+      : <AppLoading variant="panel" />;
+  }
   if (!data) {
+    if (compact) {
+      return (
+        <section className="rounded-card border border-ink/12 bg-surface p-4 sm:p-5" aria-labelledby="employee-time-clock-today-title">
+          <h2 id="employee-time-clock-today-title" className="m-0 font-ui text-base font-semibold text-ink">
+            {t(locale, 'employeeHome.timeClockTitle')}
+          </h2>
+          <p className="mb-0 mt-3 rounded-control border border-warning/25 bg-warning/[0.045] px-3 py-3 text-prose text-ink-muted" role="status">
+            {t(locale, 'employeeHome.timeClock.loadError')}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void load()}>
+              {t(locale, 'common.retry')}
+            </button>
+            <Link href="/employee/time-clock" className={cn(S.btnBrandSoft, 'no-underline')}>
+              {t(locale, 'employeeHome.timeClockOpenPage')}
+            </Link>
+          </div>
+        </section>
+      );
+    }
     return (
       <div>
         <EmptyState
@@ -126,6 +151,66 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
       : t(locale, 'employeeHome.timeClock.punchOut');
   const locating = geo.state === 'locating';
   const last = data.lastLocation;
+
+  if (compact) {
+    return (
+      <ContentEnter animKey={`emp-clock-compact|${data.day}|${(data.punches || []).length}|${data.open ? 1 : 0}`}>
+        <section className="flex h-full flex-col rounded-card border border-ink/12 bg-surface p-4 sm:p-5" aria-labelledby="employee-time-clock-today-title">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 id="employee-time-clock-today-title" className="m-0 font-ui text-base font-semibold text-ink">
+                {t(locale, 'employeeHome.timeClockTitle')}
+              </h2>
+              <p className="mb-0 mt-1 text-prose text-ink-muted">{formatDisplayDate(data.day, locale)}</p>
+            </div>
+            <StatusToneChip tone={data.open ? 'success' : 'neutral'}>
+              {t(locale, data.open ? 'employeeHome.timeClock.openShift' : 'employeeHome.timeClock.closedShift')}
+            </StatusToneChip>
+          </div>
+
+          <div className="mt-4 rounded-control border border-brand-500/15 bg-brand-500/[0.045] px-3 py-3">
+            <div className={cn(S.label, 'm-0 text-ink-muted')}>{t(locale, 'employeeHome.todaySchedule')}</div>
+            <div className="mt-1 font-ui text-xl font-semibold tabular-nums text-ink">
+              {data.schedule?.workdayStart || '—'} <span className="text-ink-muted">–</span> {data.schedule?.workdayEnd || '—'}
+            </div>
+          </div>
+
+          {(data.punches || []).length ? (
+            <ol aria-label={t(locale, 'employeeHome.timeClock.timelineLabel')} className="m-0 mt-3 flex list-none flex-wrap gap-2 p-0">
+              {data.punches.slice(0, 4).map((punch) => (
+                <li key={punch.id} className="rounded-control border border-ink/10 bg-canvas px-2.5 py-1.5 text-prose text-ink-muted">
+                  <span className="font-medium text-ink">{kindLabel(punch.punchKind)}</span>
+                  <time dateTime={punch.punchedAt} className="ml-2 tabular-nums">{formatTime(punch.punchedAt, locale, data.schedule?.timezone)}</time>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className={cn(S.cardMuted, 'mb-0 mt-3')}>{t(locale, 'employeeHome.timeClock.noPunches')}</p>
+          )}
+
+          <div className="mt-auto pt-4">
+            <button
+              type="button"
+              className={cn(S.btnPrimary, 'min-h-[3.25rem] w-full px-5 text-base')}
+              onClick={() => void punch()}
+              disabled={busy}
+              aria-busy={busy}
+            >
+              {locating && busy
+                ? t(locale, 'employeeHome.timeClock.geoLocating')
+                : busy
+                  ? t(locale, 'employeeHome.timeClock.punching')
+                  : nextLabel}
+            </button>
+            <p className="mb-0 mt-2 text-center text-xs text-ink-muted">{t(locale, 'rep.locationOptional')}</p>
+            <Link href="/employee/time-clock" className="mt-2 inline-flex min-h-touch items-center text-prose font-medium text-brand-600 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-300">
+              {t(locale, 'employeeHome.timeClockOpenPage')} <span className="ml-1" aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </section>
+      </ContentEnter>
+    );
+  }
 
   return (
     <ContentEnter animKey={`emp-clock|${data.day}|${(data.punches || []).length}|${data.open ? 1 : 0}`}>
