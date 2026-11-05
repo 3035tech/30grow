@@ -21,8 +21,8 @@ describe('buildManagerEmailChangedMail', () => {
 
   it('greets by first name and points to support', () => {
     assert.match(mail.text, /Ana/);
-    assert.match(mail.text, /contact@3035tech\.com/);
-    assert.match(mail.html, /contact@3035tech\.com/);
+    assert.match(mail.text, /info@30grow\.com/);
+    assert.match(mail.html, /info@30grow\.com/);
     assert.ok(mail.subject.length > 5);
   });
 
