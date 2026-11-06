@@ -18,3 +18,15 @@ A página inicial autenticada do colaborador agora reserva o cartão de destaque
 ## O que não entra nesta primeira adaptação
 
 Agenda de eventos, celebrações e status geral da equipe foram deixados fora do painel do colaborador. Eles dependem de dados e permissões próprios, podem gerar ruído no uso diário e não são necessários para resolver o objetivo imediato de acesso ao ponto e às pendências pessoais.
+
+## Polimento transversal da visão do colaborador
+
+O levantamento cobriu as áreas Hoje (tarefas, chegada e pesquisas), Desenvolvimento (PDI, avaliações, metas, cursos, combinados e feedback), Rotina e empresa (DP, ponto, visitas/reembolsos, remuneração variável, mural, reconhecimentos e empresa), além de perfil e segurança.
+
+- Ações secundárias repetidas por registro agora usam `EmployeeIconButton`: anexar/baixar/remover documentos, anexar comprovantes ou fotos, reagir e atualizar localização. Em telas estreitas o rótulo continua visível; em telas largas a ação fica compacta em ícone com dica no foco/hover, nome acessível e alvo de 40px.
+- Ações principais continuam explícitas em texto: bater ponto, pedir férias ou reembolso, enviar reconhecimento, responder pesquisa, assinar ou contestar espelho, salvar perfil.
+- Remoções e cancelamentos continuam exigindo confirmação do sistema. O atalho de remoção de anexo usa cor destrutiva.
+- Falhas de carregamento em notificações, pesquisas, cursos, bônus, saldo de horas e espelhos de ponto agora distinguem erro de lista vazia e oferecem nova tentativa quando a recuperação é possível.
+- Ações do mural e dos reconhecimentos preservam atualização do conteúdo e feedback customizado; exclusão de comentário pede confirmação.
+
+O padrão para futuras mudanças está em `AGENTS.md` e `.cursor/rules/ui-ux.mdc`. O levantamento não cria um calendário de eventos: a referência visual contém eventos e celebrações, mas o produto ainda não tem um cadastro genérico de eventos para alimentar essa área.

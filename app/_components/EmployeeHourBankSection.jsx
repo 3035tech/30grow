@@ -52,13 +52,12 @@ export function EmployeeHourBankSection({ locale = 'pt-BR' }) {
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || 'load');
       setData(json);
-    } catch (e) {
-      toast(e?.message || t(locale, 'employeeHome.hourBank.loadError'), 'error');
+    } catch {
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, [locale, toast]);
+  }, []);
 
   useEffect(() => {
     void load();
@@ -100,6 +99,8 @@ export function EmployeeHourBankSection({ locale = 'pt-BR' }) {
       <EmptyState
         title={t(locale, 'employeeHome.hourBank.emptyTitle')}
         message={t(locale, 'employeeHome.hourBank.loadError')}
+        actionLabel={t(locale, 'panel.common.retry')}
+        onAction={() => void load()}
       />
     );
   }

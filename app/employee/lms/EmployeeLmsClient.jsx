@@ -79,6 +79,7 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
   const quizRef = useRef(null);
   const lessonListRef = useRef(null);
   const [courses, setCourses] = useState([]);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [continueInfo, setContinueInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -92,6 +93,7 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadFailed(false);
     try {
       const res = await fetch('/api/employee/lms');
       if (redirectEmployeeIfUnauthorized(router, res.status)) return;
@@ -99,13 +101,13 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
       if (!res.ok) throw new Error(data?.error || 'load');
       setCourses(Array.isArray(data.courses) ? data.courses : []);
       setContinueInfo(data.continue || null);
-    } catch (e) {
-      toast(e?.message || t(locale, 'employeeHome.lmsLoadError'), 'error');
+    } catch {
+      setLoadFailed(true);
       setCourses([]);
     } finally {
       setLoading(false);
     }
-  }, [locale, router, toast]);
+  }, [router]);
 
   useEffect(() => {
     void load();
@@ -706,7 +708,9 @@ export function EmployeeLmsClient({ locale = 'pt-BR' }) {
         ) : sortedCourses.length === 0 ? (
           <EmptyState
             title={t(locale, 'employeeHome.lmsTitle')}
-            message={t(locale, 'employeeHome.lmsEmptyHint')}
+            message={t(locale, loadFailed ? 'employeeHome.lmsLoadError' : 'employeeHome.lmsEmptyHint')}
+            actionLabel={loadFailed ? t(locale, 'panel.common.retry') : undefined}
+            onAction={loadFailed ? () => void load() : undefined}
           />
         ) : (
           <ul className="m-0 flex list-none flex-col gap-3 p-0">

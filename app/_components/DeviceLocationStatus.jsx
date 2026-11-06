@@ -6,6 +6,7 @@ import { S } from '../dashboard/dashboard-shared';
 import { Icon } from './Icon';
 import { StatusToneChip } from './StatusToneChip';
 import { osmLink } from './PunchLocationMap';
+import { EmployeeIconButton } from './EmployeeIconButton';
 
 const GEO_TONE = { idle: 'neutral', locating: 'info', ok: 'success', error: 'warning' };
 
@@ -34,6 +35,11 @@ export function DeviceLocationStatus({ locale = 'pt-BR', geo, locate, disabled =
       : '',
     error: geo.error,
   }[geo.state];
+  const actionLabel = t(locale, geo.state === 'idle'
+    ? 'employeeHome.timeClock.locGet'
+    : geo.state === 'error'
+      ? 'employeeHome.timeClock.locRetry'
+      : 'employeeHome.timeClock.locRefresh');
 
   return (
     <section aria-labelledby={id} className={cn('flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between', className)}>
@@ -64,14 +70,15 @@ export function DeviceLocationStatus({ locale = 'pt-BR', geo, locate, disabled =
           </p>
         </div>
       </div>
-      <button
-        type="button"
-        className={cn(S.btnGhost, 'min-h-touch shrink-0 text-sm')}
+      <EmployeeIconButton
+        label={actionLabel}
+        mobileLabel={actionLabel}
+        icon="refresh"
+        tint="muted"
         disabled={disabled || geo.state === 'locating'}
+        busy={geo.state === 'locating'}
         onClick={() => void locate().catch(() => {})}
-      >
-        {t(locale, geo.state === 'idle' ? 'employeeHome.timeClock.locGet' : geo.state === 'error' ? 'employeeHome.timeClock.locRetry' : 'employeeHome.timeClock.locRefresh')}
-      </button>
+      />
     </section>
   );
 }

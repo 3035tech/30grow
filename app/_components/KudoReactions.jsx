@@ -6,6 +6,7 @@ import { t } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
+import { EmployeeIconButton } from './EmployeeIconButton';
 
 const EMPTY_REACTIONS = Object.freeze([]);
 
@@ -102,10 +103,18 @@ export function KudoReactions({ kudoId, initialReactions = EMPTY_REACTIONS, loca
             </button>
           );
         })}
-        <button ref={reactButtonRef} type="button" className={cn(S.btnGhost, 'min-h-touch')} disabled={busy || loadingPeople}
-          aria-expanded={pickerOpen} aria-controls={pickerId} onClick={() => setPickerOpen(open => !open)}>
-          <span aria-hidden="true">😊 </span>{busy ? t(locale, 'panel.common.loading') : label('kudosReact')}
-        </button>
+        <EmployeeIconButton
+          buttonRef={reactButtonRef}
+          label={busy ? t(locale, 'panel.common.loading') : label('kudosReact')}
+          mobileLabel={label('kudosReact')}
+          icon="smile"
+          tint="brand"
+          disabled={busy || loadingPeople}
+          busy={busy}
+          ariaExpanded={pickerOpen}
+          ariaControls={pickerId}
+          onClick={() => setPickerOpen(open => !open)}
+        />
         {reactions.length > 0 ? (
           <button type="button" className={cn(S.btnGhost, 'min-h-touch')} disabled={busy || loadingPeople}
             aria-expanded={peopleOpen} aria-controls={peopleId}

@@ -21,6 +21,7 @@ import { BR_STATES } from '../../lib/recruiting/candidate-profile.js';
 import { formatCepBr, formatCpfBr, formatPhoneBr } from '../../lib/br-masks.js';
 import { SignaturePadField, SignatureStrokePreview } from './SignaturePadField';
 import { Icon } from './Icon';
+import { EmployeeIconButton } from './EmployeeIconButton';
 import {
   DP_DOCUMENT_STATUS,
   DP_DOCUMENT_SIGNATURE_STATUS,
@@ -695,7 +696,7 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                         </StatusToneChip>
                       ) : null}
                       {doc.hasFile ? (
-                        <PrivateAttachment href={`/api/employee/dp/documents/${encodeURIComponent(doc.docKey)}/file`} fileName={doc.fileName} updatedAt={doc.updatedAt} locale={locale} />
+                        <PrivateAttachment href={`/api/employee/dp/documents/${encodeURIComponent(doc.docKey)}/file`} fileName={doc.fileName} updatedAt={doc.updatedAt} locale={locale} iconOnly />
                       ) : doc.status !== DP_DOCUMENT_STATUS.RECEIVED ? (
                         <span className="font-mono text-2xs text-ink-muted">{t(locale, 'panel.dp.docNoFile')}</span>
                       ) : null}
@@ -739,26 +740,25 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                     ) : null}
                     {doc.status !== DP_DOCUMENT_STATUS.WAIVED
                       && sig !== DP_DOCUMENT_SIGNATURE_STATUS.SIGNED ? (
-                      <button
-                        type="button"
+                      <EmployeeIconButton
+                        label={uploadKey === doc.docKey ? t(locale, 'panel.common.loading') : t(locale, 'panel.dp.docUpload')}
+                        mobileLabel={t(locale, 'panel.dp.docUpload')}
+                        icon="upload"
                         disabled={busy || uploadKey === doc.docKey}
-                        className={cn(S.btnGhost, 'min-h-touch text-sm')}
+                        busy={uploadKey === doc.docKey}
                         onClick={() => startUpload(doc.docKey)}
-                      >
-                        {uploadKey === doc.docKey
-                          ? t(locale, 'panel.common.loading')
-                          : t(locale, 'panel.dp.docUpload')}
-                      </button>
+                        tint="brand"
+                      />
                     ) : null}
                     {doc.hasFile && sig !== DP_DOCUMENT_SIGNATURE_STATUS.SIGNED ? (
-                      <button
-                        type="button"
+                      <EmployeeIconButton
+                        label={t(locale, 'panel.dp.docDeleteFile')}
+                        mobileLabel={t(locale, 'panel.dp.docDeleteFile')}
+                        icon="trash"
+                        tint="danger"
                         disabled={busy}
-                        className={cn(S.btnGhost, 'min-h-touch text-sm text-danger')}
                         onClick={() => void removeFile(doc)}
-                      >
-                        {t(locale, 'panel.dp.docDeleteFile')}
-                      </button>
+                      />
                     ) : null}
                   </div>
                   ) : null}
@@ -779,7 +779,7 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                         </p>
                         {doc.hasFile ? (
                           <div className="mb-3">
-                            <PrivateAttachment href={`/api/employee/dp/documents/${encodeURIComponent(doc.docKey)}/file`} fileName={doc.fileName} updatedAt={doc.updatedAt} locale={locale} />
+                            <PrivateAttachment href={`/api/employee/dp/documents/${encodeURIComponent(doc.docKey)}/file`} fileName={doc.fileName} updatedAt={doc.updatedAt} locale={locale} iconOnly />
                           </div>
                         ) : null}
                         <FormField label={t(locale, 'panel.dp.sigStrokeLabel')}>
@@ -901,7 +901,7 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                     ) : null}
                     {row.hasFile ? (
                       <div className="mt-2">
-                        <PrivateAttachment href={`/api/employee/dp/leave/${encodeURIComponent(row.id)}/file`} fileName={row.fileName} locale={locale} />
+                        <PrivateAttachment href={`/api/employee/dp/leave/${encodeURIComponent(row.id)}/file`} fileName={row.fileName} locale={locale} iconOnly />
                       </div>
                     ) : null}
                   </div>
@@ -923,16 +923,15 @@ export function EmployeeDpSection({ locale = 'pt-BR', onBadge, showIntro = true 
                       {row.leaveType === DP_LEAVE_TYPE.SICK &&
                       row.status !== DP_LEAVE_STATUS.CANCELLED &&
                       row.status !== DP_LEAVE_STATUS.REJECTED ? (
-                        <button
-                          type="button"
+                        <EmployeeIconButton
+                          label={leaveUploadId === row.id ? t(locale, 'panel.common.loading') : t(locale, 'panel.dp.leaveAttachFile')}
+                          mobileLabel={t(locale, 'panel.dp.leaveAttachFile')}
+                          icon="paperclip"
+                          tint="brand"
                           disabled={busy || leaveUploadId === row.id}
-                          className={cn(S.btnGhost, 'min-h-touch text-sm')}
+                          busy={leaveUploadId === row.id}
                           onClick={() => startLeaveUpload(row.id)}
-                        >
-                          {leaveUploadId === row.id
-                            ? t(locale, 'panel.common.loading')
-                            : t(locale, 'panel.dp.leaveAttachFile')}
-                        </button>
+                        />
                       ) : null}
                     </div>
                   </div>

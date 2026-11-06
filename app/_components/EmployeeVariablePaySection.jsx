@@ -7,7 +7,6 @@ import { formatSalaryDisplay } from '../../lib/br-masks';
 import { S } from '../dashboard/dashboard-shared';
 import { EmptyState } from './EmptyState';
 import { AppLoading, ContentEnter } from './AppLoading';
-import { useAppFeedback } from './AppFeedback';
 import { StatusToneChip } from './StatusToneChip';
 import { COMPENSATION_APPROVAL_STATUS } from '../../lib/domain-status.js';
 import { redirectEmployeeIfUnauthorized } from '../../lib/employee/employee-client-session';
@@ -36,14 +35,15 @@ function eventTypeLabel(locale, type) {
  */
 export function EmployeeVariablePaySection({ locale = 'pt-BR', onBadge }) {
   const router = useRouter();
-  const { toast } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const onBadgeRef = useRef(onBadge);
   onBadgeRef.current = onBadge;
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadFailed(false);
     try {
       const res = await fetch('/api/employee/compensation');
       if (redirectEmployeeIfUnauthorized(router, res.status)) return;
@@ -56,20 +56,31 @@ export function EmployeeVariablePaySection({ locale = 'pt-BR', onBadge }) {
           next.filter((i) => i.approvalStatus === COMPENSATION_APPROVAL_STATUS.PROPOSED).length
         );
       }
-    } catch (e) {
-      toast(e?.message || t(locale, 'panel.variablePay.employeeLoadError'), 'error');
+    } catch {
+      setLoadFailed(true);
       setItems([]);
       if (typeof onBadgeRef.current === 'function') onBadgeRef.current(0);
     } finally {
       setLoading(false);
     }
-  }, [locale, router, toast]);
+  }, [router]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   if (loading) return <AppLoading variant="panel" />;
+
+  if (loadFailed) {
+    return (
+      <EmptyState
+        title={t(locale, 'panel.common.loadFailed')}
+        message={t(locale, 'panel.variablePay.employeeLoadError')}
+        actionLabel={t(locale, 'panel.common.retry')}
+        onAction={() => void load()}
+      />
+    );
+  }
 
   return (
     <ContentEnter animKey={`emp-vp|${items.length}`}>

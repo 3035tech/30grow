@@ -37,13 +37,12 @@ export function EmployeePdiClient({ locale = 'pt-BR' }) {
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || 'pdi');
       setData(json);
-    } catch (error) {
+    } catch {
       setFailed(true);
-      toast(error?.message || t(locale, 'employeeHome.loadError'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [locale, toast]);
+  }, [locale]);
 
   useEffect(() => { void load(); }, [load]);
 

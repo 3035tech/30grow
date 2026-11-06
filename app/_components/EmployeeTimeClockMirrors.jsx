@@ -11,6 +11,7 @@ import { ContentEnter } from './AppLoading';
 import { useAppFeedback } from './AppFeedback';
 import { StatMetricTile } from './StatMetricTile';
 import { StatusToneChip } from './StatusToneChip';
+import { EmptyState } from './EmptyState';
 
 const K = 'employeeHome.timeMirror';
 const KM = 'panel.timeClockMgr';
@@ -37,16 +38,17 @@ async function postAck(closureId, body) {
  */
 export function EmployeeTimeClockMirrors({ locale = 'pt-BR' }) {
   const { toast, promptForm } = useAppFeedback();
-  const [state, setState] = useState({ items: [], loading: true });
+  const [state, setState] = useState({ items: [], loading: true, error: false });
 
   const load = useCallback(async () => {
+    setState((previous) => ({ ...previous, loading: true, error: false }));
     try {
       const res = await fetch('/api/employee/time-clock/closures');
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || String(res.status));
-      setState({ items: data.items || [], loading: false });
+      setState({ items: data.items || [], loading: false, error: false });
     } catch {
-      setState({ items: [], loading: false });
+      setState({ items: [], loading: false, error: true });
     }
   }, []);
 
@@ -116,7 +118,20 @@ export function EmployeeTimeClockMirrors({ locale = 'pt-BR' }) {
     });
   };
 
-  if (state.loading || !state.items.length) return null;
+  if (state.loading) return null;
+  if (state.error) {
+    return (
+      <section id="mirrors" className="mt-4 scroll-mt-20 rounded-card border border-ink/12 bg-surface p-4 sm:p-5">
+        <EmptyState
+          title={t(locale, `${K}.title`)}
+          message={t(locale, `${K}.loadError`)}
+          actionLabel={t(locale, 'panel.common.retry')}
+          onAction={() => void load()}
+        />
+      </section>
+    );
+  }
+  if (!state.items.length) return null;
 
   return (
     <section

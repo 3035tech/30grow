@@ -28,9 +28,11 @@ export function EmployeeSurveysSection({ locale = 'pt-BR', onMeta }) {
   const [answers, setAnswers] = useState({});
   const [busy, setBusy] = useState(false);
   const [active, setActive] = useState(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadFailed(false);
     try {
       const res = await fetch(`/api/employee/surveys?locale=${encodeURIComponent(locale)}`);
       const json = await res.json().catch(() => ({}));
@@ -40,14 +42,14 @@ export function EmployeeSurveysSection({ locale = 'pt-BR', onMeta }) {
         (json?.openClimate?.length || 0) + (json?.openPulse?.length || 0);
       const hasAny = openCount > 0 || (json?.history?.length || 0) > 0;
       onMeta?.({ openCount, hasAny });
-    } catch (e) {
-      toast(e?.message || t(locale, 'employeeHome.surveysLoadError'), 'error');
+    } catch {
+      setLoadFailed(true);
       setInbox(null);
       onMeta?.({ openCount: 0, hasAny: false });
     } finally {
       setLoading(false);
     }
-  }, [locale, toast, onMeta]);
+  }, [locale, onMeta]);
 
   useEffect(() => {
     void load();
@@ -94,6 +96,16 @@ export function EmployeeSurveysSection({ locale = 'pt-BR', onMeta }) {
     ...(inbox?.openPulse || []).map((s) => ({ ...s, kind: 'pulse', key: `p-${s.pulseId}` })),
   ];
   const history = inbox?.history || [];
+
+  if (loadFailed) {
+    return (
+      <EmptyState
+        message={t(locale, 'employeeHome.surveysLoadError')}
+        actionLabel={t(locale, 'panel.common.retry')}
+        onAction={() => void load()}
+      />
+    );
+  }
 
   if (!open.length && !history.length) {
     return (

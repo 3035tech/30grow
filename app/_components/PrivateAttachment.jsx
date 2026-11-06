@@ -5,12 +5,13 @@ import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { S } from '../dashboard/dashboard-shared';
 import { Icon } from './Icon';
+import { EmployeeIconButton } from './EmployeeIconButton';
 
 const DOWNLOAD_TIMEOUT_MS = 30 * 1000;
 const OBJECT_URL_LIFETIME_MS = 60 * 1000;
 
 /** An authenticated app endpoint, never a storage URL or a shareable link. */
-export function PrivateAttachment({ href, fileName, updatedAt, locale = 'pt-BR' }) {
+export function PrivateAttachment({ href, fileName, updatedAt, locale = 'pt-BR', iconOnly = false }) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const pending = useRef(false);
@@ -65,11 +66,23 @@ export function PrivateAttachment({ href, fileName, updatedAt, locale = 'pt-BR' 
             </p>
           ) : null}
         </div>
-        <button type="button" className={cn(S.btnGhost, 'min-h-touch gap-2')} onClick={() => void download()}
-          disabled={busy} aria-busy={busy} aria-label={`${t(locale, 'panel.dp.docDownload')}: ${name}`}>
-          <Icon name="download" />
-          <span aria-live="polite">{t(locale, busy ? 'panel.dp.docDownloading' : 'panel.dp.docDownload')}</span>
-        </button>
+        {iconOnly ? (
+          <EmployeeIconButton
+            label={`${t(locale, busy ? 'panel.dp.docDownloading' : 'panel.dp.docDownload')}: ${name}`}
+            mobileLabel={t(locale, busy ? 'panel.dp.docDownloading' : 'panel.dp.docDownload')}
+            icon="download"
+            disabled={busy}
+            busy={busy}
+            onClick={() => void download()}
+            tint="brand"
+          />
+        ) : (
+          <button type="button" className={cn(S.btnGhost, 'min-h-touch gap-2')} onClick={() => void download()}
+            disabled={busy} aria-busy={busy} aria-label={`${t(locale, 'panel.dp.docDownload')}: ${name}`}>
+            <Icon name="download" />
+            <span aria-live="polite">{t(locale, busy ? 'panel.dp.docDownloading' : 'panel.dp.docDownload')}</span>
+          </button>
+        )}
       </div>
       {failed ? <p role="alert" className="mb-0 mt-2 text-xs text-danger">{t(locale, 'panel.dp.docDownloadError')}</p> : null}
     </div>

@@ -28,6 +28,8 @@ Detalhe canônico: `AGENTS.md` (seção UI/UX). Complemento por arquivo: `.curso
 10. **Acessibilidade básica** — contraste legível, foco visível, `title`/tooltip em modo ícone, não depender só de cor.
 11. **Copy hedged no domínio** (“tende a / há indícios”); nunca tom de diagnóstico clínico.
 12. **Sem ` — ` em labels/copy de UI** (qualquer idioma): tell clássico de IA. Preferir `:`, `. `, ` · ` ou en dash colado em faixas. Ver `.cursor/rules/copy-no-emdash.mdc`.
+13. **Ações compactas na visão do colaborador** — usar ícones apenas em ações secundárias repetidas por linha/cartão (anexar, baixar, remover, reagir); reutilizar `EmployeeIconButton` + `IconActionTip`, com alvo de 40px, nome acessível localizado, dica no foco/hover e tom destrutivo em vermelho. Ações principais e irreversíveis continuam com texto visível; remoções mantêm confirmação customizada. Em interfaces sem tooltip (toque), o contexto do item deve deixar a ação compreensível.
+14. **Eventos da visão do colaborador** — toda mutação precisa atualizar o conteúdo visível e dar retorno localizado via `useAppFeedback`; usar `toast` para sucesso/erro breve, estados inline para falha recuperável, confirmação customizada para exclusão/cancelamento e `aria-live` para mudanças assíncronas. Não mostrar sucesso quando a operação falhou parcialmente.
 
 ## Anti-padrões (evitar)
 

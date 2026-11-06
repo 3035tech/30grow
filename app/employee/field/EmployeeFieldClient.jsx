@@ -12,6 +12,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmployeeDedicatedShell } from '../../_components/EmployeeDedicatedShell';
 import { EmptyState } from '../../_components/EmptyState';
 import { DeviceLocationStatus } from '../../_components/DeviceLocationStatus';
+import { EmployeeIconButton } from '../../_components/EmployeeIconButton';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { osmLink } from '../../_components/PunchLocationMap';
 import { useDeviceLocation } from '../../_components/useDeviceLocation';
@@ -347,9 +348,15 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
                         </button>
                       ) : null}
                       {v.status === FIELD_VISIT_STATUS.CHECKED_IN || v.status === FIELD_VISIT_STATUS.DONE ? (
-                        <button type="button" disabled={busyId === `photo${v.id}`} className={cn(S.btnGhost, 'min-h-touch text-sm')} onClick={() => pickFile({ kind: 'photo', id: v.id })}>
-                          {busyId === `photo${v.id}` ? t(locale, 'panel.common.loading') : t(locale, v.hasPhoto ? 'panel.field.replacePhoto' : 'panel.field.addPhoto')}
-                        </button>
+                        <EmployeeIconButton
+                          label={busyId === `photo${v.id}` ? t(locale, 'panel.common.loading') : t(locale, v.hasPhoto ? 'panel.field.replacePhoto' : 'panel.field.addPhoto')}
+                          mobileLabel={t(locale, v.hasPhoto ? 'panel.field.replacePhoto' : 'panel.field.addPhoto')}
+                          icon="upload"
+                          tint="brand"
+                          disabled={busyId === `photo${v.id}`}
+                          busy={busyId === `photo${v.id}`}
+                          onClick={() => pickFile({ kind: 'photo', id: v.id })}
+                        />
                       ) : null}
                     </div>
                   </li>
@@ -397,9 +404,15 @@ export function EmployeeFieldClient({ locale = 'pt-BR' }) {
                       <StatusToneChip tone={fieldExpenseTone(e.status)}>{fieldExpenseStatusLabel(locale, e.status)}</StatusToneChip>
                       {e.status === FIELD_EXPENSE_STATUS.PENDING ? (
                         <div className="flex flex-wrap justify-end gap-2">
-                          <button type="button" disabled={busyId === `receipt${e.id}`} className={cn(S.btnGhost, 'min-h-touch text-sm')} onClick={() => pickFile({ kind: 'receipt', id: e.id })}>
-                            {busyId === `receipt${e.id}` ? t(locale, 'panel.common.loading') : t(locale, e.hasReceipt ? 'panel.field.replaceReceipt' : 'panel.field.attachReceipt')}
-                          </button>
+                          <EmployeeIconButton
+                            label={busyId === `receipt${e.id}` ? t(locale, 'panel.common.loading') : t(locale, e.hasReceipt ? 'panel.field.replaceReceipt' : 'panel.field.attachReceipt')}
+                            mobileLabel={t(locale, e.hasReceipt ? 'panel.field.replaceReceipt' : 'panel.field.attachReceipt')}
+                            icon="paperclip"
+                            tint="brand"
+                            disabled={busyId === `receipt${e.id}`}
+                            busy={busyId === `receipt${e.id}`}
+                            onClick={() => pickFile({ kind: 'receipt', id: e.id })}
+                          />
                           <button type="button" disabled={busyId === `e${e.id}`} className={cn(S.btnGhost, 'min-h-touch text-sm')} onClick={() => void cancelExpense(e)}>
                             {t(locale, 'panel.field.cancelExpense')}
                           </button>

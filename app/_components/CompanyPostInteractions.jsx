@@ -7,6 +7,8 @@ import { cn } from '../../lib/cn';
 import { formatDisplayDateTime } from '../../lib/format-display-date';
 import { S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
+import { Icon } from './Icon';
+import { EmployeeIconButton } from './EmployeeIconButton';
 
 export function CompanyPostInteractions({ postId, initialReactions = [], initialCommentCount = 0, locale = 'pt-BR' }) {
   const { toast } = useAppFeedback();
@@ -108,13 +110,21 @@ export function CompanyPostInteractions({ postId, initialReactions = [], initial
             {reaction.emoji} {reaction.count}
           </button>
         ))}
-        <button type="button" className={S.btnGhost} disabled={busy} aria-expanded={pickerOpen}
-          onClick={() => setPickerOpen(open => !open)}>{copy('feedReact')}</button>
+        <EmployeeIconButton
+          label={copy('feedReact')}
+          mobileLabel={copy('feedReact')}
+          icon="smile"
+          tint="brand"
+          disabled={busy}
+          ariaExpanded={pickerOpen}
+          onClick={() => setPickerOpen(open => !open)}
+        />
         <button type="button" className={S.btnGhost} disabled={busy} aria-expanded={commentsOpen}
           onClick={() => {
             if (!commentsOpen && !comments.length) loadComments();
             setCommentsOpen(open => !open);
           }}>
+          <Icon name="messageCircle" />
           {copy('feedComments', { n: commentCount })}
         </button>
       </div>

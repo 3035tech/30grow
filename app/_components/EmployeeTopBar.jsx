@@ -17,6 +17,7 @@ import { useEmployeeNav } from './EmployeeNavContext';
 import { redirectEmployeeIfUnauthorized } from '../../lib/employee/employee-client-session';
 import { EmployeeLogoutButton } from './EmployeeLogoutButton';
 import { ProfileMenuTrigger, profileMenuPanelClass, profileMenuItemClass } from './ProfileUi';
+import { InlineCallout } from './InlineCallout';
 
 /**
  * Collaborator chrome — theme, notifications, profile menu.
@@ -35,6 +36,7 @@ export function EmployeeTopBar({
   const [profileOpen, setProfileOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifLoadError, setNotifLoadError] = useState(false);
   const [companyChoices, setCompanyChoices] = useState([]);
   const [companyChoicesLoaded, setCompanyChoicesLoaded] = useState(false);
   const [companyChoicesLoading, setCompanyChoicesLoading] = useState(false);
@@ -46,12 +48,13 @@ export function EmployeeTopBar({
     try {
       const res = await fetch('/api/employee/notifications?limit=20');
       if (redirectEmployeeIfUnauthorized(router, res.status)) return;
-      if (!res.ok) return;
+      if (!res.ok) throw new Error('notifications');
       const data = await res.json();
       setItems(Array.isArray(data.items) ? data.items : []);
       setUnreadCount(typeof data.unreadCount === 'number' ? data.unreadCount : 0);
+      setNotifLoadError(false);
     } catch {
-      /* ignore */
+      setNotifLoadError(true);
     }
   }, [router]);
 
@@ -306,7 +309,19 @@ export function EmployeeTopBar({
                     </button>
                   ) : null}
                 </div>
-                {items.length === 0 ? (
+                {notifLoadError ? (
+                  <InlineCallout
+                    tone="danger"
+                    role="alert"
+                    action={(
+                      <button type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={() => void loadNotifs()}>
+                        {t(locale, 'common.retry')}
+                      </button>
+                    )}
+                  >
+                    {t(locale, 'employeeHome.notificationsLoadError')}
+                  </InlineCallout>
+                ) : items.length === 0 ? (
                   <EmptyState
                     className="border-0 bg-transparent px-2 py-4"
                     message={t(locale, 'employeeHome.notificationsEmpty')}

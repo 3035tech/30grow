@@ -248,6 +248,35 @@ export function Icon({ name, className }) {
           <path d="M5 21h14" />
         </svg>
       );
+    case 'upload':
+      return (
+        <svg {...props}>
+          <path d="M12 16V4" />
+          <path d="m7 9 5-5 5 5" />
+          <path d="M5 20h14" />
+        </svg>
+      );
+    case 'messageCircle':
+      return (
+        <svg {...props}>
+          <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.5-.8L4 20l1.8-4.1A7.5 7.5 0 1 1 20 11.5Z" />
+          <path d="M8 11h.01M12 11h.01M16 11h.01" />
+        </svg>
+      );
+    case 'smile':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+          <path d="M9 9h.01M15 9h.01" />
+        </svg>
+      );
+    case 'paperclip':
+      return (
+        <svg {...props}>
+          <path d="m8 12.5 6.7-6.7a3.2 3.2 0 0 1 4.5 4.5l-8.8 8.8a5 5 0 0 1-7.1-7.1l8.5-8.5" />
+        </svg>
+      );
     case 'plus':
     case 'add':
       return (

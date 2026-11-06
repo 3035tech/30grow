@@ -114,15 +114,18 @@ export function EmployeeKudosPanel({
   }, [initialItems, initialTotal]);
 
   const refresh = useCallback(async () => {
-    const res = await fetch('/api/employee/kudos?page=1&pageSize=15');
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data.ok) {
+    try {
+      const res = await fetch('/api/employee/kudos?page=1&pageSize=15');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error('Could not refresh recognition list');
       setItems(data.kudos || []);
       setTotal(data.total || 0);
       setPage(1);
       onChanged?.(data.total || 0);
+    } catch {
+      toast(t(locale, 'employeeHome.kudosLoadError'), 'error');
     }
-  }, [onChanged]);
+  }, [locale, onChanged, toast]);
 
   async function loadMore() {
     if (busy || items.length >= total) return;

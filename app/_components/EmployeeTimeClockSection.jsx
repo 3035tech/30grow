@@ -56,13 +56,12 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
       if (typeof onBadgeRef.current === 'function') {
         onBadgeRef.current(json.open ? 1 : 0);
       }
-    } catch (e) {
-      toast(e?.message || t(locale, 'employeeHome.timeClock.loadError'), 'error');
+    } catch {
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, [locale, toast]);
+  }, []);
 
   useEffect(() => {
     void load();
