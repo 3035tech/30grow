@@ -14,6 +14,7 @@ Sobre isso o produto cobre o ciclo da pessoa na empresa: vagas e funil, contrata
 | [`test/README.md`](test/README.md) | Provas: DTOV (Postgres efêmero), HTTP smoke, Playwright |
 | [`migrations/README.md`](migrations/README.md) | Schema canônico e convenções de migration |
 | [`docs/release-runbook.md`](docs/release-runbook.md) | Homologação, produção e rollback |
+| [`docs/registro-inpi-30grow-ponto.md`](docs/registro-inpi-30grow-ponto.md) | Retomada do pedido de registro de software no INPI (30Grow Ponto - REP-P) |
 | [`docs/stripe-billing.md`](docs/stripe-billing.md) | Assinaturas Stripe, licença no perfil, configuração e validação por ambiente |
 | [`docs/company-data-transfer.md`](docs/company-data-transfer.md) | Transferência de uma empresa pelo pgAdmin, conflitos de IDs e conferência dos dados |
 | [`docs/job-seo-and-distribution.md`](docs/job-seo-and-distribution.md) | Página pública da vaga, SEO, Indexing API, funil |
@@ -186,6 +187,7 @@ Todos exigem `Authorization: Bearer $CRON_SECRET` (ou `X-Cron-Secret`).
 | `POST /api/cron/vacancy-deadline-notifications` | Prazos de vaga |
 | `POST /api/cron/notification-retention` | Limpeza de notificações antigas (gestores e colaboradores; migration 146 cria o índice da tabela do colaborador) |
 | `POST /api/cron/manager-weekly-digest` | Digest semanal do gestor |
+| `POST /api/cron/time-clock-open-day-reminders` | Diário: avisa cada colaborador elegível com jornada incompleta no dia anterior (deduplicado por pessoa/dia) |
 | `POST /api/cron/analytics-report?frequency=weekly\|monthly` | Relatório agendado por e-mail |
 | `POST /api/cron/hour-bank-checkpoints` | Diário: checkpoint do saldo do banco de horas (migration 148; ver `docs/time-clock-manager.md`) |
 

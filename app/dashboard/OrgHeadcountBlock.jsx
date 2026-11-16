@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { formatDisplayDate } from '../../lib/format-display-date.js';
 import { t } from '../../lib/i18n';
+import { validateFormElementValues } from '../../lib/form-validation.js';
 import { positionStatus, POSITION_TRANSITIONS } from '../../lib/org-position-constants.js';
 import { orgUnitOptions } from '../../lib/org-unit-constants.js';
 import { useListUrlState, useListSearchDraft } from './hooks/useListUrlState';
@@ -141,6 +142,19 @@ export function OrgHeadcountBlock({
   const field = (key, value) => setDraft((previous) => ({ ...previous, [key]: value }));
   const submit = async (event) => {
     event.preventDefault();
+    const validationError = validateFormElementValues(event.currentTarget, locale);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+    if (dialog.mode === 'assign' && !draft.candidateId) {
+      setFormError(t(locale, 'formValidation.requiredField', { field: msg('candidate') }));
+      return;
+    }
+    if (dialog.mode === 'link' && !draft.vacancyId) {
+      setFormError(t(locale, 'formValidation.requiredField', { field: msg('vacancy') }));
+      return;
+    }
     setBusy(true);
     setFormError('');
     try {
@@ -578,11 +592,7 @@ export function OrgHeadcountBlock({
               type="submit"
               form="org-position-form"
               className={S.btnPrimary}
-              disabled={
-                busy ||
-                (dialog?.mode === 'assign' && !draft.candidateId) ||
-                (dialog?.mode === 'link' && !draft.vacancyId)
-              }
+              disabled={busy}
             >
               {busy
                 ? t(locale, 'panel.common.loading')
@@ -594,7 +604,7 @@ export function OrgHeadcountBlock({
         }
       >
         {dialog ? (
-          <form id="org-position-form" onSubmit={submit} className="space-y-4" aria-busy={busy}>
+          <form id="org-position-form" noValidate onSubmit={submit} className="space-y-4" aria-busy={busy}>
             {formError ? (
               <p role="alert" className="text-sm text-danger">
                 {formError}
@@ -696,24 +706,26 @@ export function OrgHeadcountBlock({
               <>
                 <p className="text-sm text-ink-muted">{msg(`${dialog.mode}Hint`)}</p>
                 {dialog.mode === 'assign' ? (
-                  <FormField label={msg('candidate')}>
+                  <FormField label={msg('candidate')} required>
                     <EntitySearchSelect
                       locale={locale}
                       aria-label={msg('candidate')}
                       searchUrl={`/api/admin/employees/search?companyId=${companyId}`}
                       value={draft.candidateId}
                       onChange={(value) => field('candidateId', value)}
+                      required
                     />
                   </FormField>
                 ) : null}
                 {dialog.mode === 'link' ? (
-                  <FormField label={msg('vacancy')}>
+                  <FormField label={msg('vacancy')} required>
                     <EntitySearchSelect
                       locale={locale}
                       aria-label={msg('vacancy')}
                       searchUrl={`/api/admin/vacancies/search?companyId=${companyId}`}
                       value={draft.vacancyId}
                       onChange={(value) => field('vacancyId', value)}
+                      required
                     />
                   </FormField>
                 ) : (

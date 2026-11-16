@@ -23,7 +23,7 @@ export const POST = withAdminApi({ cap: CAP.PERFORMANCE_VIEW, body: z.object({ c
     await audit({ actorUserId: payload.userId, action: 'formal_review_cycle_publish', targetType: 'formal_review_cycle', targetId: cycleId, metadata: { companyId, count } });
     return NextResponse.json({ ok: true, count });
   } catch (error) {
-    if (error.publicationResult) return apiErrorFromResult(request, error.publicationResult);
+    if (error.publicationResult) return apiErrorFromResult(request, error.publicationResult, { values: error.publicationResult.errorValues });
     throw error;
   }
 });

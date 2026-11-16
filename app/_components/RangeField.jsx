@@ -24,6 +24,7 @@ export function RangeField({
   maxLabel,
   label,
   disabled = false,
+  required = false,
   hideScale = false,
   className,
 }) {
@@ -49,6 +50,7 @@ export function RangeField({
           step={safeStep}
           value={sliderValue}
           disabled={disabled}
+          aria-required={required || undefined}
           onChange={(e) => onChange(e.target.value)}
           className="ui-range min-w-0 flex-1"
           aria-label={label}
@@ -60,12 +62,14 @@ export function RangeField({
             min={min}
             max={max}
             step={safeStep}
+            required={required}
             value={raw}
             disabled={disabled}
             onChange={(e) => onChange(e.target.value)}
             onBlur={commitTyped}
             className="min-h-touch w-16 border-0 bg-transparent px-2 text-right font-mono text-sm tabular-nums text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             aria-label={label}
+            aria-required={required || undefined}
           />
           {suffix ? <span className="font-mono text-sm text-ink-muted">{suffix}</span> : null}
         </span>

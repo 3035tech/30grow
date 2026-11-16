@@ -61,6 +61,7 @@ export function RichTextEditor({
   locale = 'pt-BR',
   disabled = false,
   'aria-label': ariaLabel,
+  'aria-required': ariaRequired,
 }) {
   const ref = useRef(null);
   const lastHtml = useRef('');
@@ -203,6 +204,7 @@ export function RichTextEditor({
           aria-multiline="true"
           aria-disabled={disabled || undefined}
           aria-label={ariaLabel || ph}
+          aria-required={ariaRequired || undefined}
           onInput={emit}
           onBlur={emit}
           onKeyDown={onKeyDown}

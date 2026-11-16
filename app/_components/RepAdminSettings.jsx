@@ -1,6 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
+import { validateFormElementValues } from '../../lib/form-validation';
+import { digitsOnly, formatCpfBr, formatCpfCnpjBr, stripCpf, stripCpfCnpjBr } from '../../lib/br-masks.js';
 import { S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
 
@@ -25,6 +27,7 @@ export function RepAdminSettings({ companyId, locale }) {
   const [state, setState] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [formValues, setFormValues] = useState({});
   const { toast } = useAppFeedback();
   const load = useCallback(
     async (signal) => {
@@ -53,16 +56,31 @@ export function RepAdminSettings({ companyId, locale }) {
     const controller = new AbortController();
     setState(null);
     setLoadError(false);
+    setFormValues({});
     void load(controller.signal);
     return () => controller.abort();
   }, [load]);
   const save = async (event, action) => {
     event.preventDefault();
     if (busy) return;
+    const validationError = validateFormElementValues(event.currentTarget, locale);
+    if (validationError) {
+      toast(validationError, 'error');
+      return;
+    }
     setBusy(true);
     const form = event.currentTarget;
     try {
       const data = Object.fromEntries(new FormData(form));
+      if (action === 'establishment') {
+        data.employerDocument = stripCpfCnpjBr(data.employerDocument) || '';
+        data.complementaryDocument = digitsOnly(data.complementaryDocument).slice(0, 14);
+        data.registration = digitsOnly(data.registration).slice(0, 17);
+        data.responsibleCpf = stripCpf(data.responsibleCpf) || '';
+      } else {
+        data.cpf = stripCpf(data.cpf) || '';
+        data.responsibleCpf = stripCpf(data.responsibleCpf) || '';
+      }
       const res = await fetch('/api/admin/time-clock/rep', {
         method: 'POST',
         signal: AbortSignal.timeout(30000),
@@ -74,6 +92,7 @@ export function RepAdminSettings({ companyId, locale }) {
           res.status === 409 || res.status === 400 ? 'invalid' : 'save',
         );
       form.reset();
+      setFormValues((current) => ({ ...current, [action]: {} }));
       toast(t(locale, 'rep.saved'), 'success');
       await load();
     } catch (error) {
@@ -91,6 +110,11 @@ export function RepAdminSettings({ companyId, locale }) {
   const download = async (event) => {
     event.preventDefault();
     if (busy) return;
+    const validationError = validateFormElementValues(event.currentTarget, locale);
+    if (validationError) {
+      toast(validationError, 'error');
+      return;
+    }
     setBusy(true);
     try {
       const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -127,7 +151,24 @@ export function RepAdminSettings({ companyId, locale }) {
       setBusy(false);
     }
   };
-  const input = (name, defaultValue = '') => {
+  const input = (name, defaultValue = '', formKey = '') => {
+    const required = name !== 'complementaryDocument';
+    const isMasked = ['employerDocument', 'cpf', 'responsibleCpf', 'registration', 'complementaryDocument'].includes(name);
+    const initialValue = name === 'employerDocument'
+      ? formatCpfCnpjBr(defaultValue)
+      : ['cpf', 'responsibleCpf'].includes(name)
+        ? formatCpfBr(defaultValue)
+        : digitsOnly(defaultValue).slice(0, name === 'registration' ? 17 : 14);
+    const value = formValues[formKey]?.[name] ?? initialValue;
+    const pattern = name === 'employerDocument'
+      ? '(?:\\d{11}|\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}|[A-Z0-9]{12}\\d{2}|[A-Z0-9]{2}\\.[A-Z0-9]{3}\\.[A-Z0-9]{3}/[A-Z0-9]{4}-\\d{2})'
+      : ['cpf', 'responsibleCpf'].includes(name)
+        ? '(?:\\d{11}|\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2})'
+        : name === 'registration'
+          ? '[0-9]{1,17}'
+          : name === 'complementaryDocument'
+            ? '([0-9]{12}|[0-9]{14})?'
+            : undefined;
     if (name === 'establishmentId' || name === 'weeklyRestDay') {
       const establishments = name === 'establishmentId';
       return (
@@ -170,8 +211,22 @@ export function RepAdminSettings({ companyId, locale }) {
         <span>{t(locale, `rep.${name}`)}</span>
         <input
           name={name}
-          required={name !== 'complementaryDocument'}
-          defaultValue={defaultValue}
+          required={required}
+          {...(isMasked ? {
+            value,
+            onChange: (event) => {
+              const raw = event.target.value;
+              const next = name === 'employerDocument'
+                ? formatCpfCnpjBr(raw)
+                : ['cpf', 'responsibleCpf'].includes(name)
+                  ? formatCpfBr(raw)
+                  : digitsOnly(raw).slice(0, name === 'registration' ? 17 : 14);
+              setFormValues((current) => ({
+                ...current,
+                [formKey]: { ...current[formKey], [name]: next },
+              }));
+            },
+          } : { defaultValue })}
           type={name === 'candidateId' ? 'number' : 'text'}
           min={name === 'candidateId' ? 1 : undefined}
           step={name === 'candidateId' ? 1 : undefined}
@@ -185,27 +240,21 @@ export function RepAdminSettings({ companyId, locale }) {
               ? 'numeric'
               : undefined
           }
-          pattern={
-            ['cpf', 'responsibleCpf'].includes(name)
-              ? '[0-9]{11}'
-              : name === 'registration'
-                ? '[0-9]{1,17}'
-                : name === 'complementaryDocument'
-                  ? '([0-9]{12}|[0-9]{14})?'
-                  : undefined
-          }
+          pattern={pattern}
           maxLength={
             {
+              employerDocument: 18,
               employerName: 150,
               workplace: 100,
               workerName: 52,
-              cpf: 11,
-              responsibleCpf: 11,
+              cpf: 14,
+              responsibleCpf: 14,
               registration: 17,
               complementaryDocument: 14,
               timezone: 64,
             }[name]
           }
+          placeholder={name === 'employerDocument' ? t(locale, 'rep.employerDocumentPlaceholder') : undefined}
           className="min-h-11 rounded-control border border-ink/20 bg-canvas px-3 text-ink"
         />
       </label>
@@ -252,6 +301,7 @@ export function RepAdminSettings({ companyId, locale }) {
         </p>
       )}
       <form
+        noValidate
         onSubmit={(e) => void save(e, 'establishment')}
         className="mt-4 grid gap-3 sm:grid-cols-2"
       >
@@ -259,13 +309,14 @@ export function RepAdminSettings({ companyId, locale }) {
           {t(locale, 'rep.setup')}
         </h4>
         {ESTABLISHMENT_FIELDS.map((name) =>
-          input(name, name === 'timezone' ? 'America/Sao_Paulo' : ''),
+          input(name, name === 'timezone' ? 'America/Sao_Paulo' : '', 'establishment'),
         )}
         <button className={S.btnGhost} disabled={busy || !state} type="submit">
           {t(locale, 'rep.save')}
         </button>
       </form>
       <form
+        noValidate
         onSubmit={(e) => void save(e, 'worker')}
         className="mt-6 grid gap-3 sm:grid-cols-2"
       >
@@ -273,20 +324,21 @@ export function RepAdminSettings({ companyId, locale }) {
           {t(locale, 'rep.workers')}
         </h4>
         {WORKER_FIELDS.map((name) =>
-          input(name, name === 'weeklyRestDay' ? '0' : ''),
+          input(name, name === 'weeklyRestDay' ? '0' : '', 'worker'),
         )}
         <button className={S.btnGhost} disabled={busy || !state} type="submit">
           {t(locale, 'rep.save')}
         </button>
       </form>
       <form
+        noValidate
         onSubmit={(e) => void download(e)}
         className="mt-6 grid gap-3 sm:grid-cols-2"
       >
         <h4 className="font-semibold sm:col-span-2">
           {t(locale, 'rep.export')}
         </h4>
-        {input('establishmentId')}
+        {input('establishmentId', '', 'export')}
         <label className="flex flex-col gap-1 text-sm">
           {t(locale, 'rep.format')}
           <select

@@ -30,3 +30,5 @@ Referências oficiais consultadas em 26/10/2026:
 - [Registro eletrônico de ponto — documentos e leiautes](https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/fiscalizacao-do-trabalho/rep)
 
 Pendências técnicas e operacionais detalhadas: [REP-P: implementação técnica e limites](rep-p-671.md). Publicação deste aviso depende do deploy web e da distribuição da versão atualizada do app; alteração no código local não é prova de publicação.
+
+Checklist para concluir o módulo, separado entre implementação, documentos e validação operacional: [Checklist de conclusão do módulo REP-P](time-clock-module-completion.md). O checklist registra também o protocolo e processo do pedido no INPI.

@@ -1,7 +1,20 @@
 'use client';
 
+import { Children, isValidElement } from 'react';
 import { cn } from '../../lib/cn';
 import { UI_TYPE } from '../../lib/ui-typography';
+
+function containsRequiredControl(children) {
+  return Children.toArray(children).some((child) => {
+    if (!isValidElement(child)) return false;
+    if (
+      child.props.required ||
+      child.props['aria-required'] === true ||
+      child.props['aria-required'] === 'true'
+    ) return true;
+    return containsRequiredControl(child.props.children);
+  });
+}
 
 /**
  * Labeled form control for dashboard grids and system forms.
@@ -16,6 +29,7 @@ import { UI_TYPE } from '../../lib/ui-typography';
  *   labelClassName?: string,
  *   htmlFor?: string,
  *   as?: 'label' | 'div',
+ *   required?: boolean,
  * }} props
  */
 export function FormField({
@@ -26,14 +40,17 @@ export function FormField({
   labelClassName = '',
   htmlFor,
   as = 'label',
+  required,
 }) {
   const Tag = as === 'div' ? 'div' : 'label';
+  const isRequired = required ?? containsRequiredControl(children);
   return (
     <Tag
       htmlFor={as === 'label' ? htmlFor : undefined}
       className={cn(
         /* w-full: em coluna, self-start sozinho encolhe o campo ao conteúdo (e-mail ≠ senha). */
-        'flex w-full min-w-0 flex-col gap-1.5',
+        'ui-form-field flex w-full min-w-0 flex-col gap-1.5',
+        isRequired && 'ui-form-field--required',
         className
       )}
     >

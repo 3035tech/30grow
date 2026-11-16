@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { errorMessage, t } from '../../../lib/i18n';
+import { validateFormElementValues } from '../../../lib/form-validation.js';
 import { useLocale } from '../../../lib/useLocale';
 import { cn } from '../../../lib/cn';
 import { S } from '../../dashboard/dashboard-shared';
@@ -417,9 +418,15 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
         </div>
       ) : (
         <form
+          noValidate
           className="flex w-full flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault();
+            const validationError = validateFormElementValues(e.currentTarget, locale);
+            if (validationError) {
+              setFormError(validationError);
+              return;
+            }
             if (mode === 'login') void login();
             else if (mode === 'forgot') void sendForgot();
             else void sendMagic();
@@ -472,7 +479,7 @@ export function EmployeeLoginClient({ locale: localeProp = 'pt-BR', reason: reas
 
           <button
             type="submit"
-            disabled={busy || !email.trim() || (mode === 'login' && !password)}
+            disabled={busy}
             className={cn(S.btnPrimary, 'min-h-touch w-full justify-center')}
           >
             {mode === 'login'

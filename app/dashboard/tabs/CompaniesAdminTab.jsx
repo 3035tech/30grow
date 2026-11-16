@@ -63,6 +63,8 @@ function CompanyLogoField({
   onPreviewUrl,
   onBusy,
   onError,
+  confirm,
+  onRemoved,
 }) {
   const blobUrlsRef = useRef([]);
   const [cropFile, setCropFile] = useState(null);
@@ -106,6 +108,12 @@ function CompanyLogoField({
   const onRemove = async () => {
     onError?.('');
     if (uploadUrl && storageConfigured !== false) {
+      const confirmed = await confirm({
+        title: t(locale, 'panel.admin.companyLogoRemoveTitle'),
+        message: t(locale, 'panel.admin.companyLogoRemoveConfirm'),
+        danger: true,
+      });
+      if (!confirmed) return;
       onBusy?.(true);
       try {
         const res = await fetch(uploadUrl, { method: 'DELETE' });
@@ -113,6 +121,7 @@ function CompanyLogoField({
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
         onLocalFile?.(null);
         onPreviewUrl?.('');
+        onRemoved?.();
       } catch (e) {
         onError?.(e?.message || t(locale, 'panel.common.error'));
       } finally {
@@ -215,7 +224,7 @@ function emptyCompanyForm() {
 }
 
 export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = false }) {
-  const { confirm } = useAppFeedback();
+  const { confirm, toast } = useAppFeedback();
   const urlParams = useSearchParams();
   const spKey = urlParams.toString();
   const sp = useMemo(() => Object.fromEntries(urlParams.entries()), [spKey]);
@@ -1116,6 +1125,8 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
             onPreviewUrl={setLogoPreviewUrl}
             onBusy={setLogoBusy}
             onError={setLogoError}
+            confirm={confirm}
+            onRemoved={() => toast(t(locale, 'panel.admin.companyLogoRemoved'), 'ok')}
           />
           <label
             className={cn(

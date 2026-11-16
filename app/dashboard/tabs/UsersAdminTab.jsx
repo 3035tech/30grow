@@ -43,7 +43,7 @@ function companySelectOptions(locale, companyOptions) {
 }
 
 export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies = true, currentUserId = null }) {
-  const { promptForm } = useAppFeedback();
+  const { promptForm, confirm, toast } = useAppFeedback();
   const [viewingUser, setViewingUser] = useState(null);
   const urlParams = useSearchParams();
   const spKey = urlParams.toString();
@@ -306,16 +306,22 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
     }
   };
 
-  const deleteUser = async (userId) => {
+  const deleteUser = async (user) => {
+    const confirmed = await confirm({
+      title: t(locale, 'panel.admin.deactivateUserTitle'),
+      message: t(locale, 'panel.admin.deactivateUserConfirm', { name: user.displayName || user.email }),
+      danger: true,
+    });
+    if (!confirmed) return;
     setLoading(true);
     setError('');
     setMsg('');
     try {
-      const res = await fetch(`/api/admin/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(user.id)}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.admin.deleteUserFailed'));
-      setMsg(t(locale, 'panel.admin.userDeactivated'));
       await loadUsersOnly();
+      toast(t(locale, 'panel.admin.userDeactivated'), 'ok');
       setTimeout(() => setMsg(''), 1600);
     } catch (e) {
       setError(e?.message || t(locale, 'panel.common.error'));
@@ -720,7 +726,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
                           />
                           <AdminDeleteButton
                             label={t(locale, 'panel.admin.deactivate')}
-                            onClick={() => deleteUser(u.id)}
+                            onClick={() => deleteUser(u)}
                             disabled={loading}
                           />
                         </AdminActionsCell>

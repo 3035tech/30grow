@@ -5,8 +5,8 @@ import { cn } from '../../lib/cn';
 
 const BULK_ACTION = 'min-h-touch rounded-control px-2 font-ui text-sm text-brand-600 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:cursor-default disabled:opacity-45 disabled:no-underline';
 
-export function CheckboxGroupControl({ label, options, value = [], onChange, selectAllLabel, clearAllLabel, selectionSummary, emptySelectionLabel }) {
-  return <div role="group" aria-label={label}>
+export function CheckboxGroupControl({ label, options, value = [], onChange, selectAllLabel, clearAllLabel, selectionSummary, emptySelectionLabel, required = false }) {
+  return <div role="group" aria-label={label} aria-required={required || undefined}>
     {selectAllLabel && clearAllLabel ? <div className="mb-2 flex flex-wrap gap-2">
       <button type="button" className={BULK_ACTION} disabled={options.every(option => value.includes(option.value))} onClick={() => onChange(options.map(option => option.value))}>{selectAllLabel}</button>
       <button type="button" className={BULK_ACTION} disabled={value.length === 0} onClick={() => onChange([])}>{clearAllLabel}</button>

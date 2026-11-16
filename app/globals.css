@@ -9,6 +9,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+.ui-form-field--required > span:first-child::after,
+label:not(.ui-form-field):not(.ui-required-control-label):has(:is([required], [aria-required="true"])):has(> span:first-child) > span:first-child::after,
+label:not(.ui-form-field):not(.ui-required-control-label):has(:is([required], [aria-required="true"])):not(:has(> span:first-child))::after {
+  content: ' *';
+  color: rgb(var(--danger));
+  font-weight: 700;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

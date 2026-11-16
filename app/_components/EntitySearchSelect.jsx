@@ -18,6 +18,7 @@ export function EntitySearchSelect({
   locale = 'pt-BR',
   placeholder = '',
   disabled = false,
+  required = false,
   minChars = 1,
   debounceMs = 250,
   'aria-label': ariaLabel,
@@ -139,6 +140,8 @@ export function EntitySearchSelect({
           aria-controls={listId}
           aria-autocomplete="list"
           aria-label={ariaLabel}
+          aria-required={required || undefined}
+          required={required}
           disabled={disabled}
           value={query}
           placeholder={placeholder || emptyHint}

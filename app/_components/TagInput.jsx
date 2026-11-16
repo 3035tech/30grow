@@ -18,6 +18,7 @@ export function TagInput({
   maxTags = 12,
   tagMax = 40,
   suggestions = [],
+  required = false,
   'aria-label': ariaLabel,
   className,
 }) {
@@ -77,7 +78,7 @@ export function TagInput({
     .slice(0, 8);
 
   return (
-    <div className={cn('mt-1.5', className)}>
+    <div className={cn('mt-1.5', className)} role="group" aria-required={required || undefined}>
       <div
         className={cn(
           'flex min-h-touch flex-wrap items-center gap-1.5 rounded-control border border-ink/12 bg-ink/[0.05] px-2 py-1.5',
@@ -115,6 +116,7 @@ export function TagInput({
             disabled={disabled}
             placeholder={tags.length ? '' : placeholder}
             aria-label={ariaLabel}
+            aria-required={required || undefined}
             maxLength={tagMax}
             onChange={(e) => setDraft(e.target.value.replace(/,/g, ''))}
             onKeyDown={onKeyDown}

@@ -21,7 +21,7 @@ import LanguageSelect from '../../_components/LanguageSelect';
 import { useEmployeeNav } from '../../_components/EmployeeNavContext';
 import { BR_STATES } from '../../../lib/recruiting/candidate-profile';
 import { formatPhoneBr, stripPhone } from '../../../lib/br-masks';
-import { isValidPhoneBr, isValidWebUrl } from '../../../lib/form-validation';
+import { isValidPhoneBr, isValidWebUrl, validateFormElementValues } from '../../../lib/form-validation';
 import { redirectEmployeeIfUnauthorized } from '../../../lib/employee/employee-client-session';
 
 const profilePanelClass = cn(S.cardShell, 'p-4 sm:p-6');
@@ -87,13 +87,12 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
         birthDate: p.birthDate || '',
       });
       await load2fa();
-    } catch (e) {
-      toast(e?.message || t(locale, 'employeeHome.loadError'), 'error');
+    } catch {
       setLoadFailed(true);
     } finally {
       setLoading(false);
     }
-  }, [locale, router, toast, load2fa]);
+  }, [router, load2fa]);
 
   useEffect(() => {
     void load();
@@ -188,6 +187,11 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
 
   const saveProfile = async (e) => {
     e.preventDefault();
+    const validationError = validateFormElementValues(e.currentTarget, locale);
+    if (validationError) {
+      toast(validationError, 'error');
+      return;
+    }
     if (form.phone && !isValidPhoneBr(form.phone)) {
       toast(t(locale, 'formValidation.phone'), 'error');
       return;
@@ -224,6 +228,11 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
 
   const changePassword = async (e) => {
     e.preventDefault();
+    const validationError = validateFormElementValues(e.currentTarget, locale);
+    if (validationError) {
+      toast(validationError, 'error');
+      return;
+    }
     if (pwd.next.length < 8) {
       toast(t(locale, 'errors.PASSWORD_TOO_SHORT'), 'error');
       return;
@@ -287,7 +296,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
             <div className={profilePanelHeaderClass}>
               <h2 className="m-0 font-ui text-base font-semibold text-ink">{t(locale, 'dashboard.profileAccountTitle')}</h2>
             </div>
-            <form className="flex flex-col gap-4" onSubmit={saveProfile}>
+            <form noValidate className="flex flex-col gap-4" onSubmit={saveProfile}>
               <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
                 <FormField
                   label={t(locale, 'employeeHome.fullNameLabel')}
@@ -395,7 +404,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
               <h2 className="m-0 font-ui text-base font-semibold text-ink">{t(locale, 'dashboard.profilePasswordSection')}</h2>
               <p className="mb-0 mt-1 text-sm leading-relaxed text-ink-muted">{t(locale, 'dashboard.profilePasswordHint')}</p>
             </div>
-            <form className="grid items-start gap-4 lg:grid-cols-3" onSubmit={changePassword}>
+            <form noValidate className="grid items-start gap-4 lg:grid-cols-3" onSubmit={changePassword}>
               <FormField label={t(locale, 'employeeHome.currentPasswordLabel')}>
                 <input
                   type="password"
@@ -430,7 +439,7 @@ export function EmployeeProfileClient({ locale = 'pt-BR' }) {
                 />
               </FormField>
               <div className="mt-2 flex justify-end border-t border-ink/10 pt-4 lg:col-span-3">
-                <button type="submit" disabled={busy || !pwd.current || !pwd.next || !pwd.confirm} className={cn(S.btnPrimary, 'w-full sm:w-auto')}>{t(locale, 'dashboard.profilePasswordSave')}</button>
+                <button type="submit" disabled={busy} className={cn(S.btnPrimary, 'w-full sm:w-auto')}>{t(locale, 'dashboard.profilePasswordSave')}</button>
               </div>
             </form>
           </section>

@@ -321,9 +321,10 @@ export function FormalCompetencyReviewsBlock({ locale = 'pt-BR', companyId, onOp
         title: i18nT(locale, 'ui.formalCompetencyReviewsBlock.reviewSelfAssessmentWording'),
         fields: [...questionnaire.map(item => {
           const catalog = choices.find(c => Number(c.id) === item.competencyId);
-          return { key: `self_${item.competencyId}`, label: catalog?.name || String(item.competencyId), type: 'textarea', required: true, maxLength: 4000, defaultValue: item.selfDescription || suggestSelfAssessment(catalog?.description, catalog?.name, locale),
+          return { key: `self_${item.competencyId}`, label: catalog?.name || String(item.competencyId), type: 'textarea', required: true, maxLength: 4000, row: 'competency-wording', rowBreakpoint: 'lg', defaultValue: item.selfDescription || suggestSelfAssessment(catalog?.description, catalog?.name, locale),
             help: catalog?.description || '' };
         }), { key: 'reviewed', type: 'boolean', defaultValue: false, label: i18nT(locale, 'ui.formalCompetencyReviewsBlock.iReviewedTheWordingAnd') }],
+        size: 'extra-wide',
       });
       if (!wording) return;
       if (!wording.reviewed) { toast(i18nT(locale, 'ui.formalCompetencyReviewsBlock.reviewAndConfirmTheWording'), 'error'); return; }

@@ -39,7 +39,7 @@ export const POST = withAdminApi(
     }
     const result = await withTransaction(db => openFormalReview(db, { companyId, reviewId }));
     if (!result.ok) {
-      return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA });
+      return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA, values: result.errorValues });
     }
     await audit({
       action: 'formal_review_open',

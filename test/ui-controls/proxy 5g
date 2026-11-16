@@ -1,0 +1,17 @@
+proxy 5g
+emuladores geelark
+
+
+
+
+
+EAAXwg7CcilYBS5qeuyFB6p5nxgZC87H1lefpJ3BA2IaXuZCa2XaOOjBpZAvSGr0GBFJu0ShD9QuMe1lelYkPSul6603yWOB9QXuc1Q2invdTG8KDLw8CZBZBnzKEK2Uw1DnB5EBtIwjrepgGjLQAt0ZAZAIZCRYAqqNLn54TCwaJtPnLMfmB01hE4ZAL709K67pZBDDAZDZD
+
+
+
+
+read -s "META_TOKEN?Cole o token de acesso da Meta e pressione Enter: "; echo
+curl -fsS -H "Authorization: Bearer $META_TOKEN" \
+  "https://graph.facebook.com/v25.0/1667261041408892/subscribed_apps" \
+  | python3 -m json.tool
+unset META_TOKEN

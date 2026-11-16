@@ -15,7 +15,7 @@ import {
   workplaceModalityLabelKey,
 } from '../../lib/recruiting/vacancy-workplace';
 import { formatPhoneBr, formatVacancySalaryRangeDisplay, stripPhone } from '../../lib/br-masks';
-import { isValidPhoneBr, isValidWebUrl } from '../../lib/form-validation';
+import { isValidPhoneBr, isValidWebUrl, validateFormElementValues } from '../../lib/form-validation';
 import { PublicVacancyShareBar } from './PublicVacancyShareBar';
 import { FormField, formFieldRowClass } from './FormField';
 import { EmptyState } from './EmptyState';
@@ -195,6 +195,11 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
     e?.preventDefault?.();
     setApplyErr('');
     setApplyMsg('');
+    const validationError = validateFormElementValues(e?.currentTarget, locale);
+    if (validationError) {
+      setApplyErr(validationError);
+      return;
+    }
     if (!String(applyName || '').trim()) {
       setApplyErr(errorMessage(locale, 'CANDIDATE_NAME_REQUIRED', t(locale, 'panel.common.error')));
       return;
@@ -475,6 +480,7 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                     ) : null}
                     {applyOpen && !applyDone ? (
                       <form
+                        noValidate
                         onSubmit={submitApply}
                         className="space-y-3 rounded-card border border-ink/12 bg-canvas/40 p-4"
                         aria-busy={applyBusy}
@@ -545,6 +551,8 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                           <input
                             type="checkbox"
                             className="mt-1 accent-brand-500"
+                            required
+                            aria-required="true"
                             checked={applyConsent}
                             onChange={(e) => setApplyConsent(e.target.checked)}
                             disabled={applyBusy}
@@ -660,10 +668,18 @@ export function PublicVacanciesIndexView({
   const [alertName, setAlertName] = useState('');
   const [alertEmail, setAlertEmail] = useState('');
   const [alertStatus, setAlertStatus] = useState(''); // '' | 'loading' | 'ok' | 'err'
+  const [alertError, setAlertError] = useState('');
 
   async function submitJobAlert(e) {
     e.preventDefault();
     if (alertStatus === 'loading') return;
+    const validationError = validateFormElementValues(e.currentTarget, locale);
+    if (validationError) {
+      setAlertError(validationError);
+      setAlertStatus('err');
+      return;
+    }
+    setAlertError('');
     setAlertStatus('loading');
     try {
       const res = await fetch('/api/public/job-alerts', {
@@ -682,9 +698,11 @@ export function PublicVacanciesIndexView({
       });
       if (!res.ok) throw new Error('fail');
       setAlertStatus('ok');
+      setAlertError('');
       setAlertEmail('');
       setAlertName('');
     } catch {
+      setAlertError(t(locale, 'publicVacancy.alertError'));
       setAlertStatus('err');
     }
   }
@@ -892,6 +910,7 @@ className="mt-5 flex flex-wrap items-center justify-between gap-3"
             </p>
           ) : (
             <form
+              noValidate
               method="post"
               action="/api/public/job-alerts"
               onSubmit={submitJobAlert}
@@ -916,7 +935,11 @@ className="mt-5 flex flex-wrap items-center justify-between gap-3"
                     name="email"
                     required
                     value={alertEmail}
-                    onChange={(ev) => setAlertEmail(ev.target.value)}
+                    onChange={(ev) => {
+                      setAlertEmail(ev.target.value);
+                      setAlertStatus('');
+                      setAlertError('');
+                    }}
                     placeholder={t(locale, 'publicVacancy.alertEmailPlaceholder')}
                     className={SC.input}
                     autoComplete="email"
@@ -925,8 +948,8 @@ className="mt-5 flex flex-wrap items-center justify-between gap-3"
                 </FormField>
               </div>
               {alertStatus === 'err' ? (
-                <p className="m-0 text-prose text-danger">
-                  {t(locale, 'publicVacancy.alertError')}
+                <p role="alert" className="m-0 text-prose text-danger">
+                  {alertError || t(locale, 'publicVacancy.alertError')}
                 </p>
               ) : null}
               <button

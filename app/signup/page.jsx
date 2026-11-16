@@ -13,6 +13,7 @@ import LanguageSelect from '../_components/LanguageSelect';
 import { FormField } from '../_components/FormField';
 import { cn } from '../../lib/cn';
 import { fieldInputClass, fieldSelectClass } from '../_components/form-control-styles';
+import { validateFormElementValues } from '../../lib/form-validation.js';
 import TurnstileField from '../_components/TurnstileField';
 import { InlineCallout } from '../_components/InlineCallout';
 import { S } from '../dashboard/dashboard-shared';
@@ -44,10 +45,16 @@ export default function SignupPage() {
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationError = validateFormElementValues(e.currentTarget, locale);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setLoading(true);
     setError('');
     setTurnstileError(false);
@@ -141,14 +148,10 @@ export default function SignupPage() {
           </Link>
         </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
           <FormField
             htmlFor="signup-fullname"
-            label={
-              <>
-                {t(locale, 'signup.fullName')} <span className="text-danger">*</span>
-              </>
-            }
+            label={t(locale, 'signup.fullName')}
           >
             <input
               id="signup-fullname"
@@ -163,11 +166,7 @@ export default function SignupPage() {
 
           <FormField
             htmlFor="signup-email"
-            label={
-              <>
-                {t(locale, 'signup.email')} <span className="text-danger">*</span>
-              </>
-            }
+            label={t(locale, 'signup.email')}
           >
             <input
               id="signup-email"
@@ -183,11 +182,7 @@ export default function SignupPage() {
 
           <FormField
             htmlFor="signup-company"
-            label={
-              <>
-                {t(locale, 'signup.companyName')} <span className="text-danger">*</span>
-              </>
-            }
+            label={t(locale, 'signup.companyName')}
           >
             <input
               id="signup-company"

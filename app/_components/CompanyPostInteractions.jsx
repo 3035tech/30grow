@@ -11,7 +11,7 @@ import { Icon } from './Icon';
 import { EmployeeIconButton } from './EmployeeIconButton';
 
 export function CompanyPostInteractions({ postId, initialReactions = [], initialCommentCount = 0, locale = 'pt-BR' }) {
-  const { toast } = useAppFeedback();
+  const { toast, confirm } = useAppFeedback();
   const [reactions, setReactions] = useState(initialReactions);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -35,11 +35,11 @@ export function CompanyPostInteractions({ postId, initialReactions = [], initial
         ...(remove ? {} : { body: JSON.stringify({ emoji }) }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.ok) throw new Error('reaction_failed');
+      if (!response.ok || !data.ok) throw new Error(data?.error || copy('feedReactionError'));
       setReactions(data.reactions || []);
       setPickerOpen(false);
-    } catch {
-      toast(copy('feedReactionError'), 'error');
+    } catch (error) {
+      toast(error?.message || copy('feedReactionError'), 'error');
     } finally {
       setBusy(false);
     }
@@ -51,11 +51,11 @@ export function CompanyPostInteractions({ postId, initialReactions = [], initial
     try {
       const response = await fetch(`${endpoint}/comments?offset=${append ? comments.length : 0}`, { cache: 'no-store' });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.ok) throw new Error('comments_failed');
+      if (!response.ok || !data.ok) throw new Error(data?.error || copy('feedCommentsError'));
       setComments(previous => append ? [...previous, ...data.comments] : data.comments);
       setHasMore(Boolean(data.hasMore));
-    } catch {
-      toast(copy('feedCommentsError'), 'error');
+    } catch (error) {
+      toast(error?.message || copy('feedCommentsError'), 'error');
     } finally {
       setLoadingComments(false);
     }
@@ -72,12 +72,13 @@ export function CompanyPostInteractions({ postId, initialReactions = [], initial
         body: JSON.stringify({ body: draft.trim() }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.ok) throw new Error('comment_failed');
+      if (!response.ok || !data.ok) throw new Error(data?.error || copy('feedCommentSaveError'));
       setDraft('');
       setCommentCount(count => count + 1);
       await loadComments();
-    } catch {
-      toast(copy('feedCommentSaveError'), 'error');
+      toast(copy('feedCommentPosted'), 'ok');
+    } catch (error) {
+      toast(error?.message || copy('feedCommentSaveError'), 'error');
     } finally {
       setBusy(false);
     }
@@ -85,15 +86,22 @@ export function CompanyPostInteractions({ postId, initialReactions = [], initial
 
   async function removeComment(commentId) {
     if (busy) return;
+    const confirmed = await confirm({
+      title: copy('feedDeleteCommentTitle'),
+      message: copy('feedDeleteCommentConfirm'),
+      danger: true,
+    });
+    if (!confirmed) return;
     setBusy(true);
     try {
       const response = await fetch(`${endpoint}/comments/${commentId}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.ok) throw new Error('delete_failed');
+      if (!response.ok || !data.ok) throw new Error(data?.error || copy('feedCommentDeleteError'));
       setCommentCount(count => Math.max(0, count - 1));
       await loadComments();
-    } catch {
-      toast(copy('feedCommentDeleteError'), 'error');
+      toast(copy('feedCommentDeleteOk'), 'ok');
+    } catch (error) {
+      toast(error?.message || copy('feedCommentDeleteError'), 'error');
     } finally {
       setBusy(false);
     }

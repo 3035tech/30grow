@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react';
 import { t } from '../../lib/i18n';
+import { validateFormElementValues } from '../../lib/form-validation.js';
 import { CANDIDATE_TAG_COLORS, MAX_CANDIDATE_TAGS } from '../../lib/recruiting/candidate-tags-core';
 import { AdminRichFormDrawer } from '../_components/AdminRichFormDrawer';
 import { SelectField } from '../_components/SelectField';
@@ -116,6 +117,11 @@ function CandidateTagsScope({ companyId, locale = 'pt-BR', onChanged, children }
   const saveTag = async (event) => {
     event.preventDefault();
     setSavedMessage('');
+    const validationError = validateFormElementValues(event.currentTarget, locale);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -320,7 +326,7 @@ function CandidateTagsScope({ companyId, locale = 'pt-BR', onChanged, children }
         <p className="mt-0 mb-5 text-sm leading-relaxed text-ink-muted">
           {t(locale, 'candidateTags.companyHint')}
         </p>
-        <form onSubmit={saveTag} className="space-y-4">
+        <form noValidate onSubmit={saveTag} className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <h3 className="m-0 shrink-0 text-sm font-semibold text-ink">
               {t(locale, draft.id ? 'candidateTags.editTag' : 'candidateTags.newTag')}
@@ -336,7 +342,7 @@ function CandidateTagsScope({ companyId, locale = 'pt-BR', onChanged, children }
             </div>
           </div>
           <label className="block text-sm font-medium text-ink">
-            {t(locale, 'candidateTags.name')}
+            <span>{t(locale, 'candidateTags.name')}</span>
             <input
               required
               maxLength={40}

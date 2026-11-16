@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../lib/cn';
+import { t } from '../../lib/i18n';
 import { ConfirmDialog } from './ConfirmDialog';
 import { PromptFormDialog } from './PromptFormDialog';
 import { SystemNoticeModal } from './SystemNoticeModal';
@@ -95,7 +96,7 @@ export function AppFeedbackProvider({ children, locale = 'pt-BR' }) {
     setToasts((prev) => [...prev, { id, message: String(message), tone }]);
     window.setTimeout(() => {
       setToasts((prev) => prev.filter((x) => x.id !== id));
-    }, 3600);
+    }, 6000);
   }, []);
 
   const value = useMemo(
@@ -151,6 +152,8 @@ export function AppFeedbackProvider({ children, locale = 'pt-BR' }) {
           confirmLabel={promptState.confirmLabel}
           cancelLabel={promptState.cancelLabel}
           size={promptState.size}
+          confirm={confirm}
+          onUploadRemoved={() => toast(t(locale, 'panel.common.uploadRemoved'), 'ok')}
           onCancel={() => {
             promptState.resolve(null);
             setPromptState(null);

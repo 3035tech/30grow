@@ -25,24 +25,24 @@ function main() {
   assert.equal(formalReviewOpenError({ ...ok, status: FORMAL_REVIEW_STATUS.COLLECTING }), ERR.INVALID_STATUS);
   assert.equal(formalReviewOpenError({ ...ok, status: FORMAL_REVIEW_STATUS.COLLECTING, itemCount: 0 }), ERR.INVALID_STATUS, 'status wins');
 
-  for (const [label, patch] of [
-    ['no items', { itemCount: 0 }],
-    ['self without wording', { itemsWithoutSelf: 1 }],
-    ['no questionnaire', { hasQuestionnaire: false }],
-    ['no start', { periodStart: null }],
-    ['no end', { periodEnd: null }],
-    ['period over', { periodEnd: '2026-10-04' }],
-    ['no manager', { managerCandidateId: null }],
-    ['manager left', { managerIsEmployee: false }],
-    ['self-managed', { managerCandidateId: 9 }],
-    ['360 without external name', { externalName: '' }],
-    ['360 without external e-mail', { externalEmail: null }],
+  for (const [label, patch, expected] of [
+    ['no items', { itemCount: 0 }, ERR.FORMAL_REVIEW_ITEMS_REQUIRED],
+    ['self without wording', { itemsWithoutSelf: 1 }, ERR.FORMAL_REVIEW_SELF_TEXT_REQUIRED],
+    ['no questionnaire', { hasQuestionnaire: false }, ERR.FORMAL_REVIEW_CYCLE_COMPETENCIES_REQUIRED],
+    ['no start', { periodStart: null }, ERR.FORMAL_REVIEW_CYCLE_PERIOD_REQUIRED],
+    ['no end', { periodEnd: null }, ERR.FORMAL_REVIEW_CYCLE_PERIOD_REQUIRED],
+    ['period over', { periodEnd: '2026-10-04' }, ERR.FORMAL_REVIEW_CYCLE_PERIOD_ENDED],
+    ['no manager', { managerCandidateId: null }, ERR.FORMAL_REVIEW_MANAGER_REQUIRED],
+    ['manager left', { managerIsEmployee: false }, ERR.FORMAL_REVIEW_MANAGER_INVALID],
+    ['self-managed', { managerCandidateId: 9 }, ERR.FORMAL_REVIEW_MANAGER_INVALID],
+    ['360 without external name', { externalName: '' }, ERR.FORMAL_REVIEW_EXTERNAL_REQUIRED],
+    ['360 without external e-mail', { externalEmail: null }, ERR.FORMAL_REVIEW_EXTERNAL_REQUIRED],
   ]) {
-    assert.equal(formalReviewOpenError({ ...ok, ...patch }), ERR.INVALID_DATA, label);
+    assert.equal(formalReviewOpenError({ ...ok, ...patch }), expected, label);
   }
   assert.equal(formalReviewOpenError({ ...ok, includeSelf: false, itemsWithoutSelf: 3 }), null, 'self wording only matters with self');
   assert.equal(formalReviewOpenError({ ...ok, model: FORMAL_REVIEW_MODEL.ONE_EIGHTY, externalName: '' }), null, 'external only on 360');
-  assert.equal(formalReviewOpenError({ ...ok, managerCandidateId: '9' }), ERR.INVALID_DATA, 'string ids compare');
+  assert.equal(formalReviewOpenError({ ...ok, managerCandidateId: '9' }), ERR.FORMAL_REVIEW_MANAGER_INVALID, 'string ids compare');
 
   const { OPEN, DRAFT, CLOSED, SCHEDULED } = FORMAL_REVIEW_CYCLE_DISPLAY_STATUS;
   assert.equal(formalCycleDisplayStatus(OPEN, '2026-10-06', '2026-10-05'), SCHEDULED);

@@ -33,7 +33,7 @@ export function VacancyInterviewSlotsBlock({
   candidates = [],
   locale = 'pt-BR',
 }) {
-  const { promptForm, toast, notice } = useAppFeedback();
+  const { promptForm, toast, notice, confirm } = useAppFeedback();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -168,6 +168,17 @@ export function VacancyInterviewSlotsBlock({
   };
 
   const cancelSlot = async (slotId) => {
+    const slot = items.find(item => String(item.id) === String(slotId));
+    if (!slot) return;
+    const confirmed = await confirm({
+      title: t(locale, 'recruiting.interviewSlotsCancelTitle'),
+      message: t(locale, 'recruiting.interviewSlotsCancelConfirm', {
+        name: slot.candidateName || `#${slot.candidateId}`,
+        date: new Date(slot.startsAt).toLocaleString(localeHtmlLang(locale)),
+      }),
+      danger: true,
+    });
+    if (!confirmed) return;
     setBusyId(slotId);
     try {
       const res = await fetch(

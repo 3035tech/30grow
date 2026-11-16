@@ -186,6 +186,7 @@ export function DigitalCertificateAdminTab({ locale }) {
             </div>
           ) : null}
           <form
+            noValidate
             onSubmit={submit}
             onChange={() => setValidation(null)}
             className="rounded-card border border-ink/10 bg-surface p-5 sm:p-6"
@@ -198,9 +199,12 @@ export function DigitalCertificateAdminTab({ locale }) {
                 {t(locale, data.configured ? 'digitalCertificate.replace' : 'digitalCertificate.upload')}
               </legend>
               <div className="flex flex-col gap-2 text-sm sm:col-span-2">
-                <span>{t(locale, 'digitalCertificate.file')}</span>
+                <span>
+                  {t(locale, 'digitalCertificate.file')}
+                  <span className="ml-1 font-bold text-danger" aria-hidden="true">*</span>
+                </span>
                 <div className="flex min-w-0 flex-col items-start gap-3 rounded-control border border-dashed border-ink/20 bg-canvas/40 p-4 focus-within:ring-2 focus-within:ring-brand-500/35 sm:flex-row sm:items-center">
-                  <input id="rep-certificate-file" name="file" type="file" accept=".p12,.pfx" required className="sr-only" aria-label={t(locale, 'digitalCertificate.file')} aria-describedby="certificate-file-help" onChange={event => setFileName(event.target.files?.[0]?.name || '')} />
+                  <input id="rep-certificate-file" name="file" type="file" accept=".p12,.pfx" required aria-required="true" className="sr-only" aria-label={t(locale, 'digitalCertificate.file')} aria-describedby="certificate-file-help" onChange={event => setFileName(event.target.files?.[0]?.name || '')} />
                   <label htmlFor="rep-certificate-file" className={`${S.btnGhost} shrink-0`}>{t(locale, 'digitalCertificate.chooseFile')}</label>
                   <span className="min-w-0 break-all text-sm text-ink-muted" aria-live="polite">{fileName || t(locale, 'digitalCertificate.noFile')}</span>
                 </div>

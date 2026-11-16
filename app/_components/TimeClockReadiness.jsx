@@ -6,6 +6,7 @@ import {
   formatMinutesClock,
   localIsoToday,
 } from '../../lib/time-clock-format.js';
+import { validateFormElementValues } from '../../lib/form-validation.js';
 import {
   S,
   AdminListPager,
@@ -135,8 +136,14 @@ export function TimeClockReadiness({
         {t(locale, 'timeClosing.intro')}
       </p>
       <form
+        noValidate
         onSubmit={(event) => {
           event.preventDefault();
+          const validationError = validateFormElementValues(event.currentTarget, locale);
+          if (validationError) {
+            toast(validationError, 'error');
+            return;
+          }
           setPage(1);
           onPeriodChange({ ...draft });
           setCheckVersion((value) => value + 1);
@@ -145,7 +152,7 @@ export function TimeClockReadiness({
         <AdminListFilters locale={locale}>
           {['periodStart', 'periodEnd'].map((name) => (
             <label key={name} className="flex flex-col gap-1 text-sm">
-              {t(locale, name === 'periodStart' ? 'rep.from' : 'rep.to')}
+              <span>{t(locale, name === 'periodStart' ? 'rep.from' : 'rep.to')}</span>
               <input
                 type="date"
                 name={name}

@@ -51,6 +51,7 @@ import { digitsOnly, formatSalaryDisplay, formatCepBr, formatCpfBr, formatPhoneB
  *   minHeight?: number, // richText
  *   min?: string, max?: string, // date / datetime-local
  *   row?: string, // same key → side-by-side on one row (e.g. start/end dates)
+ *   rowBreakpoint?: 'sm'|'md'|'lg'|'xl', // minimum viewport for a multi-field row
  *   width?: 'half', // short control alone on its row: half width from sm up
  *   rowWeight?: number, // relative width inside a `row` from sm up (default 1)
  *   section?: string, // group heading rendered above this field
@@ -110,6 +111,8 @@ export function PromptFormDialog({
   cancelLabel,
   onSubmit,
   onCancel,
+  confirm,
+  onUploadRemoved,
   size,
 }) {
   const [mounted, setMounted] = useState(false);
@@ -298,6 +301,7 @@ export function PromptFormDialog({
     return (
       <FormField
         key={fieldKeyOf(f)}
+        required={Boolean(f.required)}
         as={f.type === 'imageUpload' || f.type === 'file' || f.type === 'richText' || f.type === 'date' || f.type === 'datetime-local' || f.type === 'tags' || f.type === 'entitySearch' || f.type === 'checkboxGroup' || f.type === 'range' ? 'div' : 'label'}
         label={f.label}
         hint={
@@ -344,12 +348,19 @@ export function PromptFormDialog({
     const fk = fieldKeyOf(f);
     setUploadError('');
     if (f.uploadUrl && f.storageConfigured !== false) {
+      const confirmed = await confirm?.({
+        title: t(locale, 'panel.common.removeFileTitle'),
+        message: t(locale, 'panel.common.removeUploadedFileConfirm'),
+        danger: true,
+      });
+      if (!confirmed) return;
       setUploadBusyKey(fk);
       try {
         const res = await fetch(f.uploadUrl, { method: 'DELETE' });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
         setField(fk, { url: '', file: null, removed: true });
+        onUploadRemoved?.();
       } catch (e) {
         setUploadError(e?.message || t(locale, 'panel.common.error'));
       } finally {
@@ -369,7 +380,7 @@ export function PromptFormDialog({
       const busy = uploadBusyKey === fk;
       const off = f.storageConfigured === false;
       return (
-        <div className="mt-1.5">
+        <div className="mt-1.5" role="group" aria-label={f.label} aria-required={f.required || undefined}>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-ink/12 bg-ink/[0.03]">
               {preview ? (
@@ -381,6 +392,7 @@ export function PromptFormDialog({
             <div className="flex flex-col gap-2">
               <label
                 className={cn(
+                  'ui-required-control-label',
                   dialogBtnGhostClass,
                   'm-0 inline-flex min-h-touch items-center justify-center px-3 py-2',
                   off || busy ? 'cursor-not-allowed opacity-55' : 'cursor-pointer'
@@ -389,6 +401,7 @@ export function PromptFormDialog({
                 <input
                   type="file"
                   accept={f.accept || COMPANY_LOGO_ACCEPT}
+                  aria-required={Boolean(f.required)}
                   disabled={off || busy}
                   className="hidden"
                   onChange={(e) => {
@@ -432,6 +445,7 @@ export function PromptFormDialog({
       return (
         <label
           className={cn(
+            'ui-required-control-label',
             dialogBtnGhostClass,
             'm-0 inline-flex min-h-touch w-full cursor-pointer items-center justify-center px-3 py-2',
             disabled && 'cursor-not-allowed opacity-55'
@@ -440,6 +454,8 @@ export function PromptFormDialog({
           <input
             type="file"
             accept={f.accept}
+            required={Boolean(f.required)}
+            aria-required={Boolean(f.required)}
             disabled={disabled}
             className="hidden"
             onChange={(event) => setField(fk, event.target.files?.[0] || null)}
@@ -452,6 +468,7 @@ export function PromptFormDialog({
     if (f.type === 'checkboxGroup') {
       return <CheckboxGroupControl label={f.label} options={f.options || []}
         value={Array.isArray(values[fk]) ? values[fk] : []} onChange={value => setField(fk, value)}
+        required={Boolean(f.required)}
         selectAllLabel={f.selectAllLabel} clearAllLabel={f.clearAllLabel}
         selectionSummary={f.selectionSummary} emptySelectionLabel={f.emptySelectionLabel} />;
     }
@@ -463,7 +480,6 @@ export function PromptFormDialog({
           value={values[fk] ?? ''}
           onChange={(e) => setField(fk, e.target.value)}
           disabled={Boolean(f.disabled)}
-          required={Boolean(f.required)}
           aria-required={Boolean(f.required)}
           className={cn(dialogSelectClass, f.disabled && 'cursor-default opacity-60')}
         >
@@ -489,6 +505,8 @@ export function PromptFormDialog({
             type="checkbox"
             checked={checked}
             disabled={disabled}
+            required={Boolean(f.required)}
+            aria-required={Boolean(f.required)}
             onChange={(e) => {
               const nextChecked = e.target.checked;
               setValues((prev) => {
@@ -515,6 +533,7 @@ export function PromptFormDialog({
             minHeight={f.minHeight || 100}
             locale={locale}
             aria-label={f.label}
+            aria-required={f.required || undefined}
           />
         </div>
       );
@@ -532,6 +551,7 @@ export function PromptFormDialog({
           suggestions={f.suggestions || []}
           aria-label={f.label}
           disabled={Boolean(f.disabled)}
+          required={Boolean(f.required)}
         />
       );
     }
@@ -548,6 +568,7 @@ export function PromptFormDialog({
           minChars={f.minChars != null ? f.minChars : 1}
           aria-label={f.label}
           disabled={Boolean(f.disabled)}
+          required={Boolean(f.required)}
         />
       );
     }
@@ -579,6 +600,8 @@ export function PromptFormDialog({
           disabled={Boolean(f.disabled)}
           className={cn(dialogFieldClass, f.disabled && 'cursor-default opacity-60')}
           aria-label={f.label}
+          required={Boolean(f.required)}
+          aria-required={Boolean(f.required) || undefined}
         />
       );
     }
@@ -603,6 +626,8 @@ export function PromptFormDialog({
           className={cn(dialogFieldClass, (f.disabled || cepBusyKey === fk) && 'opacity-60')}
           aria-label={f.label}
           aria-busy={cepBusyKey === fk}
+          required={Boolean(f.required)}
+          aria-required={Boolean(f.required) || undefined}
         />
       );
     }
@@ -622,6 +647,8 @@ export function PromptFormDialog({
           disabled={Boolean(f.disabled)}
           className={cn(dialogFieldClass, f.disabled && 'opacity-60')}
           aria-label={f.label}
+          required={Boolean(f.required)}
+          aria-required={Boolean(f.required) || undefined}
         />
       );
     }
@@ -641,6 +668,8 @@ export function PromptFormDialog({
           disabled={Boolean(f.disabled)}
           className={cn(dialogFieldClass, f.disabled && 'opacity-60')}
           aria-label={f.label}
+          required={Boolean(f.required)}
+          aria-required={Boolean(f.required) || undefined}
         />
       );
     }
@@ -659,6 +688,7 @@ export function PromptFormDialog({
           maxLabel={f.maxLabel}
           label={f.label}
           disabled={disabled}
+          required={Boolean(f.required)}
         />
       );
     }
@@ -751,7 +781,7 @@ export function PromptFormDialog({
             'prompt-form-card',
             dialogCardClass,
             'max-h-[90vh] overflow-y-auto',
-            size === 'wide' ? 'max-w-[760px]' : hasWideFields ? 'max-w-[560px]' : 'max-w-[520px]'
+            size === 'extra-wide' ? 'max-w-[1120px]' : size === 'wide' ? 'max-w-[760px]' : hasWideFields ? 'max-w-[560px]' : 'max-w-[520px]'
           )}
           onClick={(e) => e.stopPropagation()}
         >
@@ -770,12 +800,27 @@ export function PromptFormDialog({
           <fieldset disabled={submitting} className="m-0 mt-4 flex min-w-0 flex-col gap-5 border-0 p-0">
             {fieldGroups.map((group, gi) => {
               const section = group.fields[0]?.section;
+              const rowBreakpoint = ['sm', 'md', 'lg', 'xl'].includes(group.fields[0]?.rowBreakpoint)
+                ? group.fields[0].rowBreakpoint
+                : 'sm';
+              const rowGridClass = {
+                sm: 'sm:grid-cols-2',
+                md: 'md:grid-cols-2',
+                lg: 'lg:grid-cols-2',
+                xl: 'xl:grid-cols-2',
+              }[rowBreakpoint];
+              const weightedGridClass = {
+                sm: 'sm:[grid-template-columns:var(--prompt-row-cols)]',
+                md: 'md:[grid-template-columns:var(--prompt-row-cols)]',
+                lg: 'lg:[grid-template-columns:var(--prompt-row-cols)]',
+                xl: 'xl:[grid-template-columns:var(--prompt-row-cols)]',
+              }[rowBreakpoint];
               const weights = group.fields.map((f) => Number(f.rowWeight) > 0 ? Number(f.rowWeight) : 1);
               const weighted = weights.some((w) => w !== 1);
               const body = group.row && group.fields.length > 1 ? (
                 <div
                   key={`row-${group.row}-${gi}`}
-                  className={cn('grid grid-cols-1 items-start gap-5', weighted ? 'sm:[grid-template-columns:var(--prompt-row-cols)]' : 'sm:grid-cols-2')}
+                  className={cn('grid grid-cols-1 items-start gap-5', weighted ? weightedGridClass : rowGridClass)}
                   style={weighted ? { '--prompt-row-cols': weights.map((w) => `minmax(0,${w}fr)`).join(' ') } : undefined}
                 >
                   {group.fields.map((f) => renderFieldBlock(f, true))}
