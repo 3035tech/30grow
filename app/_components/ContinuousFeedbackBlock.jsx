@@ -280,7 +280,7 @@ export function EmployeeFeedbackSection({ locale = 'pt-BR', onBadge }) {
   if (loading) return <AppLoading variant="panel" />;
 
   return (
-    <ContentEnter animKey={`empfb|${inbox.length}|${aboutMe.length}`}>
+    <ContentEnter animKey={`empfb|${inbox.length}|${aboutMe.length}|${requestedByMe.length}`}>
       <div className="space-y-4">
         <div>
           <h3 className={cn(S.cardSection, 'mb-2')}>{t(locale, 'employeeHome.feedbackInbox')}</h3>
@@ -375,43 +375,57 @@ export function EmployeeFeedbackSection({ locale = 'pt-BR', onBadge }) {
           ) : (
             <ul className="m-0 list-none space-y-2 p-0">
               {requestedByMe.map((item) => (
-                <li
-                  key={item.id}
-                  className="rounded-control border border-ink/12 bg-canvas px-3 py-2.5"
-                >
-                  <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <StatusToneChip
-                      tone={
-                        item.status === FEEDBACK_REQUEST_STATUS.ANSWERED
-                          ? 'success'
-                          : item.status === FEEDBACK_REQUEST_STATUS.PENDING
-                            ? 'warning'
-                            : 'neutral'
-                      }
-                    >
-                      {t(locale, `panel.feedback.status.${item.status}`)}
-                    </StatusToneChip>
-                    <span className={cn(S.faint)}>
-                      {t(locale, 'employeeHome.feedbackRequestedTo', {
-                        name: item.toName || t(locale, 'panel.common.notApplicable'),
-                      })}
-                    </span>
-                    {item.createdAt ? (
-                      <time className={cn(S.faint)} dateTime={item.createdAt}>
-                        {new Date(item.createdAt).toLocaleDateString(locale)}
-                      </time>
-                    ) : null}
-                    {item.status === FEEDBACK_REQUEST_STATUS.PENDING && item.publicPath ? (
-                      <CopyableLink href={item.publicPath} locale={locale} iconOnly />
-                    ) : null}
+                <li key={item.id} className="rounded-control border border-ink/12 bg-canvas px-3 py-3">
+                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+                    <div className="min-w-0">
+                      <p className={cn(S.cardTitle, 'm-0 break-words')}>
+                        {t(locale, 'employeeHome.feedbackRequestedTo', {
+                          name: item.toName || t(locale, 'panel.common.notApplicable'),
+                        })}
+                      </p>
+                      {item.createdAt ? (
+                        <time className={cn(S.faint, 'mt-0.5 block')} dateTime={item.createdAt}>
+                          {new Date(item.createdAt).toLocaleString(locale, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </time>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <StatusToneChip
+                        tone={
+                          item.status === FEEDBACK_REQUEST_STATUS.ANSWERED
+                            ? 'success'
+                            : item.status === FEEDBACK_REQUEST_STATUS.PENDING
+                              ? 'warning'
+                              : 'neutral'
+                        }
+                      >
+                        {t(locale, `panel.feedback.status.${item.status}`)}
+                      </StatusToneChip>
+                      {item.status === FEEDBACK_REQUEST_STATUS.PENDING && item.publicPath ? (
+                        <CopyableLink href={item.publicPath} locale={locale} iconOnly />
+                      ) : null}
+                    </div>
                   </div>
                   {item.prompt ? (
-                    <p className={cn(S.muted, 'm-0 text-prose')}>{item.prompt}</p>
+                    <div className="mt-2 border-t border-ink/8 pt-2">
+                      <p className={cn(S.faint, 'm-0')}>{t(locale, 'panel.feedback.promptLabel')}</p>
+                      <p className={cn(S.muted, 'mb-0 mt-0.5 whitespace-pre-wrap text-prose')}>
+                        {item.prompt}
+                      </p>
+                    </div>
                   ) : null}
                   {item.responseText ? (
-                    <p className={cn(S.cardTitle, 'mb-0 mt-1.5 whitespace-pre-wrap text-prose')}>
-                      {item.responseText}
-                    </p>
+                    <div className="mt-2 rounded-control bg-success/[0.06] px-3 py-2">
+                      <p className={cn(S.faint, 'm-0')}>
+                        {t(locale, 'employeeHome.feedbackAnswerLabel')}
+                      </p>
+                      <p className={cn(S.cardTitle, 'mb-0 mt-0.5 whitespace-pre-wrap text-prose')}>
+                        {item.responseText}
+                      </p>
+                    </div>
                   ) : null}
                 </li>
               ))}
