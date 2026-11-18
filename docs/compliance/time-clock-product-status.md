@@ -11,6 +11,8 @@ Decisão de produto de 26/10/2026: apresentar o módulo como **Controle de jorna
 
 Esta entrega altera comunicação. Não interrompe batidas, solicitações, consulta de histórico, assinaturas ou exportações; não apaga ou converte registros. Não modifica leiautes fiscais ou o conteúdo de arquivos já emitidos. Cadastrar INPI ou certificado não remove o aviso nem declara conformidade automaticamente.
 
+Em 18/11/2026, a produção passou a usar a revisão ECS 198, com a referência do segredo de assinatura, prefixo privado do S3 e bundle de raízes ICP-Brasil configurados. A task ficou saudável (1/1) e `/api/health` respondeu `ok`. O formulário de A1 está preparado para uso, mas nenhum certificado real foi enviado ou validado; o estado continua **Controle de jornada em validação**.
+
 ## Antes de revisar esse posicionamento
 
 Comprovar e registrar, para a versão e infraestrutura oferecidas:

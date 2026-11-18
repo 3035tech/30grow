@@ -32,7 +32,8 @@ Estes pontos existem no repositório, mas ainda precisam de aceite no ambiente d
 ## Certificado, assinatura e documentos
 
 - [x] Certificado INPI expedido e conferido: titularidade, título, hash e número do processo coincidem com o pedido. Arquivar o PDF oficial junto aos documentos da empresa.
-- [ ] Configurar o A1 ICP-Brasil real do desenvolvedor em homologação e produção, com chave privada em armazenamento privado e senha em segredo separado; documentar renovação, expiração e revogação.
+- [x] Preparar a configuração AWS de produção para receber o A1: segredo dedicado no Secrets Manager, permissões da role ECS limitadas ao segredo e ao prefixo privado do S3, e bundle de raízes ICP-Brasil configurado na revisão ECS 198. A task está saudável; isso habilita o formulário, mas não comprova upload ou validação de um certificado real.
+- [ ] Enviar e validar o A1 ICP-Brasil real do desenvolvedor em homologação e produção, com chave privada em armazenamento privado e senha em segredo separado; documentar renovação, expiração e revogação. A credencial real ainda não foi fornecida no sistema.
 - [ ] Assinar AFD/AEJ em CAdES destacado `.p7s` e comprovantes eletrônicos em PDF/PAdES com certificado ICP-Brasil válido. Validar os arquivos com ferramentas independentes; os certificados efêmeros dos testes não contam como aceite.
 - [ ] Preparar o Atestado Técnico e Termo de Responsabilidade conforme o modelo vigente do MTE, identificando REP-P/PTRP, programa, versão, registro/certificado INPI e destinatário. Obter as assinaturas qualificadas requeridas dos responsáveis técnico e legal, em PDF PAdES.
 - [ ] Entregar o atestado a cada empresa cliente e instruí-la a mantê-lo disponível para fiscalização. Não assinar declaração de conformidade antes de fechar os requisitos técnicos e operacionais.
