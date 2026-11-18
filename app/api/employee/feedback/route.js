@@ -1,5 +1,5 @@
 /**
- * GET  /api/employee/feedback — inbox + requested
+ * GET  /api/employee/feedback — inbox, received, and requested feedback
  * POST /api/employee/feedback — create request
  */
 
@@ -11,6 +11,7 @@ import {
   createFeedbackRequest,
   listFeedbackInbox,
   listFeedbackForSubject,
+  listFeedbackRequestedByEmployee,
 } from '../../../../lib/people/continuous-feedback.js';
 import { notifyCandidate, EMPLOYEE_NOTIF } from '../../../../lib/employee/employee-notifications.js';
 
@@ -20,23 +21,31 @@ export async function GET(request) {
   try {
     const session = await getEmployeeSessionPayload();
     if (!session) return apiError(request, ERR.UNAUTHORIZED, 401);
-    const inbox = await listFeedbackInbox(null, {
-      companyId: session.companyId,
-      toCandidateId: session.candidateId,
-      status: 'pending',
-    });
-    const aboutMe = await listFeedbackForSubject(null, {
-      companyId: session.companyId,
-      subjectCandidateId: session.candidateId,
-      limit: 20,
-    });
-    if (!inbox.ok || !aboutMe.ok) {
-      return apiErrorFromResult(request, inbox.ok ? aboutMe : inbox);
+    const [inbox, aboutMe, requestedByMe] = await Promise.all([
+      listFeedbackInbox(null, {
+        companyId: session.companyId,
+        toCandidateId: session.candidateId,
+        status: 'pending',
+      }),
+      listFeedbackForSubject(null, {
+        companyId: session.companyId,
+        subjectCandidateId: session.candidateId,
+        limit: 20,
+      }),
+      listFeedbackRequestedByEmployee(null, {
+        companyId: session.companyId,
+        fromCandidateId: session.candidateId,
+        limit: 40,
+      }),
+    ]);
+    if (!inbox.ok || !aboutMe.ok || !requestedByMe.ok) {
+      return apiErrorFromResult(request, !inbox.ok ? inbox : !aboutMe.ok ? aboutMe : requestedByMe);
     }
     return NextResponse.json({
       inbox: inbox.items,
       aboutMe: aboutMe.items,
-    });
+      requestedByMe: requestedByMe.items,
+    }, { headers: { 'Cache-Control': 'no-store, private' } });
   } catch (err) {
     console.error('GET /api/employee/feedback', err);
     return apiError(request, ERR.INTERNAL, 500);

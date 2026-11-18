@@ -195,6 +195,7 @@ export function EmployeeFeedbackSection({ locale = 'pt-BR', onBadge }) {
   const [loading, setLoading] = useState(true);
   const [inbox, setInbox] = useState([]);
   const [aboutMe, setAboutMe] = useState([]);
+  const [requestedByMe, setRequestedByMe] = useState([]);
   const [toId, setToId] = useState('');
   const [prompt, setPrompt] = useState('');
   const [answerDrafts, setAnswerDrafts] = useState({});
@@ -211,10 +212,12 @@ export function EmployeeFeedbackSection({ locale = 'pt-BR', onBadge }) {
       const inboxItems = Array.isArray(data.inbox) ? data.inbox : [];
       setInbox(inboxItems);
       setAboutMe(Array.isArray(data.aboutMe) ? data.aboutMe : []);
+      setRequestedByMe(Array.isArray(data.requestedByMe) ? data.requestedByMe : []);
       onBadgeRef.current?.(inboxItems.length);
     } catch {
       setInbox([]);
       setAboutMe([]);
+      setRequestedByMe([]);
       onBadgeRef.current?.(0);
     } finally {
       setLoading(false);
@@ -356,6 +359,64 @@ export function EmployeeFeedbackSection({ locale = 'pt-BR', onBadge }) {
           >
             {t(locale, 'panel.feedback.requestCta')}
           </button>
+        </CollapsibleBlock>
+
+        <CollapsibleBlock
+          locale={locale}
+          title={t(locale, 'employeeHome.feedbackRequestedHistory')}
+          count={requestedByMe.length || null}
+          defaultOpen={false}
+          variant="card"
+        >
+          {requestedByMe.length === 0 ? (
+            <p className={cn(S.muted, 'm-0 text-prose')}>
+              {t(locale, 'employeeHome.feedbackRequestedHistoryEmpty')}
+            </p>
+          ) : (
+            <ul className="m-0 list-none space-y-2 p-0">
+              {requestedByMe.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-control border border-ink/12 bg-canvas px-3 py-2.5"
+                >
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <StatusToneChip
+                      tone={
+                        item.status === FEEDBACK_REQUEST_STATUS.ANSWERED
+                          ? 'success'
+                          : item.status === FEEDBACK_REQUEST_STATUS.PENDING
+                            ? 'warning'
+                            : 'neutral'
+                      }
+                    >
+                      {t(locale, `panel.feedback.status.${item.status}`)}
+                    </StatusToneChip>
+                    <span className={cn(S.faint)}>
+                      {t(locale, 'employeeHome.feedbackRequestedTo', {
+                        name: item.toName || t(locale, 'panel.common.notApplicable'),
+                      })}
+                    </span>
+                    {item.createdAt ? (
+                      <time className={cn(S.faint)} dateTime={item.createdAt}>
+                        {new Date(item.createdAt).toLocaleDateString(locale)}
+                      </time>
+                    ) : null}
+                    {item.status === FEEDBACK_REQUEST_STATUS.PENDING && item.publicPath ? (
+                      <CopyableLink href={item.publicPath} locale={locale} iconOnly />
+                    ) : null}
+                  </div>
+                  {item.prompt ? (
+                    <p className={cn(S.muted, 'm-0 text-prose')}>{item.prompt}</p>
+                  ) : null}
+                  {item.responseText ? (
+                    <p className={cn(S.cardTitle, 'mb-0 mt-1.5 whitespace-pre-wrap text-prose')}>
+                      {item.responseText}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
         </CollapsibleBlock>
 
         {aboutMe.filter((i) => i.status === FEEDBACK_REQUEST_STATUS.ANSWERED).length > 0 ? (
