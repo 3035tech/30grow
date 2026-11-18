@@ -1340,6 +1340,9 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                         tab: 'team',
                         candidate: String(candidateId),
                         vacancy: String(v.id),
+                        vacancyDetail: String(v.id),
+                        vacancySection: detailSection,
+                        returnTab: 'vacancies',
                         ...(section ? { section } : {}),
                       });
                     }}

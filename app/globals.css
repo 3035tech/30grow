@@ -449,6 +449,11 @@ textarea:focus-visible {
 .kanban-scroll::-webkit-scrollbar-track { background: rgb(var(--ink) / .05); border-radius: 3px; }
 .kanban-scroll::-webkit-scrollbar-thumb { background: rgb(var(--ink) / .2); border-radius: 3px; }
 .kanban-scroll::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink) / .35); }
+.pipeline-stage-scroll { scrollbar-width: thin; scrollbar-color: rgb(var(--ink) / .2) transparent; }
+.pipeline-stage-scroll::-webkit-scrollbar { width: 6px; }
+.pipeline-stage-scroll::-webkit-scrollbar-track { background: transparent; }
+.pipeline-stage-scroll::-webkit-scrollbar-thumb { background: rgb(var(--ink) / .2); border-radius: 3px; }
+.pipeline-stage-scroll::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink) / .35); }
 
 /* Branded public loading (logo pulse — no GIF dependency) */
 @keyframes brand-pulse-scale {

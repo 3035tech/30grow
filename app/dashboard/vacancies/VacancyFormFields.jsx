@@ -264,6 +264,7 @@ export function VacancyFormFields({
             onChange={(html) => onChange({ description: html })}
             placeholder={t(locale, 'recruiting.vacancyDescriptionPh')}
             minHeight={split ? 240 : 140}
+            scrollable
             locale={locale}
             disabled={descAiBusy}
           />

@@ -38,6 +38,7 @@ export function BrCitySelect({
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState(false);
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [query, setQuery] = useState(String(value || ''));
   const listId = useId();
   const wrapRef = useRef(null);
@@ -48,6 +49,7 @@ export function BrCitySelect({
 
   useEffect(() => {
     setQuery(String(value || ''));
+    setActiveIndex(-1);
   }, [value]);
 
   useEffect(() => {
@@ -102,20 +104,53 @@ export function BrCitySelect({
   const inList = cities.includes(cityValue);
   const showLegacy = Boolean(cityValue && !loading && cities.length > 0 && !inList);
 
-  let placeholder = t(locale, 'recruiting.cityPh');
+  let placeholder = autocomplete
+    ? t(locale, 'recruiting.citySearchPlaceholder')
+    : t(locale, 'recruiting.cityPh');
   if (!hasUf) placeholder = t(locale, 'recruiting.citySelectUfFirst');
   else if (loading) placeholder = t(locale, 'recruiting.cityLoading');
 
   const suggestions = useMemo(() => {
     if (!autocomplete || !hasUf || loading || loadErr) return [];
     const q = foldCity(query);
-    const list = !q
-      ? cities.slice(0, 12)
-      : cities.filter((name) => foldCity(name).includes(q)).slice(0, 12);
-    return list;
+    const list = !q ? cities : cities
+      .map((name, index) => ({ name, index, folded: foldCity(name) }))
+      .filter((city) => city.folded.includes(q))
+      .sort((a, b) => {
+        const rank = (city) => city.folded === q ? 0 : city.folded.startsWith(q) ? 1 : 2;
+        return rank(a) - rank(b) || a.index - b.index;
+      })
+      .map((city) => city.name);
+    return list.slice(0, 12);
   }, [autocomplete, hasUf, loading, loadErr, query, cities]);
 
-  const showList = autocomplete && open && hasUf && !loading && !loadErr && suggestions.length > 0;
+  const showList = autocomplete && open && hasUf && !loading && !loadErr;
+
+  const selectSuggestion = (name) => {
+    setQuery(name);
+    onChange?.(name);
+    setOpen(false);
+    setActiveIndex(-1);
+  };
+
+  const onAutocompleteKeyDown = (event) => {
+    if (event.key === 'ArrowDown' && showList && suggestions.length) {
+      event.preventDefault();
+      setActiveIndex((index) => index < 0 ? 0 : Math.min(index + 1, suggestions.length - 1));
+    } else if (event.key === 'ArrowUp' && showList && suggestions.length) {
+      event.preventDefault();
+      setActiveIndex((index) => index <= 0 ? suggestions.length - 1 : index - 1);
+    } else if (event.key === 'Enter' && showList) {
+      event.preventDefault();
+      if (activeIndex >= 0 && suggestions[activeIndex]) {
+        selectSuggestion(suggestions[activeIndex]);
+      }
+    } else if (event.key === 'Escape' && open) {
+      event.preventDefault();
+      setOpen(false);
+      setActiveIndex(-1);
+    }
+  };
 
   const placeList = useCallback(() => {
     const r = inputRef.current?.getBoundingClientRect();
@@ -152,6 +187,7 @@ export function BrCitySelect({
           aria-expanded={showList}
           aria-controls={listId}
           aria-autocomplete="list"
+          aria-activedescendant={showList && activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined}
           aria-label={ariaLabel || t(locale, 'recruiting.cityPh')}
           autoComplete="off"
           disabled={!hasUf || loading}
@@ -161,10 +197,15 @@ export function BrCitySelect({
             const next = e.target.value;
             setQuery(next);
             setOpen(true);
+            setActiveIndex(-1);
             onChange?.(next);
           }}
+          onKeyDown={onAutocompleteKeyDown}
           onFocus={() => {
-            if (hasUf && !loading) setOpen(true);
+            if (hasUf && !loading) {
+              setOpen(true);
+              setActiveIndex(-1);
+            }
           }}
           className={cn(
             fieldInputClass,
@@ -190,25 +231,31 @@ export function BrCitySelect({
             className="fixed z-[10090] m-0 max-h-[220px] list-none overflow-y-auto rounded-control border border-ink/16 bg-white py-1.5 shadow-menu"
             style={listPos}
           >
-            {suggestions.map((name) => (
-              <li key={name} role="option" aria-selected={name === cityValue}>
+            {suggestions.length ? suggestions.map((name, index) => (
+              <li
+                key={name}
+                id={`${listId}-option-${index}`}
+                role="option"
+                aria-selected={name === cityValue}
+                onMouseEnter={() => setActiveIndex(index)}
+              >
                 <button
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setQuery(name);
-                    onChange?.(name);
-                    setOpen(false);
-                  }}
+                  onClick={() => selectSuggestion(name)}
                   className={cn(
                     'block w-full cursor-pointer border-none px-3 py-2 text-left font-inherit text-prose text-inherit',
-                    name === cityValue ? 'bg-ink/[0.06]' : 'bg-transparent'
+                    index === activeIndex || name === cityValue ? 'bg-ink/[0.06]' : 'bg-transparent'
                   )}
                 >
                   {name}
                 </button>
               </li>
-            ))}
+            )) : (
+              <li role="option" aria-disabled="true" className="px-3 py-2 font-ui text-prose text-ink-muted">
+                {t(locale, 'recruiting.cityNoResults')}
+              </li>
+            )}
           </ul>,
           document.body
         ) : null}

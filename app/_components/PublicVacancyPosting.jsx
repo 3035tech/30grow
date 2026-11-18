@@ -595,13 +595,6 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                         </p>
                       </ContentEnter>
                     ) : null}
-                    {posting.applyPath && !applyDone ? (
-                      <p className="mb-0 mt-1 font-mono text-2xs">
-                        <a href={posting.applyPath} className="text-ink-muted underline-offset-2 hover:underline">
-                          {t(locale, 'publicVacancy.applyAssessmentLink')}
-                        </a>
-                      </p>
-                    ) : null}
                   </div>
                 ) : (
                   <p className="m-0 text-sm text-ink-muted">

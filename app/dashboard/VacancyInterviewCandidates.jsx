@@ -580,6 +580,7 @@ function CandidateCard({
             </FormField>
             <FormField label={t(locale, 'recruiting.cityLabel')} className="min-w-0 flex-[1_1_180px]">
               <BrCitySelect
+                mode="autocomplete"
                 uf={stateUf}
                 value={city}
                 onChange={setCity}
@@ -956,6 +957,7 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
           </FormField>
           <FormField label={t(locale, 'recruiting.cityLabel')} className="min-w-0">
             <BrCitySelect
+              mode="autocomplete"
               uf={stateUf}
               value={city}
               onChange={setCity}

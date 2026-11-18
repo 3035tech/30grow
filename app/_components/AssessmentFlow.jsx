@@ -376,7 +376,7 @@ function HomeScreen({
             labelClassName={formFieldCandLabelClass}
             className="min-w-[180px] flex-[2_1_180px]"
           >
-            <BrCitySelect uf={stateUf} value={city} onChange={setCity} locale={locale} className="w-full" />
+            <BrCitySelect mode="autocomplete" uf={stateUf} value={city} onChange={setCity} locale={locale} className="w-full" />
           </FormField>
         </div>
 

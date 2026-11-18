@@ -29,6 +29,7 @@ import {
 } from '../../../lib/people/list-absence-diagnostics-core.js';
 
 const EMPTY_FILTERS = Object.freeze({ q: '', owner: 'all', aging: 'all', fit: 'all', notes: false, tagIds: [], tagMode: 'any' });
+const COMPACT_PIPELINE_THRESHOLD = 30;
 
 export function VacancyKanbanBlock(props) {
   const [tagRefresh, setTagRefresh] = useState(0);
@@ -51,8 +52,14 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   const [moving, setMoving] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
   const [selectedCardKey, setSelectedCardKey] = useState(null);
+  const compactChoiceMade = useRef(false);
+  const compactAutoAppliedFor = useRef(null);
   const suppressOpenUntil = useRef(0);
-  useEffect(() => { setSelectedCardKey(null); }, [vacancyId]);
+  useEffect(() => {
+    setSelectedCardKey(null);
+    compactChoiceMade.current = false;
+    compactAutoAppliedFor.current = null;
+  }, [vacancyId]);
   const [dragOverStage, setDragOverStage] = useState(null);
   const [fetchedStages, setFetchedStages] = useState(null);
   const [compact, setCompact] = useState(false);
@@ -126,8 +133,15 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
         if (!cancelled) {
-          setRows(Array.isArray(data.ranking) ? data.ranking : []);
+          const nextRows = Array.isArray(data.ranking) ? data.ranking : [];
+          setRows(nextRows);
           setRankingMeta({ total: data.total || 0, truncated: data.truncated === true });
+          if (compactAutoAppliedFor.current !== String(vacancyId)) {
+            compactAutoAppliedFor.current = String(vacancyId);
+            if (!compactChoiceMade.current) {
+              setCompact(Number(data.total ?? nextRows.length) >= COMPACT_PIPELINE_THRESHOLD);
+            }
+          }
         }
       } catch (e) {
         if (!cancelled) setErr(e?.message || t(locale, 'panel.common.error'));
@@ -238,6 +252,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   const searchQuery = filters.q.trim();
   const boardFiltersActive =
     filters.owner !== 'all' || filters.aging !== 'all' || filters.fit !== 'all' || filters.notes || Boolean(filters.tagIds?.length) || filters.tagMode === 'none';
+  const pipelineFiltersActive = boardFiltersActive || Boolean(searchQuery);
 
   const runAbsenceDiagnose = async () => {
     if (!searchQuery || diagnoseBusy) return;
@@ -351,6 +366,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   };
 
   const applyView = (view) => {
+    compactChoiceMade.current = true;
     setFilters({ ...EMPTY_FILTERS, ...(view.filters || {}) });
     setHideEmpty(view.filters?.hideEmpty === true);
     setCompact(view.filters?.compact === true);
@@ -365,8 +381,10 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
         </span>
         {loading ? <AppLoading variant="inline" /> : null}
         {!loading && hasAny && (
-          <span className="font-mono text-2xs text-ink-faint">
-            {t(locale, 'recruiting.candidatesCount', { n: rankingMeta.total })}
+          <span role="status" className="rounded-full border border-ink/10 bg-surface px-2.5 py-1 font-ui text-xs tabular-nums text-ink-muted">
+            {pipelineFiltersActive
+              ? t(locale, 'recruiting.pipelineFilteredCount', { shown: filteredRows.length, total: rankingMeta.total })
+              : t(locale, 'recruiting.candidatesCount', { n: rankingMeta.total })}
           </span>
         )}
         {hasAny ? (
@@ -375,7 +393,10 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
               type="button"
               className={cn('min-h-touch rounded-control border px-2.5 font-ui text-xs', compact ? 'border-brand-500/35 bg-brand-500/[0.08] text-brand-600' : 'border-ink/12 text-ink-muted')}
               aria-pressed={compact}
-              onClick={() => setCompact((value) => !value)}
+              onClick={() => {
+                compactChoiceMade.current = true;
+                setCompact((value) => !value);
+              }}
             >
               {t(locale, 'recruiting.pipelineCompact')}
             </button>
@@ -438,6 +459,15 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
             </label>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-ink/8 pt-2">
+            {pipelineFiltersActive ? (
+              <button
+                type="button"
+                className="min-h-touch rounded-control px-2.5 font-ui text-xs text-brand-600 underline-offset-2 hover:underline"
+                onClick={() => setFilters({ ...EMPTY_FILTERS })}
+              >
+                {t(locale, 'panel.common.clearFilters')}
+              </button>
+            ) : null}
             <label className="flex items-center gap-2 font-ui text-xs text-ink-muted">
               {t(locale, 'recruiting.vacancyOwner')}
               <SelectField
@@ -468,7 +498,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
 
       {!loading && !hasAny ? (
         <EmptyState
-          title={t(locale, boardFiltersActive ? 'recruiting.pipelineNoFilterResults' : 'recruiting.pipelineEmpty')}
+          title={t(locale, pipelineFiltersActive ? 'recruiting.pipelineNoFilterResults' : 'recruiting.pipelineEmpty')}
           className="py-4"
         />
       ) : null}
@@ -508,7 +538,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                     await moveTo(r, stage.id);
                   }}
                   className={cn(
-                    'shrink-0 rounded-xl outline outline-2 outline-offset-[3px] transition-[width,outline-color] duration-100',
+                    'flex max-h-[min(62vh,48rem)] shrink-0 flex-col overflow-hidden rounded-xl border border-ink/10 bg-canvas/45 p-2 outline outline-2 outline-offset-[3px] transition-[width,outline-color] duration-100 md:max-h-[min(72vh,56rem)]',
                     compact ? 'w-full md:w-[184px]' : 'w-full md:w-[220px]'
                   )}
                   style={{
@@ -516,7 +546,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                   }}
                 >
                   <div
-                    className="sticky top-0 z-[1] mb-2 flex flex-wrap items-center gap-1.5 rounded-t-[10px] px-2.5 py-2 backdrop-blur-sm transition-colors duration-100"
+                    className="z-[1] mb-2 flex flex-shrink-0 flex-wrap items-center gap-1.5 rounded-control px-2.5 py-2 backdrop-blur-sm transition-colors duration-100"
                     style={{
                       background: isDropTarget ? `${stage.color}22` : `${stage.color}12`,
                       borderTop: `3px solid ${stage.color}`,
@@ -562,7 +592,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                   <div
                     onDragOver={(e) => e.preventDefault()}
                     className={cn(
-                      'flex flex-col gap-[7px] transition-[min-height] duration-100',
+                      'pipeline-stage-scroll flex min-h-0 flex-1 flex-col gap-[7px] overflow-y-auto overscroll-contain pr-1 transition-[min-height] duration-100',
                       collapsedStages.includes(stage.id) && 'hidden md:flex',
                       isDropTarget ? 'min-h-[60px]' : 'min-h-[30px]'
                     )}
@@ -633,7 +663,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                             ) : null}
                           </div>
                           <CandidateTags candidateId={r.candidateId} name={r.name} tags={r.tags || []} locale={locale} />
-                          {r.email ? (
+                          {r.email && !compact ? (
                             <div
                               className="mb-[5px] overflow-hidden text-ellipsis whitespace-nowrap font-mono text-2xs text-ink-faint"
                               title={r.email}

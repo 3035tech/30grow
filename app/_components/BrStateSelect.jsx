@@ -23,7 +23,7 @@ export function BrStateSelect({
   return (
     <SelectField
       id={id}
-      className={cn(fieldSelectClass, className)}
+      className={cn(fieldSelectClass, 'whitespace-nowrap text-ellipsis', className)}
       value={selectValue}
       onChange={(e) => onChange?.(e.target.value)}
       aria-label={ariaLabel || t(locale, 'recruiting.statePh')}

@@ -1432,7 +1432,11 @@ export function TeamTab({
         maxWidth="920px"
         fullPage={isPersonPage}
         withinShell={isPersonPage}
-        backLabel={['talent-bank', 'vacancies', 'organization'].includes(returnTab) ? t(locale, 'recruiting.backToList') : undefined}
+        backLabel={returnTab === 'vacancies'
+          ? t(locale, 'recruiting.backToVacancy')
+          : ['talent-bank', 'organization'].includes(returnTab)
+            ? t(locale, 'recruiting.backToList')
+            : undefined}
         headerMeta={personHeaderMeta}
         headerActions={personHeaderActions}
       >
@@ -2009,6 +2013,7 @@ export function TeamTab({
                           className="min-w-0 flex-[1_1_180px]"
                         >
                           <BrCitySelect
+                            mode="autocomplete"
                             uf={profileDraft.state}
                             value={profileDraft.city}
                             onChange={(city) => setProfileDraft((p) => ({ ...p, city }))}

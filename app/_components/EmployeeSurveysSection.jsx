@@ -13,7 +13,7 @@ import { AppLoading } from './AppLoading';
 import { CLIMATE_QUESTION_KIND } from '../../lib/domain-status';
 
 function isQuestionAnswered(q, value) {
-  if (q.questionKind === CLIMATE_QUESTION_KIND.TEXT) return String(value || '').trim().length > 0;
+  if (q.questionKind === CLIMATE_QUESTION_KIND.TEXT) return String(value || '').trim().length >= 5;
   return value != null && value !== '';
 }
 
@@ -77,13 +77,13 @@ export function EmployeeSurveysSection({ locale = 'pt-BR', onMeta }) {
         }),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.errorCode || json?.error || 'submit');
+      if (!res.ok) throw new Error(json?.error || json?.errorCode || 'submit');
       toast(t(locale, 'employeeHome.surveysSubmitted'), 'ok');
       setActive(null);
       setAnswers({});
       await load();
     } catch (e) {
-      toast(t(locale, 'employeeHome.surveysSubmitError'), 'error');
+      toast(e?.message || t(locale, 'employeeHome.surveysSubmitError'), 'error');
     } finally {
       setBusy(false);
     }

@@ -34,12 +34,15 @@ function ToolbarButton({ label, title, onClick, className }) {
   );
 }
 
-function ToolbarSelect({ value, onChange, title, children }) {
+function ToolbarSelect({ value, onChange, onMouseDown, title, children }) {
   return (
     <SelectField
       title={title}
       value={value}
-      onMouseDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => {
+        onMouseDown?.(e);
+        e.stopPropagation();
+      }}
       onChange={(e) => onChange(e.target.value)}
       className="ui-select max-w-[110px] cursor-pointer rounded-md border border-ink/12 bg-ink/[0.04] !px-1.5 !py-1 !pr-6 font-mono text-2xs text-ink"
     >
@@ -58,6 +61,7 @@ export function RichTextEditor({
   onChange,
   placeholder,
   minHeight = 140,
+  scrollable = false,
   locale = 'pt-BR',
   disabled = false,
   'aria-label': ariaLabel,
@@ -65,6 +69,7 @@ export function RichTextEditor({
 }) {
   const ref = useRef(null);
   const lastHtml = useRef('');
+  const savedSelection = useRef(null);
   const ph = placeholder ?? t(locale, 'recruiting.interviewNotesPh');
 
   useEffect(() => {
@@ -100,7 +105,20 @@ export function RichTextEditor({
 
   const applyFontSize = (px) => {
     if (disabled || !px) return;
-    ref.current?.focus();
+    const root = ref.current;
+    if (!root) return;
+    root.focus();
+    const existingSizes = new Map(
+      [...root.querySelectorAll('font[size], span[style*="font-size"]')].map((node) => [
+        node,
+        node.getAttribute('size') ?? node.style.fontSize,
+      ])
+    );
+    const selection = window.getSelection();
+    if (savedSelection.current && selection) {
+      selection.removeAllRanges();
+      selection.addRange(savedSelection.current);
+    }
     document.execCommand('styleWithCSS', false, true);
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
@@ -108,20 +126,28 @@ export function RichTextEditor({
     } else {
       document.execCommand('fontSize', false, '7');
     }
-    const root = ref.current;
-    if (root) {
-      root.querySelectorAll('font[size], span[style*="font-size"]').forEach((node) => {
-        if (node.tagName === 'FONT') {
-          const span = document.createElement('span');
-          span.style.fontSize = px;
-          while (node.firstChild) span.appendChild(node.firstChild);
-          node.parentNode?.replaceChild(span, node);
-        } else if (node.style?.fontSize) {
-          node.style.fontSize = px;
-        }
-      });
-    }
+    root.querySelectorAll('font[size], span[style*="font-size"]').forEach((node) => {
+      const previousSize = existingSizes.get(node);
+      const currentSize = node.getAttribute('size') ?? node.style.fontSize;
+      if (existingSizes.has(node) && previousSize === currentSize) return;
+      if (node.tagName === 'FONT') {
+        const span = document.createElement('span');
+        span.style.fontSize = px;
+        while (node.firstChild) span.appendChild(node.firstChild);
+        node.parentNode?.replaceChild(span, node);
+      } else if (node.style?.fontSize) {
+        node.style.fontSize = px;
+      }
+    });
+    savedSelection.current = null;
     pushHtml();
+  };
+
+  const saveSelection = () => {
+    const selection = window.getSelection();
+    const root = ref.current;
+    if (!selection || selection.rangeCount === 0 || !root?.contains(selection.anchorNode)) return;
+    savedSelection.current = selection.getRangeAt(0).cloneRange();
   };
 
   const emit = () => pushHtml();
@@ -162,6 +188,7 @@ export function RichTextEditor({
         <ToolbarSelect
           value=""
           title={t(locale, 'editor.fontSize')}
+          onMouseDown={saveSelection}
           onChange={(px) => applyFontSize(px)}
         >
           <option value="">{t(locale, 'editor.fontSize')}</option>
@@ -210,6 +237,7 @@ export function RichTextEditor({
           onKeyDown={onKeyDown}
           className={cn(
             'rich-text-body px-3.5 py-3 font-ui text-base sm:text-sm leading-[1.55] text-ink outline-none',
+            scrollable && 'max-h-[min(45vh,24rem)] overflow-y-auto overscroll-contain',
             disabled ? 'cursor-wait' : 'cursor-text'
           )}
           style={{ minHeight }}
