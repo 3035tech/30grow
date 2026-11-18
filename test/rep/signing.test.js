@@ -159,6 +159,35 @@ test('CAdES detached and PAdES PDF verify cryptographically; missing/invalid cre
       assert.ok((await sign(content)).length > 0);
     }, { settings: { password: 'test-only' }, p12: uploadedP12 });
     assert.deepEqual(uploadedP12, encryptedP12);
+    const legacyP12Path = path.join(dir, 'legacy.p12');
+    await run(bin, [
+      'pkcs12',
+      '-export',
+      '-legacy',
+      '-inkey',
+      key,
+      '-in',
+      cert,
+      '-out',
+      legacyP12Path,
+      '-passout',
+      'pass:test-only',
+    ]);
+    const legacyP12 = await readFile(legacyP12Path);
+    await assert.rejects(run(bin, [
+      'pkcs12',
+      '-in',
+      legacyP12Path,
+      '-passin',
+      'pass:test-only',
+      '-clcerts',
+      '-nokeys',
+      '-out',
+      path.join(dir, 'legacy-default-provider.pem'),
+    ]));
+    await withSigningCertificate(async ({ sign }) => {
+      assert.ok((await sign(content)).length > 0);
+    }, { settings: { password: 'test-only' }, p12: legacyP12 });
     await assert.rejects(withSigningCertificate(() => {}, {
       settings: { password: 'wrong' }, p12: uploadedP12,
     }), /UNAVAILABLE/);
