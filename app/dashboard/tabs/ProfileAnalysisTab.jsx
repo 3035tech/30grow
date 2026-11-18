@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { getCompat } from '../../../lib/data';
 import { CAP, can } from '../../../lib/identity/permissions';
 import { t } from '../../../lib/i18n';
@@ -34,23 +34,18 @@ export function ProfileAnalysisTab({
 }) {
   const canCompatibility = can(sessionAuth, CAP.COMPATIBILITY_VIEW);
   const canCompare = can(sessionAuth, CAP.COMPARE_VIEW);
-  const [mode, setMode] = useState(() =>
-    initialMode === 'compare' && canCompare ? 'compare' : canCompatibility ? 'compatibility' : 'compare',
-  );
-  useEffect(() => {
-    if (initialMode === 'compare' && canCompare) setMode('compare');
-    else if (initialMode === 'compatibility' && canCompatibility) setMode('compatibility');
-    else if (!canCompatibility && canCompare) setMode('compare');
-    else if (canCompatibility && !canCompare) setMode('compatibility');
-  }, [initialMode, canCompatibility, canCompare]);
+  const mode = !canCompatibility
+    ? 'compare'
+    : !canCompare
+      ? 'compatibility'
+      : initialMode === 'compare'
+        ? 'compare'
+        : 'compatibility';
   const [selectedPeople, setSelectedPeople] = useState([]);
   const onSelectionChange = useCallback((people) => setSelectedPeople(people), []);
   const removeSelectedPerson = useCallback((assessmentId) => {
     setSelectedPeople((current) => current.filter((person) => String(person.assessmentId) !== String(assessmentId)));
   }, []);
-  useEffect(() => {
-    setSelectedPeople([]);
-  }, [filterQueryString, search]);
 
   const selectedPairs = useMemo(() => {
     const result = { tensions: [], synergies: [], pairs: [] };
@@ -68,7 +63,6 @@ export function ProfileAnalysisTab({
   }, [selectedPeople, locale]);
 
   const changeMode = (next) => {
-    setMode(next);
     onModeChange?.(next);
   };
 

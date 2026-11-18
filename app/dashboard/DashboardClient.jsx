@@ -1457,6 +1457,7 @@ function DashboardClientContent({
               )}
               {tab === 'compatibility' && (can(sessionAuth, CAP.COMPATIBILITY_VIEW) || can(sessionAuth, CAP.COMPARE_VIEW)) && (
                 <ProfileAnalysisTab
+                  key={JSON.stringify([compareQueryString, selectedSearch])}
                   sessionAuth={sessionAuth}
                   initialMode={urlParams.get('profileMode') || (urlParams.get('tab') === 'compare' ? 'compare' : 'compatibility')}
                   tensions={tensions}
