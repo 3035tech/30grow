@@ -22,6 +22,8 @@ export function CompareTabLoader({
   onSearch,
   roster,
   navigateDashboard,
+  selectedProfiles,
+  onSelectionChange,
 }) {
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState({ total: 0, totalPages: 1, page: 1 });
@@ -99,6 +101,8 @@ export function CompareTabLoader({
           listTotal={meta.total}
           roster={roster}
           navigateDashboard={navigateDashboard}
+          selectedProfiles={selectedProfiles}
+          onSelectionChange={onSelectionChange}
         />
       )}
       {meta.total > 0 ? (

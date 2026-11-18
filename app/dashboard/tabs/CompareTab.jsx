@@ -99,20 +99,16 @@ export function CompareTab({
   listTotal = 0,
   roster,
   navigateDashboard,
+  selectedProfiles = [],
+  onSelectionChange,
 }) {
   const { isDark } = useDarkMode();
-  const allIds = useMemo(() => results.map((r) => String(r.assessmentId)), [results]);
-  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const selectedIds = useMemo(
+    () => new Set(selectedProfiles.map((row) => String(row.assessmentId))),
+    [selectedProfiles],
+  );
   const [sortBy, setSortBy] = useState(() => ({ key: 'name', dir: 'asc' }));
   const [searchDraft, setSearchDraft] = useState(search || '');
-
-  useEffect(() => {
-    setSelectedIds((prev) => {
-      const idSet = new Set(allIds);
-      const next = new Set([...prev].filter((id) => idSet.has(id)));
-      return next;
-    });
-  }, [allIds]);
 
   useEffect(() => {
     setSearchDraft(search || '');
@@ -124,29 +120,26 @@ export function CompareTab({
     if (typeof onSearch === 'function') onSearch(trimmed || null);
   };
 
-  const toggleId = (id) => {
-    setSelectedIds((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
+  const toggleId = (row) => {
+    const id = String(row.assessmentId);
+    const next = selectedIds.has(id)
+      ? selectedProfiles.filter((item) => String(item.assessmentId) !== id)
+      : selectedProfiles.length < 5 ? [...selectedProfiles, row] : selectedProfiles;
+    onSelectionChange?.(next);
   };
 
   const selectUpToFive = () => {
-    setSelectedIds((prev) => {
-      const validIds = new Set(allIds);
-      const next = new Set([...prev].filter((id) => validIds.has(id)).slice(0, 5));
-      for (const row of resultsByName) {
-        if (next.size >= 5) break;
-        next.add(String(row.assessmentId));
-      }
-      return next;
-    });
+    const next = [...selectedProfiles];
+    const ids = new Set(next.map((row) => String(row.assessmentId)));
+    for (const row of resultsByName) {
+      if (next.length >= 5) break;
+      if (!ids.has(String(row.assessmentId))) next.push(row);
+    }
+    onSelectionChange?.(next);
   };
-  const clearSelection = () => setSelectedIds(new Set());
+  const clearSelection = () => onSelectionChange?.([]);
 
-  const visible = results.filter((r) => selectedIds.has(String(r.assessmentId)));
+  const visible = selectedProfiles;
   const resultsByName = useMemo(() => {
     return [...results].sort((a, b) => {
       const an = personSortKey(a?.name);
@@ -190,7 +183,9 @@ export function CompareTab({
   const sortMark = (key) => (sortBy.key === key ? (sortBy.dir === 'asc' ? '▲' : '▼') : '');
   const nSel = selectedIds.size;
   const nTot = results.length;
-  const allSelected = nTot > 0 && nSel >= Math.min(nTot, 5);
+  const allSelected = nTot > 0 && (
+    nSel >= 5 || results.every((row) => selectedIds.has(String(row.assessmentId)))
+  );
 
   const miniBtnBase =
     'cursor-pointer rounded-lg px-3 py-1.5 font-mono text-2xs uppercase tracking-wide';
@@ -309,7 +304,7 @@ export function CompareTab({
                     value={id}
                     checked={on}
                     disabled={!on && nSel >= 5}
-                    onChange={() => toggleId(id)}
+                    onChange={() => toggleId(r)}
                     className="h-[15px] w-[15px] shrink-0 cursor-pointer accent-brand-500"
                   />
                   <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap leading-snug">

@@ -121,12 +121,8 @@ function ExportCsvButton({ href, locale }) {
   );
 }
 
-const CompareTabLoader = dynamic(
-  () => import('./tabs/CompareTabLoader').then((m) => ({ default: m.CompareTabLoader })),
-  { loading: () => <TabLoadingFallback /> }
-);
-const CompatTab = dynamic(
-  () => import('./tabs/CompatTab').then((m) => ({ default: m.CompatTab })),
+const ProfileAnalysisTab = dynamic(
+  () => import('./tabs/ProfileAnalysisTab').then((m) => ({ default: m.ProfileAnalysisTab })),
   { loading: () => <TabLoadingFallback /> }
 );
 const SubscriptionsAdminTab = dynamic(
@@ -896,8 +892,7 @@ function DashboardClientContent({
       showLearning && { id: 'lms', icon: 'book', label: t(locale, 'dashboard.lms') },
     ],
     [DASHBOARD_NAV_SECTION.CULTURE_HR]: [
-      canSee(CAP.COMPATIBILITY_VIEW) && { id: 'compatibility', icon: 'compatibility', label: t(locale, 'dashboard.compatibility') },
-      canSee(CAP.COMPARE_VIEW) && { id: 'compare', icon: 'compare', label: t(locale, 'dashboard.compare') },
+      (canSee(CAP.COMPATIBILITY_VIEW) || canSee(CAP.COMPARE_VIEW)) && { id: 'compatibility', icon: 'compatibility', label: t(locale, 'dashboard.profileAnalysis') },
       canSee(CAP.GROUP_VIEW) && { id: 'group', icon: 'group', label: t(locale, 'dashboard.group') },
       canSee(CAP.LEADERSHIP_VIEW) && { id: 'leadership', icon: 'leadership', label: t(locale, 'dashboard.leadership') },
       showMotivators && { id: 'motivators', icon: 'motivators', label: t(locale, 'dashboard.motivators') },
@@ -1238,7 +1233,7 @@ function DashboardClientContent({
               {!isVacancyDetail ? <span className="text-prose text-ink-muted">
                 {showPanelLoading ? (
                   t(locale, 'dashboard.loadingPanel')
-                ) : showsCohortChrome && ['overview', 'team', 'compatibility'].includes(tab) ? (
+                ) : showsCohortChrome && ['overview', 'team'].includes(tab) ? (
                   <>
                     {listTotal}{' '}
                     {listTotal === 1
@@ -1315,7 +1310,7 @@ function DashboardClientContent({
               Compare / group / leadership skip that COUNT on purpose and have their own empty UI. */}
           {showsCohortChrome &&
           compatMetrics.total === 0 &&
-          (tab === 'team' || tab === 'compatibility') ? (
+          (tab === 'team' || (tab === 'compatibility' && can(sessionAuth, CAP.COMPATIBILITY_VIEW))) ? (
             <RosterEmptyHint
               locale={locale}
               roster={roster || ROSTER_SCOPE.INTERNAL}
@@ -1460,8 +1455,10 @@ function DashboardClientContent({
                   ) : null}
                 </>
               )}
-              {tab === 'compatibility' && can(sessionAuth, CAP.COMPATIBILITY_VIEW) && (
-                <CompatTab
+              {tab === 'compatibility' && (can(sessionAuth, CAP.COMPATIBILITY_VIEW) || can(sessionAuth, CAP.COMPARE_VIEW)) && (
+                <ProfileAnalysisTab
+                  sessionAuth={sessionAuth}
+                  initialMode={urlParams.get('profileMode') || (urlParams.get('tab') === 'compare' ? 'compare' : 'compatibility')}
                   tensions={tensions}
                   synergies={synergies}
                   pairs={pairs}
@@ -1470,11 +1467,6 @@ function DashboardClientContent({
                   compatPage={compatListPagination.page}
                   compatPageSize={compatListPagination.pageSize}
                   onCompatPagination={pushCompatListPagination}
-                  locale={locale}
-                />
-              )}
-              {tab === 'compare' && can(sessionAuth, CAP.COMPARE_VIEW) && (
-                <CompareTabLoader
                   filterQueryString={compareQueryString}
                   comparePage={comparePagSnap.page}
                   comparePageSize={comparePagSnap.pageSize}
@@ -1486,6 +1478,10 @@ function DashboardClientContent({
                   onSearch={(value) => {
                     setSearch(value || '');
                     pushFilters({ search: value });
+                  }}
+                  onModeChange={(profileMode) => {
+                    if (profileMode === 'compatibility') pushCompatListPagination({ page: 1 });
+                    navigateWithOpts({ tab: 'compatibility', profileMode });
                   }}
                 />
               )}

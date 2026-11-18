@@ -104,6 +104,10 @@ export function useDashboardNavigation({
 
     // Deep-link Equipe → pessoa: /dashboard?tab=team&candidate=<id>
     const nextTab = opts.tab !== undefined ? opts.tab : urlParams.get('tab') || 'overview';
+    if (nextTab === 'compatibility') {
+      const profileMode = opts.profileMode !== undefined ? opts.profileMode : urlParams.get('profileMode');
+      if (profileMode === 'compare' || profileMode === 'compatibility') p.set('profileMode', profileMode);
+    }
     const pdiSearch = opts.pdiSearch !== undefined ? opts.pdiSearch : urlParams.get('pdiSearch');
     if (nextTab === 'pdi' && pdiSearch) p.set('pdiSearch', String(pdiSearch));
     const nextOrgUnit = opts.orgUnit !== undefined ? opts.orgUnit
@@ -327,7 +331,12 @@ export function useDashboardNavigation({
   const navigateToTab = (id) => {
     const currentTab = urlParams.get('tab') || 'overview';
     const clientOnly = id !== currentTab && canSwitchTabClientOnly(id, { isAdmin, companiesLoaded });
-    navigateWithOpts({ tab: id, vacancyDetail: '', ...(clientOnly ? { clientOnly: true } : {}) });
+    navigateWithOpts({
+      tab: id,
+      vacancyDetail: '',
+      ...(id === 'compatibility' ? { profileMode: 'compare' } : {}),
+      ...(clientOnly ? { clientOnly: true } : {}),
+    });
     if (clientOnly) window.scrollTo(0, 0);
   };
 

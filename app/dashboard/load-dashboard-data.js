@@ -32,7 +32,7 @@ import { buildCompatBundles, COMPAT_PEOPLE_CAP } from '../../lib/compat-bundles'
 import { getOnboardingProgress } from '../../lib/development/onboarding-progress';
 import { loadInternalTeamRoster } from '../../lib/people/internal-team-roster.js';
 import { ANNIVERSARY_WINDOW_DAYS, getUpcomingAnniversaries } from '../../lib/people/upcoming-anniversaries.js';
-import { isSuperAdminPayload } from '../../lib/identity/permissions';
+import { CAP, can, isSuperAdminPayload } from '../../lib/identity/permissions';
 import { measureAsync } from '../../lib/monitoring.js';
 import { COHORT_TABS, needsAdminCompaniesList } from '../../lib/dashboard-company-scope.js';
 
@@ -84,7 +84,7 @@ export async function loadDashboardTabData({ searchParams, payload, isAdmin, com
   const activeTab = parseDashboardTab(searchParams, payload);
   const needCohortChrome = COHORT_TABS.has(activeTab);
   const needTeam = activeTab === 'team';
-  const needCompatPairs = activeTab === 'compatibility';
+  const needCompatPairs = activeTab === 'compatibility' && can(payload, CAP.COMPATIBILITY_VIEW);
   const needGroupPeople = activeTab === 'group';
   const needOverview = activeTab === 'overview';
   const needLeadership = activeTab === 'leadership';
