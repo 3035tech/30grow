@@ -158,6 +158,10 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
   const router = useRouter();
   const { toast, promptForm } = useAppFeedback();
   const [okrNotice, setOkrNotice] = useState('');
+  const [okrHistoryOpen, setOkrHistoryOpen] = useState({});
+  const [okrHistoryItems, setOkrHistoryItems] = useState({});
+  const [okrHistoryLoading, setOkrHistoryLoading] = useState({});
+  const [okrHistoryError, setOkrHistoryError] = useState({});
   const okrNumber = value => new Intl.NumberFormat(locale, {maximumFractionDigits:2}).format(value);
   const { activeSection, setNavMeta, setActiveSection, sectionFocus, focusSection, consumeSectionFocus } = useEmployeeNav();
   const focusFrame = useRef(null);
@@ -199,6 +203,35 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
       body: JSON.stringify({ action: 'dismissWelcome' }),
     }).catch(() => {});
   }, []);
+
+  const loadOkrHistory = async (keyResultId) => {
+    const id = String(keyResultId);
+    setOkrHistoryLoading((prev) => ({ ...prev, [id]: true }));
+    setOkrHistoryError((prev) => ({ ...prev, [id]: '' }));
+    try {
+      const res = await fetch(`/api/employee/okr/checkins?keyResultId=${encodeURIComponent(id)}`);
+      if (redirectEmployeeIfUnauthorized(router, res.status)) return;
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result?.error || 'load');
+      setOkrHistoryItems((prev) => ({ ...prev, [id]: Array.isArray(result.items) ? result.items : [] }));
+    } catch {
+      setOkrHistoryError((prev) => ({ ...prev, [id]: t(locale, 'employeeHome.okrHistoryLoadError') }));
+    } finally {
+      setOkrHistoryLoading((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const toggleOkrHistory = (keyResultId) => {
+    const id = String(keyResultId);
+    if (okrHistoryOpen[id]) {
+      setOkrHistoryOpen((prev) => ({ ...prev, [id]: false }));
+      return;
+    }
+    setOkrHistoryOpen((prev) => ({ ...prev, [id]: true }));
+    if (!Object.prototype.hasOwnProperty.call(okrHistoryItems, id) && !okrHistoryLoading[id]) {
+      void loadOkrHistory(id);
+    }
+  };
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -387,6 +420,15 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data?.error || t(locale, 'employeeHome.loadError'));
           setOkrNotice(t(locale, 'employeeHome.okrCheckinSaved'));
+          if (act.keyResultId) {
+            const id = String(act.keyResultId);
+            setOkrHistoryOpen((prev) => ({ ...prev, [id]: false }));
+            setOkrHistoryItems((prev) => {
+              const next = { ...prev };
+              delete next[id];
+              return next;
+            });
+          }
           await load({ silent: true });
         } catch (e) {
           throw new Error(e instanceof TypeError ? t(locale, 'employeeHome.loadError') : e?.message || t(locale, 'employeeHome.loadError'));
@@ -920,17 +962,95 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
                             </p>
                             {act.keyResultId ? <p className="text-sm text-ink-muted">{locale === 'pt-BR' ? 'Inicial' : 'Baseline'}: {okrNumber(act.startValue)} → {locale === 'pt-BR' ? 'Meta' : 'Target'}: {okrNumber(act.targetValue)} {act.unit} · {locale === 'pt-BR' ? 'Atual' : 'Current'}: {okrNumber(act.currentValue)} {act.unit}</p> : null}
                           </div>
-                          {group.cycleStatus !== OKR_CYCLE_STATUS.CLOSED ? (
-                            <button
-                              type="button"
-                              disabled={busy}
-                              className={cn(S.btnBrandSoft, 'min-h-touch shrink-0 self-start')}
-                              onClick={() => void submitOkrCheckin(act)}
-                            >
-                              {t(locale, 'employeeHome.okrCheckinBtn')}
-                            </button>
-                          ) : null}
+                          <div className="flex shrink-0 flex-wrap items-center gap-2 self-start">
+                            {act.keyResultId ? (
+                              <button
+                                type="button"
+                                className={cn(S.btnBrandSoft, 'min-h-touch')}
+                                aria-expanded={Boolean(okrHistoryOpen[act.keyResultId])}
+                                aria-controls={`okr-history-${act.keyResultId}`}
+                                onClick={() => toggleOkrHistory(act.keyResultId)}
+                              >
+                                {t(locale, okrHistoryOpen[act.keyResultId] ? 'employeeHome.okrHistoryHide' : 'employeeHome.okrHistoryBtn')}
+                              </button>
+                            ) : null}
+                            {group.cycleStatus !== OKR_CYCLE_STATUS.CLOSED ? (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                className={cn(S.btnBrandSoft, 'min-h-touch')}
+                                onClick={() => void submitOkrCheckin(act)}
+                              >
+                                {t(locale, 'employeeHome.okrCheckinBtn')}
+                              </button>
+                            ) : null}
+                          </div>
                         </div>
+                        {act.keyResultId && okrHistoryOpen[act.keyResultId] ? (
+                          <div
+                            id={`okr-history-${act.keyResultId}`}
+                            className="mt-3 rounded-control border border-ink/12 bg-canvas px-3 py-3"
+                            aria-live="polite"
+                            aria-busy={Boolean(okrHistoryLoading[act.keyResultId])}
+                          >
+                            <h3 className="m-0 text-sm font-semibold text-ink">
+                              {t(locale, 'employeeHome.okrHistoryTitle')}
+                            </h3>
+                            {okrHistoryLoading[act.keyResultId] ? (
+                              <p className="mb-0 mt-2 text-sm text-ink-muted" role="status">
+                                {t(locale, 'employeeHome.okrHistoryLoading')}
+                              </p>
+                            ) : okrHistoryError[act.keyResultId] ? (
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
+                                <p className="m-0 text-sm text-danger" role="alert">
+                                  {okrHistoryError[act.keyResultId]}
+                                </p>
+                                <button
+                                  type="button"
+                                  className="min-h-touch rounded-control border border-ink/12 bg-canvas px-3 text-sm text-ink hover:bg-ink/5"
+                                  onClick={() => void loadOkrHistory(act.keyResultId)}
+                                >
+                                  {t(locale, 'employeeHome.okrHistoryRetry')}
+                                </button>
+                              </div>
+                            ) : (okrHistoryItems[act.keyResultId] || []).length === 0 ? (
+                              <p className="mb-0 mt-2 text-sm text-ink-muted">
+                                {t(locale, 'employeeHome.okrHistoryEmpty')}
+                              </p>
+                            ) : (
+                              <ol className="m-0 mt-2 list-none divide-y divide-ink/10 p-0">
+                                {okrHistoryItems[act.keyResultId].map((entry) => {
+                                  const eventKey = entry.eventKind === 'created'
+                                    ? 'employeeHome.okrHistoryCreated'
+                                    : entry.eventKind === 'configuration'
+                                      ? 'employeeHome.okrHistoryConfiguration'
+                                      : 'employeeHome.okrHistoryCheckin';
+                                  return (
+                                    <li key={entry.id} className="py-2 first:pt-0 last:pb-0">
+                                      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                                        <span className="text-sm font-medium text-ink">{t(locale, eventKey)}</span>
+                                        <time className="text-xs text-ink-muted" dateTime={entry.createdAt}>
+                                          {formatDisplayDateTime(entry.createdAt, locale)}
+                                        </time>
+                                      </div>
+                                      <p className="mb-0 mt-1 text-sm text-ink-muted">
+                                        {t(locale, 'employeeHome.okrHistoryValue', {
+                                          value: okrNumber(entry.currentValue),
+                                          unit: entry.unit || '',
+                                        })}
+                                      </p>
+                                      {entry.note ? (
+                                        <p className="mb-0 mt-1 whitespace-pre-wrap break-words text-sm text-ink-muted">
+                                          {t(locale, 'panel.okr.checkinNoteLabel')}: {entry.note}
+                                        </p>
+                                      ) : null}
+                                    </li>
+                                  );
+                                })}
+                              </ol>
+                            )}
+                          </div>
+                        ) : null}
                         <MeterBar
                           percent={act.progressPct ?? 0}
                           height={6}

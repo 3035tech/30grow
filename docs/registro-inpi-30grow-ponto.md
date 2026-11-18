@@ -1,6 +1,6 @@
 # Retomada: registro INPI do 30Grow Ponto - REP-P
 
-Atualizado em 08/11/2026. Este documento registra o estado do pedido para retomada futura. **O pedido foi protocolado em 04/11/2026.**
+Atualizado em 18/11/2026. O pedido foi protocolado em 04/11/2026 e o certificado foi expedido em 10/11/2026.
 
 ## Identificador para localizar o pedido
 
@@ -16,12 +16,18 @@ O número acima identifica a GRU. O protocolo oficial do pedido é **87026011384
 
 ## Estado atual
 
-- O formulário foi enviado pelo Peticionamento Eletrônico do INPI; o sistema gerou o protocolo oficial indicado abaixo. Os dados informados no formulário foram:
-- O formulário mostra o titular como 3035 TECH SISTEMAS E TREINAMENTO DE INFORMATICA LTDA e o autor como Thomas Geter Metz.
-- Título: `30Grow Ponto - REP-P`.
-- Datas informadas pelo titular: criação e primeira publicação em `25/06/2026`.
-- Linguagens: JavaScript, NodeJS e SQL.
-- Campo de aplicação: TB01 - Trabalho. Tipo de programa: AP01 - Aplicativos.
+- **Certificado de Registro emitido:** processo `BR512026010154-9`, despacho 730, publicado na RPI 2914 em 10/11/2026. A tela oficial do processo foi consultada em 18/11/2026 e informa dados atualizados até 17/11/2026 (RPI 2915).
+- Título no certificado: `30Grow Ponto - REP-P`; titular: `3035 TECH SISTEMAS E TREINAMENTO DE INFORMATICA LTDA`; autor: `THOMAS GETER METZ`.
+- O certificado informa validade de 50 anos a partir de 01/01/2027 e hash SHA-512 igual ao informado no pedido, registrado abaixo.
+- O certificado foi visualizado na tela oficial e a imagem foi compartilhada nesta conversa. O PDF do certificado ainda não foi copiado para este repositório.
+
+- O pedido foi enviado pelo Peticionamento Eletrônico do INPI, que gerou o protocolo oficial indicado acima. Dados informados:
+  - Titular: `3035 TECH SISTEMAS E TREINAMENTO DE INFORMATICA LTDA`.
+  - Autor: `Thomas Geter Metz`.
+  - Título: `30Grow Ponto - REP-P`.
+  - Criação e primeira publicação: `25/06/2026`.
+  - Linguagens: JavaScript, NodeJS e SQL.
+  - Campo de aplicação: TB01 - Trabalho. Tipo de programa: AP01 - Aplicativos.
 - Hash informado: SHA-512 do arquivo completo da branch `main` do repositório 30Grow, commit `bcef14d7f3e7cf9589c65ccf3bda4e0ecd4dcc6`:
 
   ```text
@@ -29,16 +35,15 @@ O número acima identifica a GRU. O protocolo oficial do pedido é **87026011384
   ```
 
 - “Derivação autorizada” estava desmarcada.
-- A declaração de veracidade assinada foi anexada ao formulário como `declaracao-veracidade-assinada.pdf`. A validação local das assinaturas foi positiva; a validação final cabe ao INPI.
-- O sistema confirmou que a GRU `29409192367229293` foi protocolada em **04/11/2026 às 17:54**. O protocolo exibido é `870260113840`, associado ao processo `512026010154-9`.
-- Em 08/11/2026, a área “Minhas GRUs” da conta 3035Tech passou a mostrar essa guia como **Paga**. O próprio recibo informa que o pedido fica condicionado à confirmação do pagamento; agora essa confirmação aparece no sistema.
-- **Não submeter novamente.** O pedido já tem protocolo. Acompanhar o processo no INPI e guardar o recibo oficial e o certificado quando disponibilizado.
+- A declaração de veracidade assinada foi anexada ao formulário como `declaracao-veracidade-assinada.pdf`. A validação local das assinaturas foi positiva; a emissão do certificado confirma o registro do pedido.
+- A GRU `29409192367229293` foi protocolada em **04/11/2026 às 17:54**, gerando o protocolo `870260113840`, associado ao processo `512026010154-9`. A área “Minhas GRUs” confirmou o pagamento em 08/11/2026.
+- **Não submeter novamente.** O pedido já foi registrado. Guardar o PDF oficial do certificado junto aos documentos da empresa.
 
 ## Como retomar
 
 1. Para acompanhar, entrar no INPI com o perfil da 3035Tech.
 2. Usar o protocolo `870260113840` ou o processo `512026010154-9` para localizar o pedido.
-3. Acompanhar o andamento e baixar o certificado quando disponibilizado. O protocolo comprova o depósito, mas não é o certificado de registro.
+3. Baixar e arquivar o certificado oficial. Conferir titular, título, processo e hash antes de configurar o produto ou emitir documentos técnicos.
 
 ## Arquivos locais
 

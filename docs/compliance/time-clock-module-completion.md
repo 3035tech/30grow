@@ -1,13 +1,13 @@
 # Checklist de conclusão do módulo de ponto — REP-P
 
-Atualizado em 08/11/2026. Este documento organiza o trabalho restante para liberar o 30Grow Ponto como REP-P. **A existência de código ou certificado do INPI, isoladamente, não declara conformidade nem autoriza remover o estado “Controle de jornada em validação”.** Cada item de liberação precisa ter evidência na versão e infraestrutura efetivamente oferecidas.
+Atualizado em 18/11/2026. Este documento organiza o trabalho restante para liberar o 30Grow Ponto como REP-P. **A existência de código ou certificado do INPI, isoladamente, não declara conformidade nem autoriza remover o estado “Controle de jornada em validação”.** Cada item de liberação precisa ter evidência na versão e infraestrutura efetivamente oferecidas.
 
 ## Situação do pedido no INPI
 
 - Pedido da 3035Tech protocolado em 04/11/2026; a GRU correspondente consta como paga.
 - Protocolo: `870260113840`.
 - Processo: `512026010154-9`.
-- Aguardar e guardar o certificado. Conferir titular, título, número de registro e hash com o pedido antes de configurar o produto e emitir o atestado.
+- Certificado expedido em 10/11/2026 (despacho 730, RPI 2914). O certificado visualizado em 18/11/2026 confere processo `BR512026010154-9`, titular, título e SHA-512 com os dados do pedido. Arquivar o PDF oficial junto aos documentos da empresa.
 - Histórico da solicitação: [registro INPI 30Grow Ponto](../registro-inpi-30grow-ponto.md).
 
 ## Implementação já identificada no código
@@ -23,7 +23,7 @@ Estes pontos existem no repositório, mas ainda precisam de aceite no ambiente d
 ## Pendências de código
 
 - [ ] **Eventos do AFD e trilha operacional:** definir a aplicabilidade dos eventos tipo 4 (ajuste de relógio), tipo 5 (exclusão lógica de empregado) e tipo 6 (eventos de energia). Implementar os eventos aplicáveis e seus dados/responsáveis ou documentar, com evidência, por que a operação não existe no REP-P. Não gerar eventos fictícios.
-- [ ] **Comprovante em trabalho externo/terceiros:** incluir o local de prestação/endereço no PDF quando aplicável. O gerador atual inclui empregador, trabalhador, data/hora, NSR, registro INPI e hash; conferir o campo `workplace` do estabelecimento e como identificar quando o local deve aparecer.
+- [x] **Campo de local no comprovante:** o PDF inclui o `workplace` cadastrado como “Local de prestação/endereço” quando preenchido, para atender ao art. 79, IV, em atividade externa ou em instalações de terceiros. A configuração correta do local por estabelecimento e a conferência do PDF assinado continuam pendentes no aceite do ambiente/cliente.
 - [ ] **Espelho formal de ponto (art. 84):** confirmar se a tela/relatório atual contém todos os campos regulamentares e se o colaborador consegue acessá-lo mensalmente. Se não contiver, implementar o relatório eletrônico com dados do empregador e trabalhador, admissão/cargo, período/emissão, jornada contratual, marcações originais e tratadas e duração considerando redução noturna.
 - [ ] **Escopo de jornadas:** decidir se serão implementados múltiplos vínculos do mesmo CPF e exportação 12x36 com regra de DSR adequada. Até lá, manter bloqueios explícitos e não oferecer esses casos como suportados.
 - [ ] **Contrato independente AFD/AEJ:** fechar validação dos serializadores contra os leiautes oficiais atuais, com bytes/posições de referência independentes do próprio formatador e cenários com dados sintéticos. Os links do MTE foram atualizados em 31/07/2026; conferir AFD/004 e AEJ/002 antes do aceite.
@@ -31,7 +31,7 @@ Estes pontos existem no repositório, mas ainda precisam de aceite no ambiente d
 
 ## Certificado, assinatura e documentos
 
-- [ ] Aguardar o certificado INPI e conferir titularidade, título, hash e número de registro.
+- [x] Certificado INPI expedido e conferido: titularidade, título, hash e número do processo coincidem com o pedido. Arquivar o PDF oficial junto aos documentos da empresa.
 - [ ] Configurar o A1 ICP-Brasil real do desenvolvedor em homologação e produção, com chave privada em armazenamento privado e senha em segredo separado; documentar renovação, expiração e revogação.
 - [ ] Assinar AFD/AEJ em CAdES destacado `.p7s` e comprovantes eletrônicos em PDF/PAdES com certificado ICP-Brasil válido. Validar os arquivos com ferramentas independentes; os certificados efêmeros dos testes não contam como aceite.
 - [ ] Preparar o Atestado Técnico e Termo de Responsabilidade conforme o modelo vigente do MTE, identificando REP-P/PTRP, programa, versão, registro/certificado INPI e destinatário. Obter as assinaturas qualificadas requeridas dos responsáveis técnico e legal, em PDF PAdES.

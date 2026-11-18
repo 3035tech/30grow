@@ -7,10 +7,33 @@ import { apiError, apiErrorFromResult, ERR } from '../../../../../lib/api-error.
 import { getEmployeeSessionPayload } from '../../../../../lib/employee/employee-session.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../lib/identity/rate-limit.js';
 import { createOkrActivityCheckin } from '../../../../../lib/development/okr-cycles.js';
-import { recordKeyResultCheckin } from '../../../../../lib/development/okr-hierarchy.js';
+import { listKeyResultCheckins, recordKeyResultCheckin } from '../../../../../lib/development/okr-hierarchy.js';
 import { z, zPositiveInt } from '../../../../../lib/validate.js';
 
 export const dynamic = 'force-dynamic';
+
+export async function GET(request) {
+  try {
+    const session = await getEmployeeSessionPayload();
+    if (!session) return apiError(request, ERR.UNAUTHORIZED, 401);
+
+    const keyResultId = Number(new URL(request.url).searchParams.get('keyResultId'));
+    if (!Number.isSafeInteger(keyResultId) || keyResultId <= 0) {
+      return apiError(request, ERR.INVALID_DATA, 400);
+    }
+
+    const result = await listKeyResultCheckins(null, {
+      companyId: session.companyId,
+      candidateId: session.candidateId,
+      keyResultId,
+    });
+    if (!result.ok) return apiErrorFromResult(request, result, { fallbackCode: ERR.FORBIDDEN });
+    return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store' } });
+  } catch (err) {
+    console.error('GET /api/employee/okr/checkins', err);
+    return apiError(request, ERR.INTERNAL, 500);
+  }
+}
 
 const bodySchema = z.union([z.object({
   keyResultId: zPositiveInt,

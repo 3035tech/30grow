@@ -15,7 +15,7 @@ Esta entrega altera comunicação. Não interrompe batidas, solicitações, cons
 
 Comprovar e registrar, para a versão e infraestrutura oferecidas:
 
-1. Registro do programa no INPI e identificação do desenvolvedor/versão.
+1. Registro do programa no INPI: certificado `BR512026010154-9` emitido em 10/11/2026 para `30Grow Ponto - REP-P`, com hash SHA-512 documentado em [registro INPI 30Grow Ponto](../registro-inpi-30grow-ponto.md). Confirmar que a versão oferecida corresponde ao código identificado por esse hash antes de anunciar cobertura daquela versão.
 2. Atendimento aos requisitos aplicáveis da Portaria 671, inclusive art. 78 e Anexo IX.
 3. Atestado Técnico e Termo de Responsabilidade emitido e assinado pelos responsáveis pertinentes, disponibilizado ao empregador.
 4. Certificado ICP-Brasil real, titularidade/cadeia/validade e assinaturas de comprovantes/AFD/AEJ verificadas de modo independente, nos leiautes vigentes.

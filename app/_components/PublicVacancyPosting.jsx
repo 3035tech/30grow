@@ -204,7 +204,7 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       setApplyErr(errorMessage(locale, 'CANDIDATE_NAME_REQUIRED', t(locale, 'panel.common.error')));
       return;
     }
-    if (applyPhone && !isValidPhoneBr(applyPhone)) {
+    if (!applyPhone || !isValidPhoneBr(applyPhone)) {
       setApplyErr(t(locale, 'formValidation.phone'));
       return;
     }
@@ -216,11 +216,7 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       setApplyErr(t(locale, 'publicVacancy.applyFormNeedConsent'));
       return;
     }
-    if (!applyCv) {
-      setApplyErr(t(locale, 'publicVacancy.applyFormNeedCv'));
-      return;
-    }
-    if (applyCv.size > 5 * 1024 * 1024) {
+    if (applyCv && applyCv.size > 5 * 1024 * 1024) {
       setApplyErr(errorMessage(locale, 'INVALID_CV_FILE_SIZE', t(locale, 'panel.common.error')));
       return;
     }
@@ -234,7 +230,7 @@ export function PublicVacancyPostingView({ locale = 'pt-BR', posting, related = 
       form.set('phone', stripPhone(applyPhone) || '');
       form.set('linkedinUrl', applyLinkedIn);
       form.set('consent', String(applyConsent));
-      form.set('cv', applyCv);
+      if (applyCv) form.set('cv', applyCv);
       const res = await fetch('/api/public/vacancy-apply', {
         method: 'POST',
         body: form,
@@ -518,6 +514,7 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                             type="tel"
                             value={formatPhoneBr(applyPhone)}
                             onChange={(e) => setApplyPhone(stripPhone(e.target.value) || '')}
+                            required
                             maxLength={16}
                             autoComplete="tel"
                             disabled={applyBusy}
@@ -542,7 +539,6 @@ className="mb-2.5 mt-0 font-mono text-xs tracking-wide text-ink-muted"
                             type="file"
                             accept=".pdf,application/pdf"
                             onChange={(e) => setApplyCv(e.target.files?.[0] || null)}
-                            required
                             disabled={applyBusy}
                           />
                           <span className="mt-1 block text-xs text-ink-muted">{t(locale, 'publicVacancy.applyFormCvHint')}</span>

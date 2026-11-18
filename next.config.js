@@ -11,6 +11,7 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   // Dev only: DTOV/Playwright hit http://127.0.0.1:3010; without this, HMR is blocked and pages never hydrate.
   allowedDevOrigins: ['127.0.0.1'],
+  experimental: { agentUpgrade: 'security' },
   webpack(config, { isServer, webpack }) {
     if (!isServer) {
       // Browser gets one locale catalog on demand (lib/i18n-client.js), not all of them.

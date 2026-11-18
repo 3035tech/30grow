@@ -23,9 +23,10 @@ export async function POST(request) {
     const form = await request.formData().catch(() => null);
     if (!form) return apiError(request, ERR.INVALID_DATA, 400);
     const file = form.get('cv');
-    if (!file || typeof file.arrayBuffer !== 'function') return apiError(request, ERR.INVALID_CV_FILE_TYPE, 400);
-    if (!file.size || file.size > CV_PDF_MAX_BYTES) return apiError(request, ERR.INVALID_CV_FILE_SIZE, 400);
-    cvFile = { buffer: Buffer.from(await file.arrayBuffer()), mimeType: file.type, size: file.size };
+    if (file && typeof file.arrayBuffer === 'function' && file.size > 0) {
+      if (file.size > CV_PDF_MAX_BYTES) return apiError(request, ERR.INVALID_CV_FILE_SIZE, 400);
+      cvFile = { buffer: Buffer.from(await file.arrayBuffer()), mimeType: file.type, size: file.size };
+    }
     body = Object.fromEntries(form.entries());
   } else {
     body = await request.json().catch(() => ({}));
