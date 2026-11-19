@@ -4847,3 +4847,231 @@ END;
 $$;
 INSERT INTO schema_migrations(name) VALUES('179_free_plan_employee_capacity.sql') ON CONFLICT(name) DO NOTHING;
 COMMIT;
+
+-- 180: suporte configurável a intervalo pré-assinalado no espelho e no AEJ.
+BEGIN;
+ALTER TABLE company_time_schedules
+  ADD COLUMN IF NOT EXISTS break_start TIME,
+  ADD COLUMN IF NOT EXISTS break_end TIME,
+  ADD COLUMN IF NOT EXISTS break_preassigned BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE employee_time_schedules
+  ADD COLUMN IF NOT EXISTS break_preassigned BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE time_clock_company_history
+  ADD COLUMN IF NOT EXISTS break_start TIME,
+  ADD COLUMN IF NOT EXISTS break_end TIME,
+  ADD COLUMN IF NOT EXISTS break_preassigned BOOLEAN NOT NULL DEFAULT FALSE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'company_time_schedules_preassigned_break_chk') THEN
+    ALTER TABLE company_time_schedules ADD CONSTRAINT company_time_schedules_preassigned_break_chk CHECK (
+      (NOT break_preassigned AND break_start IS NULL AND break_end IS NULL)
+      OR (break_start IS NOT NULL AND break_end IS NOT NULL
+        AND break_start > workday_start AND break_end < workday_end
+        AND break_end > break_start AND extract(epoch FROM (break_end-break_start))::int / 60 = break_minutes
+        AND (NOT break_preassigned OR break_minutes > 0))
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'employee_time_schedules_preassigned_break_chk') THEN
+    ALTER TABLE employee_time_schedules ADD CONSTRAINT employee_time_schedules_preassigned_break_chk CHECK (
+      NOT break_preassigned OR (NOT follows_company AND workday_start IS NOT NULL AND workday_end IS NOT NULL
+        AND break_start IS NOT NULL AND break_end IS NOT NULL)
+    );
+  END IF;
+END $$;
+COMMENT ON COLUMN company_time_schedules.break_preassigned IS
+  'When true, the configured interval is treated and exported as pre-assigned out/return markings.';
+COMMENT ON COLUMN employee_time_schedules.break_preassigned IS
+  'When true, the configured interval is treated and exported as pre-assigned out/return markings.';
+CREATE OR REPLACE FUNCTION time_clock_capture_company() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ INSERT INTO time_clock_company_history(company_id,effective_on,workday_start,workday_end,break_minutes,late_grace_minutes,timezone,hour_bank_enabled,hour_bank_max_minutes,hour_bank_started_on,break_start,break_end,break_preassigned)
+ VALUES(NEW.company_id,CASE WHEN TG_OP='INSERT' THEN '0001-01-01'::date ELSE (clock_timestamp() AT TIME ZONE NEW.timezone)::date END,NEW.workday_start,NEW.workday_end,NEW.break_minutes,NEW.late_grace_minutes,NEW.timezone,NEW.hour_bank_enabled,NEW.hour_bank_max_minutes,NEW.hour_bank_started_on,NEW.break_start,NEW.break_end,NEW.break_preassigned)
+ ON CONFLICT(company_id,effective_on) DO UPDATE SET workday_start=EXCLUDED.workday_start,workday_end=EXCLUDED.workday_end,break_minutes=EXCLUDED.break_minutes,late_grace_minutes=EXCLUDED.late_grace_minutes,timezone=EXCLUDED.timezone,hour_bank_enabled=EXCLUDED.hour_bank_enabled,hour_bank_max_minutes=EXCLUDED.hour_bank_max_minutes,hour_bank_started_on=EXCLUDED.hour_bank_started_on,break_start=EXCLUDED.break_start,break_end=EXCLUDED.break_end,break_preassigned=EXCLUDED.break_preassigned,recorded_at=clock_timestamp();
+ RETURN NEW;
+END $$;
+INSERT INTO schema_migrations(name) VALUES ('180_time_clock_preassigned_breaks.sql') ON CONFLICT (name) DO NOTHING;
+COMMIT;
+
+-- 181: exclusão lógica de trabalhador do REP, com evento AFD tipo 5-E.
+BEGIN;
+ALTER TABLE rep_workers ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT TRUE;
+CREATE INDEX IF NOT EXISTS rep_workers_active_lookup ON rep_workers(company_id,candidate_id) WHERE active=TRUE;
+CREATE OR REPLACE FUNCTION rep_guard_worker_deactivation() RETURNS trigger
+LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE last_kind TEXT;
+BEGIN
+  IF OLD.active AND NOT NEW.active THEN
+    SELECT punch_kind INTO last_kind
+      FROM public.employee_time_punches
+      WHERE company_id=OLD.company_id AND candidate_id=OLD.candidate_id
+        AND voided_at IS NULL
+        AND public.time_clock_work_day(company_id,candidate_id,punched_at)=
+            public.time_clock_work_day(OLD.company_id,OLD.candidate_id,clock_timestamp())
+      ORDER BY punched_at DESC,id DESC
+      LIMIT 1;
+    IF last_kind='in' THEN
+      RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='REP_WORKER_OPEN_SHIFT';
+    END IF;
+  END IF;
+  RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS rep_worker_status_open_shift_guard ON rep_workers;
+CREATE TRIGGER rep_worker_status_open_shift_guard
+  BEFORE UPDATE OF active ON rep_workers
+  FOR EACH ROW EXECUTE FUNCTION rep_guard_worker_deactivation();
+CREATE OR REPLACE FUNCTION rep_configuration_event() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE e public.rep_establishments%ROWTYPE; n bigint; at timestamptz:=clock_timestamp(); raw text; typ integer; operation char(1);
+BEGIN
+ IF TG_TABLE_NAME='rep_establishments' THEN
+  IF TG_OP='UPDATE' AND ((NEW.company_id,NEW.employer_document,NEW.timezone) IS DISTINCT FROM (OLD.company_id,OLD.employer_document,OLD.timezone) OR (NEW.registration IS DISTINCT FROM OLD.registration AND NOT (length(OLD.registration)=17 AND length(NEW.registration)<17 AND OLD.registration=lpad(NEW.registration,17,'0')))) THEN RAISE EXCEPTION 'REP_IDENTITY_IMMUTABLE'; END IF;
+  SELECT * INTO e FROM public.rep_establishments WHERE id=NEW.id FOR UPDATE;
+  IF TG_OP='UPDATE' AND (NEW.employer_name,NEW.workplace,NEW.responsible_cpf,NEW.complementary_document,NEW.registration) IS NOT DISTINCT FROM (OLD.employer_name,OLD.workplace,OLD.responsible_cpf,OLD.complementary_document,OLD.registration) THEN RETURN NEW; END IF;
+  typ:=2;
+ ELSE
+  IF NOT EXISTS(SELECT 1 FROM public.candidates WHERE id=NEW.candidate_id AND company_id=NEW.company_id) THEN RAISE EXCEPTION 'REP_WORKER_TENANT'; END IF;
+  IF TG_OP='UPDATE' AND (NEW.company_id,NEW.establishment_id,NEW.candidate_id,NEW.cpf,NEW.weekly_rest_day) IS DISTINCT FROM (OLD.company_id,OLD.establishment_id,OLD.candidate_id,OLD.cpf,OLD.weekly_rest_day) THEN RAISE EXCEPTION 'REP_IDENTITY_IMMUTABLE'; END IF;
+  operation:='I';
+  IF TG_OP='UPDATE' THEN
+   IF NEW.active IS DISTINCT FROM OLD.active THEN operation:=CASE WHEN NEW.active THEN 'I' ELSE 'E' END;
+   ELSIF (NEW.worker_name,NEW.responsible_cpf) IS NOT DISTINCT FROM (OLD.worker_name,OLD.responsible_cpf) THEN RETURN NEW;
+   ELSE operation:='A'; END IF;
+  END IF;
+  SELECT * INTO e FROM public.rep_establishments WHERE id=NEW.establishment_id FOR UPDATE;
+  typ:=5;
+ END IF;
+ PERFORM public.rep_stamp(at,e.timezone);
+ UPDATE public.rep_establishments SET last_nsr=last_nsr+1 WHERE id=e.id RETURNING last_nsr INTO n;
+ IF typ=2 THEN raw:=lpad(n::text,9,'0')||'2'||public.rep_stamp(at,e.timezone)||public.rep_field(NEW.responsible_cpf,14)||CASE WHEN length(e.employer_document)=14 THEN '1' ELSE '2' END||public.rep_field(e.employer_document,14)||public.rep_field(e.complementary_document,14)||public.rep_field(e.employer_name,150)||public.rep_field(e.workplace,100);
+ ELSE raw:=lpad(n::text,9,'0')||'5'||public.rep_stamp(at,e.timezone)||operation||lpad(NEW.cpf,12,'0')||public.rep_field(NEW.worker_name,52)||'    '||NEW.responsible_cpf; END IF;
+ INSERT INTO public.rep_original_records(establishment_id,nsr,record_type,recorded_at,record_text) VALUES(e.id,n,typ,at,raw||public.rep_crc(raw)); RETURN NEW;
+END $$;
+CREATE OR REPLACE FUNCTION rep_capture_punch() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE w public.rep_workers%ROWTYPE; e public.rep_establishments%ROWTYPE; n bigint; at timestamptz:=clock_timestamp(); raw text; h text; collector text;
+BEGIN
+ IF NEW.source='manager' THEN RETURN NEW; END IF;
+ SELECT * INTO w FROM public.rep_workers WHERE company_id=NEW.company_id AND candidate_id=NEW.candidate_id FOR UPDATE;
+ IF NOT FOUND THEN RETURN NEW; END IF;
+ IF NOT w.active THEN RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='REP_WORKER_EXCLUDED'; END IF;
+ SELECT * INTO e FROM public.rep_establishments WHERE id=w.establishment_id FOR UPDATE;
+ UPDATE public.rep_establishments SET last_nsr=last_nsr+1 WHERE id=e.id RETURNING last_nsr INTO n;
+ collector:=NEW.rep_collector;
+ raw:=lpad(n::text,9,'0')||'7'||public.rep_stamp(NEW.punched_at,e.timezone)||lpad(w.cpf,12,'0')||public.rep_stamp(at,e.timezone)||collector||'0';
+ h:=encode(public.digest(convert_to(raw||e.last_punch_hash,'LATIN1'),'sha256'),'hex');
+ INSERT INTO public.rep_original_records(establishment_id,nsr,recorded_at,punch_id,worker_id,record_type,record_text,record_hash,previous_hash) VALUES(e.id,n,at,NEW.id,w.id,7,raw||h,h,e.last_punch_hash);
+ UPDATE public.rep_establishments SET last_punch_hash=h WHERE id=e.id; RETURN NEW;
+END $$;
+INSERT INTO schema_migrations(name) VALUES('181_rep_worker_logical_exclusion.sql') ON CONFLICT(name) DO NOTHING;
+COMMIT;
+
+-- 182: eventos de disponibilidade REP-P somente em transições observadas.
+BEGIN;
+CREATE OR REPLACE FUNCTION rep_capture_service_state() RETURNS trigger
+LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE
+  e public.rep_establishments%ROWTYPE;
+  prior BOOLEAN;
+  has_prior BOOLEAN;
+  n BIGINT;
+BEGIN
+  SELECT * INTO e
+    FROM public.rep_establishments
+    WHERE id=NEW.establishment_id
+    FOR UPDATE;
+  SELECT available INTO prior
+    FROM public.rep_service_observations
+    WHERE establishment_id=NEW.establishment_id AND id<NEW.id
+    ORDER BY id DESC
+    LIMIT 1;
+  has_prior := FOUND;
+  IF NOT has_prior OR prior=NEW.available THEN RETURN NEW; END IF;
+  UPDATE public.rep_establishments
+    SET last_nsr=last_nsr+1
+    WHERE id=e.id
+    RETURNING last_nsr INTO n;
+  INSERT INTO public.rep_original_records(
+    establishment_id,nsr,record_type,recorded_at,record_text
+  ) VALUES (
+    e.id,n,6,NEW.recorded_at,
+    lpad(n::text,9,'0')||'6'||public.rep_stamp(NEW.recorded_at,e.timezone)||
+      CASE WHEN NEW.available THEN '07' ELSE '08' END
+  );
+  RETURN NEW;
+END $$;
+INSERT INTO schema_migrations(name) VALUES('182_rep_service_state_transitions.sql') ON CONFLICT(name) DO NOTHING;
+COMMIT;
+
+-- 183: permitir o tipo 4 do AFD sem criar eventos de ajuste presumidos.
+BEGIN;
+ALTER TABLE rep_original_records
+  DROP CONSTRAINT IF EXISTS rep_original_records_record_type_check;
+ALTER TABLE rep_original_records
+  ADD CONSTRAINT rep_original_records_record_type_check
+  CHECK (record_type IN (2, 4, 5, 6, 7));
+INSERT INTO schema_migrations(name) VALUES('183_rep_clock_adjustment_record_type.sql') ON CONFLICT(name) DO NOTHING;
+COMMIT;
+
+-- 184: ingestão idempotente de ajustes de relógio confirmados pela infraestrutura.
+BEGIN;
+CREATE TABLE IF NOT EXISTS rep_clock_adjustment_events (
+  event_id UUID PRIMARY KEY,
+  before_at TIMESTAMPTZ NOT NULL,
+  adjusted_at TIMESTAMPTZ NOT NULL,
+  responsible_cpf VARCHAR(11) NOT NULL CHECK (responsible_cpf ~ '^[0-9]{11}$'),
+  source VARCHAR(100) NOT NULL CHECK (source ~ '^[A-Za-z0-9._:-]{1,100}$'),
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  CHECK (before_at IS DISTINCT FROM adjusted_at)
+);
+ALTER TABLE rep_original_records
+  ADD COLUMN IF NOT EXISTS source_event_id UUID
+  REFERENCES rep_clock_adjustment_events(event_id) ON DELETE RESTRICT;
+CREATE UNIQUE INDEX IF NOT EXISTS rep_original_records_clock_event_unique
+  ON rep_original_records(establishment_id,source_event_id)
+  WHERE source_event_id IS NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname='rep_original_records_clock_event_type_check'
+      AND conrelid='rep_original_records'::regclass
+  ) THEN
+    ALTER TABLE rep_original_records
+      ADD CONSTRAINT rep_original_records_clock_event_type_check
+      CHECK ((record_type=4) = (source_event_id IS NOT NULL));
+  END IF;
+END $$;
+DROP TRIGGER IF EXISTS rep_clock_adjustment_immutable ON rep_clock_adjustment_events;
+CREATE TRIGGER rep_clock_adjustment_immutable
+  BEFORE UPDATE OR DELETE ON rep_clock_adjustment_events
+  FOR EACH ROW EXECUTE FUNCTION rep_reject_mutation();
+DROP TRIGGER IF EXISTS rep_clock_adjustment_no_truncate ON rep_clock_adjustment_events;
+CREATE TRIGGER rep_clock_adjustment_no_truncate
+  BEFORE TRUNCATE ON rep_clock_adjustment_events
+  FOR EACH STATEMENT EXECUTE FUNCTION rep_reject_mutation();
+CREATE OR REPLACE FUNCTION rep_capture_clock_adjustment() RETURNS trigger
+LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+DECLARE e RECORD; n BIGINT; raw TEXT; affected INTEGER := 0;
+BEGIN
+  FOR e IN SELECT id,timezone FROM public.rep_establishments ORDER BY id FOR UPDATE LOOP
+    UPDATE public.rep_establishments SET last_nsr=last_nsr+1
+      WHERE id=e.id RETURNING last_nsr INTO n;
+    raw := lpad(n::text,9,'0')||'4'||
+      public.rep_stamp(NEW.before_at,e.timezone)||
+      public.rep_stamp(NEW.adjusted_at,e.timezone)||NEW.responsible_cpf;
+    INSERT INTO public.rep_original_records(
+      establishment_id,nsr,record_type,recorded_at,record_text,source_event_id
+    ) VALUES (
+      e.id,n,4,NEW.recorded_at,raw||public.rep_crc(raw),NEW.event_id
+    );
+    affected := affected+1;
+  END LOOP;
+  IF affected=0 THEN
+    RAISE EXCEPTION 'REP_CLOCK_NO_ESTABLISHMENTS' USING ERRCODE='P0001';
+  END IF;
+  RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS rep_capture_clock_adjustment ON rep_clock_adjustment_events;
+CREATE TRIGGER rep_capture_clock_adjustment
+  AFTER INSERT ON rep_clock_adjustment_events
+  FOR EACH ROW EXECUTE FUNCTION rep_capture_clock_adjustment();
+INSERT INTO schema_migrations(name)
+VALUES('184_rep_clock_adjustment_ingestion.sql')
+ON CONFLICT(name) DO NOTHING;
+COMMIT;

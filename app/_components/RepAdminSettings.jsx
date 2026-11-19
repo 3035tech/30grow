@@ -28,7 +28,7 @@ export function RepAdminSettings({ companyId, locale }) {
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formValues, setFormValues] = useState({});
-  const { toast } = useAppFeedback();
+  const { toast, confirm, promptForm } = useAppFeedback();
   const load = useCallback(
     async (signal) => {
       try {
@@ -103,6 +103,56 @@ export function RepAdminSettings({ companyId, locale }) {
         ),
         'error',
       );
+    } finally {
+      setBusy(false);
+    }
+  };
+  const changeWorkerStatus = async (worker) => {
+    if (busy) return;
+    const active = !worker.active;
+    const accepted = await confirm({
+      title: t(locale, 'rep.workerStatusTitle'),
+      message: t(locale, 'rep.workerStatusMessage', {
+        name: worker.workerName,
+        action: t(locale, active ? 'rep.workerReactivate' : 'rep.workerDeactivate'),
+      }),
+      confirmLabel: t(locale, active ? 'rep.workerReactivate' : 'rep.workerDeactivate'),
+      danger: !active,
+    });
+    if (!accepted) return;
+    const values = await promptForm({
+      title: t(locale, 'rep.workerResponsibleTitle'),
+      confirmLabel: t(locale, 'rep.save'),
+      fields: [{
+        key: 'responsibleCpf',
+        type: 'text',
+        label: t(locale, 'rep.responsibleCpf'),
+        required: true,
+        inputMode: 'numeric',
+        maxLength: 14,
+        validate: (value) => digitsOnly(value).length === 11 ? null : t(locale, 'rep.invalidData'),
+      }],
+    });
+    if (!values) return;
+    setBusy(true);
+    try {
+      const res = await fetch('/api/admin/time-clock/rep', {
+        method: 'POST',
+        signal: AbortSignal.timeout(30000),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId,
+          action: 'workerStatus',
+          candidateId: worker.candidateId,
+          active,
+          responsibleCpf: digitsOnly(values.responsibleCpf),
+        }),
+      });
+      if (!res.ok) throw new Error(res.status === 409 || res.status === 400 ? 'invalid' : 'save');
+      toast(t(locale, active ? 'rep.workerReactivated' : 'rep.workerDeactivated'), 'success');
+      await load();
+    } catch (error) {
+      toast(t(locale, error.message === 'invalid' ? 'rep.invalidData' : 'rep.workerStatusError'), 'error');
     } finally {
       setBusy(false);
     }
@@ -282,6 +332,27 @@ export function RepAdminSettings({ companyId, locale }) {
               </li>
             ))}
           </ul>
+          <h4 className="mb-2 mt-5 font-semibold">{t(locale, 'rep.workers')}</h4>
+          {state.workers?.length ? (
+            <ul className="my-2 divide-y divide-ink/10 rounded-control border border-ink/10">
+              {state.workers.map((worker) => (
+                <li key={worker.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                  <span>
+                    <strong>{worker.workerName}</strong> · {formatCpfBr(worker.cpf)} · {worker.employerName}
+                    <span className="ml-2 text-ink-muted">{t(locale, worker.active ? 'rep.active' : 'rep.excluded')}</span>
+                  </span>
+                  <button
+                    type="button"
+                    className={S.btnGhost}
+                    disabled={busy}
+                    onClick={() => void changeWorkerStatus(worker)}
+                  >
+                    {t(locale, worker.active ? 'rep.workerDeactivate' : 'rep.workerReactivate')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </>
       ) : (
         <p role="status" className="my-3 text-sm text-ink-muted">

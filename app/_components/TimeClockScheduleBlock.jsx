@@ -42,6 +42,7 @@ function scheduleText(s, locale) {
     );
   else if (s.breakMinutes)
     parts.push(t(locale, `${KS}.breakMinutes`, { n: s.breakMinutes }));
+  if (s.breakPreassigned) parts.push(t(locale, `${KS}.breakPreassignedShort`));
   parts.push(
     s.shiftPattern === '12x36'
       ? `12×36${s.cycleAnchor ? ` (${dateLabel(s.cycleAnchor, locale)})` : ''}`
@@ -124,7 +125,9 @@ export function TimeClockScheduleBlock({
       validate: (v, all) => {
         if (all.followsCompany) return null;
         const s = String(v || '').trim();
-        if (!s) return required ? t(locale, `${KS}.timeRequired`) : null;
+        if (!s) return required || (all.breakPreassigned && ['breakStart', 'breakEnd'].includes(key))
+          ? t(locale, all.breakPreassigned && ['breakStart', 'breakEnd'].includes(key) ? `${KS}.preassignedNeedsTimes` : `${KS}.timeRequired`)
+          : null;
         if (!HM_RE.test(s)) return t(locale, `${KS}.timeInvalid`);
         if (
           key === 'workdayEnd' &&
@@ -200,6 +203,14 @@ export function TimeClockScheduleBlock({
           showWhen: (v) => !v.followsCompany,
           help: t(locale, 'timeShift.help'),
         },
+        {
+          key: 'breakPreassigned',
+          type: 'boolean',
+          label: t(locale, `${KS}.breakPreassignedLabel`),
+          help: t(locale, `${KS}.breakPreassignedHelp`),
+          defaultValue: Boolean(seed.breakPreassigned),
+          showWhen: (v) => !v.followsCompany,
+        },
         hmField('workdayStart', 'wd', true),
         hmField('workdayEnd', 'wd', true),
         hmField('breakStart', 'br', false),
@@ -238,6 +249,7 @@ export function TimeClockScheduleBlock({
                   workdayEnd: String(values.workdayEnd || '').trim(),
                   breakStart: String(values.breakStart || '').trim() || null,
                   breakEnd: String(values.breakEnd || '').trim() || null,
+                  breakPreassigned: Boolean(values.breakPreassigned),
                   weekdays:
                     values.shiftPattern === '12x36'
                       ? [...WEEKDAYS]

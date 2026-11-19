@@ -103,6 +103,11 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
     }
   };
 
+  const timelineMarks = [
+    ...(data?.punches || []).map((punch) => ({ ...punch, isPreassigned: false })),
+    ...(data?.preassignedMarks || []).map((punch) => ({ ...punch, isPreassigned: true })),
+  ].sort((a, b) => new Date(a.punchedAt) - new Date(b.punchedAt));
+
   if (loading && !data) {
     return compact
       ? <div className="h-full min-h-64 rounded-card border border-ink/12 bg-surface p-4 sm:p-5 motion-safe:animate-pulse" aria-label={t(locale, 'common.loading')} />
@@ -276,11 +281,11 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
       <p className="mb-2 mt-0 text-xs text-ink-muted">
         {t(locale, 'employeeHome.timeClock.dayLabel', { day: formatDisplayDate(data.day, locale) })}
       </p>
-      {(data.punches || []).length === 0 ? (
+      {timelineMarks.length === 0 ? (
         <p className={cn(S.muted, 'mb-0 text-prose')}>{t(locale, 'employeeHome.timeClock.noPunches')}</p>
       ) : (
         <ol aria-label={t(locale, 'employeeHome.timeClock.timelineLabel')} className="m-0 list-none p-0">
-          {data.punches.map((p, index) => (
+          {timelineMarks.map((p, index) => (
             <li
               key={p.id}
               className="grid grid-cols-[4rem_1rem_minmax(0,1fr)] gap-x-3"
@@ -295,6 +300,9 @@ export function EmployeeTimeClockSection({ locale = 'pt-BR', onBadge = null, onP
                   <StatusToneChip tone={p.punchKind === TIME_PUNCH_KIND.IN ? 'success' : 'info'}>
                     {kindLabel(p.punchKind)}
                   </StatusToneChip>
+                  {p.isPreassigned ? (
+                    <StatusToneChip tone="neutral">{t(locale, 'employeeHome.timeClock.reportMarkPreassigned')}</StatusToneChip>
+                  ) : null}
                   {p.flag ? (
                     <StatusToneChip tone="warning">
                       {t(locale, `employeeHome.timeClock.flag.${p.flag}`)}

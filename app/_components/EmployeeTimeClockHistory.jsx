@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
@@ -479,7 +480,10 @@ function DayPanel({ day, tz, locale, onChanged }) {
     return <ExcuseForm day={day} locale={locale} onCancel={() => setMode('view')} onSubmitted={done} />;
   }
 
-  const punches = [...(day.punches || [])].sort((a, b) => new Date(a.punchedAt) - new Date(b.punchedAt));
+  const punches = [
+    ...(day.punches || []).map((punch) => ({ ...punch, isPreassigned: false })),
+    ...(day.preassignedMarks || []).map((punch) => ({ ...punch, isPreassigned: true })),
+  ].sort((a, b) => new Date(a.punchedAt) - new Date(b.punchedAt));
   return (
     <div className="flex flex-col gap-5">
       <input
@@ -539,8 +543,15 @@ function DayPanel({ day, tz, locale, onChanged }) {
                   {hmInZone(p.punchedAt, tz)}
                 </span>
                 <StatusToneChip tone={p.punchKind === TIME_PUNCH_KIND.IN ? 'success' : 'info'}>{punchKindLabel(locale, p.punchKind)}</StatusToneChip>
-                {p.source === TIME_PUNCH_SOURCE.MANAGER ? <span className={S.faint}>{t(locale, `${KR}.punchByManager`)}</span> : null}
+                {p.isPreassigned ? (
+                  <StatusToneChip tone="neutral">{t(locale, 'employeeHome.timeClock.reportMarkPreassigned')}</StatusToneChip>
+                ) : p.source === TIME_PUNCH_SOURCE.MANAGER ? (
+                  <span className={S.faint}>{t(locale, `${KR}.punchByManager`)}</span>
+                ) : null}
                 {p.voidedAt ? <StatusToneChip tone="neutral">{t(locale, `${KM}.voided`)}</StatusToneChip> : null}
+                {p.voidReason || p.notes ? (
+                  <span className={cn(S.faint, 'text-prose')}>{p.voidReason || p.notes}</span>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -640,6 +651,17 @@ export function EmployeeTimeClockHistory({ locale = 'pt-BR', reloadKey = 0 }) {
           ]}
         />
       </FormField>
+
+      {(preset === 'month' || preset === 'prevMonth') && data && !loading && !failed ? (
+        <div className="-mt-2 flex justify-end">
+          <Link
+            href={`/employee/time-clock/mirror?${new URLSearchParams({ from: data.from, to: data.to })}`}
+            className={cn(S.btnGhost, 'no-underline')}
+          >
+            {t(locale, 'employeeHome.timeClock.reportOpen')}
+          </Link>
+        </div>
+      ) : null}
 
       {loading && !data ? (
         <AppLoading variant="panel" />

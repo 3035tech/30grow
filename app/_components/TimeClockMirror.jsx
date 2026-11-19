@@ -149,11 +149,22 @@ function MinutesCell({ value, tone }) {
 }
 
 function DayDetail({ day, locale, tz, onMarkOk, busy, companyId }) {
-  const punches = [...(day.punches || [])].sort(
+  const punches = [
+    ...(day.punches || []).map((punch) => ({ ...punch, isPreassigned: false })),
+    ...(day.preassignedMarks || []).map((punch) => ({ ...punch, isPreassigned: true })),
+  ].sort(
     (a, b) => new Date(a.punchedAt).getTime() - new Date(b.punchedAt).getTime()
   );
   const events = [];
   for (const p of punches) {
+    if (p.isPreassigned) {
+      events.push({
+        at: p.punchedAt,
+        key: `preassigned-${p.id}`,
+        text: `${timeOf(p.punchedAt, tz)} · ${t(locale, p.punchKind === TIME_PUNCH_KIND.IN ? 'panel.timeClock.kindIn' : 'panel.timeClock.kindOut')} · ${t(locale, 'employeeHome.timeClock.reportMarkPreassigned')}`,
+      });
+      continue;
+    }
     events.push({
       at: p.createdAt,
       key: `c${p.id}`,
@@ -255,9 +266,13 @@ function DayDetail({ day, locale, tz, onMarkOk, busy, companyId }) {
                 <StatusToneChip tone={p.punchKind === TIME_PUNCH_KIND.IN ? 'success' : 'info'}>
                   {t(locale, p.punchKind === TIME_PUNCH_KIND.IN ? 'panel.timeClock.kindIn' : 'panel.timeClock.kindOut')}
                 </StatusToneChip>
-                <span className={S.faint}>
-                  {t(locale, p.source === TIME_PUNCH_SOURCE.MANAGER ? `${K}.sourceManager` : `${K}.sourceEmployee`)}
-                </span>
+                {p.isPreassigned ? (
+                  <StatusToneChip tone="neutral">{t(locale, 'employeeHome.timeClock.reportMarkPreassigned')}</StatusToneChip>
+                ) : (
+                  <span className={S.faint}>
+                    {t(locale, p.source === TIME_PUNCH_SOURCE.MANAGER ? `${K}.sourceManager` : `${K}.sourceEmployee`)}
+                  </span>
+                )}
                 {p.voidedAt ? (
                   <StatusToneChip tone="neutral">{t(locale, `${K}.voided`)}</StatusToneChip>
                 ) : null}
@@ -277,7 +292,7 @@ function DayDetail({ day, locale, tz, onMarkOk, busy, companyId }) {
                     {t(locale, 'panel.timeClock.markOk')}
                   </button>
                 ) : null}
-                {p.source !== TIME_PUNCH_SOURCE.MANAGER ? (
+                {!p.isPreassigned && p.source !== TIME_PUNCH_SOURCE.MANAGER ? (
                   <div className="basis-full">
                     {p.latitude != null && p.longitude != null ? (
                       <CollapsibleBlock locale={locale} title={t(locale, `${K}.punchLocation`)} bordered={false} titleClassName="text-prose text-ink-muted">

@@ -68,12 +68,15 @@ export async function POST(request) {
       punch: result.punch,
       day: today.ok ? today.day : result.day,
       punches: today.ok ? today.punches : null,
+      preassignedMarks: today.ok ? today.preassignedMarks : null,
       nextKind: today.ok ? today.nextKind : null,
       open: today.ok ? today.open : null,
       schedule: today.ok ? today.schedule : null,
       lastLocation: today.ok ? today.lastLocation : null,
     });
   } catch (err) {
+    if (err?.code === 'P0001' && err?.message === 'REP_WORKER_EXCLUDED')
+      return apiError(request, ERR.TIME_CLOCK_DISABLED, 403);
     console.error('POST /api/employee/time-clock', err);
     return apiError(request, ERR.INTERNAL, 500);
   }

@@ -11,7 +11,15 @@ Decisão de produto de 26/10/2026: apresentar o módulo como **Controle de jorna
 
 Esta entrega altera comunicação. Não interrompe batidas, solicitações, consulta de histórico, assinaturas ou exportações; não apaga ou converte registros. Não modifica leiautes fiscais ou o conteúdo de arquivos já emitidos. Cadastrar INPI ou certificado não remove o aviso nem declara conformidade automaticamente.
 
-Em 18/11/2026, a produção passou a usar a revisão ECS 198, com a referência do segredo de assinatura, prefixo privado do S3 e bundle de raízes ICP-Brasil configurados. A task ficou saudável (1/1) e `/api/health` respondeu `ok`. O formulário de A1 está preparado para uso, mas nenhum certificado real foi enviado ou validado; o estado continua **Controle de jornada em validação**.
+Em 18/11/2026, a produção passou a usar a revisão ECS 198, com a referência do segredo de assinatura, prefixo privado do S3 e bundle de raízes ICP-Brasil configurados. Em 19/11/2026, um upload real chegou ao prefixo privado de produção; a consulta de metadados confirmou objeto de 9.275 bytes e os logs filtrados não mostraram falha. Ainda falta confirmar a ativação da versão no Secrets Manager pela projeção pública do sistema, validar titularidade/cadeia/validade e verificar assinaturas reais de comprovante, AFD e AEJ. O estado continua **Controle de jornada em validação**.
+
+O espelho mensal individual foi implementado localmente para impressão/salvamento em PDF, com dados do empregador e do vínculo, jornada cadastrada e marcações tratadas. Falta validar o leiaute legal integral e aceitar a funcionalidade em homologação; a mudança ainda não está publicada.
+
+A pré-assinalação de intervalo também foi implementada localmente como configuração efetiva da jornada, com marcações derivadas no espelho e no AEJ sem gravá-las como batidas originais. A migration 180 não foi aplicada e a regra ainda precisa de validação independente nos leiautes oficiais e em homologação. Nenhuma dessas mudanças está publicada.
+
+A exclusão lógica e a reinclusão de trabalhadores no cadastro REP-P foram implementadas localmente para gerar operações AFD tipo 5-E e 5-I, preservando o histórico fiscal e bloqueando novas batidas enquanto o trabalhador estiver excluído. Dependem da migration 181 e de validação em homologação; não estão publicadas.
+
+O endpoint autenticado `/api/cron/rep-clock-adjustment` e a migration 184 foram preparados localmente para registrar ajustes de relógio realmente aplicados, com horários anterior/ajustado, CPF responsável, ID idempotente e geração de AFD tipo 4 por estabelecimento. Ainda falta configurar o agente da infraestrutura e o segredo dedicado `REP_CLOCK_ADJUSTMENT_SECRET`; o evento deve ser enviado apenas após a sincronização da frota. NTP permanece apenas observacional. A migration não foi aplicada e a alteração não está publicada.
 
 ## Antes de revisar esse posicionamento
 

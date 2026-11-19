@@ -21,11 +21,17 @@ O gate de exportação AFD detecta os registros tipo 2 antigos com preenchimento
 
 Rollback: manter schema e originais. Uma imagem antiga continua com serializadores conhecidos como incorretos; portanto, bloquear o endpoint de exportação fiscal no ambiente caso seja necessário voltar a ela, ou usar uma imagem de rollback que já contenha estas correções. Não anunciar reversão para a versão antiga como fiscalmente validada. Cadastros de INPI mais curtos também não são editáveis pela validação antiga de 17 dígitos.
 
+## Conferência do leiaute AFD vigente — 19/11/2026
+
+A página do MTE indica que o leiaute foi atualizado em 31/07/2026. O PDF oficial confirma o cabeçalho AFD versão `004`, os registros tipo 5 com operações `I`, `A` e `E`, CPF do empregado de 12 posições, CPF do responsável de 11 posições, CRC-16 CCITT-TRUE e assinatura literal final de 100 posições. O exportador já emite a versão `004`; `verifyRecords` agora também recusa operação e CPFs malformados em registros tipo 5. A validação independente de todos os bytes/posições do AFD/AEJ continua pendente; esta conferência documental não equivale a aceite fiscal.
+
+O PDF AEJ oficial vigente confirma a versão `002`. A revisão estática de `buildAej` comparou os tipos 01–05, 07–08 e 99 com o leiaute: empregador/CAEPF/CNO, REP-P e INPI, vínculo, pares de horário, marcações originais/incluídas/desconsideradas/pré-assinaladas, ausências/banco, PTRP, contadores e assinatura estão representados. Tipo 06 para múltiplos vínculos não é emitido porque o exportador recusa CPFs duplicados. A revisão não substitui os ensaios de bytes/posições com dados sintéticos nem a homologação.
+
 ## Limitações explícitas
 
 - AEJ de escala 12×36 exige regra fiscal específica de DSR; a exportação é bloqueada com mensagem própria. O cálculo de ponto, banco, fechamento, portal e app continuam disponíveis.
 - Horários noturnos sem configuração urbana explícita, outras categorias e prorrogação com regra específica exigem definição adequada antes de exportar. Não há inferência de CCT ou regime rural.
-- Registros operacionais de ajuste de relógio, retorno de energia, exclusão lógica no REP e categorias não implementadas continuam com aplicabilidade a resolver, conforme a auditoria. Estas correções não criaram eventos fictícios nem novas marcações.
+- Registros operacionais de ajuste de relógio (AFD tipo 4) e retorno de energia (tipo 02), além de categorias não implementadas, continuam com aplicabilidade a resolver, conforme a auditoria. As migrations 183–184 e o endpoint autenticado permitem registrar tipo 4 apenas quando a infraestrutura reporta ajuste realmente aplicado; o verificador valida formato dos dois horários, CPF do responsável e CRC. O monitor NTP permanece observacional e não pode ser usado como fonte de evento. A migration 184 e o agente externo ainda não estão implantados. A exclusão lógica de trabalhador no REP-P foi implementada localmente e depende da migration 181 e homologação. Estas correções não criam eventos fictícios nem novas marcações.
 - App e portal não receberam campos novos por HTTP: os metadados fiscais só são solicitados internamente pelo exportador. A tela administrativa mostra os erros específicos retornados pelo servidor.
 - A1 ICP-Brasil real, registro INPI, atestado, infraestrutura e aceite em aparelho permanecem pendentes.
 

@@ -8,6 +8,8 @@ Estado: implementação local, sem publicação e sem declaração de conformida
 
 A migração 160 registra originais de novas marcações de trabalhadores explicitamente cadastrados no REP, com NSR por estabelecimento, encadeamento SHA-256, CRC nos eventos aplicáveis e proteção contra alteração/exclusão dos originais. Revisões administrativas preservam os originais. Registros antigos não recebem NSR retroativo.
 
+O código local da migration 181 adiciona exclusão lógica de trabalhador no REP-P: grava o evento AFD tipo 5 “E”, mantém trabalhador e registros fiscais, impede nova marcação não administrativa enquanto excluído e permite reinclusão com evento “I”. A operação pede CPF do responsável, não pode ocorrer com uma jornada aberta e ainda não foi aplicada nem homologada.
+
 Há cadastro fiscal por empresa, exportações AFD/AEJ com assinatura CAdES destacada em ZIP, comprovantes PDF com assinatura PAdES e consulta autenticada das últimas 48 horas no portal e aplicativo. A assinatura falha de forma fechada quando falta configuração. O relógio exibido usa uma referência do servidor; isso não comprova sincronização do servidor com a Hora Legal Brasileira. GPS indisponível não impede a marcação online.
 
 ## Pré-requisitos antes da ativação
@@ -17,7 +19,10 @@ Há cadastro fiscal por empresa, exportações AFD/AEJ com assinatura CAdES dest
 - Validar arquivos e assinaturas com ferramentas independentes e os leiautes vigentes antes de disponibilizar uso fiscal.
 - Atualizar todas as instâncias do backend antes de cadastrar estabelecimentos e trabalhadores. Aplicar a migração por operação controlada, com backup e plano de restauração. Depois disponibilizar web e app; testar dispositivos físicos iOS e Android.
 - Executar a aplicação com usuário PostgreSQL sem propriedade das tabelas, DDL ou capacidade de desabilitar triggers. As proteções SQL não defendem contra o proprietário/superusuário.
-- Monitorar sincronização de horário, desvios e disponibilidade externamente; configurar monitor independente para POST autenticado em /api/cron/rep-service-state com available boolean. Esse endpoint não cria sozinho um monitor de disponibilidade.
+- Monitorar sincronização de horário, desvios e disponibilidade externamente; configurar monitor independente para POST autenticado em /api/cron/rep-service-state com available boolean. A primeira observação estabelece uma linha de base; a migration 182 passa a registrar AFD tipo 6 somente em transições posteriores confirmadas. Esse endpoint não cria sozinho um monitor de disponibilidade.
+- A sincronização NTP atual é somente observacional e não ajusta relógios. O endpoint `/api/cron/rep-clock-adjustment` e a migration 184 recebem eventos idempotentes de ajuste efetivamente aplicado, geram AFD tipo 4 por estabelecimento e exigem CPF responsável. O utilitário local `scripts/report-rep-clock-adjustment.mjs` encaminha um único evento JSON via stdin usando `REP_CLOCK_ADJUSTMENT_SECRET`, sem registrar o segredo ou payload em logs; o mecanismo do host deve chamá-lo somente após concluir um ajuste real em toda a frota atendida. Não enviar amostras de desvio. O evento será registrado para todos os estabelecimentos REP-P. A migration 184 ainda não foi aplicada e nenhum agente/hook de host ou segredo foi configurado; portanto, o fluxo não está habilitado em produção.
+
+O hook envia exatamente `eventId`, `beforeAt`, `adjustedAt`, `responsibleCpf` e `source` ao utilitário e deve reutilizar o mesmo `eventId` e conteúdo em novas tentativas. Configure `APP_URL` e `REP_CLOCK_ADJUSTMENT_SECRET` em ambiente protegido do host; alimente o utilitário por stdin e não passe segredo ou payload em argumentos de processo.
 - Validar backups redundantes, retenção, restauração, controles de acesso e operação LGPD. Código e criptografia isolados não demonstram cumprimento integral.
 
 ## Limites atuais

@@ -44,6 +44,8 @@ export async function POST(request) {
     if (!today.ok) return apiErrorFromResult(request, today);
     return NextResponse.json(today, { headers: NO_STORE });
   } catch (error) {
+    if (error?.code === 'P0001' && error?.message === 'REP_WORKER_EXCLUDED')
+      return apiError(request, ERR.TIME_CLOCK_DISABLED, HTTP_STATUS.FORBIDDEN);
     console.error('POST mobile employee time clock', error);
     return apiError(request, ERR.INTERNAL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }

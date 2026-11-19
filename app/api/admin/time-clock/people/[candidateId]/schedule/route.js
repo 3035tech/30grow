@@ -27,6 +27,7 @@ const bodySchema = z.object({
   workdayEnd: zHm.optional().nullable(),
   breakStart: zHm.optional().nullable(),
   breakEnd: zHm.optional().nullable(),
+  breakPreassigned: z.boolean().optional(),
   weekdays: z.array(z.coerce.number().int().min(0).max(6)).max(7).optional().nullable(),
 });
 
@@ -77,6 +78,7 @@ export const POST = withAdminApi(
       workdayEnd: body.workdayEnd,
       breakStart: body.breakStart,
       breakEnd: body.breakEnd,
+      breakPreassigned: body.breakPreassigned,
       weekdays: body.weekdays, shiftPattern: body.shiftPattern, cycleAnchor: body.cycleAnchor, nightRule: body.nightRule,
     });
     if (!result.ok) return apiErrorFromResult(request, result, { fallbackCode: ERR.INVALID_DATA });

@@ -112,6 +112,52 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
           defaultValue: String(schedule?.breakMinutes ?? 60),
           min: 0,
           max: 240,
+          validate: (value, all) => all.breakPreassigned && Number(value) <= 0
+            ? t(locale, 'panel.timeClock.preassignedBreakNeedsDuration')
+            : null,
+        },
+        {
+          key: 'breakStart',
+          type: 'time',
+          label: t(locale, 'panel.timeClock.breakStartLabel'),
+          defaultValue: schedule?.breakStart || '',
+          showWhen: (values) => Number(values.breakMinutes) > 0,
+          validate: (value, all) => {
+            if (!value && !all.breakEnd && !all.breakPreassigned) return null;
+            if (!value || !all.breakEnd) return t(locale, 'panel.timeClock.breakTimesPairRequired');
+            const minutes = (raw) => {
+              const [h, m] = String(raw).split(':').map(Number);
+              return h * 60 + m;
+            };
+            return minutes(value) <= minutes(all.workdayStart) || minutes(all.breakEnd) >= minutes(all.workdayEnd) || minutes(all.breakEnd) <= minutes(value) || minutes(all.breakEnd) - minutes(value) !== Number(all.breakMinutes)
+              ? t(locale, 'panel.timeClock.breakRangeInvalid')
+              : null;
+          },
+        },
+        {
+          key: 'breakEnd',
+          type: 'time',
+          label: t(locale, 'panel.timeClock.breakEndLabel'),
+          defaultValue: schedule?.breakEnd || '',
+          showWhen: (values) => Number(values.breakMinutes) > 0,
+          validate: (value, all) => {
+            if (!value && !all.breakStart && !all.breakPreassigned) return null;
+            if (!value || !all.breakStart) return t(locale, 'panel.timeClock.breakTimesPairRequired');
+            const minutes = (raw) => {
+              const [h, m] = String(raw).split(':').map(Number);
+              return h * 60 + m;
+            };
+            return minutes(all.breakStart) <= minutes(all.workdayStart) || minutes(value) >= minutes(all.workdayEnd) || minutes(value) <= minutes(all.breakStart) || minutes(value) - minutes(all.breakStart) !== Number(all.breakMinutes)
+              ? t(locale, 'panel.timeClock.breakRangeInvalid')
+              : null;
+          },
+        },
+        {
+          key: 'breakPreassigned',
+          type: 'boolean',
+          label: t(locale, 'panel.timeClock.breakPreassignedLabel'),
+          help: t(locale, 'panel.timeClock.breakPreassignedHelp'),
+          defaultValue: Boolean(schedule?.breakPreassigned),
         },
         {
           key: 'lateGraceMinutes',
@@ -150,6 +196,9 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
           workdayStart: values.workdayStart,
           workdayEnd: values.workdayEnd,
           breakMinutes: Number(values.breakMinutes),
+          breakStart: values.breakStart || null,
+          breakEnd: values.breakEnd || null,
+          breakPreassigned: Boolean(values.breakPreassigned),
           lateGraceMinutes: Number(values.lateGraceMinutes),
           timezone: values.timezone,
         }),
