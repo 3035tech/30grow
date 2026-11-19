@@ -17,6 +17,7 @@ import {
   AdminListSearch,
   AdminTableShell,
   AdminTh,
+  PanelSubNav,
 } from '../dashboard/dashboard-shared';
 import { AdminListFilters } from './AdminListFilters';
 import { AppLoading } from './AppLoading';
@@ -24,7 +25,6 @@ import { useAppFeedback } from './AppFeedback';
 import { EmptyState } from './EmptyState';
 import { HourBankAdminBlock } from './HourBankAdminBlock';
 import { OrgUnitFilter } from './OrgUnitField';
-import { SegmentedControl } from './SegmentedControl';
 import { StatusToneChip } from './StatusToneChip';
 import { RepAdminSettings } from './RepAdminSettings';
 import { TimeClockAdminBlock } from './TimeClockAdminBlock';
@@ -468,7 +468,7 @@ function BankBalances({ locale, companyId, onOpen, reloadKey, participationFlowK
   );
 }
 
-const VIEWS = ['control', 'requests', 'bank', 'holidays', 'closing'];
+const VIEWS = ['control', 'requests', 'bank', 'holidays', 'closing', 'setup'];
 
 /**
  * DP › Ponto: manager workspace with Controle de ponto (people → mirror),
@@ -477,6 +477,7 @@ const VIEWS = ['control', 'requests', 'bank', 'holidays', 'closing'];
  */
 export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashboard, initialView = '', onViewChange, onRequestsChanged }) {
   const [view, setViewState] = useState(() => (VIEWS.includes(initialView) ? initialView : 'control'));
+  const [bankSection, setBankSection] = useState('balances');
   const setView = (id) => {
     setViewState(id);
     onViewChange?.(id);
@@ -494,68 +495,122 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
     setPersonId(id);
     setView('control');
   };
+  const viewTabs = [
+    { id: 'control', label: t(locale, `${K}.viewControl`) },
+    { id: 'requests', label: t(locale, `${K}.viewRequests`) },
+    { id: 'bank', label: t(locale, `${K}.viewBank`) },
+    { id: 'holidays', label: t(locale, `${K}.viewHolidays`) },
+    { id: 'closing', label: t(locale, `${K}.viewClosing`) },
+    { id: 'setup', label: t(locale, `${K}.viewSetup`) },
+  ].map((tab) => ({
+    ...tab,
+    tabId: `time-clock-tab-${tab.id}`,
+    panelId: `time-clock-panel-${tab.id}`,
+  }));
+  const panelProps = (id) => ({
+    id: `time-clock-panel-${id}`,
+    role: 'tabpanel',
+    tabIndex: 0,
+    'aria-labelledby': `time-clock-tab-${id}`,
+    className: 'min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
+  });
 
   return (
     <div className="flex flex-col gap-4">
       <TimeClockValidationNotice locale={locale} />
-      <RepAdminSettings key={companyId} companyId={companyId} locale={locale} />
-      <SegmentedControl
-        aria-label={t(locale, `${K}.viewsAria`)}
-        value={view}
+      <PanelSubNav
+        ariaLabel={t(locale, `${K}.viewsAria`)}
+        active={view}
         onChange={(id) => {
           setView(id);
           if (id !== 'control') setPersonId(null);
         }}
-        options={[
-          { id: 'control', label: t(locale, `${K}.viewControl`) },
-          { id: 'requests', label: t(locale, `${K}.viewRequests`) },
-          { id: 'bank', label: t(locale, `${K}.viewBank`) },
-          { id: 'holidays', label: t(locale, `${K}.viewHolidays`) },
-          { id: 'closing', label: t(locale, `${K}.viewClosing`) },
-        ]}
-        className="self-start"
+        tabs={viewTabs}
+        variant="pill"
+        className="mb-0"
       />
 
-      {view === 'control' && personId ? (
-        <TimeClockMirror
-          key={personId}
-          locale={locale}
-          companyId={companyId}
-          candidateId={personId}
-          onBack={() => setPersonId(null)}
-          onChanged={bump}
-        />
-      ) : null}
-
-      {view === 'control' && !personId ? (
-        <>
-          <PeopleList locale={locale} companyId={companyId} onOpen={openPerson} reloadKey={reloadKey} />
-          <TimeClockAdminBlock
-            locale={locale}
-            companyId={companyId}
-            navigateDashboard={navigateDashboard}
-            title={t(locale, `${K}.dayViewTitle`)}
-          />
-        </>
+      {view === 'control' ? (
+        <section {...panelProps('control')}>
+          {personId ? (
+            <TimeClockMirror
+              key={personId}
+              locale={locale}
+              companyId={companyId}
+              candidateId={personId}
+              onBack={() => setPersonId(null)}
+              onChanged={bump}
+            />
+          ) : (
+            <>
+              <PeopleList locale={locale} companyId={companyId} onOpen={openPerson} reloadKey={reloadKey} />
+              <TimeClockAdminBlock
+                locale={locale}
+                companyId={companyId}
+                navigateDashboard={navigateDashboard}
+                title={t(locale, `${K}.dayViewTitle`)}
+              />
+            </>
+          )}
+        </section>
       ) : null}
 
       {view === 'bank' ? (
-        <>
-          <BankBalances key={bankKey} locale={locale} companyId={companyId} onOpen={openPerson} reloadKey={reloadKey} participationFlowKey={participationFlowKey} onCloseParticipationFlow={() => setParticipationFlow((flow) => ({ ...flow, open: false }))} />
-          <HourBankAdminBlock
-            locale={locale}
-            companyId={companyId}
-            navigateDashboard={navigateDashboard}
-            showBalances={false}
-            title={t(locale, `${K}.bankEntriesTitle`)}
-            reloadKey={reloadKey}
-            onChanged={bump}
-            onActivated={() => setParticipationFlow((flow) => ({ companyId, sequence: flow.sequence + 1, open: true }))}
+        <section {...panelProps('bank')} className="min-w-0 space-y-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500">
+          <PanelSubNav
+            ariaLabel={t(locale, `${K}.bankSectionsAria`)}
+            active={bankSection}
+            onChange={setBankSection}
+            variant="line"
+            className="mb-0"
+            tabs={[
+              { id: 'balances', label: t(locale, `${K}.bankBalancesTab`), tabId: 'time-clock-bank-tab-balances', panelId: 'time-clock-bank-panel-balances' },
+              { id: 'entries', label: t(locale, `${K}.bankEntriesTab`), tabId: 'time-clock-bank-tab-entries', panelId: 'time-clock-bank-panel-entries' },
+            ]}
           />
-        </>
+          {bankSection === 'balances' ? (
+            <div
+              id="time-clock-bank-panel-balances"
+              role="tabpanel"
+              tabIndex={0}
+              aria-labelledby="time-clock-bank-tab-balances"
+              className="min-w-0"
+            >
+              <BankBalances
+                key={bankKey}
+                locale={locale}
+                companyId={companyId}
+                onOpen={openPerson}
+                reloadKey={reloadKey}
+                participationFlowKey={participationFlowKey}
+                onCloseParticipationFlow={() => setParticipationFlow((flow) => ({ ...flow, open: false }))}
+              />
+            </div>
+          ) : null}
+          {bankSection === 'entries' ? (
+            <div
+              id="time-clock-bank-panel-entries"
+              role="tabpanel"
+              tabIndex={0}
+              aria-labelledby="time-clock-bank-tab-entries"
+              className="min-w-0"
+            >
+              <HourBankAdminBlock
+                locale={locale}
+                companyId={companyId}
+                navigateDashboard={navigateDashboard}
+                showBalances={false}
+                title={t(locale, `${K}.bankEntriesTitle`)}
+                reloadKey={reloadKey}
+                onChanged={bump}
+                onActivated={() => setParticipationFlow((flow) => ({ companyId, sequence: flow.sequence + 1, open: true }))}
+              />
+            </div>
+          ) : null}
+        </section>
       ) : null}
 
-      {view === 'requests' ? (
+      {view === 'requests' ? <section {...panelProps('requests')}>
         <TimeClockRequestsBlock
           locale={locale}
           companyId={companyId}
@@ -564,11 +619,13 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
             onRequestsChanged?.();
           }}
         />
-      ) : null}
+      </section> : null}
 
-      {view === 'holidays' ? <TimeClockHolidaysBlock locale={locale} companyId={companyId} onChanged={bump} /> : null}
+      {view === 'holidays' ? <section {...panelProps('holidays')}><TimeClockHolidaysBlock locale={locale} companyId={companyId} onChanged={bump} /></section> : null}
 
-      {view === 'closing' ? <TimeClockClosuresBlock key={companyId} locale={locale} companyId={companyId} onOpenPerson={openPerson} /> : null}
+      {view === 'closing' ? <section {...panelProps('closing')}><TimeClockClosuresBlock key={companyId} locale={locale} companyId={companyId} onOpenPerson={openPerson} /></section> : null}
+
+      {view === 'setup' ? <section {...panelProps('setup')}><RepAdminSettings key={companyId} companyId={companyId} locale={locale} /></section> : null}
     </div>
   );
 }

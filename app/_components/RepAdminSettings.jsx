@@ -3,8 +3,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
 import { validateFormElementValues } from '../../lib/form-validation';
 import { digitsOnly, formatCpfBr, formatCpfCnpjBr, stripCpf, stripCpfCnpjBr } from '../../lib/br-masks.js';
-import { S } from '../dashboard/dashboard-shared';
+import { AdminListPager, AdminListSearch, PanelSubNav, S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
+import { EntitySearchSelect } from './EntitySearchSelect';
+import { FormField } from './FormField';
 
 const ESTABLISHMENT_FIELDS = [
   'employerDocument',
@@ -23,11 +25,17 @@ const WORKER_FIELDS = [
   'weeklyRestDay',
   'responsibleCpf',
 ];
+const REP_SECTIONS = ['establishment', 'workers', 'export'];
+const WORKER_PAGE_SIZE = 10;
 export function RepAdminSettings({ companyId, locale }) {
   const [state, setState] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formValues, setFormValues] = useState({});
+  const [selectedWorker, setSelectedWorker] = useState(null);
+  const [section, setSection] = useState('establishment');
+  const [workerSearch, setWorkerSearch] = useState('');
+  const [workerPage, setWorkerPage] = useState(1);
   const { toast, confirm, promptForm } = useAppFeedback();
   const load = useCallback(
     async (signal) => {
@@ -57,12 +65,20 @@ export function RepAdminSettings({ companyId, locale }) {
     setState(null);
     setLoadError(false);
     setFormValues({});
+    setSelectedWorker(null);
+    setSection('establishment');
+    setWorkerSearch('');
+    setWorkerPage(1);
     void load(controller.signal);
     return () => controller.abort();
   }, [load]);
   const save = async (event, action) => {
     event.preventDefault();
     if (busy) return;
+    if (action === 'worker' && !formValues.worker?.candidateId) {
+      toast(t(locale, 'rep.selectWorker'), 'error');
+      return;
+    }
     const validationError = validateFormElementValues(event.currentTarget, locale);
     if (validationError) {
       toast(validationError, 'error');
@@ -93,6 +109,7 @@ export function RepAdminSettings({ companyId, locale }) {
         );
       form.reset();
       setFormValues((current) => ({ ...current, [action]: {} }));
+      if (action === 'worker') setSelectedWorker(null);
       toast(t(locale, 'rep.saved'), 'success');
       await load();
     } catch (error) {
@@ -202,6 +219,7 @@ export function RepAdminSettings({ companyId, locale }) {
     }
   };
   const input = (name, defaultValue = '', formKey = '') => {
+    if (name === 'candidateId') return null;
     const required = name !== 'complementaryDocument';
     const isMasked = ['employerDocument', 'cpf', 'responsibleCpf', 'registration', 'complementaryDocument'].includes(name);
     const initialValue = name === 'employerDocument'
@@ -310,50 +328,50 @@ export function RepAdminSettings({ companyId, locale }) {
       </label>
     );
   };
+  const workerItems = (state?.workers || []).filter((worker) => {
+    const search = workerSearch.trim().toLocaleLowerCase(localeHtmlLang(locale));
+    if (!search) return true;
+    const language = localeHtmlLang(locale);
+    return [worker.workerName, worker.cpf, worker.employerName]
+      .some((value) => String(value || '').toLocaleLowerCase(language).includes(search));
+  });
+  const workerTotalPages = Math.max(1, Math.ceil(workerItems.length / WORKER_PAGE_SIZE));
+  const safeWorkerPage = Math.min(workerPage, workerTotalPages);
+  const visibleWorkers = workerItems.slice(
+    (safeWorkerPage - 1) * WORKER_PAGE_SIZE,
+    safeWorkerPage * WORKER_PAGE_SIZE,
+  );
   return (
-    <details className="rounded-card border border-ink/10 bg-canvas p-4">
-      <summary className="cursor-pointer font-semibold">
-        {t(locale, 'rep.repTitle')}
-      </summary>
+    <section className="rounded-card border border-ink/10 bg-canvas p-4">
+      <header>
+        <h2 className="m-0 font-ui text-lg font-semibold text-ink">
+          {t(locale, 'rep.repTitle')}
+        </h2>
+      </header>
       <p className="my-3 text-sm text-ink-muted">
         {t(locale, 'rep.repPending')}
       </p>
       {state ? (
-        <>
-          <p className="text-sm">
-            {t(locale, 'rep.certificate')}:{' '}
-            {t(locale, state.signingConfigured ? 'rep.yes' : 'rep.no')} ·{' '}
-            {t(locale, 'rep.pendingWorkers')}: {state.unregisteredWorkers}
-          </p>
-          <ul className="my-3 text-sm">
-            {state.establishments.map((e) => (
-              <li key={e.id}>
-                {e.employer_name} · {e.employer_document} · NSR {e.last_nsr}
-              </li>
-            ))}
+        <section className="my-4 rounded-control border border-ink/10 bg-surface p-4" aria-labelledby="rep-readiness-title">
+          <h3 id="rep-readiness-title" className="m-0 font-ui text-sm font-semibold text-ink">
+            {t(locale, 'rep.readinessTitle')}
+          </h3>
+          <ul className="mb-0 mt-3 grid gap-2 pl-5 text-sm">
+            <li className={state.establishments.length ? 'text-success' : 'text-warning'}>
+              {t(locale, 'rep.setup')}: {t(locale, state.establishments.length ? 'rep.stepReady' : 'rep.stepPending')}
+              {!state.establishments.length ? ` — ${t(locale, 'rep.establishmentNeeded')}` : ''}
+            </li>
+            <li className={state.signingConfigured ? 'text-success' : 'text-warning'}>
+              {t(locale, 'rep.certificate')}: {t(locale, state.signingConfigured ? 'rep.stepReady' : 'rep.stepPending')}
+            </li>
+            <li className={state.unregisteredWorkers === 0 ? 'text-success' : 'text-warning'}>
+              {t(locale, 'rep.pendingWorkers')}: {state.unregisteredWorkers === 0
+                ? t(locale, 'rep.stepReady')
+                : t(locale, 'rep.workersPendingCount', { count: state.unregisteredWorkers })}
+            </li>
           </ul>
-          <h4 className="mb-2 mt-5 font-semibold">{t(locale, 'rep.workers')}</h4>
-          {state.workers?.length ? (
-            <ul className="my-2 divide-y divide-ink/10 rounded-control border border-ink/10">
-              {state.workers.map((worker) => (
-                <li key={worker.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
-                  <span>
-                    <strong>{worker.workerName}</strong> · {formatCpfBr(worker.cpf)} · {worker.employerName}
-                    <span className="ml-2 text-ink-muted">{t(locale, worker.active ? 'rep.active' : 'rep.excluded')}</span>
-                  </span>
-                  <button
-                    type="button"
-                    className={S.btnGhost}
-                    disabled={busy}
-                    onClick={() => void changeWorkerStatus(worker)}
-                  >
-                    {t(locale, worker.active ? 'rep.workerDeactivate' : 'rep.workerReactivate')}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </>
+          <p className="mb-0 mt-3 text-xs leading-5 text-ink-muted">{t(locale, 'rep.readinessHelp')}</p>
+        </section>
       ) : (
         <p role="status" className="my-3 text-sm text-ink-muted">
           {t(locale, loadError ? 'rep.loadError' : 'rep.loading')}
@@ -371,70 +389,148 @@ export function RepAdminSettings({ companyId, locale }) {
           ) : null}
         </p>
       )}
-      <form
-        noValidate
-        onSubmit={(e) => void save(e, 'establishment')}
-        className="mt-4 grid gap-3 sm:grid-cols-2"
-      >
-        <h4 className="font-semibold sm:col-span-2">
-          {t(locale, 'rep.setup')}
-        </h4>
-        {ESTABLISHMENT_FIELDS.map((name) =>
-          input(name, name === 'timezone' ? 'America/Sao_Paulo' : '', 'establishment'),
-        )}
-        <button className={S.btnGhost} disabled={busy || !state} type="submit">
-          {t(locale, 'rep.save')}
-        </button>
-      </form>
-      <form
-        noValidate
-        onSubmit={(e) => void save(e, 'worker')}
-        className="mt-6 grid gap-3 sm:grid-cols-2"
-      >
-        <h4 className="font-semibold sm:col-span-2">
-          {t(locale, 'rep.workers')}
-        </h4>
-        {WORKER_FIELDS.map((name) =>
-          input(name, name === 'weeklyRestDay' ? '0' : '', 'worker'),
-        )}
-        <button className={S.btnGhost} disabled={busy || !state} type="submit">
-          {t(locale, 'rep.save')}
-        </button>
-      </form>
-      <form
-        noValidate
-        onSubmit={(e) => void download(e)}
-        className="mt-6 grid gap-3 sm:grid-cols-2"
-      >
-        <h4 className="font-semibold sm:col-span-2">
-          {t(locale, 'rep.export')}
-        </h4>
-        {input('establishmentId', '', 'export')}
-        <label className="flex flex-col gap-1 text-sm">
-          {t(locale, 'rep.format')}
-          <select
-            name="format"
-            className="min-h-11 rounded-control border border-ink/20 bg-canvas px-3"
-          >
-            <option value="afd">AFD</option>
-            <option value="aej">AEJ</option>
-          </select>
-        </label>
-        {['from', 'to'].map((name) => (
-          <label key={name} className="flex flex-col gap-1 text-sm">
-            {t(locale, `rep.${name}`)}
-            <input
-              required
-              type="date"
-              name={name}
-              className="min-h-11 rounded-control border border-ink/20 bg-canvas px-3"
+      {state ? (
+        <PanelSubNav
+          ariaLabel={t(locale, 'rep.sectionsAria')}
+          active={section}
+          onChange={(id) => {
+            if (REP_SECTIONS.includes(id)) setSection(id);
+          }}
+          variant="pill"
+          className="mb-0"
+          tabs={[
+            {
+              id: 'establishment',
+              label: t(locale, 'rep.setup'),
+              tabId: 'rep-config-tab-establishment',
+              panelId: 'rep-config-panel-establishment',
+            },
+            {
+              id: 'workers',
+              label: t(locale, 'rep.workers'),
+              badge: state.unregisteredWorkers || undefined,
+              tabId: 'rep-config-tab-workers',
+              panelId: 'rep-config-panel-workers',
+            },
+            {
+              id: 'export',
+              label: t(locale, 'rep.export'),
+              tabId: 'rep-config-tab-export',
+              panelId: 'rep-config-panel-export',
+            },
+          ]}
+        />
+      ) : null}
+      {state && section === 'establishment' ? (
+        <section id="rep-config-panel-establishment" role="tabpanel" tabIndex={0} aria-labelledby="rep-config-tab-establishment" className="min-w-0 pt-4">
+          {state.establishments.length ? (
+            <ul className="mb-4 mt-0 space-y-1 text-sm">
+              {state.establishments.map((e) => (
+                <li key={e.id}>{e.employer_name} · {e.employer_document} · NSR {e.last_nsr}</li>
+              ))}
+            </ul>
+          ) : null}
+          <form noValidate onSubmit={(e) => void save(e, 'establishment')} className="grid gap-3 sm:grid-cols-2">
+            {ESTABLISHMENT_FIELDS.map((name) =>
+              input(name, name === 'timezone' ? 'America/Sao_Paulo' : '', 'establishment'),
+            )}
+            <button className={S.btnGhost} disabled={busy || !state} type="submit">{t(locale, 'rep.save')}</button>
+          </form>
+        </section>
+      ) : null}
+      {state && section === 'workers' ? (
+        <section id="rep-config-panel-workers" role="tabpanel" tabIndex={0} aria-labelledby="rep-config-tab-workers" className="min-w-0 pt-4">
+          <form noValidate onSubmit={(e) => void save(e, 'worker')} className="grid gap-3 sm:grid-cols-2">
+            <FormField as="div" label={t(locale, 'rep.candidateId')} required className="sm:col-span-2">
+              <EntitySearchSelect
+                value={formValues.worker?.candidateId || ''}
+                onChange={(id, item) => {
+                  setSelectedWorker(item || null);
+                  setFormValues((current) => ({
+                    ...current,
+                    worker: {
+                      ...current.worker,
+                      candidateId: id,
+                      cpf: item?.cpf ? formatCpfBr(item.cpf) : '',
+                      workerName: item?.label || '',
+                    },
+                  }));
+                }}
+                searchUrl={`/api/admin/time-clock/rep/candidates?companyId=${encodeURIComponent(companyId)}`}
+                initialSelection={selectedWorker}
+                locale={locale}
+                placeholder={t(locale, 'rep.searchWorker')}
+                minChars={2}
+                required
+                disabled={busy || !state.establishments.length}
+              />
+              <input type="hidden" name="candidateId" value={formValues.worker?.candidateId || ''} />
+              {selectedWorker && !selectedWorker.cpf ? (
+                <p className="mb-0 mt-1 text-xs text-warning">{t(locale, 'rep.workerCpfMissing')}</p>
+              ) : null}
+            </FormField>
+            {WORKER_FIELDS.map((name) =>
+              input(name, name === 'weeklyRestDay' ? '0' : '', 'worker'),
+            )}
+            <button className={S.btnGhost} disabled={busy || !state.establishments.length} type="submit">{t(locale, 'rep.save')}</button>
+          </form>
+          <div className="mt-6">
+            <AdminListSearch
+              locale={locale}
+              value={workerSearch}
+              onChange={(value) => { setWorkerSearch(value); setWorkerPage(1); }}
+              label={t(locale, 'rep.searchRegisteredWorker')}
+              placeholder={t(locale, 'rep.searchRegisteredWorker')}
             />
-          </label>
-        ))}
-        <button className={S.btnGhost} disabled={busy || !state} type="submit">
-          {t(locale, 'rep.export')}
-        </button>
-      </form>
-    </details>
+            {visibleWorkers.length ? (
+              <ul className="my-2 divide-y divide-ink/10 rounded-control border border-ink/10">
+                {visibleWorkers.map((worker) => (
+                  <li key={worker.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                    <span className="min-w-0">
+                      <strong>{worker.workerName}</strong> · {formatCpfBr(worker.cpf)} · {worker.employerName}
+                      <span className="ml-2 text-ink-muted">{t(locale, worker.active ? 'rep.active' : 'rep.excluded')}</span>
+                    </span>
+                    <button type="button" className={S.btnGhost} disabled={busy} onClick={() => void changeWorkerStatus(worker)}>
+                      {t(locale, worker.active ? 'rep.workerDeactivate' : 'rep.workerReactivate')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="m-0 mt-3 text-sm text-ink-muted">{t(locale, workerSearch ? 'rep.noWorkerMatch' : 'rep.noRegisteredWorkers')}</p>}
+            <AdminListPager
+              locale={locale}
+              page={safeWorkerPage}
+              pageSize={WORKER_PAGE_SIZE}
+              total={workerItems.length}
+              onPageChange={setWorkerPage}
+              pageSizeOptions={[WORKER_PAGE_SIZE]}
+            />
+          </div>
+        </section>
+      ) : null}
+      {state && section === 'export' ? (
+        <section id="rep-config-panel-export" role="tabpanel" tabIndex={0} aria-labelledby="rep-config-tab-export" className="min-w-0 pt-4">
+          <form noValidate onSubmit={(e) => void download(e)} className="grid gap-3 sm:grid-cols-2">
+            {input('establishmentId', '', 'export')}
+            <label className="flex flex-col gap-1 text-sm">
+              {t(locale, 'rep.format')}
+              <select name="format" className="min-h-11 rounded-control border border-ink/20 bg-canvas px-3">
+                <option value="afd">AFD</option>
+                <option value="aej">AEJ</option>
+              </select>
+            </label>
+            {['from', 'to'].map((name) => (
+              <label key={name} className="flex flex-col gap-1 text-sm">
+                {t(locale, `rep.${name}`)}
+                <input required type="date" name={name} className="min-h-11 rounded-control border border-ink/20 bg-canvas px-3" />
+              </label>
+            ))}
+            <button className={S.btnGhost} disabled={busy || !state.establishments.length} type="submit">
+              {t(locale, 'rep.export')}
+            </button>
+          </form>
+        </section>
+      ) : null}
+    </section>
   );
 }
