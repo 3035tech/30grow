@@ -33,7 +33,7 @@ test('actual activation requires work-start confirmation and rejects a future ad
   const dialog=page.getByRole('dialog');
   await dialog.getByRole('button',{name:'Ativar vínculo de colaborador',exact:true}).click();
   expect(posts).toBe(0); await expect(dialog).toBeVisible();
-  await dialog.getByRole('checkbox',{name:'Confirmo que esta pessoa já iniciou o trabalho na empresa.',exact:true}).check();
+  await dialog.getByRole('checkbox',{name:'Confirmo que esta pessoa já iniciou o trabalho na empresa.'}).check();
   await chooseYear(page,dialog,'Data real de admissão',2099);
   await dialog.getByRole('button',{name:'Ativar vínculo de colaborador',exact:true}).click();
   await expect(dialog).toContainText('Ative o vínculo somente quando o trabalho começar.'); expect(posts).toBe(0);
@@ -52,7 +52,7 @@ test('existing employee mode preserves original admission, skips integration and
   const actual=await chooseYear(page,dialog,'Data real de admissão',2020);
   await dialog.getByLabel('E-mail corporativo (opcional)',{exact:true}).fill('corporate@work.example.test');
   await dialog.getByRole('checkbox',{name:'Enviar convite de acesso',exact:true}).uncheck();
-  await dialog.getByRole('checkbox',{name:'Confirmo que esta pessoa já iniciou o trabalho na empresa.',exact:true}).check();
+  await dialog.getByRole('checkbox',{name:'Confirmo que esta pessoa já iniciou o trabalho na empresa.'}).check();
   await dialog.getByRole('button',{name:'Ativar vínculo de colaborador',exact:true}).click();
   await expect(page.getByTestId('result')).toContainText('"employmentStatus":"employee"');
   expect(submitted).toMatchObject({startDate:actual,personalEmail:'personal@example.test',corporateEmail:'corporate@work.example.test',entryMode:'existing_employee',onboardingStages:[],sendAccessInvite:false,startedWorking:true});

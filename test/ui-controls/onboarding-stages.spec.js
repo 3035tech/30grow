@@ -37,7 +37,7 @@ for (const width of [390, 1440]) {
     await expect(stages.getByRole('checkbox', { checked: true })).toHaveCount(0);
     await expect(dialog.getByRole('status')).toContainText('0 de 4 etapas selecionadas.');
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    await dialog.getByRole('checkbox',{name:'Confirmo que esta pessoa já iniciou o trabalho na empresa.',exact:true}).check();
+    await dialog.getByRole('checkbox',{name:'Confirmo que esta pessoa já iniciou o trabalho na empresa.'}).check();
     const posted = page.waitForRequest(request => request.method()==='POST' && request.url().endsWith('/7/admission'));
     await dialog.getByRole('button', { name: 'Ativar vínculo de colaborador', exact: true }).click();
     expect((await posted).postDataJSON()).toMatchObject({onboardingStages:[],startedWorking:true,personalEmail:'personal@example.test'});
