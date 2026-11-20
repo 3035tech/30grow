@@ -186,8 +186,8 @@ export function OrgChartBlock({ locale = 'pt-BR', companyId, navigateDashboard =
                 }} onDragEnd={endDrag} title={msg('dragPerson', { name: person.name })} disabled={saving} aria-pressed={selectedId === person.id} aria-label={msg('selectPerson', { name: person.name })} className={cn('flex min-h-0 flex-1 cursor-grab active:cursor-grabbing items-start gap-2 border-0 bg-transparent py-2.5 pl-3 text-left hover:bg-brand-500/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500', navigateDashboard ? 'pr-9' : 'pr-3')} onClick={() => setSelectedId(person.id)}>
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 font-ui text-2xs font-semibold text-brand-700" aria-hidden="true">{person.name.split(/\s+/).filter(Boolean).map((part) => part[0]).slice(0, 2).join('')}</span>
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="line-clamp-2 font-ui text-xs font-semibold leading-snug text-ink" title={person.name}>{person.name}</span>
-                    <span className="truncate font-ui text-2xs text-ink-muted" title={person.jobRoleName || ''}>{person.jobRoleName || msg('noRole')}</span>
+                    <span className="line-clamp-3 break-words font-ui text-xs font-semibold leading-snug text-ink" title={person.name}>{person.name}</span>
+                    <span className="line-clamp-2 break-words font-ui text-2xs text-ink-muted" title={person.jobRoleName || ''}>{person.jobRoleName || msg('noRole')}</span>
                   </span>
                 </button>
                 {navigateDashboard ? <IconActionTip label={msg('openPerson', { name: person.name })} className="absolute right-1 top-1.5">
