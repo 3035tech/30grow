@@ -79,7 +79,7 @@ describe('dashboard tab preload', () => {
 
   it('menu items preload on intent and navigation exposes pending state', () => {
     const client = read('app/dashboard/DashboardClient.jsx');
-    assert.match(client, /onIntent: \(\) => preloadDashboardTab\(id\)/);
+    assert.match(client, /onIntent: navigable === false \? undefined : \(\) => preloadDashboardTab\(destinationTab\)/);
     assert.match(read('app/_components/SidebarNav.jsx'), /onMouseEnter: onIntent/);
     assert.match(client, /<NavLoadBar active=\{panelLoading \|\| navPending\} \/>/);
     const nav = read('app/dashboard/hooks/useDashboardNavigation.js');
