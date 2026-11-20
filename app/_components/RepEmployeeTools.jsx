@@ -13,6 +13,7 @@ export function RepEmployeeTools({ locale, timezone, revision }) {
   const [busy, setBusy] = useState(false);
   const anchor = useRef(null);
   const epoch = useRef(0);
+  const reloadReceipts = useRef(null);
   const { toast } = useAppFeedback();
   useEffect(() => {
     const generation = ++epoch.current;
@@ -53,6 +54,7 @@ export function RepEmployeeTools({ locale, timezone, revision }) {
         if (!controller.signal.aborted) setLoading(false);
       }
     };
+    reloadReceipts.current = load;
     void load();
     const refresh = setInterval(load, 60000);
     const tick = setInterval(() => {
@@ -73,11 +75,18 @@ export function RepEmployeeTools({ locale, timezone, revision }) {
     }, 1000);
     return () => {
       controller.abort();
+      if (epoch.current === generation) reloadReceipts.current = null;
       if (epoch.current === generation) epoch.current += 1;
       clearInterval(refresh);
       clearInterval(tick);
     };
   }, [locale, timezone, revision]);
+  const retryReceipts = () => {
+    if (loading || busy || !reloadReceipts.current) return;
+    setLoadError(false);
+    setLoading(true);
+    void reloadReceipts.current();
+  };
   const more = async () => {
     if (busy || next == null) return;
     const generation = epoch.current;
@@ -125,7 +134,7 @@ export function RepEmployeeTools({ locale, timezone, revision }) {
     }
   };
   return (
-    <div className="mb-4 rounded-card border border-ink/10 bg-canvas p-4">
+    <div className="mb-4 rounded-card border border-ink/10 bg-canvas p-4" aria-busy={loading}>
       <p className={S.label}>{t(locale, 'rep.clock')}</p>
       <time className="font-mono text-2xl tabular-nums">{display}</time>
       <h4 className="mt-4 font-semibold">{t(locale, 'rep.receipts')}</h4>
@@ -141,6 +150,17 @@ export function RepEmployeeTools({ locale, timezone, revision }) {
                 : 'rep.receiptWindow',
         )}
       </p>
+      {loadError ? (
+        <button
+          type="button"
+          className={`${S.btnGhost} min-h-touch`}
+          disabled={loading || busy}
+          onClick={retryReceipts}
+          aria-busy={loading}
+        >
+          {t(locale, 'common.retry')}
+        </button>
+      ) : null}
       {items.length > 0 ? (
         <>
           <ul>
@@ -159,7 +179,7 @@ export function RepEmployeeTools({ locale, timezone, revision }) {
                 </span>
                 <button
                   type="button"
-                  className={S.btnGhost}
+                  className={`${S.btnGhost} min-h-touch`}
                   disabled={busy}
                   onClick={() => void download(item)}
                 >
@@ -171,7 +191,7 @@ export function RepEmployeeTools({ locale, timezone, revision }) {
           {next ? (
             <button
               type="button"
-              className={S.btnGhost}
+              className={`${S.btnGhost} min-h-touch`}
               disabled={busy}
               onClick={() => void more()}
             >

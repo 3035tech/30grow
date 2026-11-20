@@ -189,7 +189,7 @@ function ProfileInfo({ label, children, className, breakAll = false, pre = false
   );
 }
 
-export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
+export function DpBlock({ locale, candidateId, employmentStatus, companyId, navigateDashboard }) {
   const { toast, promptForm, confirm } = useAppFeedback();
   const [profile, setProfile] = useState(null);
   const [candidate, setCandidate] = useState(null);
@@ -203,6 +203,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
   const [uploadKey, setUploadKey] = useState(null);
   const [leaveUploadId, setLeaveUploadId] = useState(null);
   const [vacationUpload, setVacationUpload] = useState(null);
+  const [showPointSetupPrompt, setShowPointSetupPrompt] = useState(false);
   const fileInputRef = useRef(null);
   const leaveFileRef = useRef(null);
   const vacationFileRef = useRef(null);
@@ -268,6 +269,8 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
       title: t(locale, 'panel.dp.editProfile'),
       confirmLabel: t(locale, 'panel.dp.save'),
       submit: async (values) => {
+        const activatingPoint = !resolveTimeClockEligibility({ workFormat: candidate?.workFormat }).enabled
+          && resolveTimeClockEligibility({ workFormat: values.workFormat }).enabled;
         if ([values.phone, values.emergencyPhone].some(value => value && (String(value).replace(/\D/g, '').length < 10 || String(value).replace(/\D/g, '').length > 15))) {
           throw new Error(i18nT(locale, 'ui.dpBlock.enterAPhoneNumberWith'));
         }
@@ -296,6 +299,16 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         const { dpProfile, portalAccessReset, ...savedCandidate } = data;
         setProfile(dpProfile);
         setCandidate((prev) => ({ ...prev, ...savedCandidate }));
+        setShowPointSetupPrompt(false);
+        if (activatingPoint && companyId) {
+          void fetch(`/api/admin/time-clock/rep?companyId=${encodeURIComponent(companyId)}`, { cache: 'no-store' })
+            .then(async (response) => {
+              if (!response.ok) throw new Error('readiness');
+              const readiness = await response.json();
+              if (!readiness.setupReady) setShowPointSetupPrompt(true);
+            })
+            .catch(() => setShowPointSetupPrompt(true));
+        }
         if (portalAccessReset) {
           toast(t(locale, portalAccessReset.inviteSent ? 'panel.dp.emailChangedInviteSent' : 'panel.dp.emailChangedInviteFailed'), portalAccessReset.inviteSent ? 'ok' : 'info');
         } else {
@@ -1104,6 +1117,16 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId }) {
         ) : null}
         {profile ? (
           <div className="flex flex-col">
+            {showPointSetupPrompt && !readOnly ? (
+              <InlineCallout
+                tone="warning"
+                title={t(locale, 'panel.dp.timeClockSetupPromptTitle')}
+                action={<button type="button" className={S.btnBrandSoft} onClick={() => navigateDashboard?.({ tab: 'dp', dpSection: 'time', timeView: 'setup' })}>{t(locale, 'panel.dp.timeClockSetupPromptAction')}</button>}
+                className="mb-4"
+              >
+                {t(locale, 'panel.dp.timeClockSetupPromptBody')}
+              </InlineCallout>
+            ) : null}
             <ProfileSection
               title={i18nT(locale, 'ui.dpBlock.personal')}
               first

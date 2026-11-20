@@ -37,7 +37,7 @@ function formatTime(value, locale) {
 /**
  * B-2721 — Admin day mirror + schedule + CSV (inside DP tab).
  */
-export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashboard, title = null }) {
+export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashboard, title = null, initialOpen = false, onOpenChange, onScheduleSaved }) {
   const { toast, promptForm } = useAppFeedback();
   const [day, setDay] = useState(localIsoToday);
   const [items, setItems] = useState([]);
@@ -47,7 +47,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [busy, setBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [autoOpenedForFlags, setAutoOpenedForFlags] = useState(false);
 
   const load = useCallback(async () => {
@@ -208,6 +208,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
       setSchedule(data.schedule);
       toast(t(locale, 'panel.timeClock.scheduleSaved'), 'ok');
       await load();
+      onScheduleSaved?.();
     } catch (e) {
       toast(e?.message || t(locale, 'panel.timeClock.saveError'), 'error');
     } finally {
@@ -329,7 +330,7 @@ export function TimeClockAdminBlock({ locale = 'pt-BR', companyId, navigateDashb
       title={title || t(locale, 'panel.timeClock.title')}
       count={flaggedCount || null}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(next) => { setOpen(next); onOpenChange?.(next); }}
       variant="card"
       className="mt-2"
       collapsedHint={t(locale, 'panel.timeClock.hint')}

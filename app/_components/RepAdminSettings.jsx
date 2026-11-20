@@ -1,12 +1,14 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { t, localeHtmlLang } from '../../lib/i18n';
+import { cn } from '../../lib/cn';
 import { validateFormElementValues } from '../../lib/form-validation';
 import { digitsOnly, formatCpfBr, formatCpfCnpjBr, stripCpf, stripCpfCnpjBr } from '../../lib/br-masks.js';
 import { AdminListPager, AdminListSearch, PanelSubNav, S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
 import { EntitySearchSelect } from './EntitySearchSelect';
 import { FormField } from './FormField';
+import { StatusToneChip } from './StatusToneChip';
 
 const ESTABLISHMENT_FIELDS = [
   'employerDocument',
@@ -27,7 +29,7 @@ const WORKER_FIELDS = [
 ];
 const REP_SECTIONS = ['establishment', 'workers', 'export'];
 const WORKER_PAGE_SIZE = 10;
-export function RepAdminSettings({ companyId, locale }) {
+export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmployeeData }) {
   const [state, setState] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -341,6 +343,95 @@ export function RepAdminSettings({ companyId, locale }) {
     (safeWorkerPage - 1) * WORKER_PAGE_SIZE,
     safeWorkerPage * WORKER_PAGE_SIZE,
   );
+  const establishmentReady = Boolean(state?.establishments.length) && state.establishments.every((item) => item.setupValid === true);
+  const missingEstablishments = (state?.establishments || []).map((item) => ({
+    ...item,
+    missingFields: item.setupIssues || [],
+  })).filter((item) => !item.setupValid);
+  const missingFieldLabels = {
+    employer_name: 'employerName', employer_document: 'employerDocument', registration: 'registration',
+    complementary_document: 'complementaryDocument', responsible_cpf: 'responsibleCpf', timezone: 'timezone', workplace: 'workplace',
+    admission: 'admissionDate', jobRole: 'jobRole', repLink: 'workers',
+  };
+  const issuePeople = state?.candidateIssues || [];
+  const unregisteredPeople = issuePeople.filter((person) => person.missingRepLink);
+  const incompleteProfilePeople = issuePeople.filter((person) => !person.missingRepLink && person.missingFields.length > 0);
+  const openSection = (next) => {
+    setSection(next);
+    document.getElementById(`rep-config-tab-${next}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  };
+  const workerStepReady = state?.unregisteredWorkers === 0 && state?.incompleteWorkerProfiles === 0;
+  const setupSteps = state ? [
+    {
+      id: 'establishment',
+      title: t(locale, 'rep.setup'),
+      ready: establishmentReady,
+      detail: t(locale, establishmentReady ? 'rep.establishmentReadyHelp' : state.establishments.length ? 'rep.establishmentIncomplete' : 'rep.establishmentNeeded'),
+      items: missingEstablishments.map((item) => ({
+        label: item.employer_name || item.employer_document,
+        detail: item.missingFields.map((field) => t(locale, `rep.${missingFieldLabels[field]}`)).join(', '),
+      })),
+      action: { label: t(locale, 'rep.fixStep'), onClick: () => openSection('establishment') },
+    },
+    {
+      id: 'schedule',
+      title: t(locale, 'rep.companySchedule'),
+      ready: state.scheduleConfigured,
+      detail: t(locale, state.scheduleConfigured ? 'rep.scheduleReadyHelp' : 'rep.companyScheduleHelp'),
+      action: { label: t(locale, 'rep.configureStep'), onClick: onOpenSchedule },
+    },
+    {
+      id: 'workers',
+      title: t(locale, 'rep.pendingWorkers'),
+      ready: workerStepReady,
+      detail: [
+        state.unregisteredWorkers > 0 ? t(locale, 'rep.workersPendingCount', { count: state.unregisteredWorkers }) : '',
+        state.incompleteWorkerProfiles > 0 ? t(locale, 'rep.workerProfilesIncomplete', { count: state.incompleteWorkerProfiles }) : '',
+        workerStepReady ? t(locale, 'rep.workersReadyHelp') : '',
+      ].filter(Boolean).join(' '),
+      items: [
+        ...unregisteredPeople.map((person) => ({
+          label: person.candidateName,
+          detail: t(locale, 'rep.workersNeedLink'),
+          onClick: () => openSection('workers'),
+        })),
+        ...incompleteProfilePeople.map((person) => ({
+          label: person.candidateName,
+          detail: person.missingFields.map((field) => t(locale, `rep.${missingFieldLabels[field]}`)).join(', '),
+          onClick: () => onOpenEmployeeData?.(person.candidateId),
+        })),
+      ],
+      actions: [
+        ...(!workerStepReady ? [{ label: t(locale, 'rep.fixStep'), onClick: () => openSection('workers') }] : []),
+        ...(state.incompleteWorkerProfiles > 0 ? [{ label: t(locale, 'rep.openEmployeeRecords'), onClick: onOpenEmployeeData }] : []),
+      ],
+    },
+    {
+      id: 'certificate',
+      title: t(locale, 'rep.certificate'),
+      ready: state.certificateStatus === 'validated',
+      detail: t(locale, {
+        validated: 'rep.certificateValidatedHelp',
+        expired: 'rep.certificateExpiredHelp',
+        not_yet_valid: 'rep.certificateNotYetValidHelp',
+        unavailable: 'rep.certificateUnavailableHelp',
+        unvalidated: 'rep.certificateValidationRequiredHelp',
+        missing: 'rep.certificatePendingHelp',
+      }[state.certificateStatus] || 'rep.certificatePendingHelp'),
+      statusLabel: t(locale, {
+        validated: 'rep.certificateValidated',
+        expired: 'rep.certificateExpired',
+        not_yet_valid: 'rep.certificateNotYetValid',
+        unavailable: 'rep.certificateUnavailable',
+        unvalidated: 'rep.certificateValidationRequired',
+        missing: 'rep.stepPending',
+      }[state.certificateStatus] || 'rep.stepPending'),
+      statusTone: state.certificateStatus === 'validated' ? 'success' : state.certificateStatus === 'unavailable' || state.certificateStatus === 'expired' ? 'danger' : 'warning',
+      action: null,
+    },
+  ] : [];
+  const progressSteps = setupSteps.filter((step) => step.countInProgress !== false);
+  const readySteps = progressSteps.filter((step) => step.ready).length;
   return (
     <section className="rounded-card border border-ink/10 bg-canvas p-4">
       <header>
@@ -356,20 +447,26 @@ export function RepAdminSettings({ companyId, locale }) {
           <h3 id="rep-readiness-title" className="m-0 font-ui text-sm font-semibold text-ink">
             {t(locale, 'rep.readinessTitle')}
           </h3>
-          <ul className="mb-0 mt-3 grid gap-2 pl-5 text-sm">
-            <li className={state.establishments.length ? 'text-success' : 'text-warning'}>
-              {t(locale, 'rep.setup')}: {t(locale, state.establishments.length ? 'rep.stepReady' : 'rep.stepPending')}
-              {!state.establishments.length ? ` — ${t(locale, 'rep.establishmentNeeded')}` : ''}
-            </li>
-            <li className={state.signingConfigured ? 'text-success' : 'text-warning'}>
-              {t(locale, 'rep.certificate')}: {t(locale, state.signingConfigured ? 'rep.stepReady' : 'rep.stepPending')}
-            </li>
-            <li className={state.unregisteredWorkers === 0 ? 'text-success' : 'text-warning'}>
-              {t(locale, 'rep.pendingWorkers')}: {state.unregisteredWorkers === 0
-                ? t(locale, 'rep.stepReady')
-                : t(locale, 'rep.workersPendingCount', { count: state.unregisteredWorkers })}
-            </li>
-          </ul>
+          <p className="mb-3 mt-2 text-sm text-ink-muted">{t(locale, 'rep.setupProgress', { ready: readySteps, total: progressSteps.length })}</p>
+          <ol className="m-0 grid list-none gap-0 p-0">
+            {setupSteps.map((step, index) => (
+              <li key={step.id} className="grid gap-3 border-t border-ink/8 py-4 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div className="flex min-w-0 items-start gap-3">
+                    <span aria-hidden="true" className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold ${step.ready ? 'bg-success/10 text-success' : step.statusTone === 'info' ? 'bg-info/10 text-info' : 'bg-warning/12 text-warning'}`}>{String(index + 1).padStart(2, '0')}</span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="m-0 font-ui text-sm font-semibold text-ink">{step.title}</h4>
+                      <StatusToneChip tone={step.statusTone || (step.ready ? 'success' : 'warning')}>{step.statusLabel || t(locale, step.ready ? 'rep.stepReady' : 'rep.stepPending')}</StatusToneChip>
+                    </div>
+                    <p className="mb-0 mt-1 max-w-[68ch] text-sm leading-5 text-ink-muted">{step.detail}</p>
+                    {step.items?.length ? <ul className="mb-0 mt-3 grid gap-2 p-0">{step.items.map((item, itemIndex) => <li key={`${item.label}-${itemIndex}`} className="flex flex-col gap-2 rounded-control border border-ink/8 bg-canvas px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><span className="block break-words text-sm font-medium text-ink">{item.label}</span><span className="mt-0.5 block text-xs leading-5 text-ink-muted">{item.detail}</span></div>{item.onClick ? <button type="button" className="min-h-10 shrink-0 text-left text-sm font-semibold text-brand-dark underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500" onClick={item.onClick}>{t(locale, 'rep.fixStep')}</button> : null}</li>)}</ul> : null}
+                    {step.id === 'workers' && issuePeople.length > 0 && (state.unregisteredWorkers + state.incompleteWorkerProfiles) > issuePeople.length ? <p className="mb-0 mt-1 text-xs text-ink-muted">{t(locale, 'rep.morePeopleNeedAttention', { count: state.unregisteredWorkers + state.incompleteWorkerProfiles - issuePeople.length })}</p> : null}
+                  </div>
+                </div>
+                {(step.action || step.actions?.length) ? <div className="flex flex-wrap gap-2 pl-10 sm:pl-0">{[...(step.action ? [step.action] : []), ...(step.actions || [])].map((action) => <button key={action.label} type="button" className={cn(S.btnGhost, 'min-h-touch')} onClick={action.onClick}>{action.label}</button>)}</div> : null}
+              </li>
+            ))}
+          </ol>
           <p className="mb-0 mt-3 text-xs leading-5 text-ink-muted">{t(locale, 'rep.readinessHelp')}</p>
         </section>
       ) : (

@@ -151,6 +151,19 @@ export function useDashboardNavigation({
       if (curSection) p.set('section', curSection);
     }
 
+    if (opts.dpSection !== undefined) {
+      if (opts.dpSection) p.set('dpSection', String(opts.dpSection));
+    } else if (nextTab === 'dp') {
+      const currentDpSection = urlParams.get('dpSection');
+      if (currentDpSection) p.set('dpSection', currentDpSection);
+    }
+    if (opts.timeView !== undefined) {
+      if (opts.timeView) p.set('timeView', String(opts.timeView));
+    } else if (nextTab === 'dp') {
+      const currentTimeView = urlParams.get('timeView');
+      if (currentTimeView) p.set('timeView', currentTimeView);
+    }
+
     // Contextual help deep-link: keeps the selected Guide article shareable
     // without carrying it into unrelated dashboard tabs.
     if (opts.helpSection !== undefined) {

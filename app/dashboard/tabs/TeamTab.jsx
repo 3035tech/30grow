@@ -1705,6 +1705,7 @@ export function TeamTab({
                           candidateId={detail.candidate.id}
                           employmentStatus={detail.candidate.employmentStatus}
                           companyId={detail.candidate.companyId}
+                          navigateDashboard={navigateDashboard}
                         />
                         <CandidateRegistrationBlock
                           key={detail.candidate.id}

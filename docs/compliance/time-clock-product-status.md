@@ -13,13 +13,13 @@ Esta entrega altera comunicação. Não interrompe batidas, solicitações, cons
 
 Em 18/11/2026, a produção passou a usar a revisão ECS 198, com a referência do segredo de assinatura, prefixo privado do S3 e bundle de raízes ICP-Brasil configurados. Em 19/11/2026, um upload real chegou ao prefixo privado de produção; a consulta de metadados confirmou objeto de 9.275 bytes e os logs filtrados não mostraram falha. Ainda falta confirmar a ativação da versão no Secrets Manager pela projeção pública do sistema, validar titularidade/cadeia/validade e verificar assinaturas reais de comprovante, AFD e AEJ. O estado continua **Controle de jornada em validação**.
 
-O espelho mensal individual foi implementado localmente para impressão/salvamento em PDF, com dados do empregador e do vínculo, jornada cadastrada e marcações tratadas. Falta validar o leiaute legal integral e aceitar a funcionalidade em homologação; a mudança ainda não está publicada.
+O espelho mensal individual para impressão/salvamento em PDF, com dados do empregador e do vínculo, jornada cadastrada e marcações tratadas, está incluído no código da `main` publicado na task ECS `30grow-web:206` em 19/11/2026. Falta validar o leiaute legal integral e aceitar a funcionalidade em homologação; publicação do código não equivale a aceite fiscal.
 
-A pré-assinalação de intervalo também foi implementada localmente como configuração efetiva da jornada, com marcações derivadas no espelho e no AEJ sem gravá-las como batidas originais. A migration 180 não foi aplicada e a regra ainda precisa de validação independente nos leiautes oficiais e em homologação. Nenhuma dessas mudanças está publicada.
+A pré-assinalação de intervalo está incluída no código publicado na task ECS `30grow-web:206`, como configuração efetiva da jornada, com marcações derivadas no espelho e no AEJ sem gravá-las como batidas originais. A migration 180 e seu estado nos bancos de homologação/produção precisam ser confirmados antes de habilitar o fluxo; a regra também precisa de validação independente nos leiautes oficiais e em homologação.
 
-A exclusão lógica e a reinclusão de trabalhadores no cadastro REP-P foram implementadas localmente para gerar operações AFD tipo 5-E e 5-I, preservando o histórico fiscal e bloqueando novas batidas enquanto o trabalhador estiver excluído. Dependem da migration 181 e de validação em homologação; não estão publicadas.
+A exclusão lógica e a reinclusão de trabalhadores no cadastro REP-P estão incluídas no código publicado na task ECS `30grow-web:206` para gerar operações AFD tipo 5-E e 5-I, preservar o histórico fiscal e bloquear novas batidas enquanto o trabalhador estiver excluído. A migration 181 e seu estado nos bancos de homologação/produção precisam ser confirmados; o fluxo depende dela e de validação em homologação.
 
-O endpoint autenticado `/api/cron/rep-clock-adjustment` e a migration 184 foram preparados localmente para registrar ajustes de relógio realmente aplicados, com horários anterior/ajustado, CPF responsável, ID idempotente e geração de AFD tipo 4 por estabelecimento. Ainda falta configurar o agente da infraestrutura e o segredo dedicado `REP_CLOCK_ADJUSTMENT_SECRET`; o evento deve ser enviado apenas após a sincronização da frota. NTP permanece apenas observacional. A migration não foi aplicada e a alteração não está publicada.
+O endpoint autenticado `/api/cron/rep-clock-adjustment` e a migration 184 estão incluídos no código publicado na task ECS `30grow-web:206`. O fluxo registra ajustes de relógio realmente aplicados, com horários anterior/ajustado, CPF responsável, ID idempotente e geração de AFD tipo 4 por estabelecimento. O estado da migration 184 nos bancos precisa ser confirmado; também falta configurar o agente da infraestrutura e o segredo dedicado `REP_CLOCK_ADJUSTMENT_SECRET`. O evento deve ser enviado apenas após a sincronização da frota. NTP permanece apenas observacional.
 
 ## Antes de revisar esse posicionamento
 
@@ -39,6 +39,6 @@ Referências oficiais consultadas em 26/10/2026:
 - [Orientações do MTE](https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/fiscalizacao-do-trabalho/Perguntas%20e%20Respostas%20REP)
 - [Registro eletrônico de ponto — documentos e leiautes](https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/fiscalizacao-do-trabalho/rep)
 
-Pendências técnicas e operacionais detalhadas: [REP-P: implementação técnica e limites](rep-p-671.md). Publicação deste aviso depende do deploy web e da distribuição da versão atualizada do app; alteração no código local não é prova de publicação.
+Pendências técnicas e operacionais detalhadas: [REP-P: implementação técnica e limites](rep-p-671.md). O aviso está publicado no web; a distribuição do app deve ser conferida separadamente. Deploy de código não é prova de homologação ou conformidade fiscal.
 
 Checklist para concluir o módulo, separado entre implementação, documentos e validação operacional: [Checklist de conclusão do módulo REP-P](time-clock-module-completion.md). O checklist registra também o protocolo e processo do pedido no INPI.

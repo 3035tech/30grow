@@ -8,6 +8,7 @@ import { t, localeHtmlLang } from '../../lib/i18n';
 import { cn } from '../../lib/cn';
 import { formatMinutesClock, localIsoToday } from '../../lib/time-clock-format.js';
 import { TIME_CLOCK_REASON } from '../../lib/people/time-clock-eligibility.js';
+import { isTimeClockSetupReady } from '../../lib/people/time-clock-setup.js';
 import {
   S,
   AdminActionsCell,
@@ -44,7 +45,6 @@ function useDebounced(value, ms = 300) {
   }, [value, ms]);
   return v;
 }
-
 function usePagedList(url, params, deps) {
   const { toast } = useAppFeedback();
   const requestId = useRef(0);
@@ -478,22 +478,44 @@ const VIEWS = ['control', 'requests', 'bank', 'holidays', 'closing', 'setup'];
 export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashboard, initialView = '', onViewChange, onRequestsChanged }) {
   const [view, setViewState] = useState(() => (VIEWS.includes(initialView) ? initialView : 'control'));
   const [bankSection, setBankSection] = useState('balances');
-  const setView = (id) => {
+  const setView = useCallback((id) => {
     setViewState(id);
     onViewChange?.(id);
-  };
+  }, [onViewChange]);
   const [personId, setPersonId] = useState(null);
+  const [scheduleGuideOpen, setScheduleGuideOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [participationFlow, setParticipationFlow] = useState({ companyId: null, sequence: 0, open: false });
   const participationFlowKey = participationFlow.companyId === companyId && participationFlow.open ? participationFlow.sequence : 0;
   const bankKey = `${companyId}|${participationFlow.companyId === companyId ? participationFlow.sequence : 0}`;
   const bump = useCallback(() => setReloadKey((n) => n + 1), []);
 
+  useEffect(() => {
+    if (!companyId || VIEWS.includes(initialView)) return undefined;
+    const controller = new AbortController();
+    fetch(`/api/admin/time-clock/rep?companyId=${encodeURIComponent(companyId)}`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok) return null;
+      return response.json();
+    }).then((data) => {
+      if (!controller.signal.aborted && data && !isTimeClockSetupReady(data)) setView('setup');
+    }).catch(() => { /* Keep the normal point screen available if readiness cannot load. */ });
+    return () => controller.abort();
+  // Resolve on first open; onViewChange persists the user's choice.
+  }, [companyId, initialView, setView]);
+
   if (!companyId) return null;
 
   const openPerson = (id) => {
     setPersonId(id);
     setView('control');
+  };
+  const openCompanySchedule = () => {
+    setScheduleGuideOpen(true);
+    setView('control');
+    requestAnimationFrame(() => document.getElementById('time-clock-admin-block')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
   };
   const viewTabs = [
     { id: 'control', label: t(locale, `${K}.viewControl`) },
@@ -544,12 +566,17 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
           ) : (
             <>
               <PeopleList locale={locale} companyId={companyId} onOpen={openPerson} reloadKey={reloadKey} />
-              <TimeClockAdminBlock
-                locale={locale}
-                companyId={companyId}
-                navigateDashboard={navigateDashboard}
-                title={t(locale, `${K}.dayViewTitle`)}
-              />
+              <div id="time-clock-admin-block" className="scroll-mt-24">
+                <TimeClockAdminBlock
+                  initialOpen={scheduleGuideOpen}
+                  onOpenChange={(open) => { if (!open) setScheduleGuideOpen(false); }}
+                  onScheduleSaved={() => { setScheduleGuideOpen(false); setView('setup'); }}
+                  locale={locale}
+                  companyId={companyId}
+                  navigateDashboard={navigateDashboard}
+                  title={t(locale, `${K}.dayViewTitle`)}
+                />
+              </div>
             </>
           )}
         </section>
@@ -625,7 +652,7 @@ export function TimeClockWorkspace({ locale = 'pt-BR', companyId, navigateDashbo
 
       {view === 'closing' ? <section {...panelProps('closing')}><TimeClockClosuresBlock key={companyId} locale={locale} companyId={companyId} onOpenPerson={openPerson} /></section> : null}
 
-      {view === 'setup' ? <section {...panelProps('setup')}><RepAdminSettings key={companyId} companyId={companyId} locale={locale} /></section> : null}
+      {view === 'setup' ? <section {...panelProps('setup')}><RepAdminSettings key={companyId} companyId={companyId} locale={locale} onOpenSchedule={openCompanySchedule} onOpenEmployeeData={(candidateId) => navigateDashboard?.(candidateId ? { tab: 'team', candidate: String(candidateId), section: 'dp' } : { tab: 'team' })} /></section> : null}
     </div>
   );
 }
