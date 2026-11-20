@@ -6,7 +6,7 @@ import { SelectField } from '../../_components/SelectField';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
-import { DisclosureToggle } from '../../_components/CollapsibleBlock';
+import { CollapsibleBlock, DisclosureToggle } from '../../_components/CollapsibleBlock';
 import { t } from '../../../lib/i18n';
 import { titleCasePersonName } from '../../../lib/person-name';
 import { PIPELINE_STAGE } from '../../../lib/recruiting/pipeline';
@@ -52,6 +52,8 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   const [moving, setMoving] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
   const [selectedCardKey, setSelectedCardKey] = useState(null);
+  const [hideEmpty, setHideEmpty] = useState(true);
+  const [mobileStageId, setMobileStageId] = useState('new');
   const compactChoiceMade = useRef(false);
   const compactAutoAppliedFor = useRef(null);
   const suppressOpenUntil = useRef(0);
@@ -59,12 +61,14 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
     setSelectedCardKey(null);
     compactChoiceMade.current = false;
     compactAutoAppliedFor.current = null;
+    setMobileStageId('new');
+    setHideEmpty(true);
   }, [vacancyId]);
   const [dragOverStage, setDragOverStage] = useState(null);
   const [fetchedStages, setFetchedStages] = useState(null);
   const [compact, setCompact] = useState(false);
-  const [hideEmpty, setHideEmpty] = useState(false);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
   const [workspace, setWorkspace] = useState({ recruiters: [], views: [], currentUserId: null, vacancyOwnerUserId: null });
   const [workspaceLoading, setWorkspaceLoading] = useState(true);
   const [collapsedStages, setCollapsedStages] = useState([]);
@@ -252,6 +256,14 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   const searchQuery = filters.q.trim();
   const boardFiltersActive =
     filters.owner !== 'all' || filters.aging !== 'all' || filters.fit !== 'all' || filters.notes || Boolean(filters.tagIds?.length) || filters.tagMode === 'none';
+  const activeFilterCount = [
+    filters.owner !== 'all',
+    filters.aging !== 'all',
+    filters.fit !== 'all',
+    filters.notes,
+    Boolean(filters.tagIds?.length),
+    filters.tagMode === 'none',
+  ].filter(Boolean).length;
   const pipelineFiltersActive = boardFiltersActive || Boolean(searchQuery);
 
   const runAbsenceDiagnose = async () => {
@@ -302,6 +314,11 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   const visibleStages = hideEmpty && !draggingId
     ? stages.filter((stage) => (grouped[stage.id] || []).length > 0)
     : stages;
+  const mobileStage = visibleStages.find((stage) => stage.id === mobileStageId)
+    || visibleStages.find((stage) => (grouped[stage.id] || []).length > 0)
+    || visibleStages[0]
+    || stages[0]
+    || null;
   const fitTone = (s) => (s >= 7 ? 'text-success' : s >= 4 ? 'text-warning' : 'text-danger');
 
   const updateVacancyOwner = async (raw) => {
@@ -370,6 +387,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
     setFilters({ ...EMPTY_FILTERS, ...(view.filters || {}) });
     setHideEmpty(view.filters?.hideEmpty === true);
     setCompact(view.filters?.compact === true);
+    setAdvancedFiltersOpen(true);
   };
 
   return (
@@ -412,18 +430,29 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
         ) : null}
       </div>
 
-      <div className="mb-3"><CandidateTagFilters value={filters} onChange={setFilters} locale={locale} /></div>
       {rankingMeta.truncated ? <p role="status" className="mb-3 text-sm text-ink-muted">{t(locale, 'candidateTags.truncated', { shown: rows.length, total: rankingMeta.total })}</p> : null}
       {hasAny || boardFiltersActive || searchQuery ? (
-        <div className="mb-3 rounded-xl border border-ink/10 bg-canvas/70 p-3">
-          <div className="grid gap-2 md:grid-cols-[minmax(180px,1.2fr)_minmax(150px,0.8fr)_minmax(130px,0.7fr)_minmax(130px,0.7fr)_auto]">
-            <input
-              value={filters.q}
-              onChange={(event) => setFilters((current) => ({ ...current, q: event.target.value }))}
-              placeholder={t(locale, 'recruiting.pipelineSearch')}
-              aria-label={t(locale, 'recruiting.pipelineSearch')}
-              className="min-h-touch rounded-control border border-ink/12 bg-surface px-3 font-ui text-sm text-ink outline-none focus:border-brand-500"
-            />
+        <div className="mb-3 flex flex-col gap-2.5">
+          <input
+            value={filters.q}
+            onChange={(event) => setFilters((current) => ({ ...current, q: event.target.value }))}
+            placeholder={t(locale, 'recruiting.pipelineSearch')}
+            aria-label={t(locale, 'recruiting.pipelineSearch')}
+            className="min-h-touch w-full rounded-control border border-ink/12 bg-surface px-3 font-ui text-sm text-ink outline-none focus:border-brand-500 md:max-w-md"
+          />
+          <CollapsibleBlock
+            locale={locale}
+            variant="card"
+            className="rounded-xl border border-ink/10 bg-canvas/70 px-3"
+            title={t(locale, advancedFiltersOpen ? 'dashboard.hideFilters' : 'dashboard.showFilters')}
+            open={advancedFiltersOpen}
+            onOpenChange={setAdvancedFiltersOpen}
+            collapsedHint={activeFilterCount > 0
+              ? t(locale, 'dashboard.filtersCollapsedHint', { n: activeFilterCount })
+              : null}
+          >
+            <CandidateTagFilters value={filters} onChange={setFilters} locale={locale} />
+            <div className="grid gap-2 md:grid-cols-[minmax(150px,1.1fr)_minmax(130px,0.8fr)_minmax(130px,0.8fr)_auto]">
             <SelectField
               value={filters.owner}
               onChange={(event) => setFilters((current) => ({ ...current, owner: event.target.value }))}
@@ -491,6 +520,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
               </span>
             ))}
           </div>
+          </CollapsibleBlock>
         </div>
       ) : null}
 
@@ -514,6 +544,21 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
       ) : null}
 
       {hasAny && hasFiltered && (
+        <>
+        {mobileStage ? (
+          <SelectField
+            value={mobileStage.id}
+            onChange={(event) => setMobileStageId(event.target.value)}
+            aria-label={t(locale, 'recruiting.pipelineTitle')}
+            className="ui-select mb-2 min-h-touch w-full rounded-control border border-ink/12 bg-surface px-3 font-ui text-sm text-ink md:hidden"
+          >
+            {visibleStages.map((stage) => (
+              <option key={stage.id} value={stage.id}>
+                {stage.label} ({(grouped[stage.id] || []).length})
+              </option>
+            ))}
+          </SelectField>
+        ) : null}
         <HorizontalScrollRegion locale={locale} ariaLabel={t(locale, 'recruiting.pipelineTitle')} className="kanban-scroll relative pb-2">
           <div className="flex w-full flex-col items-stretch gap-2.5 md:min-w-max md:flex-row md:items-start">
             {visibleStages.map((stage) => {
@@ -538,7 +583,8 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
                     await moveTo(r, stage.id);
                   }}
                   className={cn(
-                    'flex max-h-[min(62vh,48rem)] shrink-0 flex-col overflow-hidden rounded-xl border border-ink/10 bg-canvas/45 p-2 outline outline-2 outline-offset-[3px] transition-[width,outline-color] duration-100 md:max-h-[min(72vh,56rem)]',
+                    'max-h-[min(62vh,48rem)] shrink-0 flex-col overflow-hidden rounded-xl border border-ink/10 bg-canvas/45 p-2 outline outline-2 outline-offset-[3px] transition-[width,outline-color] duration-100 md:max-h-[min(72vh,56rem)]',
+                    stage.id === mobileStage?.id ? 'flex' : 'hidden md:flex',
                     compact ? 'w-full md:w-[184px]' : 'w-full md:w-[220px]'
                   )}
                   style={{
@@ -772,6 +818,7 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
             })}
           </div>
         </HorizontalScrollRegion>
+        </>
       )}
     </div>
   );

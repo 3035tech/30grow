@@ -106,11 +106,16 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
   const [absenteeismPeople, setAbsenteeismPeople] = useState(0);
   const [firstAbsenteeismCandidateId, setFirstAbsenteeismCandidateId] = useState(null);
   const [exporting, setExporting] = useState(false);
-  const [workspaceSection, setWorkspaceSection] = useState(() => (DP_SECTIONS.includes(initialSection) ? initialSection : 'pending'));
+  const workspaceSection = DP_SECTIONS.includes(initialSection) ? initialSection : 'pending';
   const [timeView, setTimeView] = useState(initialTimeView || '');
   const [pendingTimeRequests, setPendingTimeRequests] = useState(0);
   const [attentionStatus, setAttentionStatus] = useState('loading');
   const [pendingFieldExpenses, setPendingFieldExpenses] = useState(0);
+
+  const selectWorkspaceSection = (section) => {
+    const nextSection = DP_SECTIONS.includes(section) ? section : 'pending';
+    navigateDashboard?.({ tab: 'dp', dpSection: nextSection, scroll: false, clientOnly: true });
+  };
 
   const load = useCallback(async () => {
     if (!companyId) {
@@ -447,7 +452,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
       <PanelSubNav
         ariaLabel={t(locale, 'panel.dp.workspaceTabsAria')}
         active={workspaceSection}
-        onChange={setWorkspaceSection}
+        onChange={selectWorkspaceSection}
         tabs={[
           // The summary mixes requests and people; omit an aggregate badge with no single unit.
           { id: 'pending', label: t(locale, 'panel.dp.workspacePending') },
@@ -495,7 +500,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
                 label={t(locale, 'panel.dp.pendingLeaveTitle')}
                 hint={t(locale, 'panel.dp.pendingLeaveHint')}
                 onClick={() => {
-                  setWorkspaceSection('leaves');
+                  selectWorkspaceSection('leaves');
                   setStatusFilter(DP_LEAVE_STATUS.REQUESTED);
                   setPage(1);
                 }}
@@ -506,20 +511,20 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
                 hint={t(locale, 'panel.dp.pendingTimeRequestsHint')}
                 onClick={() => {
                   setTimeView('requests');
-                  setWorkspaceSection('time');
+                  selectWorkspaceSection('time');
                 }}
               />
               <StatMetricTile
                 value={pendingFieldExpenses}
                 label={t(locale, 'panel.field.pendingTileTitle')}
                 hint={t(locale, 'panel.field.pendingTileHint')}
-                onClick={() => setWorkspaceSection('field')}
+                onClick={() => selectWorkspaceSection('field')}
               />
               <StatMetricTile
                 value={pendingDocsPeople}
                 label={t(locale, 'panel.dp.pendingDocsTitle')}
                 hint={t(locale, 'panel.dp.pendingDocsHint')}
-                onClick={() => setWorkspaceSection('documents')}
+                onClick={() => selectWorkspaceSection('documents')}
               />
               <StatMetricTile
                 value={absenteeismPeople}
@@ -534,7 +539,7 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
                     });
                     return;
                   }
-                  setWorkspaceSection('leaves');
+                  selectWorkspaceSection('leaves');
                   setLeaveTypeFilter(DP_LEAVE_TYPE.SICK);
                   setStatusFilter('all');
                   setPage(1);

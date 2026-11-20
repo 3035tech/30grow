@@ -1,6 +1,5 @@
 'use client';
 
-import { CompanyScopeNotice } from '../../_components/CompanyScopeNotice';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -16,7 +15,6 @@ import {
   PanelSubNav,
   S,
   AdminCreateButton,
-  AdminEditButton,
   AdminActionsCell,
   AdminActionsTh,
   AdminListPager,
@@ -27,7 +25,7 @@ import {
   AdminViewButton,
   SortableTh,
 } from '../dashboard-shared';
-import { AdminListFilters, AdminListFilterSelect } from '../../_components/AdminListFilters';
+import { AdminListFilters } from '../../_components/AdminListFilters';
 import { InlineCallout } from '../../_components/InlineCallout';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { MeterBar } from '../../_components/MeterBar';
@@ -35,11 +33,6 @@ import { RowActionsMenu } from '../../_components/RowActionsMenu';
 import { IconActionTip } from '../../_components/IconActionTip';
 import { VacancyInterviewCandidates } from '../VacancyInterviewCandidates';
 import { VacancyClientReportBlock } from '../VacancyClientReportBlock';
-import {
-  AdminRichFormDrawer,
-  dialogBtnGhostClass,
-  dialogBtnPrimaryClass,
-} from '../../_components/AdminRichFormDrawer';
 import { salaryToCentsDigits, stripSalary } from '../../../lib/br-masks';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
@@ -52,7 +45,7 @@ import { DateField } from '../../_components/DateField';
 import { publicVacancyPath } from '../../../lib/public-job-url';
 import { formatPublicVacancyDate } from '../../../lib/public-vacancy-lifecycle';
 import { formatVacancySalaryRange, toDatetimeLocalValue } from '../vacancies/vacancy-admin-shared';
-import { VacancyFormFields } from '../vacancies/VacancyFormFields';
+import { VacancyFormDrawers } from '../vacancies/VacancyFormDrawers';
 import { VacancyInviteByEmail } from '../vacancies/VacancyInviteByEmail';
 import { VacancyInvitesBlock } from '../vacancies/VacancyInvitesBlock';
 import { VacancyWhatsAppShareButton } from '../vacancies/VacancyWhatsAppShareButton';
@@ -870,111 +863,34 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
   const createDisabled = loading || pipelineTemplatesLoading || !pipelineTemplateId || !title.trim() || (isAdmin && !companyId);
 
   const vacancyFormDrawers = (
-    <>
-      <AdminRichFormDrawer
-        headerMeta={<CompanyScopeNotice locale={locale} companyId={isAdmin ? companyId : sessionCompanyId} companyName={isAdmin ? companies.find(c => String(c.id) === String(companyId))?.name : sessionCompanyName} />}
-        open={showCreate}
-        title={t(locale, 'recruiting.createVacancyDrawerTitle')}
-        locale={locale}
-        onClose={closeCreate}
-        footer={(
-          <>
-            <button
-              type="button"
-              onClick={closeCreate}
-              disabled={loading}
-              className={dialogBtnGhostClass}
-            >
-              {t(locale, 'panel.admin.cancel')}
-            </button>
-            <button
-              type="button"
-              onClick={createVacancy}
-              disabled={createDisabled}
-              className={cn(dialogBtnPrimaryClass, 'inline-flex items-center gap-2', createDisabled && 'opacity-60')}
-            >
-              {loading ? <span className="spinner" aria-hidden="true" /> : null}
-              {t(locale, 'panel.admin.create')}
-            </button>
-          </>
-        )}
-      >
-        {showCreate ? (
-          <div aria-busy={loading}>
-            <VacancyFormFields
-              locale={locale}
-              mode="create"
-              layout="stack"
-              values={createFormValues}
-              onChange={patchCreateForm}
-              error={error}
-              isAdmin={isAdmin}
-              companies={companies}
-              jobRoles={jobRoles}
-              pipelineTemplates={pipelineTemplates}
-              pipelineTemplatesLoading={pipelineTemplatesLoading}
-              pipelineTemplatesError={pipelineTemplatesError}
-              descAiBusy={descAiBusy}
-              onDescAiBusyChange={setDescAiBusy}
-            />
-          </div>
-        ) : null}
-      </AdminRichFormDrawer>
-
-      <AdminRichFormDrawer
-        open={!!editingVacancy}
-        title={t(locale, 'recruiting.editVacancyDrawerTitle')}
-        locale={locale}
-        headerMeta={editingVacancy ? (
-          <>
-            <CompanyScopeNotice locale={locale} companyId={editingVacancy.companyId} companyName={editingVacancy.companyName || companies.find(c => String(c.id) === String(editingVacancy.companyId))?.name} />
-            <span className="font-mono tabular-nums text-ink-muted">#{editingVacancy.id}</span>
-            <span aria-hidden="true">·</span>
-            <span className="min-w-0 break-words">{editingVacancy.title || t(locale, 'recruiting.vacancyTitlePh')}</span>
-          </>
-        ) : null}
-        dirty={Boolean(editingVacancyBaseline && JSON.stringify(editingVacancy) !== editingVacancyBaseline)}
-        busy={loading}
-        onClose={() => { setEditingVacancy(null); setEditingVacancyBaseline(''); }}
-        footer={(
-          <>
-            <button
-              type="button"
-              onClick={() => void closeVacancyEditor()}
-              disabled={loading}
-              className={dialogBtnGhostClass}
-            >
-              {t(locale, 'panel.admin.cancel')}
-            </button>
-            <button
-              type="button"
-              onClick={saveVacancyEdit}
-              disabled={loading || !editingVacancy}
-              className={cn(dialogBtnPrimaryClass, 'inline-flex items-center gap-2', (loading || !editingVacancy) && 'opacity-60')}
-            >
-              {loading ? <span className="spinner" aria-hidden="true" /> : null}
-              {t(locale, 'panel.admin.save')}
-            </button>
-          </>
-        )}
-      >
-        {editingVacancy ? (
-          <div aria-busy={loading}>
-            <VacancyFormFields
-              locale={locale}
-              mode="edit"
-              layout="stack"
-              values={editingVacancy}
-              onChange={(patch) => setEditingVacancy((cur) => ({ ...cur, ...patch }))}
-              error={error}
-              jobRoles={jobRoles}
-              descAiBusy={descAiBusy}
-              onDescAiBusyChange={setDescAiBusy}
-            />
-          </div>
-        ) : null}
-      </AdminRichFormDrawer>
-    </>
+    <VacancyFormDrawers
+      locale={locale}
+      isAdmin={isAdmin}
+      companyId={companyId}
+      sessionCompanyId={sessionCompanyId}
+      sessionCompanyName={sessionCompanyName}
+      companies={companies}
+      showCreate={showCreate}
+      closeCreate={closeCreate}
+      loading={loading}
+      createDisabled={createDisabled}
+      createVacancy={createVacancy}
+      createFormValues={createFormValues}
+      patchCreateForm={patchCreateForm}
+      error={error}
+      jobRoles={jobRoles}
+      pipelineTemplates={pipelineTemplates}
+      pipelineTemplatesLoading={pipelineTemplatesLoading}
+      pipelineTemplatesError={pipelineTemplatesError}
+      descAiBusy={descAiBusy}
+      setDescAiBusy={setDescAiBusy}
+      editingVacancy={editingVacancy}
+      editingVacancyBaseline={editingVacancyBaseline}
+      setEditingVacancy={setEditingVacancy}
+      setEditingVacancyBaseline={setEditingVacancyBaseline}
+      closeVacancyEditor={closeVacancyEditor}
+      saveVacancyEdit={saveVacancyEdit}
+    />
   );
 
   if (isDetailView) {
@@ -986,6 +902,26 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
         ? publicVacancyPath({ vacancySlug: v.slug, vacancyId: v.id })
         : '';
     const publicPageLink = publicPagePath ? `${appUrl}${publicPagePath}` : '';
+    const detailWorkplace = formatWorkplaceLabel(
+      {
+        workplaceModality: v?.workplaceModality,
+        workplaceCity: v?.workplaceCity,
+        workplaceState: v?.workplaceState,
+      },
+      locale,
+      t
+    );
+    const detailSummary = [
+      v?.positionsCount != null && v.positionsCount > 0
+        ? [i18nT(locale, 'ui.vacanciesAdminTab.openings'), t(locale, 'recruiting.positionsCount', { n: v.positionsCount })]
+        : null,
+      v?.targetDate && formatPublicVacancyDate(v.targetDate, locale)
+        ? [i18nT(locale, 'ui.vacanciesAdminTab.deadline'), formatPublicVacancyDate(v.targetDate, locale)]
+        : null,
+      detailWorkplace
+        ? [i18nT(locale, 'ui.vacanciesAdminTab.workplace'), detailWorkplace]
+        : null,
+    ].filter(Boolean);
     const linkState = getVacancyLinkState(v?.activeTokenExpiresAt, locale);
     const exp = linkState.date;
     return (
@@ -1110,61 +1046,15 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                 </div>
               </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
-                    {v.positionsCount != null && v.positionsCount > 0 && (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.openings')}
-                        value={t(locale, 'recruiting.positionsCount', { n: v.positionsCount })}
-                      />
-                    )}
-                    {v.targetDate && formatPublicVacancyDate(v.targetDate, locale) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.deadline')}
-                        value={t(locale, 'recruiting.targetDate', {
-                          date: formatPublicVacancyDate(v.targetDate, locale),
-                        })}
-                      />
-                    ) : null}
-                    {formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.salaryRange')}
-                        value={formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax)}
-                      />
-                    ) : null}
-                    <VacancyMetaItem
-                      label={i18nT(locale, 'ui.vacanciesAdminTab.owner')}
-                      value={v.ownerName || (i18nT(locale, 'ui.vacanciesAdminTab.notAssigned'))}
-                      warning={!v.ownerName}
-                    />
-                    {employmentTypeLabelKey(v.employmentType) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.employment')}
-                        value={t(locale, employmentTypeLabelKey(v.employmentType))}
-                      />
-                    ) : null}
-                    {formatWorkplaceLabel(
-                      {
-                        workplaceModality: v.workplaceModality,
-                        workplaceCity: v.workplaceCity,
-                        workplaceState: v.workplaceState,
-                      },
-                      locale,
-                      t
-                    ) ? (
-                      <VacancyMetaItem
-                        label={i18nT(locale, 'ui.vacanciesAdminTab.workplace')}
-                        value={formatWorkplaceLabel(
-                          {
-                            workplaceModality: v.workplaceModality,
-                            workplaceCity: v.workplaceCity,
-                            workplaceState: v.workplaceState,
-                          },
-                          locale,
-                          t
-                        )}
-                      />
-                    ) : null}
-                  </div>
+                  {detailSummary.length ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-ui text-prose text-ink-muted">
+                      {detailSummary.map(([label, value]) => (
+                        <span key={label} className="min-w-0">
+                          <span className="text-ink/75">{label}:</span> {value}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
 
               <div className="mt-5">
                 <PanelSubNav
@@ -1433,6 +1323,43 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
 
               {detailSection === 'information' ? (
                 <div className="rounded-card border border-ink/10 bg-ink/[0.02] p-5">
+                  <div className="mb-5 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                    {v.positionsCount != null && v.positionsCount > 0 ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.openings')}
+                        value={t(locale, 'recruiting.positionsCount', { n: v.positionsCount })}
+                      />
+                    ) : null}
+                    {v.targetDate && formatPublicVacancyDate(v.targetDate, locale) ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.deadline')}
+                        value={t(locale, 'recruiting.targetDate', { date: formatPublicVacancyDate(v.targetDate, locale) })}
+                      />
+                    ) : null}
+                    {formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax) ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.salaryRange')}
+                        value={formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax)}
+                      />
+                    ) : null}
+                    <VacancyMetaItem
+                      label={i18nT(locale, 'ui.vacanciesAdminTab.owner')}
+                      value={v.ownerName || i18nT(locale, 'ui.vacanciesAdminTab.notAssigned')}
+                      warning={!v.ownerName}
+                    />
+                    {employmentTypeLabelKey(v.employmentType) ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.employment')}
+                        value={t(locale, employmentTypeLabelKey(v.employmentType))}
+                      />
+                    ) : null}
+                    {detailWorkplace ? (
+                      <VacancyMetaItem
+                        label={i18nT(locale, 'ui.vacanciesAdminTab.workplace')}
+                        value={detailWorkplace}
+                      />
+                    ) : null}
+                  </div>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h3 className="m-0 font-ui text-base font-semibold text-ink">
@@ -1614,26 +1541,11 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
           </div>
         ) : (
           <>
-            {attentionCount > 0 ? (
+            {attentionCount > 0 && vacStatusFromUrl === VACANCY_LIST_FILTER.ATTENTION ? (
               <InlineCallout
                 tone="warning"
                 role="status"
                 className="mt-4"
-                action={(
-                <button
-                  type="button"
-                  onClick={() =>
-                    pushVacanciesStatus(
-                      vacStatusFromUrl === VACANCY_LIST_FILTER.ATTENTION ? VACANCY_LIST_FILTER.ALL : VACANCY_LIST_FILTER.ATTENTION
-                    )
-                  }
-                  className="inline-flex min-h-touch shrink-0 cursor-pointer items-center rounded-control border border-warning/40 bg-surface px-3 py-1.5 font-ui text-sm font-medium text-amber-800 transition-colors hover:bg-warning/10 dark:text-warning"
-                >
-                  {vacStatusFromUrl === VACANCY_LIST_FILTER.ATTENTION
-                    ? i18nT(locale, 'ui.vacanciesAdminTab.attentionShowAll')
-                    : i18nT(locale, 'ui.vacanciesAdminTab.attentionShow')}
-                </button>
-                )}
               >
                 <strong className="font-semibold">
                   {attentionCount === 1
@@ -1644,8 +1556,34 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
               </InlineCallout>
             ) : null}
 
+            <div
+              role="group"
+              aria-label={i18nT(locale, 'ui.vacanciesAdminTab.statusFilter')}
+              className="mt-4 flex flex-wrap gap-2"
+            >
+              {VACANCY_LIST_FILTER_OPTIONS.map(([value, key]) => {
+                const selected = vacStatusFromUrl === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => pushVacanciesStatus(value)}
+                    className={cn(
+                      'inline-flex min-h-touch items-center rounded-control border px-3 py-1.5 font-ui text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35',
+                      selected
+                        ? 'border-success/35 bg-success/[0.10] font-semibold text-success'
+                        : 'border-ink/12 bg-surface text-ink-muted hover:bg-ink/[0.03] hover:text-ink'
+                    )}
+                  >
+                    {i18nT(locale, key, { n: vacSummary?.[value] ?? 0 })}
+                  </button>
+                );
+              })}
+            </div>
+
             <AdminListFilters
-              className="mt-4"
+              className="mt-3"
               aria-label={t(locale, 'recruiting.vacanciesTitle')}
               locale={locale}
               onClear={clearVacancyListFilters}
@@ -1665,18 +1603,6 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                 }
                 placeholder={i18nT(locale, 'ui.vacanciesAdminTab.searchPh')}
               />
-              <AdminListFilterSelect
-                label={i18nT(locale, 'ui.vacanciesAdminTab.statusFilter')}
-                value={vacStatusFromUrl}
-                onChange={pushVacanciesStatus}
-                className="max-w-[16rem]"
-              >
-                {VACANCY_LIST_FILTER_OPTIONS.map(([value, key]) => (
-                  <option key={value} value={value}>
-                    {i18nT(locale, key, { n: vacSummary?.[value] ?? 0 })}
-                  </option>
-                ))}
-              </AdminListFilterSelect>
             </AdminListFilters>
 
             {loading && vacancies.length === 0 ? (
@@ -1690,7 +1616,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
             ) : (
               <AdminTableShell
                 locale={locale}
-                minWidth={isAdmin ? '1020px' : '900px'}
+                minWidth={isAdmin ? '920px' : '780px'}
                 ariaLabel={t(locale, 'recruiting.vacanciesTitle')}
                 animKey={`vac-${vacStatusFromUrl}-${vacQFromUrl}-${vacPage}-${vacSortSt.sort}-${vacSortSt.dir}`}
                 className={cn('transition-opacity', loading && 'opacity-60')}
@@ -1711,7 +1637,6 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                     <AdminTh align="right">{i18nT(locale, 'ui.vacanciesAdminTab.colCandidates')}</AdminTh>
                     <AdminTh>{i18nT(locale, 'ui.vacanciesAdminTab.colHires')}</AdminTh>
                     <AdminTh>{i18nT(locale, 'ui.vacanciesAdminTab.deadline')}</AdminTh>
-                    <AdminTh className="hidden 2xl:table-cell">{i18nT(locale, 'ui.vacanciesAdminTab.salaryRange')}</AdminTh>
                     <AdminTh>
                       <span className="inline-flex items-center gap-1.5">
                         {i18nT(locale, 'ui.vacanciesAdminTab.colLink')}
@@ -1722,9 +1647,6 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                         </IconActionTip>
                       </span>
                     </AdminTh>
-                    <SortableTh className="hidden 2xl:table-cell" columnKey="createdAt" sortKey={vacSortSt.sort} dir={vacSortSt.dir} onSort={pushVacanciesSort}>
-                      {i18nT(locale, 'ui.vacanciesAdminTab.colCreated')}
-                    </SortableTh>
                     <AdminActionsTh />
                   </tr>
                 </thead>
@@ -1733,13 +1655,10 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                     const token = v.activeToken || '';
                     const link = token ? `${appUrl}/v/${token}` : '';
                     const linkState = getVacancyLinkState(v.activeTokenExpiresAt, locale);
-                    const exp = linkState.date;
                     const isOpen = v.status === VACANCY_STATUS.OPEN;
                     const deadlineIso = v.targetDate ? String(v.targetDate).slice(0, 10) : '';
                     const overdue = isOpen && Boolean(deadlineIso) && deadlineIso < todayIso;
                     const workplace = formatWorkplaceLabel(v, locale, i18nT);
-                    const salary = formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax, { compact: true });
-                    const salaryFull = salary ? formatVacancySalaryRange(locale, v.salaryMin, v.salaryMax) : '';
                     const positions = Math.max(1, Number(v.positionsCount) || 1);
                     const hired = Number(v.hiredCount) || 0;
                     const candidates = Number(v.candidatesCount) || 0;
@@ -1762,20 +1681,13 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                             <span className="line-clamp-2">{v.title}</span>
                             <span className="mt-1 inline-flex items-center gap-1 text-brand-600 sm:hidden">{t(locale, 'panel.team.openDetail')} <span aria-hidden>→</span></span>
                           </button>
-                          <div className="mt-1 w-0 min-w-full truncate font-ui text-prose text-ink-muted" title={workplace || undefined}>
-                            <span className="font-mono tabular-nums">#{v.id}</span>
-                            {workplace ? ` · ${workplace}` : ''}
-                          </div>
-                          <div className="mt-0.5 w-0 min-w-full truncate font-ui text-prose">
-                            {v.ownerName ? (
-                              <span className="text-ink-muted">{i18nT(locale, 'ui.vacanciesAdminTab.ownerLine', { name: v.ownerName })}</span>
-                            ) : (
-                              <span className="text-amber-800 dark:text-warning">{i18nT(locale, 'ui.vacanciesAdminTab.noOwner')}</span>
-                            )}
-                          </div>
-                          {salary ? (
-                            <div className="mt-0.5 font-ui text-prose tabular-nums text-ink-muted 2xl:hidden" title={salaryFull}>
-                              {salary}
+                          {workplace || (!v.ownerName && isOpen) ? (
+                            <div className="mt-1 w-0 min-w-full truncate font-ui text-prose text-ink-muted" title={workplace || undefined}>
+                              {workplace || null}
+                              {workplace && !v.ownerName && isOpen ? ' · ' : null}
+                              {!v.ownerName && isOpen ? (
+                                <span className="text-amber-800 dark:text-warning">{i18nT(locale, 'ui.vacanciesAdminTab.noOwner')}</span>
+                              ) : null}
                             </div>
                           ) : null}
                         </td>
@@ -1833,13 +1745,6 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                             <span className="text-ink-muted">{i18nT(locale, 'ui.vacanciesAdminTab.noDeadline')}</span>
                           )}
                         </td>
-                        <td className="hidden whitespace-nowrap px-4 py-3 align-middle font-ui text-prose 2xl:table-cell">
-                          {salary ? (
-                            <span className="tabular-nums text-ink" title={salaryFull}>{salary}</span>
-                          ) : (
-                            <span className="text-ink-muted">{i18nT(locale, 'ui.vacanciesAdminTab.noSalary')}</span>
-                          )}
-                        </td>
                         <td className="whitespace-nowrap px-4 py-3 align-middle">
                           {token ? (
                             <div className="flex flex-col items-start gap-1">
@@ -1865,18 +1770,6 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                                   />
                                 )}
                               </div>
-                              {exp ? (
-                                <span
-                                  className={cn('font-ui text-prose', linkState.expired ? 'text-amber-800 dark:text-warning' : 'text-ink-muted')}
-                                  title={exp.toLocaleString(localeHtmlLang(locale))}
-                                >
-                                  {i18nT(
-                                    locale,
-                                    linkState.expired ? 'ui.vacanciesAdminTab.linkExpiredShort' : 'ui.vacanciesAdminTab.linkValidUntil',
-                                    { date: exp.toLocaleDateString(localeHtmlLang(locale)) }
-                                  )}
-                                </span>
-                              ) : null}
                             </div>
                           ) : (
                             <div className="flex items-center gap-1.5">
@@ -1892,26 +1785,18 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                             </div>
                           )}
                         </td>
-                        <td className="hidden whitespace-nowrap px-4 py-3 align-middle font-ui text-prose text-ink-muted 2xl:table-cell">
-                          {v.createdAt ? new Date(v.createdAt).toLocaleDateString(localeHtmlLang(locale)) : ''}
-                        </td>
                         <td className="px-4 py-3 text-right align-middle">
                           <AdminActionsCell>
                             <AdminViewButton
                               label={t(locale, 'recruiting.viewCandidates')}
                               onClick={() => openVacancyDetail(v.id)}
                             />
-                            <AdminEditButton
-                              label={t(locale, 'recruiting.editVacancy')}
-                              onClick={() => editVacancy(v)}
-                              disabled={loading}
-                            />
                             <RowActionsMenu
                               label={t(locale, 'recruiting.moreActions')}
                               disabled={loading}
                               items={[
+                                { id: 'edit', label: t(locale, 'recruiting.editVacancy'), onSelect: () => editVacancy(v) },
                                 { id: 'clone', label: t(locale, 'recruiting.cloneVacancy'), onSelect: () => cloneVacancyAction(v) },
-                                { id: 'rotate', label: t(locale, 'recruiting.rotateLink'), onSelect: () => rotateLink(v.id) },
                                 {
                                   id: 'status',
                                   label: isOpen ? t(locale, 'recruiting.closeVacancy') : t(locale, 'recruiting.reopenVacancy'),

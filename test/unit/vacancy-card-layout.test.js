@@ -8,14 +8,15 @@ describe('vacancy list card layout', () => {
     'utf8'
   );
 
-  it('renders the list as a paged table with secondary columns only on wide screens', async () => {
+  it('renders a compact paged table with operational columns and secondary actions', async () => {
     const source = await readSource();
 
     assert.match(source, /<AdminTableShell/);
     assert.match(source, /<AdminListPager/);
     assert.match(source, /<RowActionsMenu/);
-    assert.match(source, /className="hidden 2xl:table-cell"/);
-    assert.match(source, /tabular-nums text-ink-muted 2xl:hidden/);
+    assert.match(source, /minWidth=\{isAdmin \? '920px' : '780px'\}/);
+    assert.doesNotMatch(source, /<AdminTh className="hidden 2xl:table-cell">.*salaryRange/);
+    assert.doesNotMatch(source, /columnKey="createdAt"/);
     assert.doesNotMatch(source, /\btext-(?:2xs|xs)\b|\btext-ink-faint\b/);
     assert.doesNotMatch(source, /AdminViewButton\s+asText/);
   });

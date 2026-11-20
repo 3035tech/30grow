@@ -144,6 +144,20 @@ export function useDashboardNavigation({
       if (curClimateSection) p.set('climateSection', curClimateSection);
     }
 
+    if (opts.climateView !== undefined) {
+      if (opts.climateView && opts.climateView !== 'surveys') p.set('climateView', String(opts.climateView));
+    } else if (nextTab === 'climate') {
+      const currentClimateView = urlParams.get('climateView');
+      if (currentClimateView && currentClimateView !== 'surveys') p.set('climateView', currentClimateView);
+    }
+
+    if (opts.motivatorsView !== undefined) {
+      if (opts.motivatorsView && opts.motivatorsView !== 'dashboard') p.set('motivatorsView', String(opts.motivatorsView));
+    } else if (nextTab === 'motivators') {
+      const currentMotivatorsView = urlParams.get('motivatorsView');
+      if (currentMotivatorsView && currentMotivatorsView !== 'dashboard') p.set('motivatorsView', currentMotivatorsView);
+    }
+
     if (opts.section !== undefined) {
       if (opts.section) p.set('section', String(opts.section));
     } else if (nextTab === 'team') {

@@ -1042,7 +1042,7 @@ function AnalyticsPanel({ locale, isAdmin, companyFilter }) {
   );
 }
 
-export default function MotivatorsAdminTab({ isAdmin, companies = [], locale }) {
+export default function MotivatorsAdminTab({ isAdmin, companies = [], locale, navigateDashboard }) {
   const searchParams = useSearchParams();
   const requestedView = searchParams.get('motivatorsView');
   const view = getViews(locale).some((v) => v.id === requestedView)
@@ -1095,6 +1095,10 @@ export default function MotivatorsAdminTab({ isAdmin, companies = [], locale }) 
   };
 
   const setView = (id) => {
+    if (navigateDashboard) {
+      navigateDashboard({ tab: 'motivators', motivatorsView: id, scroll: false, clientOnly: true });
+      return;
+    }
     const p = new URLSearchParams(searchParams.toString());
     p.set('tab', 'motivators');
     p.set('motivatorsView', id);

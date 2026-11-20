@@ -13,7 +13,7 @@ import { SidebarRailButton } from './SidebarRail';
  * @typedef {{
  *   id: string, label: string, icon: string, active?: boolean, badge?: boolean|number,
  *   href?: string, onClick?: Function, onIntent?: Function, domId?: string,
- *   tone?: 'default'|'danger', disabled?: boolean,
+ *   tone?: 'default'|'danger', disabled?: boolean, children?: SidebarNavItemDef[],
  * }} SidebarNavItemDef
  * @typedef {{ id: string, label: string, items: SidebarNavItemDef[] }} SidebarNavGroupDef
  */
@@ -91,6 +91,16 @@ function ItemBadge({ badge }) {
   return badge ? <span className="ml-auto inline-block h-[7px] w-[7px] flex-shrink-0 rounded-full bg-brand-500" aria-hidden /> : null;
 }
 
+function itemIsActive(item) {
+  return Boolean(item.active || item.children?.some(itemIsActive));
+}
+
+function flattenActionableItems(items) {
+  return items.flatMap((item) => item.children?.length
+    ? flattenActionableItems(item.children)
+    : [item]);
+}
+
 /** One menu row (expanded) or icon button with tooltip (collapsed). */
 export function SidebarNavItem({ item, collapsed = false }) {
   const { label, icon, active = false, badge, href, onClick, onIntent, domId, tone = 'default', disabled = false } = item;
@@ -153,7 +163,7 @@ function NavGroup({ group, open, onToggle, locale, collapsed, isActiveGroup }) {
     return (
       <div className="flex flex-col items-center gap-1" role="group" aria-label={group.label}>
         <div className="my-1.5 h-px w-8 bg-ink/12" aria-hidden />
-        {group.items.map((item) => (
+        {flattenActionableItems(group.items).map((item) => (
           <SidebarNavItem key={item.id} item={item} collapsed />
         ))}
       </div>
@@ -178,14 +188,67 @@ function NavGroup({ group, open, onToggle, locale, collapsed, isActiveGroup }) {
       </button>
       {open ? (
         <ul id={listId} className="m-0 list-none p-0">
-          {group.items.map((item) => (
-            <li key={item.id}>
-              <SidebarNavItem item={item} />
-            </li>
-          ))}
+          {group.items.map((item) => <SidebarNavTreeItem key={item.id} item={item} locale={locale} />)}
         </ul>
       ) : null}
     </div>
+  );
+}
+
+function SidebarNavTreeItem({ item, locale }) {
+  const children = item.children || [];
+  const active = itemIsActive(item);
+  const hasActiveChild = children.some(itemIsActive);
+  const listId = useId();
+  const [manuallyOpen, setManuallyOpen] = useState(false);
+  const open = hasActiveChild || manuallyOpen;
+
+  if (!children.length) {
+    return <li><SidebarNavItem item={item} /></li>;
+  }
+
+  const parentItem = { ...item, active };
+  return (
+    <li className="list-none">
+      <div className="flex items-center gap-1">
+        {item.navigable === false ? (
+          <button
+            type="button"
+            className={cn(
+              'relative mb-0.5 flex min-h-touch min-w-0 flex-1 items-center gap-2.5 rounded-control border-none py-2 pl-3 pr-2 text-left font-ui text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
+              active ? 'bg-brand-50 text-brand-800' : 'text-ink-muted hover:bg-ink/[0.04] hover:text-ink'
+            )}
+            aria-expanded={open}
+            aria-controls={listId}
+            onClick={() => { if (!hasActiveChild) setManuallyOpen((value) => !value); }}
+          >
+            {active ? <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-brand-700" aria-hidden /> : null}
+            <Icon name={item.icon} className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{item.label}</span>
+            <DisclosureToggle locale={locale} open={open} />
+          </button>
+        ) : (
+          <>
+            <div className="min-w-0 flex-1"><SidebarNavItem item={parentItem} /></div>
+            <button
+              type="button"
+              className="mb-0.5 inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-control border-0 bg-transparent text-ink-muted hover:bg-ink/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+              aria-label={`${item.label}: ${t(locale, open ? 'panel.common.collapse' : 'panel.common.expand')}`}
+              aria-expanded={open}
+              aria-controls={listId}
+              onClick={() => { if (!hasActiveChild) setManuallyOpen((value) => !value); }}
+            >
+              <DisclosureToggle locale={locale} open={open} />
+            </button>
+          </>
+        )}
+      </div>
+      {open ? (
+        <ul id={listId} className="ml-4 border-l border-ink/10 pl-2">
+          {children.map((child) => <SidebarNavTreeItem key={child.id} item={child} locale={locale} />)}
+        </ul>
+      ) : null}
+    </li>
   );
 }
 
@@ -221,7 +284,7 @@ export function SidebarNav({
 }) {
   const isDesktop = useIsDesktop();
   const iconOnly = collapsed && isDesktop;
-  const activeGroupId = groups.find((g) => g.items.some((item) => item.active))?.id || null;
+  const activeGroupId = groups.find((g) => g.items.some(itemIsActive))?.id || null;
   const { closed, toggle } = useClosedGroups(storageKey, activeGroupId, groups.map(group => group.id));
 
   return (

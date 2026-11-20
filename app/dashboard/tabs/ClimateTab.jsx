@@ -348,7 +348,7 @@ function OverallScoreHero({ mean, locale, responseCount, minResponses }) {
 /**
  * Climate surveys — list first, detail second; comparison only with 2+ unlocked means.
  */
-export function ClimateTab({ locale, isAdmin, companies = [], section, navigateDashboard }) {
+export function ClimateTab({ locale, isAdmin, companies = [], section, initialView = 'surveys', navigateDashboard }) {
   const { toast, promptForm, confirm } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -374,7 +374,11 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
   const [showQuestions, setShowQuestions] = useState(false);
   const [detailSection, setDetailSection] = useState('overview');
   const [listFilter, setListFilter] = useListUrlState('climate', 'listFilter', 'active'); // active | archived | all
-  const [view, setView] = useState('surveys'); // surveys | nr1
+  const view = initialView === 'nr1' ? 'nr1' : 'surveys'; // surveys | nr1
+  const selectView = (nextView) => {
+    const next = nextView === 'nr1' ? 'nr1' : 'surveys';
+    navigateDashboard?.({ tab: 'climate', climateView: next, scroll: false, clientOnly: true });
+  };
 
   const companyQs =
     isAdmin && companyId ? `?companyId=${encodeURIComponent(companyId)}` : '';
@@ -583,7 +587,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || data?.errorCode || 'create');
       toast(t(locale, 'panel.nr1.surveyCreated'), 'ok');
-      setView('surveys');
+      selectView('surveys');
       setListFilter('active');
       await load();
       if (data.survey?.id) await loadDetail(data.survey.id);
@@ -944,7 +948,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
       <PanelSubNav
         ariaLabel={t(locale, 'panel.nr1.viewTabsAria')}
         active={view}
-        onChange={setView}
+        onChange={selectView}
         tabs={[
           { id: 'surveys', label: t(locale, 'panel.nr1.viewSurveys') },
           { id: 'nr1', label: t(locale, 'panel.nr1.viewRisks') },
@@ -957,7 +961,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, navigateD
           companyId={isAdmin ? companyId : ''}
           onCreateSurvey={createNr1Survey}
           onOpenSurvey={(id) => {
-            setView('surveys');
+            selectView('surveys');
             loadDetail(id);
           }}
         />

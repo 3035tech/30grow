@@ -105,27 +105,28 @@ Recolher conteúdo secundário, não esconder a tarefa principal. O primeiro blo
 
 **Evidência:** confirmada em `DashboardClient.jsx`.
 
-**Onda 1 entregue:** menu reorganizado em seis grupos orientados ao trabalho, ações rápidas removidas da sidebar, grupo da tela atual aberto no primeiro acesso, preferência posterior persistida e Guia/Sair fixados no rodapé. O mapa compartilhado também alimenta o breadcrumb. Permanecem neste item a validação visual autenticada e a eventual busca global com recentes/favoritos.
-
-Com todos os módulos habilitados, o menu contém aproximadamente 30 destinos agrupados em Análise, Recrutamento, Pessoas, Catálogos, LMS, Conta e Ajuda.
+**Onda 1 entregue; hierarquia de tarefas em implementação:** seis grupos de primeiro nível orientados ao trabalho, ações rápidas removidas da sidebar, grupo da tela atual aberto no primeiro acesso, preferência persistida e Guia/Sair fixados no rodapé. O mapa compartilhado também alimenta o breadcrumb. A árvore está sendo aprofundada em submenus para filas independentes, mantendo abas dentro de um mesmo registro.
 
 Gaps:
 
-- categorias orientadas parcialmente pela implementação, não pela tarefa;
-- Remuneração aparece em Análise, enquanto DP aparece em Pessoas;
-- Motivadores está em Pessoas, embora também seja instrumento de análise;
-- Academy e LMS podem parecer duplicados;
-- Catálogos reúne Cargos, Academy, Benefícios e Mural, objetos com finalidades diferentes;
-- seções abertas por padrão aumentam a altura total.
+- abas de DP, Clima e Motivadores escondem áreas de trabalho independentes;
+- análise de perfis, liderança e grupos está misturada com cultura/escuta;
+- Cargos e análise de desligamento aparecem longe das rotinas de Pessoas;
+- Biblioteca e LMS precisam de um pai conceitual comum, sem fundir seus fluxos;
+- a sidebar pode crescer; a árvore precisa manter apenas o caminho ativo expandido e rolagem dentro do menu.
 
-Proposta:
+Hierarquia acordada:
 
-- manter no máximo 6 grupos de primeiro nível;
-- usar `Início`, `Pessoas`, `Recrutamento`, `Desenvolvimento`, `Cultura e RH`, `Administração`;
-- mover configurações de catálogo para dentro do módulo consumidor quando possível;
-- manter favoritos/recentes na busca global, não como bloco fixo grande;
-- persistir grupos abertos, mas abrir apenas o grupo atual por padrão no primeiro acesso;
-- validar menu em 1280×720 e 1440×900.
+- `Início`: Visão geral, Relatórios;
+- `Pessoas e RH`: Equipe, Organização, Análises de pessoas (Perfis da equipe, Comparativo T1–T9, Grupos, Liderança e Motivadores), DP (Pendências, Férias e afastamentos, Documentos, Ponto e banco de horas, Equipe de campo e Admissão), Cargos, Remuneração, Benefícios e Saídas;
+- `Recrutamento`: Vagas e Banco de talentos; Pipeline permanece no contexto da vaga selecionada;
+- `Desenvolvimento`: PDI, Avaliações, OKRs, Sucessão e Academia (Biblioteca, Cursos);
+- `Cultura e escuta`: Clima (Pesquisas, Riscos psicossociais), Mural e Ouvidoria;
+- `Administração`: Empresas, Usuários, Assinaturas, Leads, Suporte, Auditoria e Certificado digital. Guia, Meu perfil e Sair permanecem fixos no rodapé da navegação.
+
+Submenus de DP, Clima e Motivadores devem atualizar a URL para permitir links diretos e navegação voltar/avançar. A ficha da pessoa, a vaga e o curso mantêm abas para seções do mesmo registro. A navegação do colaborador permanece separada da árvore de gestão.
+
+**Implementado nesta etapa:** suporte a árvore aninhada na sidebar, submenu de DP/Clima/Motivadores, agrupamento de Insights e Academia, correção dos grupos de breadcrumb e estado de seção sincronizado à URL. Revisão visual autenticada e validação em 1280×720 e 1440×900 permanecem pendentes.
 
 ### B-UIA-002: cabeçalho canônico para todas as abas
 
@@ -314,7 +315,7 @@ Recomendação:
 
 **Prioridade:** P0.
 
-**Onda 3 entregue parcialmente:** cards foram enxugados no viewport operacional, pipeline deixou de usar brand como status, ações administrativas raras migraram para `Mais ações` e as seções da ficha passaram a persistir na URL com fechamento que limpa o contexto. Permanecem a extração da ficha completa para workspace/rota própria e a revisão visual autenticada dos blocos internos.
+**Onda 3 + polish atual:** cards foram enxugados no viewport operacional, pipeline deixou de usar brand como status, ações administrativas raras migraram para `Mais ações`, seções da ficha persistem na URL e fechamento limpa o contexto. Busca, filtro organizacional, alerta de risco, seleção e ordenação foram agrupados em `TeamRosterControls`; ordenação usa seletor de campo e controle compacto de direção. A ficha é aberta em estado deep-linkável e tela ampla. Extração dos subworkspaces da ficha e revisão visual autenticada dos blocos internos permanecem pendentes.
 
 Gaps confirmados:
 
@@ -448,7 +449,7 @@ Proposta:
 
 **Prioridade:** P0.
 
-**Onda 2 entregue parcialmente:** cabeçalho duplicado removido, introdução e ações consolidadas no `AdminPageHeader`, mantendo uma única ação primária. Permanecem a redução do conjunto de ações por card e a revisão visual da ordenação.
+**Onda 2 + polish atual:** cabeçalho duplicado removido, introdução e ações consolidadas no `AdminPageHeader`; lista usa filtros rápidos com contadores, busca, tabela compacta e ações secundárias em menu. Salário e data de criação saíram das colunas da listagem; salário segue na ficha. O resumo da ficha mantém posições, prazo e local, com remuneração, responsável e regime na aba Informações. Formulários de criação/edição foram isolados em `VacancyFormDrawers`; pipeline continua em `VacancyKanbanBlock`. Revisão visual autenticada permanece pendente.
 
 Gaps observados nos prints e confirmados no componente:
 
@@ -470,7 +471,7 @@ Proposta de card:
 
 **Prioridade:** P0.
 
-**Onda 2 entregue:** detalhe reorganizado em `Pipeline`, `Candidatos`, `Informações`, `Divulgação` e `Configurações`, com seção persistida na URL. Links, indicação e relatório foram reunidos em Divulgação; ações secundárias do cabeçalho passaram para `Mais ações`.
+**Onda 2 + polish atual:** detalhe reorganizado em `Pipeline`, `Candidatos`, `Informações`, `Divulgação` e `Configurações`, com seção persistida na URL. Links, indicação e relatório foram reunidos em Divulgação; ações secundárias do cabeçalho passaram para `Mais ações`. O cabeçalho operacional foi reduzido a um resumo de posições, prazo e local. Revisão visual autenticada permanece pendente.
 
 Gaps:
 
@@ -493,7 +494,7 @@ O pipeline deve ocupar a largura total. Informações e configurações ficam fo
 
 ### B-UIA-203: Pipeline da vaga
 
-**Onda 2 entregue parcialmente:** Kanban passou a ser o primeiro conteúdo de Pipeline; analytics ficou recolhível e configuração de etapas foi movida para Configurações. Permanecem validação visual do scroll, cabeçalho sticky e navegação avançada por teclado entre colunas.
+**Onda 2 + polish atual:** Kanban passou a ser o primeiro conteúdo de Pipeline; analytics ficou recolhível e configuração de etapas foi movida para uma tela própria. Filtros avançados ficam recolhidos inicialmente, etapas vazias são ocultadas por padrão, e no celular uma etapa é exibida por vez. Acima de 30 candidatos, a densidade compacta é aplicada automaticamente; colunas têm rolagem interna limitada à altura da viewport e a região horizontal anuncia sua rolagem. Permanece validação visual autenticada em diferentes larguras e revisão de navegação por teclado entre colunas.
 
 Gaps:
 

@@ -4,7 +4,7 @@ import { ONBOARDING_STAGES, onboardingStageOptions } from '../../../lib/developm
 
 import { ScoreExplanation } from '../../_components/ScoreExplanation';
 import { PersonOperationalSummary } from '../../_components/PersonOperationalSummary';
-import { CandidateOrgUnit, OrgUnitFilter } from '../../_components/OrgUnitField';
+import { CandidateOrgUnit } from '../../_components/OrgUnitField';
 
 import { SelectField } from '../../_components/SelectField';
 
@@ -14,8 +14,7 @@ import { cn } from '../../../lib/cn';
 import { TYPE_DATA } from '../../../lib/data';
 import { t, localeHtmlLang, contentLocale, t as i18nT } from '../../../lib/i18n';
 import { C } from '../../../lib/theme';
-import { AdminListSearch, AdminCreateButton, PanelSubNav, S, TypeBadge } from '../dashboard-shared';
-import { AdminListFilters } from '../../_components/AdminListFilters';
+import { AdminCreateButton, PanelSubNav, S, TypeBadge } from '../dashboard-shared';
 import { BrStateSelect } from '../../_components/BrStateSelect';
 import { BrCitySelect } from '../../_components/BrCitySelect';
 import { DateField } from '../../_components/DateField';
@@ -65,6 +64,7 @@ import {
   ABSENCE_SUGGESTION,
   formatAbsenceExplanation,
 } from '../../../lib/people/list-absence-diagnostics-core.js';
+import { TeamRosterControls } from '../team/TeamRosterControls';
 
 function nearbyCluster(scores) {
   return clusterCloseTypes(rankEnneagramScores(scores));
@@ -569,15 +569,6 @@ export function TeamTab({
   };
 
   const peopleRoster = roster === ROSTER_SCOPE.INTERNAL || roster === ROSTER_SCOPE.ALUMNI;
-  const sortColumns = [
-    { k: 'createdAt', labelKey: 'panel.team.sortDate' },
-    { k: 'name', labelKey: 'panel.team.sortName' },
-    { k: 'area', labelKey: 'panel.team.sortArea' },
-    { k: 'type', labelKey: 'panel.team.sortProfileType' },
-    { k: 'vacancy', labelKey: 'panel.team.sortVacancy' },
-    { k: 'pipeline', labelKey: 'recruiting.pipelineShort' },
-  ].filter(column => !peopleRoster || column.k === 'name');
-
   /** `silent`: after a save, keep the open person mounted (no skeleton, child blocks keep state). */
   const loadDetail = useCallback(async (candidateId, { silent = false } = {}) => {
     const reqKey = String(candidateId);
@@ -1111,88 +1102,25 @@ export function TeamTab({
           />
         </div>
       ) : null}
-      <AdminListFilters
+      <TeamRosterControls
         locale={locale}
-        aria-label={t(locale, 'panel.team.searchAriaLabel')}
-        onClear={() => {
-          setSearchDraft('');
-          navigateDashboard?.({ search: '', orgUnit: null, teamPage: 1 });
-        }}
-        clearEnabled={Boolean(orgUnitFilter || activeSearch || String(searchDraft || '').trim())}
-      >
-        <AdminListSearch
-          locale={locale}
-          value={searchDraft}
-          onChange={setSearchDraft}
-          onSubmit={commitSearch}
-          placeholder={t(locale, peopleRoster ? 'betaPeople.search' : 'dashboard.searchPlaceholder')}
-          label={t(locale, 'panel.team.searchAriaLabel')}
-          className="min-w-[12rem] max-w-none grow"
-        />
-        <OrgUnitFilter key={companyId} companyId={companyId} locale={locale} value={orgUnitFilter}
-          onChange={(orgUnit) => navigateDashboard?.({ orgUnit: orgUnit || null, teamPage: 1 })} />
-        {activeSearch ? (
-          <span className="mb-2.5 self-end font-ui text-prose text-ink/75">
-            {t(locale, 'panel.team.searchResultsTotal', { n: listTotal })}
-          </span>
-        ) : null}
-      </AdminListFilters>
-      {listFilter === 'turnover_risk' ? (
-        <InlineCallout
-          tone="warning"
-          className="text-sm text-ink"
-          action={typeof onClearListFilter === 'function' ? (
-            <button
-              type="button"
-              onClick={onClearListFilter}
-              className={S.btnGhost}
-            >
-              {t(locale, 'panel.team.clearListFilter')}
-            </button>
-          ) : null}
-        >
-          {t(locale, 'panel.team.filterTurnoverRisk')}
-        </InlineCallout>
-      ) : null}
-      <div
-        role="group"
-        aria-label={t(locale, 'panel.team.sortAria')}
-        className="flex flex-wrap items-center gap-2 rounded-control border border-ink/10 bg-ink/[0.02] px-3.5 py-2.5"
-      >
-        {!peopleRoster ? <label className="flex cursor-pointer items-center gap-1.5 font-ui text-prose text-ink-muted">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={toggleSelectAll}
-            aria-label={t(locale, 'panel.team.selectAllPage')}
-            className="h-3.5 w-3.5 accent-brand-500"
-          />
-          {t(locale, 'panel.team.all')}
-        </label> : null}
-        <span className="font-ui text-prose text-ink/75">
-          {t(locale, 'panel.team.sortBy')}
-        </span>
-        {sortColumns.map(({ k, labelKey }) => {
-          const active = sortKey === k;
-          return (
-            <button
-              key={k}
-              type="button"
-              onClick={() => onSort(k)}
-              aria-pressed={active}
-              className={cn(
-                'min-h-9 cursor-pointer rounded-control border px-3 py-1.5 font-ui text-prose transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35',
-                active
-                  ? 'border-brand-500/35 bg-brand-500/[0.09] text-brand-500'
-                  : 'border-ink/12 bg-transparent text-ink-muted'
-              )}
-            >
-              {t(locale, labelKey)}
-              {active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
-            </button>
-          );
-        })}
-      </div>
+        companyId={companyId}
+        peopleRoster={peopleRoster}
+        searchDraft={searchDraft}
+        setSearchDraft={setSearchDraft}
+        commitSearch={commitSearch}
+        orgUnitFilter={orgUnitFilter}
+        navigateDashboard={navigateDashboard}
+        activeSearch={activeSearch}
+        listTotal={listTotal}
+        listFilter={listFilter}
+        onClearListFilter={onClearListFilter}
+        allSelected={allSelected}
+        toggleSelectAll={toggleSelectAll}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={onSort}
+      />
 
       {!peopleRoster && selectedIds.size > 0 && (
         <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-brand-500/25 bg-brand-500/[0.04] px-4 py-3">

@@ -854,16 +854,42 @@ function DashboardClientContent({
     dateTo ? `&dateTo=${encodeURIComponent(dateTo)}` : ''
   }${selectedSearch ? `&search=${encodeURIComponent(selectedSearch)}` : ''}`;
 
-  const navItem = ({ id, label, badge, icon }) => ({
-    id,
-    domId: `${id}-tab`,
-    label,
-    icon,
-    badge,
-    active: navTab === id,
-    onIntent: () => preloadDashboardTab(id),
-    onClick: () => { navigateToTab(id); setSidebarOpen(false); if (id === 'team') setNewCandidates(false); },
-  });
+  const navItem = (definition) => {
+    if (!definition) return null;
+    const { id, label, badge, icon, routeTab, params = {}, children: childDefinitions, navigable } = definition;
+    const destinationTab = routeTab || id;
+    const routeDefaults = { dpSection: 'pending', climateView: 'surveys', motivatorsView: 'dashboard', profileMode: 'compatibility' };
+    const active = navTab === destinationTab
+      && Object.entries(params).every(([key, value]) => (urlParams.get(key) || routeDefaults[key] || '') === String(value));
+    const children = (childDefinitions || []).map(navItem).filter(Boolean);
+    if (childDefinitions && children.length === 0) return null;
+    return {
+      id,
+      domId: `${id}-tab`,
+      label,
+      icon,
+      badge,
+      active,
+      navigable: navigable !== false,
+      children,
+      onIntent: navigable === false ? undefined : () => preloadDashboardTab(destinationTab),
+      onClick: navigable === false ? undefined : () => {
+        if (routeTab || Object.keys(params).length) {
+          navigateWithOpts({
+            tab: destinationTab,
+            ...params,
+            vacancyDetail: '',
+            ...(destinationTab === tab ? { clientOnly: true } : {}),
+          });
+          setSidebarOpen(false);
+        } else {
+          navigateToTab(id);
+          setSidebarOpen(false);
+        }
+        if (id === 'team') setNewCandidates(false);
+      },
+    };
+  };
 
   const canSee = (cap) => can(sessionAuth, cap);
   const navLinksBySection = {
@@ -874,31 +900,69 @@ function DashboardClientContent({
     [DASHBOARD_NAV_SECTION.PEOPLE]: [
       canSee(CAP.TEAM_VIEW) && { id: 'team', icon: 'team', label: t(locale, 'dashboard.team'), badge: newCandidates && tab !== 'team' },
       canSee(CAP.TEAM_VIEW) && { id: 'organization', icon: 'building', label: t(locale, 'panel.orgUnits.title') },
+      (canSee(CAP.COMPATIBILITY_VIEW) || canSee(CAP.COMPARE_VIEW) || canSee(CAP.GROUP_VIEW) || canSee(CAP.LEADERSHIP_VIEW) || showMotivators) && {
+        id: 'people-insights', icon: 'compatibility', label: t(locale, 'dashboard.peopleInsights'), navigable: false,
+        children: [
+          (canSee(CAP.COMPATIBILITY_VIEW) || canSee(CAP.COMPARE_VIEW)) && {
+            id: 'compatibility', routeTab: 'compatibility', params: { profileMode: 'compatibility' }, icon: 'compatibility', label: t(locale, 'dashboard.profileAnalysis'),
+          },
+          canSee(CAP.COMPATIBILITY_VIEW) && {
+            id: 'compare', routeTab: 'compatibility', params: { profileMode: 'compare' }, icon: 'compare', label: t(locale, 'dashboard.compare'),
+          },
+          canSee(CAP.GROUP_VIEW) && { id: 'group', icon: 'group', label: t(locale, 'dashboard.group') },
+          canSee(CAP.LEADERSHIP_VIEW) && { id: 'leadership', icon: 'leadership', label: t(locale, 'dashboard.leadership') },
+          showMotivators && {
+            id: 'motivators', icon: 'motivators', label: t(locale, 'dashboard.motivators'), navigable: false,
+            children: [
+              { id: 'motivators-dashboard', routeTab: 'motivators', params: { motivatorsView: 'dashboard' }, icon: 'chart', label: t(locale, 'panel.motivatorsAdmin.tabs.dashboard') },
+              { id: 'motivators-invites', routeTab: 'motivators', params: { motivatorsView: 'invites' }, icon: 'messageCircle', label: t(locale, 'panel.motivatorsAdmin.tabs.invites') },
+              { id: 'motivators-results', routeTab: 'motivators', params: { motivatorsView: 'results' }, icon: 'list', label: t(locale, 'panel.motivatorsAdmin.tabs.results') },
+            ],
+          },
+        ],
+      },
+      showJobRoles && { id: 'job-roles', icon: 'briefcase', label: t(locale, 'jobRoles.title') },
       showCompensation && { id: 'compensation', icon: 'salary', label: t(locale, 'dashboard.compensation') },
-      showDp && { id: 'dp', icon: 'dp', label: t(locale, 'dashboard.dp') },
+      showDp && {
+        id: 'dp', icon: 'dp', label: t(locale, 'dashboard.dp'), navigable: false,
+        children: [
+          { id: 'dp-pending', routeTab: 'dp', params: { dpSection: 'pending' }, icon: 'list', label: t(locale, 'panel.dp.workspacePending') },
+          { id: 'dp-leaves', routeTab: 'dp', params: { dpSection: 'leaves' }, icon: 'calendar', label: t(locale, 'panel.dp.workspaceLeaves') },
+          { id: 'dp-documents', routeTab: 'dp', params: { dpSection: 'documents' }, icon: 'list', label: t(locale, 'panel.dp.workspaceDocuments') },
+          { id: 'dp-time', routeTab: 'dp', params: { dpSection: 'time' }, icon: 'timeClock', label: t(locale, 'panel.dp.workspaceTime') },
+          { id: 'dp-field', routeTab: 'dp', params: { dpSection: 'field' }, icon: 'briefcase', label: t(locale, 'panel.field.workspaceTitle') },
+          { id: 'dp-onboarding', routeTab: 'dp', params: { dpSection: 'onboarding' }, icon: 'sparkles', label: t(locale, 'panel.dp.workspaceOnboarding') },
+        ],
+      },
       showBenefits && { id: 'company-benefits', icon: 'gift', label: t(locale, 'dashboard.companyBenefits') },
+      showExitAnalysis && { id: 'exit-analysis', icon: 'exit', label: t(locale, 'dashboard.exitAnalysis') },
     ],
     [DASHBOARD_NAV_SECTION.RECRUITING]: [
       showVacancies && { id: 'vacancies', icon: 'vacancies', label: t(locale, 'dashboard.vacancies') },
       showVacancies && { id: 'talent-bank', icon: 'team', label: t(locale, 'dashboard.talentBank') },
-      showJobRoles && { id: 'job-roles', icon: 'briefcase', label: t(locale, 'jobRoles.title') },
     ],
     [DASHBOARD_NAV_SECTION.DEVELOPMENT]: [
       showPdi && { id: 'pdi', icon: 'clipboard', label: t(locale, 'dashboard.pdi') },
       showPerformance && { id: 'performance-reviews', icon: 'clipboard', label: t(locale, 'dashboard.performanceReviews') },
       showPerformance && { id: 'okr', icon: 'okr', label: t(locale, 'dashboard.okr') },
       showSuccession && { id: 'succession', icon: 'succession', label: t(locale, 'succession.title') },
-      showLearning && { id: 'learning-resources', icon: 'book', label: t(locale, 'dashboard.learningResources') },
-      showLearning && { id: 'lms', icon: 'book', label: t(locale, 'dashboard.lms') },
+      showLearning && {
+        id: 'academy', icon: 'book', label: t(locale, 'dashboard.academy'), navigable: false,
+        children: [
+          { id: 'learning-resources', icon: 'book', label: t(locale, 'dashboard.learningResources') },
+          { id: 'lms', icon: 'academy', label: t(locale, 'dashboard.lms') },
+        ],
+      },
     ],
     [DASHBOARD_NAV_SECTION.CULTURE_HR]: [
-      (canSee(CAP.COMPATIBILITY_VIEW) || canSee(CAP.COMPARE_VIEW)) && { id: 'compatibility', icon: 'compatibility', label: t(locale, 'dashboard.profileAnalysis') },
-      canSee(CAP.GROUP_VIEW) && { id: 'group', icon: 'group', label: t(locale, 'dashboard.group') },
-      canSee(CAP.LEADERSHIP_VIEW) && { id: 'leadership', icon: 'leadership', label: t(locale, 'dashboard.leadership') },
-      showMotivators && { id: 'motivators', icon: 'motivators', label: t(locale, 'dashboard.motivators') },
-      showClimate && { id: 'climate', icon: 'climate', label: t(locale, 'dashboard.climate') },
+      showClimate && {
+        id: 'climate', icon: 'climate', label: t(locale, 'dashboard.climate'), navigable: false,
+        children: [
+          { id: 'climate-surveys', routeTab: 'climate', params: { climateView: 'surveys' }, icon: 'list', label: t(locale, 'panel.nr1.viewSurveys') },
+          { id: 'climate-risks', routeTab: 'climate', params: { climateView: 'nr1' }, icon: 'feedbackInfo', label: t(locale, 'panel.nr1.viewRisks') },
+        ],
+      },
       showCompanyFeed && { id: 'company-feed', icon: 'list', label: t(locale, 'dashboard.companyFeed') },
-      showExitAnalysis && { id: 'exit-analysis', icon: 'exit', label: t(locale, 'dashboard.exitAnalysis') },
       showWhistleblowing && { id: 'whistleblowing', icon: 'feedbackInfo', label: t(locale, 'dashboard.whistleblowing') },
     ],
     [DASHBOARD_NAV_SECTION.ADMINISTRATION]: [
@@ -914,12 +978,12 @@ function DashboardClientContent({
   const navSections = DASHBOARD_NAV_SECTIONS.map((section) => ({
     ...section,
     label: t(locale, section.labelKey),
-    links: (navLinksBySection[section.id] || []).filter(Boolean),
+    links: (navLinksBySection[section.id] || []).map(navItem).filter(Boolean),
   })).filter((section) => section.links.length > 0);
   const sidebarGroups = navSections.map((section) => ({
     id: section.id,
     label: section.label,
-    items: section.links.map(navItem),
+    items: section.links,
   }));
   const sidebarFooterItems = [
     can(sessionAuth, CAP.HELP_VIEW) && {
@@ -1491,13 +1555,14 @@ function DashboardClientContent({
                 <TalentBankAdminTab canAdmitCandidate={can(sessionAuth,CAP.TEAM_VIEW)} navigateDashboard={navigateWithOpts} locale={locale} companyId={scopedCompanyId} />
               )}
               {tab === 'motivators' && showMotivators && (
-                <MotivatorsAdminTab isAdmin={isAdmin} companies={companies} locale={locale} />
+                <MotivatorsAdminTab isAdmin={isAdmin} companies={companies} locale={locale} navigateDashboard={navigateWithOpts} />
               )}
               {tab === 'climate' && showClimate && (
                 <ClimateTab
                   isAdmin={isAdmin}
                   companies={companies}
                   locale={locale}
+                  initialView={urlParams.get('climateView') || 'surveys'}
                   section={urlParams.get('climateSection') || null}
                   navigateDashboard={navigateWithOpts}
                 />
