@@ -255,6 +255,8 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
   const [drawerMode, setDrawerMode] = useState(null); // null | 'create' | 'edit'
   const [editingCompany, setEditingCompany] = useState(null);
   const [form, setForm] = useState(emptyCompanyForm);
+  const [formSection, setFormSection] = useState('general');
+  const [formErrors, setFormErrors] = useState({});
   const [logoPreviewUrl, setLogoPreviewUrl] = useState('');
   const [pendingLogoFile, setPendingLogoFile] = useState(null);
   const [logoBusy, setLogoBusy] = useState(false);
@@ -389,6 +391,8 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
     setDrawerMode(null);
     setEditingCompany(null);
     setForm(emptyCompanyForm());
+    setFormSection('general');
+    setFormErrors({});
     setLogoPreviewUrl('');
     setPendingLogoFile(null);
     setLogoBusy(false);
@@ -402,6 +406,8 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
       ...emptyCompanyForm(),
       moduleIds: [...SELECTABLE_COMPANY_MODULE_IDS],
     });
+    setFormSection('general');
+    setFormErrors({});
     setLogoPreviewUrl('');
     setPendingLogoFile(null);
     setLogoError('');
@@ -501,6 +507,8 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
       aiMonthlyCallLimit: c?.aiMonthlyCallLimit != null ? String(c.aiMonthlyCallLimit) : '',
       moduleIds: [...SELECTABLE_COMPANY_MODULE_IDS],
     });
+    setFormSection('general');
+    setFormErrors({});
     setLogoPreviewUrl(c?.logoUrl ?? '');
     setPendingLogoFile(null);
     setLogoError('');
@@ -528,7 +536,12 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
 
   const submitCompanyForm = async () => {
     const nextName = String(form.name || '').trim();
-    if (!nextName) return;
+    if (!nextName) {
+      setFormErrors({ name: t(locale, 'panel.admin.companyNameRequired') });
+      setFormSection('general');
+      return;
+    }
+    setFormErrors({});
     if (slugStatus === 'taken' || slugStatus === 'invalid') {
       setError(
         slugStatus === 'taken'
@@ -1000,7 +1013,6 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
                 logoBusy ||
                 loading ||
                 modulesLoading ||
-                !String(form.name || '').trim() ||
                 slugStatus === 'taken' ||
                 slugStatus === 'invalid' ||
                 slugStatus === 'checking'
@@ -1011,7 +1023,6 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
                   logoBusy ||
                   loading ||
                   modulesLoading ||
-                  !String(form.name || '').trim() ||
                   slugStatus === 'taken' ||
                   slugStatus === 'invalid' ||
                   slugStatus === 'checking') &&
@@ -1032,200 +1043,236 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
               ? t(locale, 'panel.admin.editCompanyHelp')
               : t(locale, 'panel.admin.createCompanyHelp')}
           </p>
-          <FormField label={t(locale, 'panel.admin.editCompanyName')}>
-            <input
-              value={form.name}
-              onChange={(e) => setFormField('name', e.target.value)}
-              placeholder={t(locale, 'panel.admin.companiesNamePlaceholder')}
-              disabled={formSaving}
-              className={FIELD_INPUT}
-            />
-          </FormField>
-          <FormField label={t(locale, 'panel.admin.editCompanySlug')}>
-            <input
-              value={form.slug}
-              onChange={(e) => setFormField('slug', e.target.value)}
-              onBlur={() => {
-                if (slugNormalized && slugNormalized !== String(form.slug || '').trim()) {
-                  setFormField('slug', slugNormalized);
-                }
-              }}
-              placeholder={t(locale, 'panel.admin.companySlugPlaceholder')}
-              disabled={formSaving}
-              aria-invalid={slugStatus === 'taken' || slugStatus === 'invalid'}
-              className={cn(
-                FIELD_INPUT,
-                slugStatus === 'ok' && 'border-success/50 focus:border-success',
-                slugStatus === 'taken' && 'border-danger/50 focus:border-danger',
-                slugStatus === 'invalid' && 'border-warning/50 focus:border-warning'
-              )}
-            />
-            {slugStatus === 'checking' ? (
-              <span className="mt-1 block text-2xs leading-snug text-ink-muted">
-                {t(locale, 'panel.admin.companySlugChecking')}
-              </span>
-            ) : null}
-            {slugStatus === 'ok' ? (
-              <span className="mt-1 block text-2xs leading-snug text-success">
-                {t(locale, 'panel.admin.companySlugAvailable')}
-                {slugNormalized ? ` (${slugNormalized})` : ''}
-              </span>
-            ) : null}
-            {slugStatus === 'taken' ? (
-              <span className="mt-1 block text-2xs leading-snug text-danger">
-                {t(locale, 'panel.admin.companySlugTaken')}
-              </span>
-            ) : null}
-            {slugStatus === 'invalid' && String(form.slug || '').trim() ? (
-              <span className="mt-1 block text-2xs leading-snug text-warning">
-                {t(locale, 'panel.admin.companySlugInvalid')}
-              </span>
-            ) : null}
-            {slugStatus === 'idle' || (slugStatus === 'invalid' && !String(form.slug || '').trim()) ? (
-              <span className="mt-1 block text-2xs leading-snug text-ink-muted">
-                {t(locale, 'panel.admin.companySlugHelp')}
-              </span>
-            ) : null}
-          </FormField>
-          <FormField label={t(locale, 'panel.admin.editCompanyWebsite')}>
-            <input
-              value={form.website}
-              onChange={(e) => setFormField('website', e.target.value)}
-              placeholder={t(locale, 'panel.admin.editCompanyWebsitePh')}
-              disabled={formSaving}
-              className={FIELD_INPUT}
-            />
-          </FormField>
-          <FormField
-            as="div"
-            label={t(locale, 'panel.admin.editCompanyAnniversary')}
-            hint={t(locale, 'panel.admin.editCompanyAnniversaryHelp')}
-          >
-            <DateField
-              value={form.anniversaryDate || ''}
-              onChange={(e) => setFormField('anniversaryDate', e.target.value || '')}
-              disabled={formSaving}
-              aria-label={t(locale, 'panel.admin.editCompanyAnniversary')}
-              className={FIELD_INPUT}
-            />
-          </FormField>
-          <CompanyLogoField
-            locale={locale}
-            previewUrl={logoPreviewUrl}
-            storageConfigured={logoStorageConfigured}
-            uploadUrl={
-              drawerMode === 'edit' && editingCompany?.id
-                ? `/api/admin/companies/${encodeURIComponent(editingCompany.id)}/logo`
-                : undefined
-            }
-            busy={logoBusy}
-            error={logoError}
-            disabled={formSaving}
-            onLocalFile={setPendingLogoFile}
-            onPreviewUrl={setLogoPreviewUrl}
-            onBusy={setLogoBusy}
-            onError={setLogoError}
-            confirm={confirm}
-            onRemoved={() => toast(t(locale, 'panel.admin.companyLogoRemoved'), 'ok')}
+          <PanelSubNav
+            ariaLabel={t(locale, 'panel.admin.companyFormSectionsAria')}
+            active={formSection}
+            onChange={setFormSection}
+            tabs={[
+              { id: 'general', label: t(locale, 'panel.admin.companyFormGeneral') },
+              { id: 'brand', label: t(locale, 'panel.admin.companyFormBrand') },
+              { id: 'access', label: t(locale, 'panel.admin.companyFormAccess') },
+            ]}
           />
-          <label
-            className={cn(
-              'flex items-start gap-2.5 font-mono text-xs text-ink',
-              formSaving ? 'cursor-default' : 'cursor-pointer'
-            )}
-          >
-            <input
-              type="checkbox"
-              checked={form.publicProfileEnabled === true}
-              disabled={formSaving}
-              onChange={(e) => setFormField('publicProfileEnabled', e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-brand-500"
-            />
-            <span>
-              {t(locale, 'panel.admin.editCompanyPublicProfile')}
-              <span className="mt-1 block text-2xs leading-snug text-ink-muted">
-                {t(locale, 'panel.admin.editCompanyPublicProfileHelp')}
-              </span>
-            </span>
-          </label>
-          <FormField
-            as="div"
-            label={t(locale, 'panel.admin.editCompanyAbout')}
-            hint={t(locale, 'panel.admin.editCompanyAboutHelp')}
-          >
-            <RichTextEditor
-              value={form.aboutHtml}
-              onChange={(html) => setFormField('aboutHtml', html)}
-              placeholder={t(locale, 'panel.admin.editCompanyAboutPh')}
-              minHeight={120}
-              locale={locale}
-              disabled={formSaving}
-            />
-          </FormField>
-          {drawerMode === 'edit' ? (
-            <label
-              className={cn(
-                'flex items-center gap-2.5 font-mono text-xs text-ink',
-                formSaving ? 'cursor-default' : 'cursor-pointer'
-              )}
-            >
-              <input
-                type="checkbox"
-                checked={form.active === true}
-                disabled={formSaving}
-                onChange={(e) => setFormField('active', e.target.checked)}
-                className="h-4 w-4 accent-brand-500"
-              />
-              {t(locale, 'panel.admin.editCompanyActive')}
-            </label>
-          ) : null}
-          {drawerMode === 'edit' ? (
-            <FormField
-              label={t(locale, 'panel.admin.companyAiLimit')}
-              hint={t(locale, 'panel.admin.companyAiLimitHint', { default: aiDefaultLimit ?? '–' })}
-            >
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={1000000}
-                step={1}
-                value={form.aiMonthlyCallLimit}
-                onChange={(e) => setFormField('aiMonthlyCallLimit', e.target.value)}
-                placeholder={aiDefaultLimit != null ? String(aiDefaultLimit) : ''}
-                disabled={formSaving}
-                className={FIELD_INPUT}
-              />
-              {aiUsage ? (
-                <span
+          {formSection === 'general' ? (
+            <div className="flex flex-col gap-3.5">
+              <FormField label={t(locale, 'panel.admin.editCompanyName')} required>
+                <input
+                  value={form.name}
+                  required
+                  aria-required="true"
+                  aria-invalid={Boolean(formErrors.name)}
+                  aria-describedby={formErrors.name ? 'company-name-error' : undefined}
+                  onChange={(e) => {
+                    setFormField('name', e.target.value);
+                    if (String(e.target.value || '').trim()) {
+                      setFormErrors((previous) => ({ ...previous, name: '' }));
+                    }
+                  }}
+                  placeholder={t(locale, 'panel.admin.companiesNamePlaceholder')}
+                  disabled={formSaving}
+                  className={FIELD_INPUT}
+                />
+                {formErrors.name ? (
+                  <span id="company-name-error" className="mt-1 block text-2xs text-danger" role="alert">
+                    {formErrors.name}
+                  </span>
+                ) : null}
+              </FormField>
+              <FormField label={t(locale, 'panel.admin.editCompanySlug')}>
+                <input
+                  value={form.slug}
+                  onChange={(e) => setFormField('slug', e.target.value)}
+                  onBlur={() => {
+                    if (slugNormalized && slugNormalized !== String(form.slug || '').trim()) {
+                      setFormField('slug', slugNormalized);
+                    }
+                  }}
+                  placeholder={t(locale, 'panel.admin.companySlugPlaceholder')}
+                  disabled={formSaving}
+                  aria-invalid={slugStatus === 'taken' || slugStatus === 'invalid'}
                   className={cn(
-                    'mt-1 block font-mono text-2xs leading-snug tabular-nums',
-                    aiUsage.reached ? 'text-danger' : 'text-ink-muted'
+                    FIELD_INPUT,
+                    slugStatus === 'ok' && 'border-success/50 focus:border-success',
+                    slugStatus === 'taken' && 'border-danger/50 focus:border-danger',
+                    slugStatus === 'invalid' && 'border-warning/50 focus:border-warning'
+                  )}
+                />
+                {slugStatus === 'checking' ? (
+                  <span className="mt-1 block text-2xs leading-snug text-ink-muted">
+                    {t(locale, 'panel.admin.companySlugChecking')}
+                  </span>
+                ) : null}
+                {slugStatus === 'ok' ? (
+                  <span className="mt-1 block text-2xs leading-snug text-success">
+                    {t(locale, 'panel.admin.companySlugAvailable')}
+                    {slugNormalized ? ` (${slugNormalized})` : ''}
+                  </span>
+                ) : null}
+                {slugStatus === 'taken' ? (
+                  <span className="mt-1 block text-2xs leading-snug text-danger">
+                    {t(locale, 'panel.admin.companySlugTaken')}
+                  </span>
+                ) : null}
+                {slugStatus === 'invalid' && String(form.slug || '').trim() ? (
+                  <span className="mt-1 block text-2xs leading-snug text-warning">
+                    {t(locale, 'panel.admin.companySlugInvalid')}
+                  </span>
+                ) : null}
+                {slugStatus === 'idle' || (slugStatus === 'invalid' && !String(form.slug || '').trim()) ? (
+                  <span className="mt-1 block text-2xs leading-snug text-ink-muted">
+                    {t(locale, 'panel.admin.companySlugHelp')}
+                  </span>
+                ) : null}
+              </FormField>
+              <FormField label={t(locale, 'panel.admin.editCompanyWebsite')}>
+                <input
+                  value={form.website}
+                  onChange={(e) => setFormField('website', e.target.value)}
+                  placeholder={t(locale, 'panel.admin.editCompanyWebsitePh')}
+                  disabled={formSaving}
+                  className={FIELD_INPUT}
+                />
+              </FormField>
+              <FormField
+                as="div"
+                label={t(locale, 'panel.admin.editCompanyAnniversary')}
+                hint={t(locale, 'panel.admin.editCompanyAnniversaryHelp')}
+              >
+                <DateField
+                  value={form.anniversaryDate || ''}
+                  onChange={(e) => setFormField('anniversaryDate', e.target.value || '')}
+                  disabled={formSaving}
+                  aria-label={t(locale, 'panel.admin.editCompanyAnniversary')}
+                  className={FIELD_INPUT}
+                />
+              </FormField>
+            </div>
+          ) : null}
+          {formSection === 'brand' ? (
+            <div className="flex flex-col gap-3.5">
+              <CompanyLogoField
+                locale={locale}
+                previewUrl={logoPreviewUrl}
+                storageConfigured={logoStorageConfigured}
+                uploadUrl={
+                  drawerMode === 'edit' && editingCompany?.id
+                    ? `/api/admin/companies/${encodeURIComponent(editingCompany.id)}/logo`
+                    : undefined
+                }
+                busy={logoBusy}
+                error={logoError}
+                disabled={formSaving}
+                onLocalFile={setPendingLogoFile}
+                onPreviewUrl={setLogoPreviewUrl}
+                onBusy={setLogoBusy}
+                onError={setLogoError}
+                confirm={confirm}
+                onRemoved={() => toast(t(locale, 'panel.admin.companyLogoRemoved'), 'ok')}
+              />
+              <label
+                className={cn(
+                  'flex items-start gap-2.5 font-mono text-xs text-ink',
+                  formSaving ? 'cursor-default' : 'cursor-pointer'
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.publicProfileEnabled === true}
+                  disabled={formSaving}
+                  onChange={(e) => setFormField('publicProfileEnabled', e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-brand-500"
+                />
+                <span>
+                  {t(locale, 'panel.admin.editCompanyPublicProfile')}
+                  <span className="mt-1 block text-2xs leading-snug text-ink-muted">
+                    {t(locale, 'panel.admin.editCompanyPublicProfileHelp')}
+                  </span>
+                </span>
+              </label>
+              <FormField
+                as="div"
+                label={t(locale, 'panel.admin.editCompanyAbout')}
+                hint={t(locale, 'panel.admin.editCompanyAboutHelp')}
+              >
+                <RichTextEditor
+                  value={form.aboutHtml}
+                  onChange={(html) => setFormField('aboutHtml', html)}
+                  placeholder={t(locale, 'panel.admin.editCompanyAboutPh')}
+                  minHeight={120}
+                  locale={locale}
+                  disabled={formSaving}
+                />
+              </FormField>
+            </div>
+          ) : null}
+          {formSection === 'access' ? (
+            <div className="flex flex-col gap-3.5">
+              {drawerMode === 'edit' ? (
+                <label
+                  className={cn(
+                    'flex items-center gap-2.5 font-mono text-xs text-ink',
+                    formSaving ? 'cursor-default' : 'cursor-pointer'
                   )}
                 >
-                  {t(locale, 'panel.admin.companyAiUsage', { used: aiUsage.used, limit: aiUsage.limit })}
-                  {aiUsage.reached ? ` · ${t(locale, 'panel.admin.companyAiLimitReached')}` : ''}
-                </span>
+                  <input
+                    type="checkbox"
+                    checked={form.active === true}
+                    disabled={formSaving}
+                    onChange={(e) => setFormField('active', e.target.checked)}
+                    className="h-4 w-4 accent-brand-500"
+                  />
+                  {t(locale, 'panel.admin.editCompanyActive')}
+                </label>
               ) : null}
-            </FormField>
+              {drawerMode === 'edit' ? (
+                <FormField
+                  label={t(locale, 'panel.admin.companyAiLimit')}
+                  hint={t(locale, 'panel.admin.companyAiLimitHint', { default: aiDefaultLimit ?? '–' })}
+                >
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={1000000}
+                    step={1}
+                    value={form.aiMonthlyCallLimit}
+                    onChange={(e) => setFormField('aiMonthlyCallLimit', e.target.value)}
+                    placeholder={aiDefaultLimit != null ? String(aiDefaultLimit) : ''}
+                    disabled={formSaving}
+                    className={FIELD_INPUT}
+                  />
+                  {aiUsage ? (
+                    <span
+                      className={cn(
+                        'mt-1 block font-mono text-2xs leading-snug tabular-nums',
+                        aiUsage.reached ? 'text-danger' : 'text-ink-muted'
+                      )}
+                    >
+                      {t(locale, 'panel.admin.companyAiUsage', { used: aiUsage.used, limit: aiUsage.limit })}
+                      {aiUsage.reached ? ` · ${t(locale, 'panel.admin.companyAiLimitReached')}` : ''}
+                    </span>
+                  ) : null}
+                </FormField>
+              ) : null}
+              <FormField
+                as="div"
+                label={t(locale, 'panel.admin.companyModulesLabel')}
+                hint={t(locale, 'panel.admin.companyModulesHint')}
+              >
+                {modulesLoading ? (
+                  <p className={cn(S.faint, 'mb-0')}>{t(locale, 'panel.common.loading')}</p>
+                ) : (
+                  <CompanyModulesField
+                    locale={locale}
+                    selectedIds={form.moduleIds || []}
+                    onChange={(ids) => setFormField('moduleIds', ids)}
+                    disabled={formSaving || modulesLoading}
+                    maxHeightClass="max-h-[240px]"
+                  />
+                )}
+              </FormField>
+            </div>
           ) : null}
-          <FormField
-            as="div"
-            label={t(locale, 'panel.admin.companyModulesLabel')}
-            hint={t(locale, 'panel.admin.companyModulesHint')}
-          >
-            {modulesLoading ? (
-              <p className={cn(S.faint, 'mb-0')}>{t(locale, 'panel.common.loading')}</p>
-            ) : (
-              <CompanyModulesField
-                locale={locale}
-                selectedIds={form.moduleIds || []}
-                onChange={(ids) => setFormField('moduleIds', ids)}
-                disabled={formSaving || modulesLoading}
-                maxHeightClass="max-h-[240px]"
-              />
-            )}
-          </FormField>
         </div>
       </AdminRichFormDrawer>
 

@@ -139,18 +139,13 @@ function IntegratedProfileSynthesis({ synthesis, locale, summaryOnly = false }) 
 }
 
 const PIPELINE_OPTIONS = PIPELINE_STAGES;
-const PERSON_TOP_SECTIONS = new Set(['people', 'style', 'history', 'profile']);
-const PERSON_MANAGEMENT_SECTIONS = new Set(['summary', 'oneOnOne', 'feedback', 'journey', 'compensation', 'dp']);
-
 function personNavigationFromSection(section) {
-  if (section === 'profile') return { personTab: 'people', peopleSubTab: 'dp' };
-  if (PERSON_TOP_SECTIONS.has(section)) {
-    return { personTab: section, peopleSubTab: 'summary' };
-  }
-  if (PERSON_MANAGEMENT_SECTIONS.has(section)) {
-    return { personTab: 'people', peopleSubTab: section };
-  }
-  return { personTab: 'people', peopleSubTab: 'summary' };
+  // Older links used "people" and "profile" for the summary and DP sections.
+  if (section === 'people') return 'summary';
+  if (section === 'profile') return 'dp';
+  return ['summary', 'oneOnOne', 'feedback', 'journey', 'compensation', 'dp', 'style', 'history'].includes(section)
+    ? section
+    : 'summary';
 }
 
 
@@ -271,8 +266,7 @@ export function TeamTab({
   canRehire = false,
 }) {
   const [open, setOpen] = useState(null);
-  const [personTab, setPersonTab] = useState('people');
-  const [peopleSubTab, setPeopleSubTab] = useState('summary');
+  const [activePersonSection, setActivePersonSection] = useState('summary');
   const [searchDraft, setSearchDraft] = useState(search || '');
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -432,9 +426,7 @@ export function TeamTab({
   }, [focusCandidateId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const nextNavigation = personNavigationFromSection(focusSection);
-    setPersonTab(nextNavigation.personTab);
-    setPeopleSubTab(nextNavigation.peopleSubTab);
+    setActivePersonSection(personNavigationFromSection(focusSection));
   }, [focusSection]);
 
   useEffect(() => {
@@ -934,6 +926,7 @@ export function TeamTab({
         assessmentId: null,
         candidateId: detail.candidate.id,
         name: detail.candidate.fullName || detail.candidate.email || '',
+        employmentStatus: detail.candidate.employmentStatus,
         scores: null,
         topType: null,
         pipelineStage: null,
@@ -943,12 +936,20 @@ export function TeamTab({
         assessmentId: a.id,
         candidateId: detail.candidate.id,
         name: detail.candidate.fullName || detail.candidate.email || '',
+        employmentStatus: detail.candidate.employmentStatus,
         scores: a.scores,
         topType: a.topType,
         pipelineStage: a.pipelineStage,
       };
     }
   }
+  const internalOpenPerson = [EMPLOYMENT_STATUS.EMPLOYEE, EMPLOYMENT_STATUS.ALUMNI].includes(openRow?.employmentStatus);
+  const availablePersonSections = new Set([
+    'summary', 'oneOnOne', 'journey', 'style', 'history', 'dp',
+    ...(internalOpenPerson ? ['feedback'] : []),
+    ...(internalOpenPerson && canViewCompensation ? ['compensation'] : []),
+  ]);
+  const visiblePersonSection = availablePersonSections.has(activePersonSection) ? activePersonSection : 'summary';
   const openCluster = openRow?.scores
     ? new Set(nearbyCluster(openRow.scores).map((item) => item.type))
     : new Set();
@@ -965,7 +966,7 @@ export function TeamTab({
 
   const openPersonDetail = (row, section = 'summary') => {
     const id = row.assessmentId != null ? String(row.assessmentId) : `candidate:${row.candidateId}`;
-    const nextNavigation = personNavigationFromSection(section);
+    const nextSection = personNavigationFromSection(section);
     if (row.candidateId && typeof navigateDashboard === 'function') {
       // Let the URL switch the drawer into its full-page presentation before
       // setting `open`; otherwise the legacy inline drawer flashes first.
@@ -980,8 +981,7 @@ export function TeamTab({
     }
 
     setOpen(id);
-    setPersonTab(nextNavigation.personTab);
-    setPeopleSubTab(nextNavigation.peopleSubTab);
+    setActivePersonSection(nextSection);
     if (row.candidateId) loadDetail(row.candidateId);
     else {
       detailReqRef.current = null;
@@ -1002,8 +1002,7 @@ export function TeamTab({
     detailReqRef.current = null;
     setDetail(null);
     setDetailErr('');
-    setPersonTab('people');
-    setPeopleSubTab('summary');
+    setActivePersonSection('summary');
     if (typeof navigateDashboard === 'function') {
       const returnTab = new URLSearchParams(window.location.search).get('returnTab');
       navigateDashboard({ tab: ['talent-bank', 'vacancies', 'organization'].includes(returnTab) ? returnTab : 'team', candidate: null, section: null, returnTab: null, scroll: false, clientOnly: true });
@@ -1011,9 +1010,8 @@ export function TeamTab({
   };
 
   const navigatePersonSection = (section) => {
-    const nextNavigation = personNavigationFromSection(section);
-    setPersonTab(nextNavigation.personTab);
-    setPeopleSubTab(nextNavigation.peopleSubTab);
+    const nextSection = personNavigationFromSection(section);
+    setActivePersonSection(nextSection);
     if (openRow?.candidateId && typeof navigateDashboard === 'function') {
       navigateDashboard({
         tab: 'team',
@@ -1032,7 +1030,7 @@ export function TeamTab({
   const navigateAdjacentPerson = (direction) => {
     const nextRow = personRows[currentPersonIndex + direction];
     if (!nextRow) return;
-    openPersonDetail(nextRow, focusSection || peopleSubTab || 'summary');
+    openPersonDetail(nextRow, focusSection || activePersonSection || 'summary');
   };
   const personHeaderMeta = detailMatchesOpen && detail?.candidate ? (
     <>
@@ -1372,15 +1370,26 @@ export function TeamTab({
           <div>
             <PanelSubNav
               ariaLabel={t(locale, 'panel.team.personTabsAria')}
-              active={personTab}
+              active={visiblePersonSection}
               onChange={navigatePersonSection}
               tabs={[
-                { id: 'people', label: t(locale, 'panel.team.personTabSummary') },
+                { id: 'summary', label: t(locale, 'panel.team.peopleSubTabSummary') },
+                { id: 'oneOnOne', label: t(locale, 'panel.team.peopleSubTabOneOnOne') },
+                ...(openRow.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE || openRow.employmentStatus === EMPLOYMENT_STATUS.ALUMNI
+                  ? [{ id: 'feedback', label: t(locale, 'panel.team.peopleSubTabFeedback') }]
+                  : []),
+                { id: 'journey', label: t(locale, 'betaPeople.developmentJourney') },
                 { id: 'style', label: t(locale, 'panel.team.personTabStyle') },
                 { id: 'history', label: t(locale, 'panel.team.personTabHistory') },
+                ...(canViewCompensation && (openRow.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE || openRow.employmentStatus === EMPLOYMENT_STATUS.ALUMNI)
+                  ? [{ id: 'compensation', label: t(locale, 'panel.team.peopleSubTabCompensation') }]
+                  : []),
+                { id: 'dp', label: openRow.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE
+                  ? t(locale, 'recruiting.candidateProfile')
+                  : t(locale, 'panel.team.peopleSubTabDp') },
               ]}
             />
-            {personTab === 'style' ? (
+            {visiblePersonSection === 'style' ? (
               <ContentEnter animKey="style">
                 {openRow.scores ? (
                   <EnneagramCross scores={openRow.scores} locale={locale} />
@@ -1459,7 +1468,7 @@ export function TeamTab({
                 ) : null}
               </ContentEnter>
             ) : null}
-            {personTab === 'people' ? (
+            {['summary', 'oneOnOne', 'feedback', 'journey', 'compensation', 'dp'].includes(visiblePersonSection) ? (
               <ContentEnter animKey="people">
                 {detailLoading ? (
                   <AppLoading locale={locale} variant="inline" />
@@ -1470,17 +1479,6 @@ export function TeamTab({
                     const isInternalPerson =
                       detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE ||
                       detail.candidate.employmentStatus === EMPLOYMENT_STATUS.ALUMNI;
-                    const allowedSubTabs = new Set([
-                      'summary',
-                      'oneOnOne',
-                      ...(isInternalPerson ? ['feedback'] : []),
-                      'journey',
-                      ...(isInternalPerson && canViewCompensation ? ['compensation'] : []),
-                      'dp',
-                    ]);
-                    const activePeopleSubTab = allowedSubTabs.has(peopleSubTab)
-                      ? peopleSubTab
-                      : 'summary';
                     return (
                   <>
                     {isHiringCandidate ? (
@@ -1518,30 +1516,8 @@ export function TeamTab({
                           : t(locale, 'panel.rehire.detailFormer')}
                       </InlineCallout>
                     ) : null}
-                    <PanelSubNav
-                      ariaLabel={t(locale, 'panel.team.peopleSubTabsAria')}
-                      active={activePeopleSubTab}
-                      onChange={navigatePersonSection}
-                      tabs={[
-                        { id: 'summary', label: t(locale, 'panel.team.peopleSubTabSummary') },
-                        { id: 'oneOnOne', label: t(locale, 'panel.team.peopleSubTabOneOnOne') },
-                        ...(isInternalPerson
-                          ? [{ id: 'feedback', label: t(locale, 'panel.team.peopleSubTabFeedback') }]
-                          : []),
-                        { id: 'journey', label: t(locale, 'betaPeople.developmentJourney') },
-                        ...(isInternalPerson && canViewCompensation
-                          ? [
-                              {
-                                id: 'compensation',
-                                label: t(locale, 'panel.team.peopleSubTabCompensation'),
-                              },
-                            ]
-                          : []),
-                        { id: 'dp', label: t(locale, 'panel.team.peopleSubTabDp') },
-                      ]}
-                    />
-                    <ContentEnter animKey={activePeopleSubTab}>
-                      {activePeopleSubTab === 'summary' ? (
+                    <ContentEnter animKey={visiblePersonSection}>
+                      {visiblePersonSection === 'summary' ? (
                         <div className="space-y-4 pb-1">
                           {detail.candidate.employmentStatus === EMPLOYMENT_STATUS.EMPLOYEE && detail.candidate.employeeAccessState !== 'active' ? (
                             <section aria-label={t(locale, 'employeeAdmission.portalAccessTitle')} className="rounded-card border border-brand-500/30 bg-brand-500/[0.06] p-4 sm:p-5">
@@ -1578,7 +1554,7 @@ export function TeamTab({
                           </CollapsibleBlock>
                         </div>
                       ) : null}
-                      {activePeopleSubTab === 'oneOnOne' ? (
+                      {visiblePersonSection === 'oneOnOne' ? (
                         <PeopleManagementPanel
                           companyId={detail.candidate.companyId}
                           locale={locale}
@@ -1589,7 +1565,7 @@ export function TeamTab({
                           section="oneOnOne"
                         />
                       ) : null}
-                      {activePeopleSubTab === 'feedback' ? (
+                      {visiblePersonSection === 'feedback' ? (
                         <ContinuousFeedbackBlock
                           locale={locale}
                           companyId={detail.candidate.companyId}
@@ -1597,7 +1573,7 @@ export function TeamTab({
                           subjectName={openRow.name}
                         />
                       ) : null}
-                      {activePeopleSubTab === 'journey' ? (
+                      {visiblePersonSection === 'journey' ? (
                         <PeopleManagementPanel
                           companyId={detail.candidate.companyId}
                           locale={locale}
@@ -1608,7 +1584,7 @@ export function TeamTab({
                           section="journey"
                         />
                       ) : null}
-                      {activePeopleSubTab === 'compensation' ? (
+                      {visiblePersonSection === 'compensation' ? (
                         <>
                           <CompensationBlock
                             locale={locale}
@@ -1626,8 +1602,7 @@ export function TeamTab({
                           />
                         </>
                       ) : null}
-                      {activePeopleSubTab === 'dp' && isInternalPerson ? (
-                        <>
+                      {visiblePersonSection === 'dp' && isInternalPerson ? <>
                         <DpBlock
                           locale={locale}
                           candidateId={detail.candidate.id}
@@ -1645,8 +1620,7 @@ export function TeamTab({
                             ? { ...prev, candidate: { ...prev.candidate, ...data } }
                             : prev)}
                         />
-                        </>
-                      ) : null}
+                      </> : null}
                     </ContentEnter>
                   </>
                     );
@@ -1656,7 +1630,7 @@ export function TeamTab({
                 )}
               </ContentEnter>
             ) : null}
-            {personTab === 'history' ? (
+            {visiblePersonSection === 'history' ? (
               <ContentEnter animKey="history">
                 <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">
                   <span className={cn(S.label, 'mb-2 block text-center')}>{t(locale, 'recruiting.timelineTitle')}</span>
@@ -1761,7 +1735,7 @@ export function TeamTab({
                 </div>
               </ContentEnter>
             ) : null}
-            {personTab === 'people' && peopleSubTab === 'dp' && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
+            {visiblePersonSection === 'dp' && detail?.candidate?.employmentStatus === EMPLOYMENT_STATUS.CANDIDATE ? (
               <ContentEnter animKey="profile">
                 <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">
                   <div className="mb-2.5 flex items-center gap-2.5">

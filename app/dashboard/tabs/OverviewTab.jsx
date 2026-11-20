@@ -89,6 +89,7 @@ export function OverviewTab({
   const [peopleOpsOpen, setPeopleOpsOpen] = useState(false);
   const [recruitingOpen, setRecruitingOpen] = useState(false);
   const [opsIntelOpen, setOpsIntelOpen] = useState(false);
+  const [attentionExpanded, setAttentionExpanded] = useState(false);
   const [noPlanExpanded, setNoPlanExpanded] = useState(false);
   const [bciIntel, setBciIntel] = useState(() => overview?.behavioralIntel ?? null);
 
@@ -99,52 +100,39 @@ export function OverviewTab({
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
-        if (localStorage.getItem(PEOPLE_OPS_OPEN_KEY) === '1') setPeopleOpsOpen(true);
-        // Default collapsed so BCI wins the first viewport; '1' opens recruiting ops.
-        if (localStorage.getItem(RECRUITING_OPEN_KEY) === '1') setRecruitingOpen(true);
-        if (localStorage.getItem(OPS_INTEL_OPEN_KEY) === '1') setOpsIntelOpen(true);
+        // Keep one secondary workspace open at a time, including preferences saved by older versions.
+        const openSection = [
+          [PEOPLE_OPS_OPEN_KEY, 'peopleOps'],
+          [RECRUITING_OPEN_KEY, 'recruiting'],
+          [OPS_INTEL_OPEN_KEY, 'opsIntel'],
+        ].find(([key]) => localStorage.getItem(key) === '1')?.[1] || null;
+        setPeopleOpsOpen(openSection === 'peopleOps');
+        setRecruitingOpen(openSection === 'recruiting');
+        setOpsIntelOpen(openSection === 'opsIntel');
       }
     } catch {
       /* ignore */
     }
   }, []);
 
-  const togglePeopleOps = () => {
-    setPeopleOpsOpen((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(PEOPLE_OPS_OPEN_KEY, next ? '1' : '0');
-      } catch {
-        /* ignore */
-      }
-      if (!next) setNoPlanExpanded(false);
-      return next;
-    });
+  const setOverviewSectionOpen = (section, open) => {
+    const nextSection = open ? section : null;
+    setPeopleOpsOpen(nextSection === 'peopleOps');
+    setRecruitingOpen(nextSection === 'recruiting');
+    setOpsIntelOpen(nextSection === 'opsIntel');
+    try {
+      localStorage.setItem(PEOPLE_OPS_OPEN_KEY, nextSection === 'peopleOps' ? '1' : '0');
+      localStorage.setItem(RECRUITING_OPEN_KEY, nextSection === 'recruiting' ? '1' : '0');
+      localStorage.setItem(OPS_INTEL_OPEN_KEY, nextSection === 'opsIntel' ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+    if (section === 'peopleOps' && !open) setNoPlanExpanded(false);
   };
 
-  const toggleOpsIntel = () => {
-    setOpsIntelOpen((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(OPS_INTEL_OPEN_KEY, next ? '1' : '0');
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  };
-
-  const toggleRecruiting = () => {
-    setRecruitingOpen((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(RECRUITING_OPEN_KEY, next ? '1' : '0');
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  };
+  const togglePeopleOps = () => setOverviewSectionOpen('peopleOps', !peopleOpsOpen);
+  const toggleOpsIntel = () => setOverviewSectionOpen('opsIntel', !opsIntelOpen);
+  const toggleRecruiting = () => setOverviewSectionOpen('recruiting', !recruitingOpen);
 
   const data = overview || {
     funnel: Object.fromEntries(OVERVIEW_FUNNEL_STAGES.map((s) => [s, 0])),
@@ -181,16 +169,15 @@ export function OverviewTab({
   const reasons = data.rejectionReasons || [];
   const maxReason = Math.max(...reasons.map((r) => r.n), 1);
   const rejectPatterns = data.rejectionPatterns || [];
+  const attentionItems = data.attention || [];
+  const attentionVisible = attentionExpanded ? attentionItems : attentionItems.slice(0, 5);
 
   return (
     <div className="flex flex-col gap-4">
       {data.error ? (
         <InlineCallout tone="danger">{t(locale, 'panel.overview.loadError')}</InlineCallout>
       ) : null}
-      {/* Onboarding Checklist */}
-      {onboardingProgress && onboardingProgress.progress < 100 && (
-        <OnboardingChecklist locale={locale} initialProgress={onboardingProgress} canOpenTab={canOpenTab} />
-      )}
+      {filterControls}
 
       <div className={cn('grid grid-cols-1 gap-4', companyId && 'xl:grid-cols-12 xl:items-start')}>
         <div className={cn(S.card, companyId && 'xl:col-span-8')}>
@@ -199,10 +186,10 @@ export function OverviewTab({
               {t(locale, 'panel.overview.attentionTitle')}
             </span>
             <span className="font-mono text-2xs text-ink-muted">
-              {t(locale, 'panel.overview.attentionCount', { n: (data.attention || []).length })}
+              {t(locale, 'panel.overview.attentionCount', { n: attentionItems.length })}
             </span>
           </div>
-          {(data.attention || []).length === 0 ? (
+          {attentionItems.length === 0 ? (
             <ContentEnter animKey="overview-attention-empty">
               <EmptyState
                 message={t(locale, 'panel.overview.attentionEmpty')}
@@ -229,14 +216,15 @@ export function OverviewTab({
               />
             </ContentEnter>
           ) : (
-            <div className="flex flex-col gap-2">
-              {(data.attention || []).map((item) => {
+            <div id="overview-attention-list" className="flex flex-col gap-2">
+              {attentionVisible.map((item) => {
                 const pr = PRIORITY_CLASS[item.priority] || PRIORITY_CLASS.low;
                 const nav = item.nav && (!canOpenTab || canOpenTab(item.nav.tab)) ? item.nav : null;
                 return (
                   <button
                     key={item.id}
                     type="button"
+                    disabled={!nav}
                     onClick={() => nav && go(nav)}
                     className={cn(
                       'grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-control border px-3.5 py-2.5 text-left transition-colors sm:grid-cols-[56px_minmax(160px,0.9fr)_minmax(180px,1.1fr)_auto]',
@@ -264,6 +252,19 @@ export function OverviewTab({
               })}
             </div>
           )}
+          {attentionItems.length > 5 ? (
+            <button
+              type="button"
+              className={cn(S.btnGhost, 'mt-2 min-h-touch')}
+              aria-expanded={attentionExpanded}
+              aria-controls="overview-attention-list"
+              onClick={() => setAttentionExpanded((open) => !open)}
+            >
+              {attentionExpanded
+                ? t(locale, 'panel.overview.attentionShowLess')
+                : t(locale, 'panel.overview.attentionShowMore', { n: attentionItems.length - 5 })}
+            </button>
+          ) : null}
           {(data.attentionOlder || []).length > 0 ? <details className="mt-3 rounded-control border border-ink/12 p-3">
             <summary className="cursor-pointer text-sm font-medium text-ink">{t(locale, 'betaPeople.olderAttention', { n: data.attentionOlder.length })}</summary>
             <p className="mt-2 text-xs text-ink-muted">{t(locale, 'betaPeople.olderAttentionHint', { days: data.attentionOldAfterDays || 90 })}</p>
@@ -284,7 +285,9 @@ export function OverviewTab({
         ) : null}
       </div>
 
-      {filterControls}
+      {onboardingProgress && onboardingProgress.progress < 100 ? (
+        <OnboardingChecklist locale={locale} initialProgress={onboardingProgress} canOpenTab={canOpenTab} />
+      ) : null}
 
       <TeamBehavioralIntelBlock
         locale={locale}

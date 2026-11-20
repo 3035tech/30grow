@@ -31,7 +31,6 @@ import {
   AdminPageHeader,
   AdminTableShell,
   AdminTh,
-  AdminViewButton,
   PanelSubNav,
   S,
   SortableTh,
@@ -954,28 +953,6 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
               </span>
             </div>
 
-            {course.description ? (
-              <RichTextView
-                html={course.description}
-                className="m-0 max-w-3xl text-sm leading-relaxed text-ink-muted"
-              />
-            ) : null}
-
-            {ops ? (
-              <p
-                className={cn(
-                  'm-0 font-mono text-prose',
-                  ops.overdue > 0 ? 'text-red-800 dark:text-danger' : 'text-ink-muted'
-                )}
-              >
-                {t(locale, 'panel.lms.opsSummary', {
-                  completed: ops.completed,
-                  enrolled: ops.enrolled,
-                  overdue: ops.overdue,
-                })}
-              </p>
-            ) : null}
-
             {detailLoading ? <AppLoading variant="inline" /> : null}
 
             <PanelSubNav
@@ -995,6 +972,20 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
 
             <ContentEnter animKey={detailSection}>
             {detailSection === 'content' ? (
+            <div className={S.stack}>
+            {course.description ? (
+              <CollapsibleBlock
+                locale={locale}
+                variant="card"
+                title={t(locale, 'panel.lms.fieldDescription')}
+                defaultOpen={false}
+              >
+                <RichTextView
+                  html={course.description}
+                  className="m-0 max-w-3xl text-sm leading-relaxed text-ink-muted"
+                />
+              </CollapsibleBlock>
+            ) : null}
             <section className={cn(S.cardShell, 'p-4 sm:p-5')}>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3 className="m-0 font-ui text-base font-semibold text-ink">
@@ -1088,17 +1079,20 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
                 </ul>
               )}
             </section>
+            </div>
             ) : null}
 
             {detailSection === 'tracking' ? (
-            <CollapsibleBlock
-              locale={locale}
-              variant="card"
-              title={t(locale, 'panel.lms.cohortReportTitle')}
-              defaultOpen={false}
-              collapsedHint={t(locale, 'panel.lms.cohortReportHint')}
-            >
-              <div className="mb-3 flex flex-wrap gap-2">
+            <section className={cn(S.cardShell, 'p-4 sm:p-5')}>
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="m-0 font-ui text-base font-semibold text-ink">
+                    {t(locale, 'panel.lms.cohortReportTitle')}
+                  </h3>
+                  <p className="mb-0 mt-1 max-w-2xl text-sm leading-relaxed text-ink-muted">
+                    {t(locale, 'panel.lms.cohortReportHint')}
+                  </p>
+                </div>
                 <button
                   type="button"
                   className={cn(S.btnBrandSoft, 'min-h-touch')}
@@ -1110,6 +1104,20 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
                     : t(locale, 'panel.lms.cohortReportLoad')}
                 </button>
               </div>
+              {ops ? (
+                <div className={cn(
+                  'mb-4 rounded-control border px-3 py-2.5 text-sm',
+                  ops.overdue > 0
+                    ? 'border-warning/30 bg-warning/[0.06] text-amber-900 dark:text-warning'
+                    : 'border-ink/10 bg-ink/[0.02] text-ink-muted'
+                )}>
+                  {t(locale, 'panel.lms.opsSummary', {
+                    completed: ops.completed,
+                    enrolled: ops.enrolled,
+                    overdue: ops.overdue,
+                  })}
+                </div>
+              ) : null}
               {cohortReportLoading ? (
                 <AppLoading variant="panel" />
               ) : cohortReport?.items?.length ? (
@@ -1159,11 +1167,11 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
                     : t(locale, 'panel.lms.cohortReportIdle')}
                 </InlineCallout>
               )}
-            </CollapsibleBlock>
+            </section>
             ) : null}
 
             {detailSection === 'enrollments' ? (
-            <>
+            <div className={S.stack}>
             <CollapsibleBlock
               locale={locale}
               variant="card"
@@ -1198,13 +1206,13 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
               </label>
             </CollapsibleBlock>
 
-            <CollapsibleBlock
-              locale={locale}
-              variant="card"
-              title={t(locale, 'panel.lms.enrollmentsTitle')}
-              count={enrollments.length}
-              defaultOpen
-            >
+            <section className={cn(S.cardShell, 'p-4 sm:p-5')}>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="m-0 font-ui text-base font-semibold text-ink">
+                  {t(locale, 'panel.lms.enrollmentsTitle')}
+                </h3>
+                <StatusToneChip tone="neutral" bordered={false}>{enrollments.length}</StatusToneChip>
+              </div>
               <div className={cn(S.fieldRow, 'items-end')}>
                 <div className="min-w-[220px] flex-1">
                   <FormField label={t(locale, 'panel.lms.enrollSearchPh')}>
@@ -1343,8 +1351,8 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
                   ) : null}
                 </>
               )}
-            </CollapsibleBlock>
-            </>
+            </section>
+            </div>
             ) : null}
             </ContentEnter>
           </>
@@ -1440,7 +1448,15 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
                   <tbody className="divide-y divide-ink/5">
                     {pageRows.map((c) => (
                       <tr key={c.id} className="hover:bg-canvas-alt/50">
-                        <td className="px-4 py-3 text-sm text-ink">{c.title}</td>
+                        <td className="px-4 py-3 text-sm text-ink">
+                          <button
+                            type="button"
+                            onClick={() => openCourse(c.id)}
+                            className="min-h-touch cursor-pointer rounded-control border-0 bg-transparent p-0 text-left font-medium text-brand-700 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                          >
+                            {c.title}
+                          </button>
+                        </td>
                         <td className="px-4 py-3 font-mono text-prose text-ink-muted">{c.lessonCount}</td>
                         <td className="px-4 py-3 font-mono text-prose text-ink-muted">
                           {c.completedCount}/{c.enrollmentCount}
@@ -1458,10 +1474,6 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
                         </td>
                         <td className="px-4 py-3 text-right">
                           <AdminActionsCell>
-                            <AdminViewButton
-                              onClick={() => openCourse(c.id)}
-                              label={t(locale, 'panel.lms.open')}
-                            />
                             <AdminEditButton
                               onClick={() => editCourse(c)}
                               label={t(locale, 'panel.lms.editCourse')}

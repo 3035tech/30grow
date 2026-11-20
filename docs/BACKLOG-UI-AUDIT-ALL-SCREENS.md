@@ -287,7 +287,7 @@ Cenários mínimos:
 
 **Estado:** melhorada, mas ainda com risco de excesso abaixo da dobra.
 
-**Validado na Onda 9:** Atenção permanece como tarefa primária, contextos secundários usam progressive disclosure e os blocos de dados utilizam `ContentEnter`, métricas semânticas e gráficos leves. Não foi criado um segundo dashboard de BI.
+**Validado na Onda 9 + polish:** filtros agora aparecem antes da fila; Atenção fica acima do checklist de onboarding e começa com cinco itens, com expansão acessível para o restante. Operações, inteligência operacional e recrutamento são contextos exclusivos: abrir um recolhe os outros, inclusive preferências antigas salvas localmente. Os blocos de dados utilizam `ContentEnter`, métricas semânticas e gráficos leves. Não foi criado um segundo dashboard de BI.
 
 Pontos positivos:
 
@@ -298,9 +298,9 @@ Pontos positivos:
 
 Gaps:
 
-- muitos domínios continuam na mesma página;
-- cards secundários podem voltar a competir se todos estiverem abertos;
-- onboarding checklist, atenção, aniversários, inteligência comportamental, operações e recrutamento formam uma página longa;
+- muitos domínios continuam na mesma página, mas os contextos secundários não ficam mais abertos em paralelo;
+- a visão completa ainda é longa quando a pessoa expande a fila e navega pelos demais blocos;
+- onboarding checklist, atenção, aniversários e inteligência comportamental continuam abaixo do primeiro grupo de conteúdo;
 - ausência de personalização por papel pode mostrar informação pouco relevante.
 
 Recomendação:
@@ -315,7 +315,7 @@ Recomendação:
 
 **Prioridade:** P0.
 
-**Onda 3 + polish atual:** cards foram enxugados no viewport operacional, pipeline deixou de usar brand como status, ações administrativas raras migraram para `Mais ações`, seções da ficha persistem na URL e fechamento limpa o contexto. Busca, filtro organizacional, alerta de risco, seleção e ordenação foram agrupados em `TeamRosterControls`; ordenação usa seletor de campo e controle compacto de direção. A ficha é aberta em estado deep-linkável e tela ampla. Extração dos subworkspaces da ficha e revisão visual autenticada dos blocos internos permanecem pendentes.
+**Onda 3 + polish atual:** cards foram enxugados no viewport operacional, pipeline deixou de usar brand como status, ações administrativas raras migraram para `Mais ações`, seções da ficha persistem na URL e fechamento limpa o contexto. Busca, filtro organizacional, alerta de risco, seleção e ordenação foram agrupados em `TeamRosterControls`; ordenação usa seletor de campo e controle compacto de direção. A ficha é aberta em estado deep-linkável e tela ampla. A navegação da ficha agora apresenta Resumo, 1:1, Feedback, Jornada, Estilo, Histórico, Remuneração e DP/Cadastro em uma única faixa, sem a segunda subnavegação dentro de Pessoas. Extração dos subworkspaces da ficha e revisão visual autenticada dos blocos internos permanecem pendentes.
 
 Gaps confirmados:
 
@@ -766,7 +766,7 @@ Proposta:
 
 **Prioridade:** P0.
 
-**Entrega parcial (Onda 4):** detalhe do curso organizado em `Conteúdo`, `Matrículas` e `Acompanhamento`, com estado persistido na URL e retorno ao catálogo. O cadastro único de aula mantém descrição e escolha entre vídeo/link ou PDF. Turmas, avaliação, certificado, preview e drag-and-drop continuam como evolução incremental.
+**Entrega parcial (Onda 4 + polish):** catálogo como entrada; detalhe do curso organizado em `Conteúdo`, `Matrículas` e `Acompanhamento`, com estado persistido na URL e retorno ao catálogo. A descrição do curso fica recolhida dentro de Conteúdo; resumo operacional foi movido para Acompanhamento, cujo relatório abre direto sem painel recolhido duplicado. Em Matrículas, configurações de turma seguem recolhidas e a lista fica aberta sem uma segunda expansão. No catálogo, o título abre o curso e libera espaço nas ações da tabela. O cadastro único de aula mantém descrição e escolha entre vídeo/link ou PDF. Turmas, avaliação, certificado, preview e drag-and-drop continuam como evolução incremental.
 
 Gaps:
 
@@ -810,11 +810,13 @@ Proposta:
 
 **Prioridade:** P1.
 
-Gaps:
+**Estado:** melhoria parcial aplicada no drawer de criação/edição. O formulário agora separa Dados gerais, Perfil público e Acesso e módulos, mantendo salvar/cancelar disponíveis e preservando os dados ao alternar seções. O nome obrigatório recebe indicação semântica e erro localizado junto ao campo.
 
-- listagem, dados, branding e módulos podem coexistir em drawer longo;
+Pendências:
+
+- falta uma rota de detalhe para comparar a empresa e acessar configurações sem reabrir o drawer;
 - super admin precisa comparar empresas, mas configuração é um objeto rico;
-- ações administrativas sensíveis podem ficar próximas de edição comum.
+- usuários, integrações e auditoria ainda não estão organizados como seções de detalhe da empresa.
 
 Proposta:
 
@@ -912,14 +914,14 @@ Proposta:
 
 **Prioridade:** P0/P1.
 
-**Validado na Onda 10:** sidebar já está agrupada por Hoje, Desenvolvimento e Conta; LMS, DP e Ponto possuem rotas dedicadas; o hub possui bloco inicial de tarefas urgentes e badges. Permanecem limites de três itens por seção e validação visual mobile como evolução.
+**Validado na Onda 10 + polish:** sidebar agrupada por Hoje, Desenvolvimento e Conta; LMS, DP e Ponto em rotas dedicadas; hub com resumo e badges. A lista de pendências prioriza itens vencidos e prazos próximos, mostra cinco itens inicialmente e permite expandir/recolher o restante sem perder contagens.
 
 Gaps confirmados:
 
 - conteúdo limitado a `max-w-4xl` e organizado majoritariamente em uma coluna;
-- chegada, PDI, OKR, LMS, feedback, acordos, mural, benefícios e tarefas geram rolagem longa;
-- muitos `CollapsibleBlock` reduzem visualmente, mas não priorizam trabalho;
-- o colaborador precisa procurar o que fazer.
+- chegada, PDI, OKR, feedback, acordos, mural e benefícios ainda dependem de navegação para suas páginas/seções;
+- a lista completa de pendências pode voltar a gerar rolagem quando expandida;
+- validar visualmente a experiência em telas móveis com uma conta que tenha muitos módulos ativos.
 
 Proposta:
 
@@ -927,7 +929,7 @@ Proposta:
 - faixa de atalhos: Ponto, Cursos, PDI, Perfil;
 - duas colunas em desktop: tarefas principais + empresa/comunicação;
 - seções históricas em páginas próprias;
-- mostrar apenas 3 itens por seção e CTA `Ver todos`;
+- limitar a prévia de pendências a cinco itens com expansão explícita;
 - personalizar por pendência, não pela disponibilidade de todos os módulos.
 
 ### B-UIA-602: LMS do colaborador

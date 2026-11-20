@@ -48,6 +48,7 @@ const SECTION_KEYS = [
   'company',
 ];
 const COLLAPSE_STORAGE = 'team30_employee_sections';
+const TASKS_PREVIEW_LIMIT = 5;
 /** Today view keeps only these; every other section opens alone (no long scroll). */
 const TODAY_SECTION_KEYS = ['tasks', 'journey', 'surveys'];
 const DETAIL_SECTION_KEYS = SECTION_KEYS.filter((key) => !TODAY_SECTION_KEYS.includes(key));
@@ -193,6 +194,7 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
   const [prepNote, setPrepNote] = useState('');
   const [loadFailed, setLoadFailed] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [tasksExpanded, setTasksExpanded] = useState(false);
 
   const dismissWelcome = useCallback(() => {
     setWelcomeDismissed(true);
@@ -558,6 +560,19 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
   }
 
   const tasks = data.tasks || [];
+  const prioritizedTasks = tasks
+    .map((task, index) => ({ task, index }))
+    .sort((a, b) => {
+      const overdueDelta = Number(taskIsOverdue(b.task)) - Number(taskIsOverdue(a.task));
+      if (overdueDelta) return overdueDelta;
+      const aDue = String(a.task.dueDate || '9999-12-31').slice(0, 10);
+      const bDue = String(b.task.dueDate || '9999-12-31').slice(0, 10);
+      return aDue.localeCompare(bDue) || a.index - b.index;
+    })
+    .map(({ task }) => task);
+  const visibleTasks = tasksExpanded
+    ? prioritizedTasks
+    : prioritizedTasks.slice(0, TASKS_PREVIEW_LIMIT);
   const journey = data.journey;
   const courses = data.courses || [];
   const plans = data.plans || [];
@@ -719,8 +734,8 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
               />
             </EmpEmpty>
           ) : (
-            <ul className="m-0 flex list-none flex-col gap-2 p-0">
-              {tasks.map((task) => (
+            <ul id="employee-pending-tasks" className="m-0 flex list-none flex-col gap-2 p-0">
+              {visibleTasks.map((task) => (
                 <li key={task.id} className="rounded-control border border-ink/12 bg-canvas/50 px-3 py-2.5">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className={S.cardBody}>{taskLabel(locale, task)}</div>
@@ -774,6 +789,19 @@ export function EmployeeHomeClient({ locale = 'pt-BR' }) {
               ))}
             </ul>
           )}
+          {tasks.length > TASKS_PREVIEW_LIMIT ? (
+            <button
+              type="button"
+              className={cn(S.btnGhost, 'mt-3 min-h-touch')}
+              aria-expanded={tasksExpanded}
+              aria-controls="employee-pending-tasks"
+              onClick={() => setTasksExpanded((expanded) => !expanded)}
+            >
+              {tasksExpanded
+                ? t(locale, 'employeeHome.tasksShowLess')
+                : t(locale, 'employeeHome.tasksShowAll', { count: tasks.length })}
+            </button>
+          ) : null}
         </CollapsibleSection>
         ) : null}
 
