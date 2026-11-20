@@ -43,6 +43,8 @@ function linesFrom(buffer) {
   const body = text.slice(0, -2);
   if (body.includes('\n') || body.includes('\r'))
     fail('The file contains a line ending other than CRLF.');
+  if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(body))
+    fail('The file contains prohibited control characters.');
   const lines = body.split('\r\n');
   if (lines.some((line) => !line.length)) fail('The file contains a blank line.');
   return lines;
@@ -80,6 +82,11 @@ function verifyAfd(lines) {
   const header = records[0];
   if (header.length !== 302 || header.slice(0, 10) !== '0000000001')
     fail('AFD header must be type 1 with exactly 302 characters.');
+  if (!['1', '2'].includes(header[10])) fail('AFD header has an invalid employer document type.');
+  if (!validIsoDate(header.slice(206, 216)) || !validIsoDate(header.slice(216, 226)) || !validDateTime(header.slice(226, 250)))
+    fail('AFD header contains an invalid date or timestamp.');
+  if (header.slice(206, 216) > header.slice(216, 226)) fail('AFD period is inverted.');
+  if (!/^\d{1,17} *$/.test(header.slice(189, 206))) fail('AFD REP-P registration field is malformed.');
   if (header.slice(250, 253) !== '004') fail('Unsupported AFD layout version; expected 004.');
   if (header.slice(-4) !== crc16Kermit(Buffer.from(header.slice(0, -4), 'latin1')))
     fail('AFD header CRC-16/KERMIT is invalid.');
@@ -97,6 +104,10 @@ function verifyAfd(lines) {
     if (!Number.isSafeInteger(nsr) || nsr !== priorNsr + 1)
       fail(`AFD line ${lineNo}: NSR is not sequential.`);
     priorNsr = nsr;
+    if ([2, 3, 5, 6].includes(type) && !validDateTime(record.slice(10, 34)))
+      fail(`AFD line ${lineNo}: invalid record timestamp.`);
+    if (type === 4 && (!validDateTime(record.slice(10, 34)) || !validDateTime(record.slice(34, 58))))
+      fail(`AFD line ${lineNo}: invalid clock-adjustment timestamps.`);
     if (type <= 5 && record.slice(-4) !== crc16Kermit(Buffer.from(record.slice(0, -4), 'latin1')))
       fail(`AFD line ${lineNo}: CRC-16/KERMIT is invalid.`);
     if (type === 5 && !['I', 'A', 'E'].includes(record[34]))
@@ -104,6 +115,8 @@ function verifyAfd(lines) {
     if (type === 6 && !['02', '07', '08'].includes(record.slice(34, 36)))
       fail(`AFD line ${lineNo}: unsupported REP-P service event.`);
     if (type === 7) {
+      if (!validDateTime(record.slice(10, 34)) || !validDateTime(record.slice(46, 70)))
+        fail(`AFD line ${lineNo}: invalid punch or recording timestamp.`);
       if (!['01', '02', '03', '04', '05'].includes(record.slice(70, 72)) || !['0', '1'].includes(record[72]))
         fail(`AFD line ${lineNo}: invalid collector or online status.`);
       const hash = createHash('sha256').update(record.slice(0, 73) + priorHash, 'latin1').digest('hex');
@@ -140,8 +153,6 @@ function verifyAej(lines) {
       fail(`AEJ line ${index + 1}: type ${type} has invalid field count.`);
     if (type === '04' && (fields.length < 7 || (fields.length - 3) % 2 !== 0))
       fail(`AEJ line ${index + 1}: type 04 must have complete time pairs.`);
-    if (fields.some((field) => /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(field)))
-      fail(`AEJ line ${index + 1}: control characters are not allowed.`);
     return { type, fields, line: index + 1 };
   });
   const count = (type) => rows.filter((row) => row.type === type).length;
@@ -162,19 +173,28 @@ function verifyAej(lines) {
     if (!/^\d+$/.test(declared || '') || Number(declared) !== count(String(type).padStart(2, '0')))
       fail(`AEJ trailer count for record ${String(type).padStart(2, '0')} does not match.`);
   }
-  const workers = new Set(rows.filter((row) => row.type === '03').map((row) => row.fields[1]));
-  const reps = new Set(rows.filter((row) => row.type === '02').map((row) => row.fields[1]));
-  const schedules = new Set(rows.filter((row) => row.type === '04').map((row) => row.fields[1]));
+  const workerIds = rows.filter((row) => row.type === '03').map((row) => row.fields[1]);
+  const repIds = rows.filter((row) => row.type === '02').map((row) => row.fields[1]);
+  const scheduleCodes = rows.filter((row) => row.type === '04').map((row) => row.fields[1]);
+  if (new Set(workerIds).size !== workerIds.length || new Set(repIds).size !== repIds.length || new Set(scheduleCodes).size !== scheduleCodes.length)
+    fail('AEJ contains duplicate worker, REP, or schedule identifiers.');
+  const workers = new Set(workerIds);
+  const reps = new Set(repIds);
+  const schedules = new Set(scheduleCodes);
   for (const row of rows) {
     const [, workerId, dateTime, repId, kind, pair, source, scheduleCode, reason] = row.fields;
     if (row.type === '03' && (!/^\d{1,9}$/.test(workerId) || !/^\d{11}$/.test(row.fields[2])))
       fail(`AEJ line ${row.line}: invalid worker identifier or CPF.`);
-    if (row.type === '02' && (!/^\d{1,9}$/.test(row.fields[1]) || !['1', '2', '3'].includes(row.fields[2]) || !/^\d{1,17}$/.test(row.fields[3])))
+    if (row.type === '03' && (!row.fields[3] || row.fields[3].length > 150))
+      fail(`AEJ line ${row.line}: invalid worker name.`);
+    if (row.type === '02' && (!/^\d{1,9}$/.test(row.fields[1]) || row.fields[2] !== '3' || !/^\d{1,17}$/.test(row.fields[3])))
       fail(`AEJ line ${row.line}: invalid REP identifier, type, or INPI number.`);
     if (row.type === '04') {
-      if (!/^\d{1,30}$/.test(row.fields[1]) || !/^\d{1,12}$/.test(row.fields[2]))
+      if (!row.fields[1] || row.fields[1].length > 30 || !/^\d{1,12}$/.test(row.fields[2]) || Number(row.fields[2]) < 1)
         fail(`AEJ line ${row.line}: invalid schedule code or duration.`);
-      if (row.fields.slice(3).some((time) => time && !/^(?:[01]\d|2[0-3])[0-5]\d$/.test(time)))
+      const times = row.fields.slice(3);
+      const incompletePair = times.some((time, index) => index % 2 === 0 && Boolean(time) !== Boolean(times[index + 1]));
+      if (!times[0] || !times[1] || incompletePair || times.some((time) => time && !/^(?:[01]\d|2[0-3])[0-5]\d$/.test(time)))
         fail(`AEJ line ${row.line}: invalid contractual time.`);
     }
     if (row.type === '05') {
@@ -182,8 +202,9 @@ function verifyAej(lines) {
       if (!validDateTime(dateTime))
         fail(`AEJ line ${row.line}: invalid timestamp.`);
       if (repId && !reps.has(repId)) fail(`AEJ line ${row.line}: unknown REP reference.`);
-      if (!['E', 'S', 'D'].includes(kind) || !/^\d{3}$/.test(pair)) fail(`AEJ line ${row.line}: invalid marking type or pair sequence.`);
+      if (!['E', 'S', 'D'].includes(kind) || !/^(?!000)\d{3}$/.test(pair)) fail(`AEJ line ${row.line}: invalid marking type or pair sequence.`);
       if (!['O', 'I', 'P', 'X', 'T', ''].includes(source)) fail(`AEJ line ${row.line}: invalid marking source.`);
+      if (source === 'O' && !repId) fail(`AEJ line ${row.line}: original marking requires a REP reference.`);
       if (kind === 'D' && !reason) fail(`AEJ line ${row.line}: discarded marking requires a reason.`);
       if (source === 'I' && !reason) fail(`AEJ line ${row.line}: included marking requires a reason.`);
       if (kind === 'E' && pair === '001' && (!scheduleCode || !schedules.has(scheduleCode)))
