@@ -81,6 +81,7 @@ const VACANCY_DETAIL_SECTIONS = Object.freeze([
   'distribution',
   'settings',
 ]);
+const VACANCY_CANDIDATE_SECTIONS = Object.freeze(['list', 'invites', 'rubric', 'ranking']);
 
 function VacancyMetaItem({ label, value, warning = false }) {
   return (
@@ -163,6 +164,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
   const [detailSection, setDetailSection] = useState(() =>
     normalizeVacancyDetailSection(urlParams.get('vacancySection'))
   );
+  const [candidateSection, setCandidateSection] = useState('list');
 
   const vacancyDetailId = String(urlParams.get('vacancyDetail') || '').trim();
   const isDetailView = Boolean(vacancyDetailId);
@@ -474,6 +476,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
       setDetailVacancy(null);
       return;
     }
+    setCandidateSection('list');
     loadVacancyDetail(vacancyDetailId);
   }, [vacancyDetailId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1258,66 +1261,63 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
               ) : null}
 
               {detailSection === 'candidates' ? (
-                <div className="space-y-4">
-                  <div className="rounded-control border border-brand-500/20 bg-brand-500/[0.045] px-4 py-3">
-                    <h3 className="m-0 font-ui text-sm font-semibold text-ink">
-                      {i18nT(locale, 'ui.vacanciesAdminTab.candidateIntake')}
-                    </h3>
-                    <p className="mb-0 mt-1 text-prose leading-[1.5] text-ink-muted">
-                      {i18nT(locale, 'ui.vacanciesAdminTab.registerInterviewDetailsFirstThen')}
-                    </p>
-                  </div>
-                  <VacancyInterviewCandidates
-                    vacancyId={v.id}
-                    locale={locale}
-                    onPipelineChange={() => {
-                      setInvitesRefresh((x) => x + 1);
-                      setPipelineRefresh((x) => x + 1);
+                <div>
+                  <PanelSubNav
+                    ariaLabel={t(locale, 'recruiting.candidateWorkspaceTabsAria')}
+                    active={candidateSection}
+                    onChange={(id) => {
+                      if (VACANCY_CANDIDATE_SECTIONS.includes(id)) setCandidateSection(id);
                     }}
+                    className="mb-4 mt-4"
+                    tabs={[
+                      { id: 'list', label: t(locale, 'recruiting.candidateWorkspaceList'), tabId: 'vacancy-candidate-tab-list', panelId: 'vacancy-candidate-panel-list' },
+                      { id: 'invites', label: t(locale, 'recruiting.candidateWorkspaceInvites'), tabId: 'vacancy-candidate-tab-invites', panelId: 'vacancy-candidate-panel-invites' },
+                      { id: 'rubric', label: t(locale, 'recruiting.candidateWorkspaceRubric'), tabId: 'vacancy-candidate-tab-rubric', panelId: 'vacancy-candidate-panel-rubric' },
+                      { id: 'ranking', label: t(locale, 'recruiting.candidateWorkspaceRanking'), tabId: 'vacancy-candidate-tab-ranking', panelId: 'vacancy-candidate-panel-ranking' },
+                    ]}
                   />
-                  <VacancyInviteByEmail
-                    vacancyId={v.id}
-                    locale={locale}
-                    onSent={() => {
-                      setInvitesRefresh((x) => x + 1);
-                      setPipelineRefresh((x) => x + 1);
-                    }}
-                  />
-                  <div className="grid gap-4 xl:grid-cols-2">
-                    <section className="flex flex-col">
-                      <h3 className="mb-2 font-ui text-sm font-semibold text-ink">
-                        {t(locale, 'recruiting.inviteListTitle')}
-                      </h3>
-                      <VacancyInvitesBlock vacancyId={v.id} locale={locale} refreshKey={invitesRefresh} />
-                    </section>
-                    <section className="flex flex-col">
-                      <h3 className="mb-2 font-ui text-sm font-semibold text-ink">
-                        {i18nT(locale, 'ui.vacanciesAdminTab.nextStep')}
-                      </h3>
-                      <div className="flex-1 rounded-control border border-ink/10 bg-ink/[0.02] p-4">
-                        <p className="m-0 text-prose leading-[1.55] text-ink-muted">
-                          {i18nT(locale, 'ui.vacanciesAdminTab.useThePipelineTabTo')}
-                        </p>
+                  <section id={`vacancy-candidate-panel-${candidateSection}`} role="tabpanel" tabIndex={0} aria-labelledby={`vacancy-candidate-tab-${candidateSection}`} className="min-w-0">
+                    {candidateSection === 'list' ? (
+                      <VacancyInterviewCandidates
+                        vacancyId={v.id}
+                        locale={locale}
+                        onPipelineChange={() => {
+                          setInvitesRefresh((x) => x + 1);
+                          setPipelineRefresh((x) => x + 1);
+                        }}
+                      />
+                    ) : null}
+                    {candidateSection === 'invites' ? (
+                      <div className="space-y-5">
+                        <VacancyInviteByEmail
+                          vacancyId={v.id}
+                          locale={locale}
+                          onSent={() => {
+                            setInvitesRefresh((x) => x + 1);
+                            setPipelineRefresh((x) => x + 1);
+                          }}
+                        />
+                        <section aria-labelledby="vacancy-tracked-invites-title">
+                          <h3 id="vacancy-tracked-invites-title" className="mb-2 font-ui text-sm font-semibold text-ink">
+                            {t(locale, 'recruiting.inviteListTitle')}
+                          </h3>
+                          <VacancyInvitesBlock vacancyId={v.id} locale={locale} refreshKey={invitesRefresh} />
+                        </section>
                       </div>
-                    </section>
-                  </div>
-                  <CollapsibleBlock
-                    locale={locale}
-                    title={t(locale, 'recruiting.detailTabFit')}
-                    defaultOpen={false}
-                    className="mt-4"
-                  >
-                    <VacancyRubricEditor
-                      vacancyId={v.id}
-                      locale={locale}
-                      vacancyTitle={v.title || ''}
-                      vacancyDescription={v.description || ''}
-                      onSaved={() => setPipelineRefresh((x) => x + 1)}
-                    />
-                    <div className="mt-4">
+                    ) : null}
+                    {candidateSection === 'rubric' ? (
+                      <VacancyRubricEditor
+                        vacancyId={v.id}
+                        locale={locale}
+                        vacancyTitle={v.title || ''}
+                        vacancyDescription={v.description || ''}
+                        onSaved={() => setPipelineRefresh((x) => x + 1)}
+                      />
+                    ) : null}
+                    {candidateSection === 'ranking' ? (
                       <VacancyFitRankingBlock vacancyId={v.id} locale={locale} refreshKey={pipelineRefresh} />
-                    </div>
-                  </CollapsibleBlock>
+                    ) : null}
+                  </section>
                 </div>
               ) : null}
 
