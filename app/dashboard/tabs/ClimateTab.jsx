@@ -945,16 +945,6 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, initialVi
         </label>
       ) : null}
 
-      <PanelSubNav
-        ariaLabel={t(locale, 'panel.nr1.viewTabsAria')}
-        active={view}
-        onChange={selectView}
-        tabs={[
-          { id: 'surveys', label: t(locale, 'panel.nr1.viewSurveys') },
-          { id: 'nr1', label: t(locale, 'panel.nr1.viewRisks') },
-        ]}
-      />
-
       {view === 'nr1' ? (
         <PsychosocialRisksBlock
           locale={locale}

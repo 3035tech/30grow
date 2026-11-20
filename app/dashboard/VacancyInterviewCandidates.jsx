@@ -23,6 +23,7 @@ import { VacancyFitDecisionStrip } from './vacancies/VacancyFitDecisionStrip';
 import { CandidateCvBlock } from '../_components/CandidateCvBlock';
 import { CandidateCvFirstImport } from '../_components/CandidateCvFirstImport';
 import { FormField, formFieldGrowClass, formFieldRowClass } from '../_components/FormField';
+import { AdminRichFormDrawer } from '../_components/AdminRichFormDrawer';
 import { VacancyInterviewSlotsBlock } from '../_components/VacancyInterviewSlotsBlock';
 import { DisclosureToggle, disclosureToggleButtonClass } from '../_components/CollapsibleBlock';
 import { OFFER_STATUS } from '../../lib/domain-status';
@@ -705,7 +706,7 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
   const [sendEnneagramInvite, setSendEnneagramInvite] = useState(false);
   const [sendMotivatorsInvite, setSendMotivatorsInvite] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [createMsg, setCreateMsg] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [batchBusy, setBatchBusy] = useState(false);
 
@@ -793,9 +794,16 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
   };
 
   const create = async () => {
+    if (!name.trim()) {
+      setErr(t(locale, 'formValidation.requiredField', { field: t(locale, 'recruiting.fullNamePh') }));
+      return;
+    }
+    if (!email.trim()) {
+      setErr(t(locale, 'formValidation.requiredField', { field: t(locale, 'recruiting.inviteCandidateEmailPh') }));
+      return;
+    }
     setCreating(true);
     setErr('');
-    setCreateMsg('');
     try {
       if (phone && !isValidPhoneBr(phone)) throw new Error(t(locale, 'formValidation.phone'));
       if (linkedinUrl && !isValidWebUrl(linkedinUrl)) throw new Error(t(locale, 'formValidation.url'));
@@ -861,7 +869,8 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
       setCreateNotes('');
       setSendEnneagramInvite(false);
       setSendMotivatorsInvite(false);
-      setCreateMsg(t(locale, 'recruiting.candidateRegistered'));
+      setCreateOpen(false);
+      toast(t(locale, 'recruiting.candidateRegistered'), 'ok');
       await load();
       if (invitesFailed) {
         await notice({
@@ -871,7 +880,6 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
         });
       }
       if (enneagramSent) onPipelineChange?.();
-      setTimeout(() => setCreateMsg(''), 3000);
     } catch (e) {
       setErr(e?.message || t(locale, 'panel.common.error'));
     } finally {
@@ -886,15 +894,35 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
         {t(locale, 'recruiting.interviewCandidatesIntro')}
       </p>
 
-      <div
-        className="mb-3.5 rounded-xl border border-brand-500/20 bg-brand-500/[0.03] p-3.5"
+      <div className="mb-4 flex justify-end">
+        <button type="button" onClick={() => { setErr(''); setCreateOpen(true); }} className={cn(S.btnPrimary, 'min-h-touch')}>
+          {t(locale, 'recruiting.registerCandidate')}
+        </button>
+      </div>
+
+      <AdminRichFormDrawer
+        open={createOpen}
+        title={t(locale, 'recruiting.newCandidate')}
+        locale={locale}
+        onClose={() => setCreateOpen(false)}
+        busy={creating}
+        maxWidth="1040px"
+        footer={<div className="flex flex-wrap justify-end gap-2">
+          <button type="button" className={S.btnGhost} disabled={creating} onClick={() => setCreateOpen(false)}>
+            {t(locale, 'panel.common.cancel')}
+          </button>
+          <button type="button" onClick={create} disabled={creating} className={S.btnPrimary}>
+            {creating ? t(locale, 'recruiting.registeringCandidate') : t(locale, 'recruiting.registerCandidate')}
+          </button>
+        </div>}
       >
-        <span
-          className="block mb-2.5 text-2xs font-mono text-brand-500 uppercase tracking-[0.6px]"
-        >
-          {t(locale, 'recruiting.newCandidate')}
-        </span>
-        <CandidateCvFirstImport vacancyId={vacancyId} locale={locale} onCreated={load} />
+      <div className="space-y-4">
+        <CandidateCvFirstImport
+          vacancyId={vacancyId}
+          locale={locale}
+          onCreated={() => { setCreateOpen(false); load(); }}
+        />
+        {err ? <p role="alert" className="m-0 rounded-control border border-danger/25 bg-danger/[0.04] px-3 py-2 text-sm text-danger">{err}</p> : null}
         <div className="mb-4 flex items-center gap-3">
           <span className="h-px flex-1 bg-ink/10" aria-hidden="true" />
           <span className="text-xs font-medium text-ink-muted">{t(locale, 'recruiting.cvCreateManualDivider')}</span>
@@ -904,10 +932,11 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
           <FormField label={t(locale, 'recruiting.fullNamePh')} className="min-w-0">
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => { setName(e.target.value); setErr(''); }}
               onBlur={() => setName(titleCasePersonName(name))}
               placeholder={t(locale, 'recruiting.fullNamePh')}
               aria-label={t(locale, 'recruiting.fullNamePh')}
+              required
               className={FIELD}
             />
           </FormField>
@@ -915,9 +944,10 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setErr(''); }}
               placeholder={t(locale, 'recruiting.inviteCandidateEmailPh')}
               aria-label={t(locale, 'recruiting.inviteCandidateEmailPh')}
+              required
               className={FIELD}
             />
           </FormField>
@@ -1042,27 +1072,8 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
             {t(locale, 'recruiting.createInvitesHint')}
           </p>
         </div>
-        <div className="mt-2.5">
-          <button
-            type="button"
-            onClick={create}
-            disabled={creating || !name.trim() || !email.trim()}
-            className={cn(
-              'min-h-touch cursor-pointer rounded-control border border-brand-500/35 bg-brand-500/[0.09] px-4 py-[9px] font-mono text-prose text-brand-500',
-              (creating || !name.trim() || !email.trim()) && 'opacity-55'
-            )}
-          >
-            {creating
-              ? t(locale, 'recruiting.registeringCandidate')
-              : t(locale, 'recruiting.registerCandidate')}
-          </button>
-        </div>
-        {createMsg ? (
-          <p className="mb-0 mt-2 font-mono text-2xs text-success">
-            {createMsg}
-          </p>
-        ) : null}
       </div>
+      </AdminRichFormDrawer>
 
       {err ? (
         <p className="mb-2.5 text-xs font-mono text-danger">{err}</p>

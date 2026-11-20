@@ -23,7 +23,6 @@ import {
   AdminListPager,
   AdminListSearch,
   AdminPageHeader,
-  PanelSubNav,
   AdminTableShell,
   AdminTh,
   S,
@@ -449,21 +448,6 @@ export function DpAdminTab({ locale = 'pt-BR', companyId, navigateDashboard, ini
 
   return (
     <div className="flex flex-col gap-6">
-      <PanelSubNav
-        ariaLabel={t(locale, 'panel.dp.workspaceTabsAria')}
-        active={workspaceSection}
-        onChange={selectWorkspaceSection}
-        tabs={[
-          // The summary mixes requests and people; omit an aggregate badge with no single unit.
-          { id: 'pending', label: t(locale, 'panel.dp.workspacePending') },
-          { id: 'leaves', label: t(locale, 'panel.dp.workspaceLeaves') },
-          { id: 'documents', label: t(locale, 'panel.dp.workspaceDocuments'), badge: pendingDocsPeople || undefined },
-          { id: 'time', label: t(locale, 'panel.dp.workspaceTime'), badge: pendingTimeRequests || undefined },
-          { id: 'field', label: t(locale, 'panel.field.workspaceTab'), badge: pendingFieldExpenses || undefined },
-          { id: 'onboarding', label: t(locale, 'panel.dp.workspaceOnboarding') },
-        ]}
-      />
-
       <AdminPageHeader
         title={t(locale, workspaceHeading[0])}
         subtitle={workspaceHeading[1] ? t(locale, workspaceHeading[1]) : undefined}

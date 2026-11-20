@@ -9,7 +9,7 @@ import { t, localeHtmlLang } from '../../../lib/i18n';
 import { ERR } from '../../../lib/api-error-codes';
 import { motivatorDimensionLabel } from '../../../lib/ae/motivators-dimensions';
 import { C } from '../../../lib/theme';
-import { Bar, PanelSubNav, S, SortableTh, AdminListPager, AdminListSearch, AdminTableShell, AdminActionsCell, AdminActionsTh, AdminIconButton, AdminPageHeader, AdminCreateButton, AdminViewButton, AdminDeleteButton, clientSortNextDir } from '../dashboard-shared';
+import { Bar, S, SortableTh, AdminListPager, AdminListSearch, AdminTableShell, AdminActionsCell, AdminActionsTh, AdminIconButton, AdminPageHeader, AdminCreateButton, AdminViewButton, AdminDeleteButton, clientSortNextDir } from '../dashboard-shared';
 import { PAGE_SIZE_OPTIONS } from '../../../lib/assessment/assessment-filters';
 import { SystemNoticeModal } from '../SystemNoticeModal';
 import { useAppFeedback } from '../../_components/AppFeedback';
@@ -1107,7 +1107,6 @@ export default function MotivatorsAdminTab({ isAdmin, companies = [], locale, na
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   };
 
-  const visibleViews = getViews(locale);
   const inviteBusy = Boolean(inviteActions?.busy);
 
   return (
@@ -1165,13 +1164,6 @@ export default function MotivatorsAdminTab({ isAdmin, companies = [], locale, na
           ) : null}
         </div>
       ) : null}
-
-      <PanelSubNav
-        ariaLabel={t(locale, 'panel.motivatorsAdmin.tabsAria')}
-        active={view}
-        onChange={setView}
-        tabs={visibleViews.map((v) => ({ id: v.id, label: v.label }))}
-      />
 
       <ContentEnter animKey={view}>
         {view === 'dashboard' ? <AnalyticsPanel locale={locale} isAdmin={isAdmin} companyFilter={companyFilter} /> : null}
