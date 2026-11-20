@@ -361,6 +361,7 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
     document.getElementById(`rep-config-tab-${next}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   };
   const workerStepReady = state?.unregisteredWorkers === 0 && state?.incompleteWorkerProfiles === 0;
+  const certificateStatus = state?.signingConfigured ? state.certificateStatus : 'missing';
   const setupSteps = state ? [
     {
       id: 'establishment',
@@ -409,7 +410,7 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
     {
       id: 'certificate',
       title: t(locale, 'rep.certificate'),
-      ready: state.certificateStatus === 'validated',
+      ready: certificateStatus === 'validated',
       detail: t(locale, {
         validated: 'rep.certificateValidatedHelp',
         expired: 'rep.certificateExpiredHelp',
@@ -417,7 +418,7 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
         unavailable: 'rep.certificateUnavailableHelp',
         unvalidated: 'rep.certificateValidationRequiredHelp',
         missing: 'rep.certificatePendingHelp',
-      }[state.certificateStatus] || 'rep.certificatePendingHelp'),
+      }[certificateStatus] || 'rep.certificatePendingHelp'),
       statusLabel: t(locale, {
         validated: 'rep.certificateValidated',
         expired: 'rep.certificateExpired',
@@ -425,8 +426,8 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
         unavailable: 'rep.certificateUnavailable',
         unvalidated: 'rep.certificateValidationRequired',
         missing: 'rep.stepPending',
-      }[state.certificateStatus] || 'rep.stepPending'),
-      statusTone: state.certificateStatus === 'validated' ? 'success' : state.certificateStatus === 'unavailable' || state.certificateStatus === 'expired' ? 'danger' : 'warning',
+      }[certificateStatus] || 'rep.stepPending'),
+      statusTone: certificateStatus === 'validated' ? 'success' : certificateStatus === 'unavailable' || certificateStatus === 'expired' ? 'danger' : 'warning',
       action: null,
     },
   ] : [];
