@@ -270,7 +270,7 @@ describe('module hardening', () => {
     for (const section of ['pending', 'leaves', 'documents', 'time', 'onboarding']) {
       assert.match(dp, new RegExp(`'${section}'`));
     }
-    assert.match(dp, /<PanelSubNav/);
+    assert.doesNotMatch(dp, /<PanelSubNav/);
     assert.match(dp, /<StatMetricTile/);
     assert.doesNotMatch(dp, /firstPendingDocCandidateId/);
     assert.match(compensation, /workspaceSection === 'people'/);
