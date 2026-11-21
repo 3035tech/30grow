@@ -121,7 +121,7 @@ export function SidebarNavItem({ item, collapsed = false }) {
     );
   }
   const className = cn(
-    'relative mb-0.5 flex min-h-touch w-full cursor-pointer items-center gap-2.5 rounded-control border-none py-2 pl-3 pr-3 text-left font-ui text-sm font-medium no-underline transition-colors',
+    'relative mb-0.5 flex min-h-[44px] w-full cursor-pointer items-center gap-3 rounded-control border-none py-2 pl-3 pr-3 text-left font-ui text-[15px] font-medium no-underline transition-colors',
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500 disabled:cursor-default disabled:opacity-55',
     active
       ? 'bg-brand-50 text-brand-800'
@@ -132,7 +132,7 @@ export function SidebarNavItem({ item, collapsed = false }) {
   const content = (
     <>
       {active ? <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-brand-700" aria-hidden /> : null}
-      <Icon name={icon} className="h-4 w-4 shrink-0" />
+      <Icon name={icon} className="h-[18px] w-[18px] shrink-0" />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <ItemBadge badge={badge} />
     </>
@@ -170,15 +170,15 @@ function NavGroup({ group, open, onToggle, locale, collapsed, isActiveGroup }) {
     );
   }
   return (
-    <div className="mb-1">
+    <div className="mb-3">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         aria-controls={listId}
-        className="group sticky top-0 z-[1] flex min-h-touch w-full cursor-pointer items-center justify-between gap-2 rounded-control border-0 bg-surface pl-3 pr-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500"
+        className="group sticky top-0 z-[1] flex min-h-[40px] w-full cursor-pointer items-center justify-between gap-2 rounded-control border-0 bg-surface px-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500"
       >
-        <span className={cn('min-w-0 truncate text-2xs font-semibold uppercase tracking-wide', isActiveGroup ? 'text-ink' : 'text-ink-label')}>
+        <span className={cn('min-w-0 truncate text-[13px] font-medium tracking-normal', isActiveGroup ? 'text-ink' : 'text-ink-label')}>
           {group.label}
           {!open ? <span className="font-normal normal-case tracking-normal text-ink-faint"> · {group.items.length}</span> : null}
         </span>
@@ -215,7 +215,7 @@ function SidebarNavTreeItem({ item, locale }) {
           <button
             type="button"
             className={cn(
-              'relative mb-0.5 flex min-h-touch min-w-0 flex-1 items-center gap-2.5 rounded-control border-none py-2 pl-3 pr-2 text-left font-ui text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
+              'relative mb-0.5 flex min-h-[44px] min-w-0 flex-1 items-center gap-3 rounded-control border-none py-2 pl-3 pr-2 text-left font-ui text-[15px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
               active ? 'bg-brand-50 text-brand-800' : 'text-ink-muted hover:bg-ink/[0.04] hover:text-ink'
             )}
             aria-expanded={open}
@@ -223,7 +223,7 @@ function SidebarNavTreeItem({ item, locale }) {
             onClick={() => { if (!hasActiveChild) setManuallyOpen((value) => !value); }}
           >
             {active ? <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-brand-700" aria-hidden /> : null}
-            <Icon name={item.icon} className="h-4 w-4 shrink-0" />
+            <Icon name={item.icon} className="h-[18px] w-[18px] shrink-0" />
             <span className="min-w-0 flex-1 truncate">{item.label}</span>
             <DisclosureToggle locale={locale} open={open} />
           </button>
