@@ -23,7 +23,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
   const [assigning, setAssigning] = useState(false);
   const [assignmentError, setAssignmentError] = useState('');
   const [saved, setSaved] = useState(false);
-  const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: () => { onClose(); onPersonClick?.(row.candidateId); } });
+  const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: () => { onClose(); onPersonClick?.(row.candidateId, 'journey'); } });
   const openPersonSection = (section) => { onClose(); onPersonClick?.(row.candidateId, section); };
   const stageLabel = (key) => stages.find((stage) => stage.id === key)?.label || key || '—';
   const days = daysInStage(row.stageEnteredAt || row.createdAt);
@@ -58,7 +58,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
       maxWidth="760px" eyebrow={t(locale, 'recruiting.candidateDialogEyebrow')}
       headerMeta={<><span>{data?.vacancyTitle}</span><span className="rounded-full bg-brand-500/10 px-2 py-1 text-sm text-brand-600">{stageLabel(row.pipelineStage || 'new')}</span></>}
       footer={<>
-        {canAdmitCandidate && data?.employmentStatus === 'candidate' ? <button type="button" className={dialogBtnGhostClass} disabled={Boolean(admissionBusyId)} onClick={() => admit(row.candidateId)}>{t(locale,'employeeAdmission.action')}</button> : null}
+        {canAdmitCandidate && data?.employmentStatus === 'candidate' ? <button type="button" className={dialogBtnGhostClass} disabled={Boolean(admissionBusyId)} onClick={() => admit(row.candidateId, vacancyId)}>{t(locale,'employeeAdmission.action')}</button> : null}
         <button type="button" className={dialogBtnGhostClass} onClick={onClose}>{t(locale, 'panel.common.close')}</button>
         {onPersonClick ? <button type="button" className={dialogBtnGhostClass} onClick={() => openPersonSection()}>{t(locale, 'recruiting.candidateDialogFullProfile')}</button> : null}
       </>}

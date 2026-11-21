@@ -19,12 +19,31 @@ const TASK_TABS = Object.freeze({
   create_climate: 'climate',
   view_analytics: 'analytics',
   invite_manager: 'users',
+  setup_job_role: 'job-roles',
+  setup_lms_course: 'lms',
+  setup_benefits: 'company-benefits',
+  setup_performance: 'performance-reviews',
+  setup_succession: 'succession',
+  setup_company_feed: 'company-feed',
+  setup_whistleblowing: 'whistleblowing',
 });
 
-export function OnboardingChecklist({ locale = 'pt-BR', initialProgress, initialTasks, canOpenTab = null }) {
+function dismissedStorageKey(companyId) {
+  return `team30_onboarding_dismissed:${companyId || 'default'}`;
+}
+
+function readDismissed(companyId) {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(dismissedStorageKey(companyId)) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function OnboardingChecklist({ locale = 'pt-BR', companyId = null, initialProgress, initialTasks, canOpenTab = null }) {
   const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('team30_onboarding_dismissed') === 'true';
+    return readDismissed(companyId);
   });
   const router = useRouter();
 
@@ -43,17 +62,31 @@ export function OnboardingChecklist({ locale = 'pt-BR', initialProgress, initial
 
   const completedCount = tasks.filter((task) => task.completed).length;
   const totalCount = tasks.length;
+  const taskGroups = tasks.reduce((groups, task) => {
+    const moduleId = task.moduleId || 'core';
+    const group = groups.get(moduleId) || [];
+    group.push(task);
+    groups.set(moduleId, group);
+    return groups;
+  }, new Map());
 
   const handleTaskClick = (taskId) => {
     const tab = TASK_TABS[taskId];
     if (!tab) return;
-    router.push(taskId === 'create_vacancy' ? `/dashboard?tab=${tab}&create=1` : `/dashboard?tab=${tab}`);
+    const params = new URLSearchParams({ tab });
+    if (companyId) params.set('company', String(companyId));
+    if (taskId === 'create_vacancy') params.set('create', '1');
+    router.push(`/dashboard?${params.toString()}`);
   };
 
   const handleDismiss = () => {
     setDismissed(true);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('team30_onboarding_dismissed', 'true');
+      try {
+        localStorage.setItem(dismissedStorageKey(companyId), 'true');
+      } catch {
+        /* checklist can still be dismissed for this visit */
+      }
     }
   };
 
@@ -109,46 +142,69 @@ export function OnboardingChecklist({ locale = 'pt-BR', initialProgress, initial
         defaultOpen
         variant="plain"
       >
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <button
-                type="button"
-                onClick={() => !task.completed && handleTaskClick(task.id)}
-                disabled={task.completed}
-                className={cn(
-                  'flex w-full min-h-touch items-start gap-3 rounded-control border px-3 py-2.5 text-left transition-colors',
-                  task.completed
-                    ? 'cursor-default border-success/25 bg-success/[0.06]'
-                    : 'cursor-pointer border-ink/12 bg-surface hover:border-brand-500/35'
-                )}
-              >
-                <span
-                  className={cn(
-                    'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2',
-                    task.completed
-                      ? 'border-success bg-success text-white'
-                      : 'border-ink/25 bg-transparent'
-                  )}
-                  aria-hidden
-                >
-                  {task.completed ? '✓' : null}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span
-                    className={cn(
-                      'block font-ui text-sm',
-                      task.completed ? 'text-ink-muted line-through' : 'font-medium text-ink'
-                    )}
-                  >
-                    {taskTitle(task)}
+        <div className="flex flex-col gap-4">
+          {[...taskGroups.entries()].map(([moduleId, moduleTasks]) => {
+            const nextTaskId = moduleTasks.find((task) => !task.completed)?.id;
+            return (
+              <section key={moduleId} aria-label={t(locale, `onboarding.modules.item.${moduleId}.title`)}>
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h4 className={cn(S.cardSection, 'm-0')}>{t(locale, `onboarding.modules.item.${moduleId}.title`)}</h4>
+                  <span className={S.cardFaint}>
+                    {t(locale, 'panel.firstSteps.progress', {
+                      done: moduleTasks.filter((task) => task.completed).length,
+                      total: moduleTasks.length,
+                    })}
                   </span>
-                  <span className={cn(S.cardMuted, 'mt-0.5 block')}>{taskDesc(task)}</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+                </div>
+                <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                  {moduleTasks.map((task) => (
+                    <li key={task.id}>
+                      <button
+                        type="button"
+                        onClick={() => !task.completed && handleTaskClick(task.id)}
+                        disabled={task.completed}
+                        className={cn(
+                          'flex w-full min-h-touch items-start gap-3 rounded-control border px-3 py-2.5 text-left transition-colors',
+                          task.completed
+                            ? 'cursor-default border-success/25 bg-success/[0.06]'
+                            : 'cursor-pointer border-ink/12 bg-surface hover:border-brand-500/35'
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2',
+                            task.completed
+                              ? 'border-success bg-success text-white'
+                              : 'border-ink/25 bg-transparent'
+                          )}
+                          aria-hidden
+                        >
+                          {task.completed ? '✓' : null}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className={cn(
+                              'block font-ui text-sm',
+                              task.completed ? 'text-ink-muted line-through' : 'font-medium text-ink'
+                            )}
+                          >
+                            {taskTitle(task)}
+                          </span>
+                          <span className={cn(S.cardMuted, 'mt-0.5 block')}>{taskDesc(task)}</span>
+                        </span>
+                        {!task.completed ? (
+                          <span className="shrink-0 self-center font-ui text-xs font-semibold text-brand-600">
+                            {t(locale, task.id === nextTaskId ? 'panel.firstSteps.nextAction' : 'panel.firstSteps.openNextAction')}
+                          </span>
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
         {progress < 100 ? (
           <p className={cn(S.cardFaint, 'mb-0 mt-3 text-center')}>
             {t(locale, 'panel.firstSteps.footerHint')}

@@ -603,7 +603,7 @@ export function TeamTab({
   }, [loadDetail]);
   const { admit, busyId: admissionBusyId } = useEmployeeAdmission({ locale, onAdmitted: async result => {
     await loadDetail(result.candidateId);
-    navigateDashboard?.({ tab:'team',candidate:result.candidateId,roster:ROSTER_SCOPE.INTERNAL,section:'summary',returnTab:null,search:null });
+    navigateDashboard?.({ tab:'team',candidate:result.candidateId,roster:ROSTER_SCOPE.INTERNAL,section:'journey',returnTab:null,search:null });
     router.refresh();
   } });
   const [accessInviteBusy, setAccessInviteBusy] = useState(false);
@@ -1574,15 +1574,26 @@ export function TeamTab({
                         />
                       ) : null}
                       {visiblePersonSection === 'journey' ? (
-                        <PeopleManagementPanel
-                          companyId={detail.candidate.companyId}
-                          locale={locale}
-                          candidateId={detail.candidate.id}
-                          people={detail.people}
-                          employmentStatus={detail.candidate.employmentStatus}
-                          onRefresh={reloadDetailSilently}
-                          section="journey"
-                        />
+                        <div className="space-y-4">
+                          <section className="rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">
+                            <span className={cn(S.label, 'mb-2 block text-center')}>{t(locale, 'recruiting.timelineTitle')}</span>
+                            <CandidateTimeline
+                              locale={locale}
+                              loading={detailLoading}
+                              events={detail?.timeline || []}
+                              currentStage={getEffectiveStage(openRow)}
+                            />
+                          </section>
+                          <PeopleManagementPanel
+                            companyId={detail.candidate.companyId}
+                            locale={locale}
+                            candidateId={detail.candidate.id}
+                            people={detail.people}
+                            employmentStatus={detail.candidate.employmentStatus}
+                            onRefresh={reloadDetailSilently}
+                            section="journey"
+                          />
+                        </div>
                       ) : null}
                       {visiblePersonSection === 'compensation' ? (
                         <>
@@ -1632,16 +1643,6 @@ export function TeamTab({
             ) : null}
             {visiblePersonSection === 'history' ? (
               <ContentEnter animKey="history">
-                <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">
-                  <span className={cn(S.label, 'mb-2 block text-center')}>{t(locale, 'recruiting.timelineTitle')}</span>
-                  <CandidateTimeline
-                    locale={locale}
-                    loading={detailLoading}
-                    events={detail?.timeline || []}
-                    currentStage={getEffectiveStage(openRow)}
-                  />
-                </div>
-
                 <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3.5">
                   <span className={cn(S.label, 'mb-2 block')}>{t(locale, 'recruiting.assessmentsForCandidate')}</span>
                   {detailLoading ? (

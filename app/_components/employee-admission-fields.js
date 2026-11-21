@@ -3,9 +3,12 @@ import { normalizeStartDate } from '../../lib/recruiting/pipeline';
 import { ONBOARDING_STAGES, onboardingStageOptions } from '../../lib/development/onboarding-stage-selection';
 
 /** Shared UI contract: an explicit activation, distinct from the recruiting stage. */
-export function employeeAdmissionFields(locale, person, hiringLinks = []) {
+export function employeeAdmissionFields(locale, person, hiringLinks = [], preferredVacancyId = null) {
   const today = new Date().toISOString().slice(0, 10);
-  const vacancyId = hiringLinks.length === 1 ? String(hiringLinks[0].vacancyId) : '';
+  const preferredLink = preferredVacancyId == null
+    ? null
+    : hiringLinks.find(link => String(link.vacancyId) === String(preferredVacancyId));
+  const vacancyId = String(preferredLink?.vacancyId ?? (hiringLinks.length === 1 ? hiringLinks[0].vacancyId : ''));
   return [
     { key: 'existingEmployee', type: 'boolean', label: t(locale,'employeeAdmission.existing'), help: t(locale,'employeeAdmission.existingHelp'),
       defaultValue: false, whenTrue: { onboardingStages: [], startDate: person.startDate || '', vacancyId: '' },

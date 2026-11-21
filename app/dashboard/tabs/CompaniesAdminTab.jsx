@@ -1050,7 +1050,10 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
             tabs={[
               { id: 'general', label: t(locale, 'panel.admin.companyFormGeneral') },
               { id: 'brand', label: t(locale, 'panel.admin.companyFormBrand') },
-              { id: 'access', label: t(locale, 'panel.admin.companyFormAccess') },
+              ...(drawerMode === 'edit'
+                ? [{ id: 'access', label: t(locale, 'panel.admin.companyFormAccess') }]
+                : []),
+              { id: 'modules', label: t(locale, 'panel.admin.companyFormModules') },
             ]}
           />
           {formSection === 'general' ? (
@@ -1207,53 +1210,53 @@ export function CompaniesAdminTab({ navigateDashboard, locale, isSuperAdmin = fa
           ) : null}
           {formSection === 'access' ? (
             <div className="flex flex-col gap-3.5">
-              {drawerMode === 'edit' ? (
-                <label
-                  className={cn(
-                    'flex items-center gap-2.5 font-mono text-xs text-ink',
-                    formSaving ? 'cursor-default' : 'cursor-pointer'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.active === true}
-                    disabled={formSaving}
-                    onChange={(e) => setFormField('active', e.target.checked)}
-                    className="h-4 w-4 accent-brand-500"
-                  />
-                  {t(locale, 'panel.admin.editCompanyActive')}
-                </label>
-              ) : null}
-              {drawerMode === 'edit' ? (
-                <FormField
-                  label={t(locale, 'panel.admin.companyAiLimit')}
-                  hint={t(locale, 'panel.admin.companyAiLimitHint', { default: aiDefaultLimit ?? '–' })}
-                >
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={1000000}
-                    step={1}
-                    value={form.aiMonthlyCallLimit}
-                    onChange={(e) => setFormField('aiMonthlyCallLimit', e.target.value)}
-                    placeholder={aiDefaultLimit != null ? String(aiDefaultLimit) : ''}
-                    disabled={formSaving}
-                    className={FIELD_INPUT}
-                  />
-                  {aiUsage ? (
-                    <span
-                      className={cn(
-                        'mt-1 block font-mono text-2xs leading-snug tabular-nums',
-                        aiUsage.reached ? 'text-danger' : 'text-ink-muted'
-                      )}
-                    >
-                      {t(locale, 'panel.admin.companyAiUsage', { used: aiUsage.used, limit: aiUsage.limit })}
-                      {aiUsage.reached ? ` · ${t(locale, 'panel.admin.companyAiLimitReached')}` : ''}
-                    </span>
-                  ) : null}
-                </FormField>
-              ) : null}
+              <label
+                className={cn(
+                  'flex items-center gap-2.5 font-mono text-xs text-ink',
+                  formSaving ? 'cursor-default' : 'cursor-pointer'
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.active === true}
+                  disabled={formSaving}
+                  onChange={(e) => setFormField('active', e.target.checked)}
+                  className="h-4 w-4 accent-brand-500"
+                />
+                {t(locale, 'panel.admin.editCompanyActive')}
+              </label>
+              <FormField
+                label={t(locale, 'panel.admin.companyAiLimit')}
+                hint={t(locale, 'panel.admin.companyAiLimitHint', { default: aiDefaultLimit ?? '–' })}
+              >
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={1000000}
+                  step={1}
+                  value={form.aiMonthlyCallLimit}
+                  onChange={(e) => setFormField('aiMonthlyCallLimit', e.target.value)}
+                  placeholder={aiDefaultLimit != null ? String(aiDefaultLimit) : ''}
+                  disabled={formSaving}
+                  className={FIELD_INPUT}
+                />
+                {aiUsage ? (
+                  <span
+                    className={cn(
+                      'mt-1 block font-mono text-2xs leading-snug tabular-nums',
+                      aiUsage.reached ? 'text-danger' : 'text-ink-muted'
+                    )}
+                  >
+                    {t(locale, 'panel.admin.companyAiUsage', { used: aiUsage.used, limit: aiUsage.limit })}
+                    {aiUsage.reached ? ` · ${t(locale, 'panel.admin.companyAiLimitReached')}` : ''}
+                  </span>
+                ) : null}
+              </FormField>
+            </div>
+          ) : null}
+          {formSection === 'modules' ? (
+            <div className="flex flex-col gap-3.5">
               <FormField
                 as="div"
                 label={t(locale, 'panel.admin.companyModulesLabel')}

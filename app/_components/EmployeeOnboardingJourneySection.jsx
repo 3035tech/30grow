@@ -61,6 +61,17 @@ function itemStatus(locale, item) {
   return { tone: 'neutral', label: t(locale, 'employeeHome.journeyPending') };
 }
 
+function itemOwnerLabel(locale, item) {
+  const role = item.ownerRole === 'manager_or_rh' ? 'managerOrHr' : item.ownerRole || 'rh';
+  if (item.ownerName && item.ownerRole === 'manager') {
+    return t(locale, 'employeeHome.journeyOwner.managerNamed', { name: item.ownerName });
+  }
+  if (item.ownerName && item.ownerRole === 'manager_or_rh') {
+    return t(locale, 'employeeHome.journeyOwner.managerOrHrNamed', { name: item.ownerName });
+  }
+  return t(locale, `employeeHome.journeyOwner.${role}`);
+}
+
 /**
  * Minha chegada: timeline D1 + check-ins com progresso, fases e CTAs claros.
  */
@@ -227,6 +238,9 @@ export function EmployeeOnboardingJourneySection({ locale, journey, onChanged })
                               ) : null}
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                              <span className={S.cardMuted}>
+                                {t(locale, 'employeeHome.journeyResponsible', { name: itemOwnerLabel(locale, item) })}
+                              </span>
                               {item.dueDate ? (
                                 <span className={S.cardMuted}>
                                   {t(locale, 'employeeHome.dueBy', {

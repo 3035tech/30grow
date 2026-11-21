@@ -7,7 +7,7 @@ import { t } from '../../lib/i18n';
 export function useEmployeeAdmission({ locale = 'pt-BR', onAdmitted } = {}) {
   const { promptForm, toast } = useAppFeedback();
   const [busyId, setBusyId] = useState(null);
-  const admit = async candidateId => {
+  const admit = async (candidateId, preferredVacancyId = null) => {
     if (!candidateId || busyId) return null;
     setBusyId(candidateId);
     try {
@@ -20,7 +20,7 @@ export function useEmployeeAdmission({ locale = 'pt-BR', onAdmitted } = {}) {
       let result;
       const values = await promptForm({ title: t(locale,'employeeAdmission.title',{name:info.person.fullName}),
         message: t(locale,'employeeAdmission.intro'), confirmLabel: t(locale,'employeeAdmission.confirm'),
-        fields: employeeAdmissionFields(locale, info.person, info.hiringLinks),
+        fields: employeeAdmissionFields(locale, info.person, info.hiringLinks, preferredVacancyId),
         submit: async submitted => {
           const saved = await fetch(`/api/admin/candidates/${encodeURIComponent(candidateId)}/admission`, {
             method:'POST',headers:{'Content-Type':'application/json'},

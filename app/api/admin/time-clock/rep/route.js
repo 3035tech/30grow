@@ -6,8 +6,6 @@ import {
   repRegistrySchema,
   saveRepRegistry,
 } from '../../../../../lib/rep/registry.js';
-import { signingConfigured } from '../../../../../lib/rep/signing.js';
-import { readSigningSettings, signingCertificateStatus } from '../../../../../lib/rep/certificate-settings.js';
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { timeClockEnabledSql } from '../../../../../lib/people/time-clock-eligibility.js';
 import { isTimeClockScheduleReady, isTimeClockSetupReady } from '../../../../../lib/people/time-clock-setup.js';
@@ -91,18 +89,10 @@ export const GET = withAdminApi(
        WHERE w.company_id=$1 ORDER BY w.active DESC,w.worker_name,w.id`,
       [companyId],
     );
-    let certificateStatus = 'missing';
-    try {
-      certificateStatus = signingCertificateStatus(await readSigningSettings());
-    } catch {
-      certificateStatus = 'unavailable';
-    }
     const response = {
       establishments,
       workers: workers.rows,
       candidateIssues: candidateIssues.rows,
-      signingConfigured: signingConfigured(),
-      certificateStatus,
       unregisteredWorkers: Number(counts.rows[0].unregistered),
       incompleteWorkerProfiles: Number(counts.rows[0].incompleteworkerprofiles),
       scheduleConfigured: isTimeClockScheduleReady(schedule.rows[0]),

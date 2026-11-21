@@ -286,7 +286,7 @@ export function OverviewTab({
       </div>
 
       {onboardingProgress && onboardingProgress.progress < 100 ? (
-        <OnboardingChecklist locale={locale} initialProgress={onboardingProgress} canOpenTab={canOpenTab} />
+        <OnboardingChecklist key={companyId || 'default'} locale={locale} companyId={companyId} initialProgress={onboardingProgress} canOpenTab={canOpenTab} />
       ) : null}
 
       <TeamBehavioralIntelBlock
