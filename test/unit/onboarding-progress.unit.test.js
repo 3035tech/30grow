@@ -14,9 +14,10 @@ describe('onboarding progress', () => {
     const result = await getOnboardingProgress(fakeQuery, 42);
     const sql = queries.join('\n');
 
-    assert.equal(queries.length, 7);
+    assert.equal(queries.length, 8);
     assert.doesNotMatch(sql, /ass\.completed_at/);
     assert.match(sql, /ass\.top_type IS NOT NULL/);
+    assert.match(sql, /FROM job_roles WHERE company_id=\$1 AND active=TRUE/);
     assert.ok(result.completed.includes(ONBOARDING_TASKS.VIEW_RESULT.id));
   });
 });
