@@ -35,6 +35,7 @@ import { VacancyInterviewCandidates } from '../VacancyInterviewCandidates';
 import { VacancyClientReportBlock } from '../VacancyClientReportBlock';
 import { salaryToCentsDigits, stripSalary } from '../../../lib/br-masks';
 import { useAppFeedback } from '../../_components/AppFeedback';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
@@ -145,7 +146,7 @@ function vacancyEditDraft(v = {}) {
 
 export { VacancyInviteByEmail };
 
-export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganization = true, locale = 'pt-BR', sessionCompanyId, sessionCompanyName }) {
+export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganization = true, locale = 'pt-BR', sessionCompanyId, sessionCompanyName, onboardingAction }) {
   const { confirm, notice, promptForm, toast } = useAppFeedback();
   const urlParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -164,7 +165,11 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
   const [detailSection, setDetailSection] = useState(() =>
     normalizeVacancyDetailSection(urlParams.get('vacancySection'))
   );
-  const [candidateSection, setCandidateSection] = useState('list');
+  const [candidateSection, setCandidateSection] = useState(() =>
+    VACANCY_CANDIDATE_SECTIONS.includes(urlParams.get('vacancyCandidateSection'))
+      ? urlParams.get('vacancyCandidateSection')
+      : 'list'
+  );
 
   const vacancyDetailId = String(urlParams.get('vacancyDetail') || '').trim();
   const isDetailView = Boolean(vacancyDetailId);
@@ -476,7 +481,9 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
       setDetailVacancy(null);
       return;
     }
-    setCandidateSection('list');
+    setCandidateSection(VACANCY_CANDIDATE_SECTIONS.includes(urlParams.get('vacancyCandidateSection'))
+      ? urlParams.get('vacancyCandidateSection')
+      : 'list');
     loadVacancyDetail(vacancyDetailId);
   }, [vacancyDetailId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -485,8 +492,60 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
   }, [urlParams]);
 
   const openVacancyDetail = (id, section = 'pipeline') => {
-    navigateDashboard({ tab: 'vacancies', vacancyDetail: String(id), vacancySection: section });
+    navigateDashboard({
+      tab: 'vacancies',
+      vacancyDetail: String(id),
+      vacancySection: section,
+      vacancyCandidateSection: section === 'candidates' ? 'list' : null,
+    });
   };
+
+  const openOnboardingVacancy = useCallback((action) => {
+    const vacancy = vacancies.find((item) => item.status === VACANCY_STATUS.OPEN) || vacancies[0];
+    if (!vacancy) {
+      navigateDashboard({
+        tab: 'vacancies',
+        create: '1',
+        vacancyDetail: null,
+        vacancySection: null,
+        vacancyCandidateSection: null,
+        onboardingAction: null,
+      });
+      return;
+    }
+    navigateDashboard({
+      tab: 'vacancies',
+      vacancyDetail: String(vacancy.id),
+      vacancySection: ['send_assessment', 'view_result'].includes(action) ? 'candidates' : 'pipeline',
+      vacancyCandidateSection: action === 'send_assessment' ? 'invites' : 'list',
+      onboardingAction: null,
+    });
+  }, [navigateDashboard, vacancies]);
+
+  useConsumeOnboardingAction({
+    action: 'send_assessment',
+    activationAction: onboardingAction,
+    tab: 'vacancies',
+    navigateDashboard,
+    onAction: () => openOnboardingVacancy('send_assessment'),
+    ready: vacLoaded,
+  });
+  useConsumeOnboardingAction({
+    action: 'move_pipeline',
+    activationAction: onboardingAction,
+    tab: 'vacancies',
+    navigateDashboard,
+    onAction: () => openOnboardingVacancy('move_pipeline'),
+    ready: vacLoaded,
+  });
+  useConsumeOnboardingAction({
+    action: 'view_result',
+    activationAction: onboardingAction,
+    tab: 'vacancies',
+    navigateDashboard,
+    onAction: () => openOnboardingVacancy('view_result'),
+    ready: vacLoaded,
+  });
 
   const listFiltered = Boolean(vacQFromUrl) || vacStatusFromUrl !== VACANCY_LIST_FILTER.ALL;
   const attentionCount = Number(vacSummary?.[VACANCY_LIST_FILTER.ATTENTION]) || 0;
@@ -513,7 +572,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
     setDetailVacancy(null);
     setLinkExpiryEdit(null);
     setEditingVacancy(null);
-    navigateDashboard({ tab: 'vacancies', vacancyDetail: '', vacancySection: null });
+    navigateDashboard({ tab: 'vacancies', vacancyDetail: '', vacancySection: null, vacancyCandidateSection: null });
   };
 
   const createVacancy = async () => {
@@ -1266,7 +1325,9 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                     ariaLabel={t(locale, 'recruiting.candidateWorkspaceTabsAria')}
                     active={candidateSection}
                     onChange={(id) => {
-                      if (VACANCY_CANDIDATE_SECTIONS.includes(id)) setCandidateSection(id);
+                      if (!VACANCY_CANDIDATE_SECTIONS.includes(id)) return;
+                      setCandidateSection(id);
+                      navigateDashboard({ tab: 'vacancies', vacancyCandidateSection: id, scroll: false });
                     }}
                     className="mb-4 mt-4"
                     tabs={[

@@ -127,6 +127,7 @@ test('P1: shared questionnaires, 90/180/360 roles, relational answers, completed
     // Only exact synthetic IDs created by this test.
     await db.query('DELETE FROM formal_review_open_answers WHERE rater_id IN (SELECT rr.id FROM formal_review_raters rr JOIN formal_reviews r ON r.id = rr.review_id WHERE r.cycle_id = ANY($1::bigint[]))', [createdCycles]);
     await db.query('DELETE FROM formal_review_cycles WHERE id = ANY($1::bigint[])', [createdCycles]);
+    await db.query('DELETE FROM time_clock_person_history WHERE candidate_id = ANY($1::bigint[])', [createdPeople]);
     await db.query('DELETE FROM candidates WHERE id = ANY($1::bigint[])', [createdPeople]);
     if (competencyId) await db.query('DELETE FROM company_competencies WHERE id = $1', [competencyId]);
     await db.end();

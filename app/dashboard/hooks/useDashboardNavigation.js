@@ -101,6 +101,12 @@ export function useDashboardNavigation({
       const curSection = urlParams.get('vacancySection');
       if (curSection) p.set('vacancySection', curSection);
     }
+    const nextVacancyCandidateSection = opts.vacancyCandidateSection !== undefined
+      ? opts.vacancyCandidateSection
+      : urlParams.get('vacancyCandidateSection');
+    if ((opts.tab !== undefined ? opts.tab : urlParams.get('tab')) === 'vacancies' && nextVacancyCandidateSection) {
+      p.set('vacancyCandidateSection', String(nextVacancyCandidateSection));
+    }
 
     // Deep-link Equipe → pessoa: /dashboard?tab=team&candidate=<id>
     const nextTab = opts.tab !== undefined ? opts.tab : urlParams.get('tab') || 'overview';
@@ -325,6 +331,11 @@ export function useDashboardNavigation({
     const resolvedTab =
       opts.tab !== undefined ? opts.tab : urlParams.get('tab') || 'overview';
     p.set('tab', resolvedTab);
+
+    const onboardingAction = opts.onboardingAction !== undefined
+      ? opts.onboardingAction
+      : urlParams.get('onboardingAction');
+    if (onboardingAction) p.set('onboardingAction', String(onboardingAction));
 
     for (const [key, def] of Object.entries(LIST_PARAM_DEFAULTS)) {
       if (p.get(key) === def) p.delete(key);

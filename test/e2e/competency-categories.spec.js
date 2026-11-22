@@ -47,6 +47,10 @@ test('categories: CRUD, selector, inactive links, tenant isolation and database 
     await page.getByRole('button', { name: 'Nova categoria', exact: true }).click();
     await dialog.getByRole('textbox', { name: 'Nome da categoria' }).fill(`${name} cancelada`);
     await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    const discard = page.getByRole('dialog', { name: 'Descartar alterações?', exact: true });
+    await expect(discard).toBeVisible();
+    await discard.getByRole('button', { name: 'Descartar alterações', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
     expect((await json(page.request.get(`${endpoint}?q=${stamp}`))).total).toBe(0);
     await page.getByRole('button', { name: 'Nova categoria', exact: true }).click();
     await dialog.getByRole('textbox', { name: 'Nome da categoria' }).fill(name);

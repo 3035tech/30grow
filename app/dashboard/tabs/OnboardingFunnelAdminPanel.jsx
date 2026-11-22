@@ -59,7 +59,7 @@ export function OnboardingFunnelAdminPanel({ locale }) {
         : t(locale, 'panel.admin.onboardingFunnelDays', { n: numberFmt.format(Math.round(fv.medianHours / 24)) });
 
   const companyStatus = (c) => {
-    if (c.firstVacancyAt || c.firstAnalysisAt) return { tone: 'success', key: 'statusValue' };
+    if (c.hasFirstValue || c.firstVacancyAt || c.firstAnalysisAt) return { tone: 'success', key: 'statusValue' };
     if (c.reachedDone) return { tone: 'info', key: 'statusFinished' };
     if (c.skipped) return { tone: 'warning', key: 'statusSkipped' };
     return { tone: 'neutral', key: 'statusInProgress' };
@@ -112,6 +112,9 @@ export function OnboardingFunnelAdminPanel({ locale }) {
                 hint={t(locale, 'panel.admin.onboardingFunnelFirstValueHint', {
                   vacancies: fv.withVacancy || 0,
                   analyses: fv.withAnalysis || 0,
+                  employees: fv.withEmployee || 0,
+                  climate: fv.withClimateResults || 0,
+                  courses: fv.withCourseCompleted || 0,
                 })}
               />
               <StatMetricTile value={medianLabel} label={t(locale, 'panel.admin.onboardingFunnelMedian')} />
@@ -192,8 +195,7 @@ export function OnboardingFunnelAdminPanel({ locale }) {
                       <AdminTh>{t(locale, 'panel.admin.onboardingFunnelColStarted')}</AdminTh>
                       <AdminTh>{t(locale, 'panel.admin.onboardingFunnelColFurthest')}</AdminTh>
                       <AdminTh>{t(locale, 'panel.admin.onboardingFunnelColStatus')}</AdminTh>
-                      <AdminTh>{t(locale, 'panel.admin.onboardingFunnelColFirstVacancy')}</AdminTh>
-                      <AdminTh>{t(locale, 'panel.admin.onboardingFunnelColFirstAnalysis')}</AdminTh>
+                  <AdminTh>{t(locale, 'panel.admin.onboardingFunnelColOutcomes')}</AdminTh>
                     </tr>
                   </thead>
                   <tbody>
@@ -211,8 +213,22 @@ export function OnboardingFunnelAdminPanel({ locale }) {
                               {t(locale, `panel.admin.onboardingFunnel.${st.key}`)}
                             </StatusToneChip>
                           </td>
-                          <td className="px-4 py-3 font-mono text-2xs tabular-nums text-ink-muted">{fmtDate(c.firstVacancyAt)}</td>
-                          <td className="px-4 py-3 font-mono text-2xs tabular-nums text-ink-muted">{fmtDate(c.firstAnalysisAt)}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex min-w-[180px] flex-wrap gap-1.5">
+                              {[
+                                [c.firstVacancyAt, 'onboardingFunnelValueVacancy'],
+                                [c.firstAnalysisAt, 'onboardingFunnelValueAnalysis'],
+                                [c.firstEmployeeAt, 'onboardingFunnelValueEmployee'],
+                                [c.firstClimateResultAt, 'onboardingFunnelValueClimate'],
+                                [c.firstCourseCompletedAt, 'onboardingFunnelValueCourse'],
+                              ].filter(([at]) => at).map(([at, labelKey]) => (
+                                <span key={labelKey} className="rounded-full bg-ink/[0.05] px-2 py-1 font-mono text-2xs tabular-nums text-ink-muted">
+                                  {t(locale, `panel.admin.${labelKey}`)} · {fmtDate(at)}
+                                </span>
+                              ))}
+                              {!c.hasFirstValue && !c.firstVacancyAt && !c.firstAnalysisAt ? <span className="text-ink-faint">–</span> : null}
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}

@@ -107,7 +107,11 @@ Fluxo mínimo:
 
 ### MVP-08 — Onboarding orientado ao primeiro valor
 
-**Evidência (05/10/2026):** o wizard registra `viewed` / `completed` / `skipped` por etapa em `onboarding_events` (migration 145: domínio fixo via `CHECK`, uma linha por usuário/etapa/evento, sem conteúdo sensível). Super admin vê em Empresas → Onboarding o funil por etapa (quantos pararam em cada uma), o objetivo escolhido e, por empresa, o tempo até a primeira vaga ou primeira pessoa analisada criada depois do início do wizard (dados de seed ou migrados não contam; 30/90 dias, até 50 empresas). Provas: `test/dtov/onboarding-funnel.dtov.test.js` e HTTP (evento inválido 400, anônimo 401, RH sem acesso ao funil 403).
+**Evidência (05/10/2026):** o wizard registra `viewed` / `completed` / `skipped` por etapa em `onboarding_events` (migration 145: domínio fixo via `CHECK`, uma linha por usuário/etapa/evento, sem conteúdo sensível). Super admin vê em Empresas → Onboarding o funil por etapa, o objetivo escolhido e, originalmente, o tempo até a primeira vaga ou análise posteriores ao início do wizard (30/90 dias, até 50 empresas). Provas: `test/dtov/onboarding-funnel.dtov.test.js` e HTTP (evento inválido 400, anônimo 401, RH sem acesso ao funil 403).
+
+**Evolução (21/11/2026):** checklist de 18 tarefas agrupadas por módulo, com próxima ação recomendada, detalhes recolhidos, dispensa por empresa e atalhos para formulários e subseções. O progresso é revalidado ao retornar à Visão geral/trocar empresa enquanto incompleto. O primeiro valor inclui vaga, análise, admissão, resultado anônimo de clima e conclusão de curso posteriores ao início do wizard. Detalhes em `docs/onboarding-contextual.md`.
+
+**Aceite:** concluído com o caminho vazio acionável: cada tarefa do guia direciona à criação, configuração ou acompanhamento pertinente, sem semear dados fictícios na empresa do cliente. A empresa de apresentação `todos-os-dados-demo` continua isolada e não é usada como seed de onboarding.
 
 **Objetivo:** levar o novo cliente à primeira vaga ou à primeira pessoa analisada rapidamente.
 

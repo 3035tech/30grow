@@ -1,6 +1,7 @@
 'use client';
 
 import { CompanyScopeNotice } from '../../_components/CompanyScopeNotice';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 
 import { useListUrlState } from '../hooks/useListUrlState';
 
@@ -61,7 +62,7 @@ const emptyForm = () => ({
   marketSalaryMax: '',
 });
 
-export function JobRolesAdminTab({ locale, companyId, companyName }) {
+export function JobRolesAdminTab({ locale, companyId, companyName, onboardingAction = null, navigateDashboard = null }) {
   const [formBaseline, setFormBaseline] = useState(JSON.stringify(emptyForm()));
   const [fieldErrors, setFieldErrors] = useState({});
   const { toast, confirm, notice, promptForm } = useAppFeedback();
@@ -197,6 +198,14 @@ export function JobRolesAdminTab({ locale, companyId, companyName }) {
     setFieldErrors({});
     setDrawerMode('create');
   };
+
+  useConsumeOnboardingAction({
+    action: 'setup_job_role',
+    activationAction: onboardingAction,
+    tab: 'job-roles',
+    navigateDashboard,
+    onAction: openCreate,
+  });
 
   const openEdit = (role) => {
     setEditingId(role.id);

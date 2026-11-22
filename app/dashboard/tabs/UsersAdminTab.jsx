@@ -15,6 +15,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { EmptyState } from '../../_components/EmptyState';
 import { StatusToneChip } from '../../_components/StatusToneChip';
 import { AdminRecordViewDrawer } from '../../_components/AdminRecordViewDrawer';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 
 
 function moduleOptions(locale) {
@@ -42,7 +43,7 @@ function companySelectOptions(locale, companyOptions) {
   }));
 }
 
-export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies = true, currentUserId = null }) {
+export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies = true, currentUserId = null, defaultCompanyId = null, onboardingAction = null }) {
   const { promptForm, confirm, toast } = useAppFeedback();
   const [viewingUser, setViewingUser] = useState(null);
   const urlParams = useSearchParams();
@@ -194,7 +195,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
   };
 
   const openCreateUser = async () => {
-    const defaultCompanyId = companyOptions[0] ? String(companyOptions[0].id) : '';
+    const selectedCompanyId = defaultCompanyId || (companyOptions[0] ? String(companyOptions[0].id) : '');
 
     // Step 1: identity only (email, optional password, role, company).
     const step1 = await promptForm({
@@ -234,7 +235,7 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
               type: 'select',
               label: t(locale, 'panel.admin.editUserCompanyId'),
               options: companySelectOptions(locale, companyOptions),
-              defaultValue: defaultCompanyId,
+              defaultValue: String(selectedCompanyId),
               showWhen: (v) => v.role !== 'admin',
             },
           ]
@@ -305,6 +306,14 @@ export function UsersAdminTab({ navigateDashboard, locale, canManageAllCompanies
       setLoading(false);
     }
   };
+
+  useConsumeOnboardingAction({
+    action: 'invite_manager',
+    activationAction: onboardingAction,
+    tab: 'users',
+    navigateDashboard,
+    onAction: openCreateUser,
+  });
 
   const deleteUser = async (user) => {
     const confirmed = await confirm({

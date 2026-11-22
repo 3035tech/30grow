@@ -45,8 +45,13 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await dismissManagerOnboarding(page);
     await clickSidebarItem(page.locator('#dashboard-sidebar'), /^Administração(?: · \d+)?$/, 'Empresas');
     await page.getByRole('button', { name: 'Nova empresa', exact: true }).first().click();
-    await expect(page.getByRole('button', { name: 'Criar', exact: true })).toBeDisabled();
-    await page.getByRole('textbox', { name: 'Nome da empresa', exact: true }).fill(companyName);
+    const companyNameField = page.getByRole('textbox', { name: /Nome da empresa/ });
+    await expect(companyNameField).toHaveAttribute('aria-required', 'true');
+    await expect(page.getByRole('button', { name: 'Criar', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Criar', exact: true }).click();
+    await expect(page.locator('#company-name-error')).toBeVisible();
+    await companyNameField.fill(companyName);
+    await page.getByRole('tab', { name: 'Módulos', exact: true }).click();
     await page.getByRole('button', { name: 'Só núcleo', exact: true }).click();
     await page.getByRole('checkbox', { name: /^Recrutamento Vagas, funil, banco de talentos e links públicos$/ }).check();
     await page.getByRole('checkbox', { name: 'Cargos Papéis, rubrica e faixa de mercado', exact: true }).check();
@@ -76,7 +81,7 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await logout(page);
     await login(page, manager);
     await dismissManagerOnboarding(page);
-    await clickSidebarItem(page.locator('#dashboard-sidebar'), /^Pessoas(?: · \d+)?$/, 'Equipe');
+    await clickSidebarItem(page.locator('#dashboard-sidebar'), /^Pessoas e RH(?: · \d+)?$/, 'Equipe');
     await expect(page.locator('#dashboard-sidebar').getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Administração(?: · \d+)?$/ })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /^Recrutamento(?: · \d+)?$/ })).toBeVisible();
@@ -93,13 +98,13 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await page.getByRole('button', { name: 'Criar', exact: true }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('row').filter({ hasText: roleName })).toBeVisible();
-    await sidebar.getByRole('button', { name: 'Vagas', exact: true }).click();
+    await clickSidebarItem(sidebar, /^Recrutamento(?: · \d+)?$/, 'Vagas');
     await expect(page.getByText('Nenhuma vaga ainda.', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Nova vaga', exact: true }).first().click();
     await expect(page.getByRole('button', { name: 'Criar', exact: true })).toBeDisabled();
     await choose(page, 'Cargo base (opcional) A vaga herda a rubrica T1–T9 do cargo.', roleName);
     await expect(page.getByText('Prévia da rubrica do cargo', { exact: true })).toBeVisible();
-    await page.getByRole('textbox', { name: 'Título da vaga', exact: true }).fill(roleName);
+    await page.getByRole('textbox', { name: /Título da vaga/ }).fill(roleName);
     await page.getByRole('textbox', { name: 'Resumo da vaga, requisitos-chave, modelo de trabalho…', exact: true }).fill('Vaga sintética local para validar candidatura, avaliação e contratação.');
     await page.getByRole('button', { name: 'Página pública Expandir', exact: true }).click();
     await page.getByRole('checkbox', { name: /Página pública da vaga/ }).check();
@@ -124,25 +129,17 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
       await candidate.goto(publicLink);
       await expect(candidate.getByRole('heading', { name: roleName, exact: true })).toBeVisible();
       await candidate.getByRole('button', { name: 'Candidatar-se', exact: true }).click();
-      await candidate.getByRole('textbox', { name: 'Nome completo', exact: true }).fill(candidateName);
-      await candidate.getByRole('textbox', { name: 'E-mail', exact: true }).fill(candidateEmail);
+      await candidate.getByRole('textbox', { name: /Nome completo/ }).fill(candidateName);
+      await candidate.getByRole('textbox', { name: /E-mail/ }).fill(candidateEmail);
+      await candidate.getByRole('textbox', { name: /Telefone/ }).fill('(51) 99999-0000');
       await candidate.getByRole('textbox', { name: 'LinkedIn (opcional)', exact: true }).fill('https://www.linkedin.com/in/candidato-teste');
-      await candidate.getByLabel('Currículo em PDF').setInputFiles({
-        name: 'curriculo-teste.pdf',
-        mimeType: 'application/pdf',
-        buffer: Buffer.from('%PDF-1.4\n% synthetic browser fixture\n'),
-      });
       await candidate.getByRole('checkbox').check();
       await candidate.getByRole('button', { name: 'Enviar candidatura', exact: true }).click();
       await expect(candidate.getByText(/Candidatura registrada\./)).toBeVisible();
       await expect(page.getByRole('tab', { name: 'Candidatos', exact: true })).toBeVisible();
       await page.getByRole('tab', { name: 'Candidatos', exact: true }).click();
-      await page.getByRole('button', { name: 'Convidar por e-mail', exact: true }).click();
-      const dialog = page.getByRole('dialog');
-      await dialog.getByRole('textbox', { name: 'Nome do candidato', exact: true }).fill(candidateName);
-      await dialog.getByRole('textbox', { name: 'email@exemplo.com', exact: true }).fill(candidateEmail);
-      const invitation = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname === `/api/admin/vacancies/${vacancyId}/invite`);
-      await dialog.getByRole('button', { name: 'Enviar Eneagrama', exact: true }).click();
+      const invitation = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname.match(new RegExp(`/api/admin/vacancies/${vacancyId}/candidates/[^/]+/invite`)));
+      await page.getByRole('button', { name: 'Enviar eneagrama', exact: true }).click();
       expect((await invitation).ok()).toBeTruthy();
     });
     await test.step('Complete the public assessment through the generated vacancy link', async () => {
@@ -187,10 +184,11 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     const card = page.getByTestId('vacancy-candidate-card');
     await expect(card).toHaveCount(1);
     const column = (label) => page.locator('.kanban-scroll > div > div').filter({
-      has: page.locator('.sticky').filter({ hasText: label }),
+      hasText: label,
     });
     await expect(page.getByRole('combobox', { name: 'Mover para estágio', exact: true })).toHaveCount(0);
     await expect(column('Teste concluído')).toContainText(candidateName);
+    await page.getByRole('button', { name: 'Mostrar vazias', exact: true }).click();
     await html5DragAndDrop(card, column('Aprovado'));
     await expect(column('Aprovado')).toContainText(candidateName);
     await html5DragAndDrop(card, column('Contratado'));
@@ -198,9 +196,19 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     await page.getByRole('dialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
     await expect(column('Aprovado')).toContainText(candidateName);
     await html5DragAndDrop(card, column('Contratado'));
+    const hiredStage = page.waitForResponse(r => {
+      if (r.request().method() !== 'PATCH' || !/\/api\/admin\/assessments\/\d+$/.test(new URL(r.url()).pathname)) return false;
+      return r.request().postDataJSON()?.pipelineStage === 'hired';
+    });
     await page.getByRole('dialog').getByRole('button', { name: 'Registrar no funil', exact: true }).click();
+    expect((await hiredStage).ok()).toBeTruthy();
     await expect(column('Contratado')).toContainText(candidateName);
     await page.reload();
+    const rankingResponse = await page.request.get(`/api/admin/vacancies/${vacancyId}/ranking?locale=pt-BR`);
+    expect(rankingResponse.ok()).toBeTruthy();
+    const rankingAfterReload = await rankingResponse.json();
+    expect(rankingAfterReload.ranking.find(row => row.name === candidateName)?.pipelineStage).toBe('hired');
+    await page.getByRole('button', { name: 'Mostrar vazias', exact: true }).click();
     await expect(column('Contratado')).toContainText(candidateName);
     await card.dblclick();
     const candidateDialog = page.getByRole('dialog', { name: candidateName, exact: true });
@@ -222,7 +230,7 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
     finally { await anonymous.close(); }
     const admission = page.getByRole('dialog', { name: `Ativar ${candidateName} como colaborador`, exact: true });
     await expect(admission.getByRole('textbox', { name: 'E-mail pessoal', exact: true })).toHaveValue(candidateEmail);
-    await admission.getByRole('checkbox', { name: 'Confirmo que esta pessoa já iniciou o trabalho na empresa.', exact: true }).check();
+    await admission.getByRole('checkbox', { name: /Confirmo que esta pessoa já iniciou o trabalho na empresa/ }).check();
     const activated = page.waitForResponse(r => r.request().method() === 'POST' && /\/candidates\/\d+\/admission$/.test(new URL(r.url()).pathname));
     await admission.getByRole('button', { name: 'Ativar vínculo de colaborador', exact: true }).click();
     const response = await activated;
@@ -233,7 +241,8 @@ test('MVP-03 creates a company and manager, recruits and hires the same candidat
 
   await test.step('Find exactly the same hired person in Team after reload', async () => {
     await expect(page.getByText('Colaborador ativo', { exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Voltar para equipe', exact: true }).click();
+    await login(page, manager);
+    await page.goto(`/dashboard?tab=team&company=${companyId}`);
     await expect(page).toHaveURL(/tab=team/);
     const person = page.getByRole('button', { name: `Abrir: ${candidateName}`, exact: true });
     await expect(person).toHaveCount(1);

@@ -9,6 +9,7 @@ test('pilot reports: filters, trace metadata and tenant isolation', async ({ pag
   await dismissManagerOnboarding(page);
 
   await page.goto('/dashboard?tab=analytics');
+  await page.getByRole('button', { name: /Filtrar período|Report filters/i }).click();
   const start = page.getByLabel(/data início|start date/i);
   const end = page.getByLabel(/data fim|end date/i);
   await expect(start).toBeVisible({ timeout: 20_000 });
@@ -35,6 +36,7 @@ test('pilot reports: filters, trace metadata and tenant isolation', async ({ pag
   await page.getByRole('button', { name: /^aplicar$|^apply$/i }).click();
   await expect(page).toHaveURL(/analyticsStart=2025-01-01/);
   await page.reload();
+  await page.getByRole('button', { name: /Filtrar período|Report filters/i }).click();
   await expect(start).toHaveText('01/01/2025');
   await expect(end).toHaveText('31/12/2026');
 

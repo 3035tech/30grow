@@ -1,6 +1,7 @@
 'use client';
 
 import { useListUrlState } from '../hooks/useListUrlState';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
@@ -62,7 +63,7 @@ function lmsText(locale, key, fallback) {
  * LMS admin — courses, ordered URL/PDF lessons, cohort enrollment + progress.
  * List-first grid; detail opens via Ver or URL `course=`.
  */
-export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSection, navigateDashboard }) {
+export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSection, navigateDashboard, onboardingAction = null }) {
   const { confirm, promptForm, toast } = useAppFeedback();
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [courses, setCourses] = useState([]);
@@ -247,6 +248,33 @@ export function LmsAdminTab({ locale = 'pt-BR', companyId, courseId, courseSecti
       toast(e?.message || t(locale, 'panel.lms.saveError'), 'error');
     }
   };
+
+  useConsumeOnboardingAction({
+    action: 'setup_lms_course',
+    activationAction: onboardingAction,
+    tab: 'lms',
+    navigateDashboard,
+    onAction: createCourse,
+  });
+  useConsumeOnboardingAction({
+    action: 'complete_lms_course',
+    activationAction: onboardingAction,
+    tab: 'lms',
+    navigateDashboard,
+    ready: !loading,
+    onAction: async () => {
+      const enrolledCourse = courses.find((item) => Number(item.enrollmentCount) > 0);
+      const course = enrolledCourse || courses[0];
+      if (!course) {
+        await createCourse();
+        return;
+      }
+      const section = enrolledCourse ? 'tracking' : 'enrollments';
+      setSelectedId(Number(course.id));
+      setDetailSection(section);
+      navigateDashboard?.({ tab: 'lms', course: Number(course.id), lmsSection: section, onboardingAction: null });
+    },
+  });
 
   const editCourse = async (courseRow = null) => {
     const c = courseRow || detail?.course;

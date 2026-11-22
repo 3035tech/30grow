@@ -25,7 +25,7 @@ test.describe('early-access signup', () => {
     await page.getByRole('option', { name: '11-50', exact: true }).click();
     await page.locator('#signup-pain').fill('Gestao 360');
 
-    await page.getByRole('button', { name: /criar conta|create free account/i }).click();
+    await page.getByRole('button', { name: /começar agora|start now/i }).click();
 
     await expect(page.getByRole('heading', { name: /confirmação enviada|confirmation sent/i })).toBeVisible({
       timeout: 20000,

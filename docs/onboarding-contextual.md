@@ -34,22 +34,18 @@ import { ContextualTooltip } from '@/app/_components/ContextualTooltip';
 - `app/_components/OnboardingChecklist.jsx` (UI)
 - `lib/development/onboarding-progress.js` (lógica de tracking)
 
-**7 tarefas críticas:**
-1. Criar primeira vaga (20%)
-2. Enviar assessment (20%)
-3. Ver resultado (15%)
-4. Mover no pipeline (15%)
-5. Criar pesquisa de clima (10%)
-6. Explorar Analytics (10%)
-7. Convidar gestor (10%)
+**18 tarefas de ativação, agrupadas por módulo:** Recrutamento (vaga, assessment, resultado e pipeline), Clima (pesquisa e respostas mínimas), Análise de pessoas, Equipe/usuários, Cargos, LMS (curso com aula e primeira conclusão), Benefícios, Avaliação de desempenho (criar e abrir ciclo), Sucessão, Mural e Ouvidoria. Pesos e critérios de conclusão ficam em `lib/development/onboarding-progress.js`; a lista não deve ser duplicada aqui.
 
 **Integração:**
 - Aparece automaticamente no Overview quando progresso < 100%
-- Colapsável e dismissível
-- Clique na tarefa navega para a tab correspondente ("Criar primeira vaga" abre `?tab=vacancies&create=1`)
+- Exibe uma única próxima ação recomendada; a lista completa fica recolhida por padrão
+- Dispensa persistida em `localStorage` por empresa
+- Ações de criação abrem o formulário/modal correspondente. Em Recrutamento, assessment abre Convites, resultado abre Candidatos e movimentação abre o Pipeline; quando não há vaga, o fluxo apresenta o cadastro como pré-requisito
+- Conclusão do curso leva à matrícula/acompanhamento existentes; a ação sugere cadastrar um curso se não houver nenhum
 - Tarefas cuja aba o gestor não acessa (módulo desligado ou sem capability, ex.: "Convidar gestor" sem `users.manage`) ficam ocultas; o % é recalculado só com as tarefas visíveis (`canOpenTab` vindo de `canAccessDashboardTab`)
+- O progresso é consultado no payload da Visão geral. Ao retornar a essa aba ou trocar o contexto de empresa, `DashboardClient` atualiza o payload se o onboarding ainda estiver incompleto
 
-**SQL:** Verifica automaticamente conclusão via queries existentes (assessments, vacancies, climate_surveys, users, etc.)
+**SQL:** Verifica automaticamente conclusão por empresa via queries de existência/estado (assessment, vagas, colaboradores, respostas de clima, matrículas e módulos). O limite de respostas anônimas é compartilhado com a regra de privacidade por `lib/people/climate-response-threshold.js`.
 
 ### 3. Empty States Acionáveis
 
@@ -131,9 +127,15 @@ import { EmptyVacancies } from '@/app/_components/EmptyStateActionable';
 **`app/dashboard/tabs/OverviewTab.jsx`:**
 - `<OnboardingChecklist />` aparece antes do `TeamBehavioralIntelBlock` quando progresso < 100%
 
+## Funil e primeiro valor (super admin)
+
+- `lib/development/onboarding-funnel.js` mantém o funil do wizard e mede o primeiro valor por empresa somente com eventos posteriores ao início do wizard: primeira vaga, primeira análise, primeira admissão, resultados de clima após o limite anônimo e primeira conclusão de curso
+- A tela Empresas → Onboarding apresenta a coorte dos últimos 30 ou 90 dias, limitada às 50 empresas mais recentes, contagens por resultado e mediana de horas até o primeiro deles
+- O funil não armazena conteúdo de respostas, currículo ou avaliações. A data usada para clima é a resposta que alcança o limite mínimo, não a primeira resposta individual
+
 ## Performance
 
-- Checklist: 7 queries paralelas (EXISTS), rápidas (índices existentes)
+- Checklist: 8 consultas paralelas (EXISTS/contagens), executadas no payload da Visão geral; não consultar a cada troca de aba
 - Tour: sem overhead, localStorage puro
 - Tooltips: localStorage, zero network
 - Onboarding progress é calculado **apenas** no SSR do Overview (não em toda tab)
@@ -148,7 +150,7 @@ import { EmptyVacancies } from '@/app/_components/EmptyStateActionable';
 ## Métricas Esperadas
 
 - ↓ Taxa de abandono early-stage (< 7 dias sem ação)
-- ↑ Conclusão das 7 tarefas críticas
+- ↑ Conclusão das tarefas de ativação disponíveis para cada empresa
 - ↑ Retenção D7 / D30
 - ↓ Tickets de suporte "Como faço X?"
 

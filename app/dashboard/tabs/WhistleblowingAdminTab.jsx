@@ -22,6 +22,7 @@ import { useAppFeedback } from '../../_components/AppFeedback';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
 import { InlineCallout } from '../../_components/InlineCallout';
 import { ChartPanel } from '../../_components/ChartPanel';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 import { CategoryBars } from '../../_components/CategoryBars';
 import { WHISTLEBLOWING_REPORT_STATUS } from '../../../lib/domain-status';
 import { CHART_MIN_N, whistleStatusFunnel, topCategoryCounts } from '../../../lib/analytics/chart-aggregates';
@@ -56,7 +57,7 @@ function formatDue(raw, locale) {
 /**
  * B-3005 admin inbox: channels + triage (not climate).
  */
-export function WhistleblowingAdminTab({ locale = 'pt-BR', companyId }) {
+export function WhistleblowingAdminTab({ locale = 'pt-BR', companyId, onboardingAction = null, navigateDashboard = null }) {
   const { toast, promptForm } = useAppFeedback();
   const [loading, setLoading] = useState(true);
   const [channels, setChannels] = useState([]);
@@ -189,6 +190,14 @@ export function WhistleblowingAdminTab({ locale = 'pt-BR', companyId }) {
       toast(e?.message || t(locale, 'panel.whistleblowing.saveError'), 'error');
     }
   };
+
+  useConsumeOnboardingAction({
+    action: 'setup_whistleblowing',
+    activationAction: onboardingAction,
+    tab: 'whistleblowing',
+    navigateDashboard,
+    onAction: createChannel,
+  });
 
   const updateReport = async (report, patch) => {
     setBusyId(report.id);

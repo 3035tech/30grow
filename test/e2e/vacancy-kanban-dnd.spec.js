@@ -1,13 +1,11 @@
 /**
  * B-002 — Drag-and-drop no kanban da vaga (gestor HR logado).
- * Demo: Nina Barbosa na vaga aberta. Idempotente — move entre estágios
+ * Demo: uma pessoa avaliada em uma vaga aberta. Idempotente — move entre estágios
  * sem modal (não hired/rejected), a partir da coluna atual.
  */
 
 import { test, expect } from '@playwright/test';
 import { HR, clickSidebarItem, dismissManagerOnboarding, fillLogin, html5DragAndDrop } from './fixtures.js';
-
-const CANDIDATE = /Nina Barbosa/i;
 
 /** Coluna do kanban cujo cabeçalho contém o rótulo do estágio. */
 function stageColumn(page, stageRe) {
@@ -41,13 +39,26 @@ test.describe('vacancy kanban drag-and-drop', () => {
     expect(listRes.ok()).toBeTruthy();
     const listBody = await listRes.json();
     const rows = Array.isArray(listBody?.items) ? listBody.items : [];
-    const openVacancy = rows.find(
+    const openVacancies = rows.filter(
       (v) =>
         v &&
         String(v.status || '').toLowerCase() === 'open' &&
         /engenheiro|fullstack|plataforma/i.test(String(v.title || ''))
     );
+    let openVacancy = null;
+    let candidateName = '';
+    for (const vacancy of openVacancies) {
+      const rankingRes = await page.request.get(`/api/admin/vacancies/${vacancy.id}/ranking?locale=pt-BR`);
+      if (!rankingRes.ok()) continue;
+      const ranking = (await rankingRes.json()).ranking || [];
+      const candidate = ranking.find(row => SAFE_TARGETS.some(stage => stage.id === row.pipelineStage));
+      if (!candidate) continue;
+      openVacancy = vacancy;
+      candidateName = candidate.name;
+      break;
+    }
     expect(openVacancy?.id).toBeTruthy();
+    expect(candidateName).toBeTruthy();
 
     await page.goto(`/dashboard?tab=vacancies&vacancyDetail=${openVacancy.id}`);
     await expect(page).toHaveURL(/vacancyDetail=/);
@@ -56,8 +67,8 @@ test.describe('vacancy kanban drag-and-drop', () => {
     });
 
     const card = page
-      .locator('.kanban-scroll div[draggable="true"]')
-      .filter({ hasText: CANDIDATE })
+      .locator('.kanban-scroll article[draggable="true"]')
+      .filter({ hasText: candidateName })
       .first();
     await expect(card).toBeVisible({ timeout: 20_000 });
 
@@ -65,7 +76,7 @@ test.describe('vacancy kanban drag-and-drop', () => {
     let sourceMeta = null;
     for (const s of SAFE_TARGETS) {
       const col = stageColumn(page, s.re);
-      if ((await col.locator('div[draggable="true"]').filter({ hasText: CANDIDATE }).count()) > 0) {
+      if ((await col.locator('article[draggable="true"]').filter({ hasText: candidateName }).count()) > 0) {
         sourceMeta = s;
         break;
       }
@@ -94,7 +105,7 @@ test.describe('vacancy kanban drag-and-drop', () => {
     await html5DragAndDrop(card, toCol);
     await patchPromise;
 
-    await expect(toCol.getByText(CANDIDATE)).toBeVisible({ timeout: 15_000 });
-    await expect(fromCol.getByText(CANDIDATE)).toHaveCount(0);
+    await expect(toCol.getByText(candidateName, { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(fromCol.getByText(candidateName, { exact: true })).toHaveCount(0);
   });
 });

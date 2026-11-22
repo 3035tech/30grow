@@ -29,8 +29,9 @@ import {
   clientSortNextDir,
 } from '../dashboard-shared';
 import { t as i18nT, contentLocale } from '../../../lib/i18n';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 
-export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
+export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId, onboardingAction = null, navigateDashboard = null }) {
   const [benefits, setBenefits] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
@@ -282,6 +283,14 @@ export function CompanyBenefitsAdminTab({ locale = 'pt-BR', companyId }) {
       toast(t('saveError'), 'error');
     }
   }
+
+  useConsumeOnboardingAction({
+    action: 'setup_benefits',
+    activationAction: onboardingAction,
+    tab: 'company-benefits',
+    navigateDashboard,
+    onAction: handleCreate,
+  });
 
   async function handleEdit(benefit) {
     const result = await promptForm({

@@ -36,8 +36,9 @@ import {
   clientSortNextDir,
 } from '../dashboard-shared';
 import { t as i18nT, contentLocale } from '../../../lib/i18n';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 
-export function SuccessionAdminTab({ locale = 'pt-BR', companyId }) {
+export function SuccessionAdminTab({ locale = 'pt-BR', companyId, onboardingAction = null, navigateDashboard = null }) {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
   const [expandedRoles, setExpandedRoles] = useState(new Set());
@@ -170,6 +171,14 @@ export function SuccessionAdminTab({ locale = 'pt-BR', companyId }) {
       toast(t('saveError'), 'error');
     }
   }
+
+  useConsumeOnboardingAction({
+    action: 'setup_succession',
+    activationAction: onboardingAction,
+    tab: 'succession',
+    navigateDashboard,
+    onAction: handleCreateRole,
+  });
 
   async function handleEditRole(role) {
     const result = await promptForm({

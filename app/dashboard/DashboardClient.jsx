@@ -387,6 +387,20 @@ function DashboardClientContent({
   const showProductFeedback = isSuperAdminPayload(sessionAuth);
   const showAudit = canAccessDashboardTab(sessionAuth, 'audit');
   const tab = parseDashboardTab(urlParams, sessionAuth);
+  const onboardingContextRef = useRef({ tab, companyId: scopedCompanyId });
+  useEffect(() => {
+    const previous = onboardingContextRef.current;
+    const contextChanged = previous.tab !== tab || String(previous.companyId || '') !== String(scopedCompanyId || '');
+    onboardingContextRef.current = { tab, companyId: scopedCompanyId };
+    if (
+      contextChanged &&
+      tab === 'overview' &&
+      !isAdmin &&
+      (!onboardingProgress || onboardingProgress.progress < 100)
+    ) {
+      router.refresh();
+    }
+  }, [isAdmin, onboardingProgress, router, scopedCompanyId, tab]);
   const contextualHelpSection = helpMetaForTab(tab)?.guideSections?.[0] || null;
   const isPersonFocus = tab === 'team' && Boolean(urlParams.get('candidate'));
   const isVacancyDetail = tab === 'vacancies' && Boolean(urlParams.get('vacancyDetail'));
@@ -1454,6 +1468,7 @@ function DashboardClientContent({
                     listFilter={selectedListFilter || urlParams.get('filter')}
                     onClearListFilter={() => pushFilters({ filter: null })}
                     navigateDashboard={navigateWithOpts}
+                    onboardingAction={urlParams.get('onboardingAction') || null}
                     roster={roster || ROSTER_SCOPE.INTERNAL}
                     pipelineFilter={pipeline && pipeline !== 'all' ? pipeline : null}
                     canViewCompensation={showCompensation}
@@ -1550,7 +1565,7 @@ function DashboardClientContent({
                   }}
                 />
               )}
-              {tab === 'vacancies' && showVacancies && <VacanciesAdminTab sessionCompanyId={sessionAuth?.companyId} sessionCompanyName={sessionAuth?.companyName} canViewOrganization={can(sessionAuth,CAP.TEAM_VIEW)} isAdmin={isAdmin} navigateDashboard={navigateWithOpts} locale={locale} />}
+              {tab === 'vacancies' && showVacancies && <VacanciesAdminTab sessionCompanyId={sessionAuth?.companyId} sessionCompanyName={sessionAuth?.companyName} canViewOrganization={can(sessionAuth,CAP.TEAM_VIEW)} isAdmin={isAdmin} navigateDashboard={navigateWithOpts} locale={locale} onboardingAction={urlParams.get('onboardingAction') || null} />}
               {tab === 'talent-bank' && showVacancies && (
                 <TalentBankAdminTab canAdmitCandidate={can(sessionAuth,CAP.TEAM_VIEW)} navigateDashboard={navigateWithOpts} locale={locale} companyId={scopedCompanyId} />
               )}
@@ -1559,16 +1574,19 @@ function DashboardClientContent({
               )}
               {tab === 'climate' && showClimate && (
                 <ClimateTab
+                  key={scopedCompanyId || 'all'}
                   isAdmin={isAdmin}
                   companies={companies}
                   locale={locale}
+                  selectedCompanyId={scopedCompanyId}
                   initialView={urlParams.get('climateView') || 'surveys'}
                   section={urlParams.get('climateSection') || null}
+                  onboardingAction={urlParams.get('onboardingAction') || null}
                   navigateDashboard={navigateWithOpts}
                 />
               )}
               {tab === 'whistleblowing' && showWhistleblowing && (
-                <WhistleblowingAdminTab locale={locale} companyId={scopedCompanyId} />
+                <WhistleblowingAdminTab locale={locale} companyId={scopedCompanyId} onboardingAction={urlParams.get('onboardingAction') || null} navigateDashboard={navigateWithOpts} />
               )}
               {tab === 'subscriptions' && isSuperAdminPayload(sessionAuth) && <SubscriptionsAdminTab locale={locale} />}
               {tab === 'companies' && showCompanies && (
@@ -1584,17 +1602,19 @@ function DashboardClientContent({
                   locale={locale}
                   canManageAllCompanies={can(sessionAuth, CAP.COMPANIES_MANAGE)}
                   currentUserId={sessionAuth?.userId ?? null}
+                  defaultCompanyId={scopedCompanyId}
+                  onboardingAction={urlParams.get('onboardingAction') || null}
                 />
               )}
-              {tab === 'job-roles' && showJobRoles && <JobRolesAdminTab locale={locale} companyId={scopedCompanyId} companyName={companies.find(c => String(c.id) === String(scopedCompanyId))?.name || sessionAuth?.companyName} />}
-              {tab === 'performance-reviews' && showPerformance && <PerformanceReviewsAdminTab locale={locale} companyId={scopedCompanyId} isAdmin={isAdmin} />}
+              {tab === 'job-roles' && showJobRoles && <JobRolesAdminTab locale={locale} companyId={scopedCompanyId} companyName={companies.find(c => String(c.id) === String(scopedCompanyId))?.name || sessionAuth?.companyName} onboardingAction={urlParams.get('onboardingAction') || null} navigateDashboard={navigateWithOpts} />}
+              {tab === 'performance-reviews' && showPerformance && <PerformanceReviewsAdminTab locale={locale} companyId={scopedCompanyId} isAdmin={isAdmin} onboardingAction={urlParams.get('onboardingAction') || null} navigateDashboard={navigateWithOpts} />}
               {tab === 'pdi' && showPdi && (
                 <PdiAdminTab locale={locale} companyId={scopedCompanyId} navigateDashboard={navigateWithOpts} initialSearch={urlParams.get('pdiSearch') || ''} />
               )}
               {tab === 'okr' && showPerformance && (
                 <OkrAdminTab locale={locale} companyId={scopedCompanyId} />
               )}
-              {tab === 'succession' && showSuccession && <SuccessionAdminTab locale={locale} companyId={scopedCompanyId} isAdmin={isAdmin} />}
+              {tab === 'succession' && showSuccession && <SuccessionAdminTab locale={locale} companyId={scopedCompanyId} isAdmin={isAdmin} onboardingAction={urlParams.get('onboardingAction') || null} navigateDashboard={navigateWithOpts} />}
               {tab === 'exit-analysis' && showExitAnalysis && <ExitAnalysisAdminTab locale={locale} companyId={scopedCompanyId} isAdmin={isAdmin} />}
               {tab === 'dp' && showDp && (
                 <DpAdminTab
@@ -1612,12 +1632,13 @@ function DashboardClientContent({
                   companyId={scopedCompanyId}
                   courseId={urlParams.get('course') || null}
                   courseSection={urlParams.get('lmsSection') || null}
+                  onboardingAction={urlParams.get('onboardingAction') || null}
                   navigateDashboard={navigateWithOpts}
                 />
               )}
-              {tab === 'company-benefits' && showBenefits && <CompanyBenefitsAdminTab locale={locale} companyId={scopedCompanyId} />}
+              {tab === 'company-benefits' && showBenefits && <CompanyBenefitsAdminTab locale={locale} companyId={scopedCompanyId} onboardingAction={urlParams.get('onboardingAction') || null} navigateDashboard={navigateWithOpts} />}
               {tab === 'company-feed' && showCompanyFeed && (
-                <CompanyFeedAdminTab locale={locale} companyId={scopedCompanyId} />
+                <CompanyFeedAdminTab locale={locale} companyId={scopedCompanyId} onboardingAction={urlParams.get('onboardingAction') || null} navigateDashboard={navigateWithOpts} />
               )}
               {tab === 'compensation' && showCompensation && (
                 <CompensationAdminTab

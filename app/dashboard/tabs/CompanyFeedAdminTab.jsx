@@ -4,6 +4,7 @@ import { useListUrlState, useListSearchDraft } from '../hooks/useListUrlState';
 
 import { useCallback, useEffect, useState } from 'react';
 import { useAppFeedback } from '../../_components/AppFeedback';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 import { EmptyState } from '../../_components/EmptyState';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
 import { CollapsibleBlock } from '../../_components/CollapsibleBlock';
@@ -32,7 +33,7 @@ import { AdminRecordViewDrawer, RECORD_FIELD_KIND } from '../../_components/Admi
 /**
  * B-2712 posts + B-2716 kudos moderation (one tab).
  */
-export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
+export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId, onboardingAction = null, navigateDashboard = null }) {
   const { confirm, toast } = useAppFeedback();
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -97,6 +98,14 @@ export function CompanyFeedAdminTab({ locale = 'pt-BR', companyId }) {
 
   function createPost() { setEditing({post:null}); }
   function editPost(post) { setEditing({post}); }
+
+  useConsumeOnboardingAction({
+    action: 'setup_company_feed',
+    activationAction: onboardingAction,
+    tab: 'company-feed',
+    navigateDashboard,
+    onAction: createPost,
+  });
 
   function viewSections() {
     if (!viewing) return [];

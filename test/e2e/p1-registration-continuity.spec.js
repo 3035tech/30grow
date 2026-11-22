@@ -30,6 +30,10 @@ test('RH 3.10: employee registration retains recruitment fields and separate ric
     await expect(dialog.getByLabel('Cidade', { exact: true })).toHaveValue(seed.city);
     await dialog.getByLabel('Cidade', { exact: true }).fill('Cancelar');
     await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    const discard = page.getByRole('dialog', { name: 'Descartar alterações?', exact: true });
+    await expect(discard).toBeVisible();
+    await discard.getByRole('button', { name: 'Descartar alterações', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
     expect((await json(page.request.get(endpoint))).candidate.city).toBe(seed.city);
     await edit.click();
     await dialog.getByLabel('Cidade', { exact: true }).fill('Canoas');

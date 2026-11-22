@@ -767,6 +767,12 @@ export function PromptFormDialog({
             finally { submitLockRef.current = false; setSubmitting(false); }
           }}
           onKeyDown={(event) => {
+            if (event.key === 'Escape' && !event.defaultPrevented && !submitLockRef.current) {
+              event.preventDefault();
+              event.stopPropagation();
+              requestClose();
+              return;
+            }
             if (event.key !== 'Tab' || !event.currentTarget.contains(event.target)) return;
             const controls = [...event.currentTarget.querySelectorAll('button:not(:disabled), input:not([hidden]):not(:disabled), textarea:not(:disabled), [tabindex="0"]')]
               .filter(el => el.tabIndex >= 0 && el.getClientRects().length);

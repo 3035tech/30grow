@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { t, localeHtmlLang } from '../../../lib/i18n';
 import { cn } from '../../../lib/cn';
 import { AdminCreateButton, AdminPageHeader, PanelSubNav, S } from '../dashboard-shared';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 import { EmptyState } from '../../_components/EmptyState';
 import { useAppFeedback } from '../../_components/AppFeedback';
 import { AppLoading, ContentEnter } from '../../_components/AppLoading';
@@ -348,7 +349,7 @@ function OverallScoreHero({ mean, locale, responseCount, minResponses }) {
 /**
  * Climate surveys — list first, detail second; comparison only with 2+ unlocked means.
  */
-export function ClimateTab({ locale, isAdmin, companies = [], section, initialView = 'surveys', navigateDashboard }) {
+export function ClimateTab({ locale, isAdmin, companies = [], selectedCompanyId = null, section, initialView = 'surveys', navigateDashboard, onboardingAction = null }) {
   const { toast, promptForm, confirm } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -358,7 +359,7 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, initialVi
   const [aggregate, setAggregate] = useState(null);
   const [benchmark, setBenchmark] = useState(null);
   const [inviteUrls, setInviteUrls] = useState([]);
-  const [companyId, setCompanyId] = useState(companies[0]?.id || '');
+  const [companyId, setCompanyId] = useState(() => selectedCompanyId || companies[0]?.id || '');
 
   // Se a lista de empresas mudar (admin trocando escopo) e o companyId
   // atual não existir mais, ressincronizar com o primeiro disponível.
@@ -569,6 +570,30 @@ export function ClimateTab({ locale, isAdmin, companies = [], section, initialVi
       setBusy(false);
     }
   };
+
+  useConsumeOnboardingAction({
+    action: 'create_climate',
+    activationAction: onboardingAction,
+    tab: 'climate',
+    navigateDashboard,
+    onAction: createSurvey,
+  });
+
+  useConsumeOnboardingAction({
+    action: 'climate_results',
+    activationAction: onboardingAction,
+    tab: 'climate',
+    navigateDashboard,
+    ready: !loading && items.length > 0,
+    onAction: async () => {
+      const target = items.find((survey) => survey.status === CLIMATE_SURVEY_STATUS.OPEN) || items[0];
+      if (!target) return;
+      const sectionId = target.status === CLIMATE_SURVEY_STATUS.OPEN ? 'distribution' : 'questionnaire';
+      navigateDashboard?.({ tab: 'climate', climateSection: sectionId, onboardingAction: null, scroll: false, clientOnly: true });
+      if (target.status === CLIMATE_SURVEY_STATUS.DRAFT) setShowQuestions(true);
+      await loadDetail(target.id);
+    },
+  });
 
   const createNr1Survey = async () => {
     setBusy(true);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useListUrlState } from '../hooks/useListUrlState';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 
 /**
  * Performance Reviews Admin Tab — manage cycles, goals, and reviews → PDI (B-1004).
@@ -45,7 +46,7 @@ import { CompetencyCatalogBlock } from '../../_components/CompetencyCatalogBlock
 
 const CYCLE_VIEW_REVIEWS_LIMIT = 20;
 
-export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId }) {
+export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId, onboardingAction = null, navigateDashboard = null }) {
   const [mode, setMode] = useState('formal');
   const [cycles, setCycles] = useState([]);
   const [loading, setLoading] = useState(() => Boolean(companyId));
@@ -185,6 +186,26 @@ export function PerformanceReviewsAdminTab({ locale = 'pt-BR', companyId }) {
       toast(t('saveError'), 'error');
     }
   }
+
+  useConsumeOnboardingAction({
+    action: 'setup_performance',
+    activationAction: onboardingAction,
+    tab: 'performance-reviews',
+    navigateDashboard,
+    onAction: handleCreateCycle,
+  });
+
+  useConsumeOnboardingAction({
+    action: 'start_performance_cycle',
+    activationAction: onboardingAction,
+    tab: 'performance-reviews',
+    navigateDashboard,
+    ready: !loading,
+    onAction: () => {
+      const draftCycle = cycles.find((cycle) => cycle.status === PERFORMANCE_CYCLE_STATUS.DRAFT);
+      if (draftCycle) void handleEditCycle(draftCycle);
+    },
+  });
 
   async function handleEditCycle(cycle) {
     const result = await promptForm({

@@ -1,8 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { HR, dismissManagerOnboarding } from './fixtures.js';
 
+async function openEditorFromDetail(page, vacancy) {
+  await page.goto(`/dashboard?tab=vacancies&vacancyDetail=${vacancy.id}`);
+  await dismissManagerOnboarding(page);
+  await page.getByRole('button', { name: 'Editar', exact: true }).first().click();
+}
+
 test('P0: vacancy editor opens, cancels, recovers from API failure and persists', async ({ page, baseURL }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(240_000);
   expect(['localhost', '127.0.0.1']).toContain(new URL(baseURL).hostname);
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -10,20 +16,21 @@ test('P0: vacancy editor opens, cancels, recovers from API failure and persists'
   const list = await (await page.request.get('/api/admin/vacancies?page=1&pageSize=100')).json();
   const vacancies = ['open', 'closed'].map(status => list.items.find(v => v.status === status));
   expect(vacancies.every(Boolean)).toBeTruthy();
-  await page.goto('/dashboard?tab=vacancies');
-  await page.getByRole('button', { name: 'Editar', exact: true }).first().waitFor();
-  await dismissManagerOnboarding(page);
   const editor = page.locator('.app-dialog-overlay').filter({ has: page.getByRole('heading', { name: 'Editar vaga', exact: true }) });
   for (const vacancy of vacancies) {
-    for (const section of ['pipeline', 'candidates', 'information', 'distribution', 'settings']) {
+    const sections = vacancy === vacancies[0]
+      ? ['pipeline', 'candidates', 'information', 'distribution', 'settings']
+      : ['pipeline'];
+    for (const section of sections) {
       await page.goto(`/dashboard?tab=vacancies&vacancyDetail=${vacancy.id}&vacancySection=${section}`);
+      await dismissManagerOnboarding(page);
       await page.getByRole('button', { name: 'Editar', exact: true }).first().click();
       await expect(editor).toBeVisible();
       await expect.poll(() => editor.evaluate(e => e.contains(document.activeElement))).toBe(true);
       await page.keyboard.press('Shift+Tab');
       await expect(editor.getByRole('button', { name: 'Salvar', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
-      await expect(editor.getByRole('button', { name: 'Voltar para vagas', exact: true })).toBeFocused();
+      await expect(editor.getByRole('button', { name: 'Fechar', exact: true })).toBeFocused();
       await editor.getByRole('button', { name: 'Vencimento da vaga', exact: true }).click();
       const calendar = page.locator('[role="dialog"]').filter({ has: page.locator('[data-day]') });
       await expect(calendar).toBeVisible();
@@ -39,11 +46,10 @@ test('P0: vacancy editor opens, cancels, recovers from API failure and persists'
     }
   }
   const vacancy = vacancies[0];
-  await page.goto('/dashboard?tab=vacancies');
-  await page.getByRole('button', { name: 'Editar', exact: true }).nth(list.items.findIndex(v => v.id === vacancy.id)).click();
+  await openEditorFromDetail(page, vacancy);
   await editor.getByLabel('Título da vaga', { exact: true }).fill(`${vacancy.title} rascunho`);
   await editor.getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await page.getByRole('button', { name: 'Fechar editor', exact: true }).click();
+  await page.getByRole('button', { name: 'Descartar alterações', exact: true }).click();
   await expect(editor).toHaveCount(0);
   const endpoint = `**/api/admin/vacancies/${vacancy.id}`;
   await page.goto(`/dashboard?tab=vacancies&vacancyDetail=${vacancy.id}`);

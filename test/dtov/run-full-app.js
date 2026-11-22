@@ -122,7 +122,7 @@ async function main() {
         await run(
           path.join(ROOT, 'node_modules', '.bin', 'playwright'),
           ['test'],
-          { ...env, BASE_URL }
+          { ...env, BASE_URL, DTOV_RESET_RATE_LIMITS: '1' }
         );
         process.stdout.write('[full-app] ALL GREEN (SQL + HTTP + browser)\n');
       } catch (e) {

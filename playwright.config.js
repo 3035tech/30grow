@@ -13,7 +13,9 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: [['list']],
+  reporter: process.env.DTOV_RESET_RATE_LIMITS === '1'
+    ? [['list'], ['./test/dtov/clear-rate-limits-reporter.cjs']]
+    : [['list']],
   timeout: 60_000,
   expect: { timeout: 15_000 },
   use: {

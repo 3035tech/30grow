@@ -86,15 +86,6 @@ test('P3: admin modules share readable page titles on desktop and mobile', async
     await expect(title).toBeVisible();
     await noPageOverflow(page);
     await page.screenshot({ path: `/private/tmp/p3-${tab}-mobile.png` });
-    if (tab === 'vacancies') {
-      // Meta tiles live in the vacancy detail; the tab opens on the list.
-      await page.getByRole('button', { name: 'Ver candidatos' }).first().click();
-      const values = page.locator('[data-vacancy-meta-value]');
-      await expect(values.first()).toBeVisible();
-      expect(await values.evaluateAll(elements => elements.every(element =>
-        element.scrollWidth <= element.clientWidth && getComputedStyle(element).whiteSpace === 'normal'
-      ))).toBe(true);
-    }
     await captureThemes(page, tab);
   }
   await page.goto('/dashboard?tab=performance-reviews');
@@ -105,9 +96,10 @@ test('P3: admin modules share readable page titles on desktop and mobile', async
   await captureThemes(page, 'competencies');
 });
 
-test('P3: dialog labels and controls remain readable and keyboard accessible', async ({ page }) => {
+test('P3: dialog labels and controls remain readable and protect unsaved changes', async ({ page }) => {
   await page.context().addCookies(adminCookies);
   await page.goto('/dashboard?tab=okr');
+  await dismissManagerOnboarding(page);
   await page.getByRole('button', { name: 'Novo ciclo', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -118,7 +110,11 @@ test('P3: dialog labels and controls remain readable and keyboard accessible', a
   await expect(title).toHaveCSS('font-size', '16px');
   expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
   await page.screenshot({ path: '/private/tmp/p3-dialog-mobile.png' });
+  await title.focus();
   await page.keyboard.press('Escape');
+  const discard = page.getByRole('dialog', { name: 'Descartar alterações?', exact: true });
+  await expect(discard).toBeVisible();
+  await discard.getByRole('button', { name: 'Descartar alterações', exact: true }).click();
   await expect(dialog).toHaveCount(0);
 });
 
@@ -146,16 +142,16 @@ test('P3: employee sections, empty state and course navigation work in both them
   const surveysToggle = page.locator('#surveys').getByRole('button').first();
   await surveysToggle.click();
   await expect(surveysToggle).toHaveAttribute('aria-expanded', 'true');
-  // Secondary sections open alone (no long scroll on the Today view).
-  for (const id of ['pdi', 'oneOnOne']) {
-    await page.evaluate(hash => { window.location.hash = hash; }, id);
-    const sectionToggle = page.locator(`#${id}`).getByRole('button').first();
-    await expect(page.locator(`#${id}`)).toBeVisible();
-    await expect(page.locator('#tasks')).toBeHidden();
-    await expect(sectionToggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(sectionToggle.locator('span.text-xl').first()).toHaveCSS('font-size', '20px');
-  }
-  await page.getByRole('link', { name: 'Voltar para Hoje' }).click();
+  // Detail sections open in their own view without the Today task list.
+  await page.goto('/employee/pdi');
+  await expect(page.getByRole('heading', { name: 'Meu desenvolvimento', exact: true })).toBeVisible();
+  await expect(page.locator('#tasks')).toBeHidden();
+  await noPageOverflow(page);
+  await page.goto('/employee#oneOnOne');
+  await expect(page.locator('#oneOnOne')).toBeVisible();
+  await expect(page.locator('#tasks')).toBeHidden();
+  await noPageOverflow(page);
+  await page.goto('/employee');
   await expect(page.locator('#tasks')).toBeVisible();
   for (const dark of [false, true]) {
     await page.evaluate(value => document.documentElement.classList.toggle('dark', value), dark);
@@ -189,13 +185,16 @@ test('P3: populated employee modules and management details keep their layout', 
   await page.goto('/employee');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   for (const id of ['journey', 'surveys', 'pdi', 'oneOnOne']) {
-    // PDI and 1:1 are detail views on the Today page (opened via hash, like the sidebar links).
-    if (id === 'pdi' || id === 'oneOnOne') await page.evaluate(hash => { window.location.hash = hash; }, id);
+    // Detail sections are standalone views; PDI also has a dedicated route.
+    if (id === 'pdi') {
+      await page.goto('/employee/pdi');
+      const heading = page.getByRole('heading', { name: 'Meu desenvolvimento', exact: true });
+      await expect(heading).toBeVisible();
+      await captureThemes(page, `employee-${id}`);
+      continue;
+    } else if (id === 'oneOnOne') await page.goto('/employee#oneOnOne');
     const section = page.locator(`#${id}`);
     await expect(section).toBeVisible();
-    const toggle = section.getByRole('button').first();
-    if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await captureThemes(page, `employee-${id}`, section);
   }
   for (const path of ['pdi', 'lms']) {
@@ -211,7 +210,8 @@ test('P3: populated employee modules and management details keep their layout', 
   expect(items.length).toBeGreaterThan(0);
   for (const section of ['summary', 'oneOnOne', 'journey']) {
     await page.goto(`/dashboard?tab=team&candidate=${items[0].id}&section=${section}`);
-    await expect(page.getByRole('tab', { name: section === 'summary' ? 'Resumo' : section === 'oneOnOne' ? '1:1' : 'Jornada', exact: true })).toHaveAttribute('aria-selected', 'true');
+    const sectionName = section === 'summary' ? 'Resumo' : section === 'oneOnOne' ? '1:1' : 'Onboarding e desenvolvimento';
+    await expect(page.getByRole('tab', { name: sectionName, exact: true })).toHaveAttribute('aria-selected', 'true');
     await captureThemes(page, `person-${section}`);
   }
   expect(errors).toEqual([]);

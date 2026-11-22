@@ -65,6 +65,7 @@ import {
   formatAbsenceExplanation,
 } from '../../../lib/people/list-absence-diagnostics-core.js';
 import { TeamRosterControls } from '../team/TeamRosterControls';
+import { useConsumeOnboardingAction } from '../hooks/useConsumeOnboardingAction';
 
 function nearbyCluster(scores) {
   return clusterCloseTypes(rankEnneagramScores(scores));
@@ -264,6 +265,7 @@ export function TeamTab({
   canManageCompensation = false,
   canViewJobRoles = false,
   canRehire = false,
+  onboardingAction = null,
 }) {
   const [open, setOpen] = useState(null);
   const [activePersonSection, setActivePersonSection] = useState('summary');
@@ -404,6 +406,14 @@ export function TeamTab({
       setCreateEmployeeBusy(false);
     }
   };
+
+  useConsumeOnboardingAction({
+    action: 'first_employee',
+    activationAction: onboardingAction,
+    tab: 'team',
+    navigateDashboard,
+    onAction: createEmployeeDirect,
+  });
 
   useEffect(() => { setSelectedIds(new Set()); setStageOverrides({}); }, [results]);
 

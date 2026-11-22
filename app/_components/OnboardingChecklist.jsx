@@ -26,6 +26,10 @@ const TASK_TABS = Object.freeze({
   setup_succession: 'succession',
   setup_company_feed: 'company-feed',
   setup_whistleblowing: 'whistleblowing',
+  first_employee: 'team',
+  climate_results: 'climate',
+  start_performance_cycle: 'performance-reviews',
+  complete_lms_course: 'lms',
 });
 
 function dismissedStorageKey(companyId) {
@@ -62,6 +66,7 @@ export function OnboardingChecklist({ locale = 'pt-BR', companyId = null, initia
 
   const completedCount = tasks.filter((task) => task.completed).length;
   const totalCount = tasks.length;
+  const nextTask = tasks.find((task) => !task.completed) || null;
   const taskGroups = tasks.reduce((groups, task) => {
     const moduleId = task.moduleId || 'core';
     const group = groups.get(moduleId) || [];
@@ -76,6 +81,14 @@ export function OnboardingChecklist({ locale = 'pt-BR', companyId = null, initia
     const params = new URLSearchParams({ tab });
     if (companyId) params.set('company', String(companyId));
     if (taskId === 'create_vacancy') params.set('create', '1');
+    else if ([
+      'first_employee', 'create_climate', 'setup_job_role', 'setup_lms_course', 'setup_performance',
+      'invite_manager', 'setup_benefits', 'setup_succession', 'setup_company_feed', 'setup_whistleblowing',
+      'climate_results', 'start_performance_cycle',
+      'send_assessment', 'view_result', 'move_pipeline', 'complete_lms_course',
+    ].includes(taskId)) {
+      params.set('onboardingAction', taskId);
+    }
     router.push(`/dashboard?${params.toString()}`);
   };
 
@@ -136,15 +149,28 @@ export function OnboardingChecklist({ locale = 'pt-BR', companyId = null, initia
         />
       </div>
 
+      {nextTask ? (
+        <div className="mb-3 flex flex-col gap-3 rounded-control border border-brand-500/20 bg-surface p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className={cn(S.cardFaint, 'm-0')}>{t(locale, 'panel.firstSteps.nextAction')}</p>
+            <p className="m-0 mt-0.5 font-ui text-sm font-semibold text-ink">{taskTitle(nextTask)}</p>
+            <p className={cn(S.cardMuted, 'm-0 mt-0.5')}>{taskDesc(nextTask)}</p>
+          </div>
+          <button type="button" onClick={() => handleTaskClick(nextTask.id)} className={cn(S.btnPrimary, 'shrink-0')}>
+            {t(locale, 'panel.firstSteps.openNextAction')}
+          </button>
+        </div>
+      ) : null}
+
       <CollapsibleBlock
         locale={locale}
         title={t(locale, 'panel.firstSteps.tasksHeading')}
-        defaultOpen
+        count={totalCount}
+        defaultOpen={false}
         variant="plain"
       >
         <div className="flex flex-col gap-4">
           {[...taskGroups.entries()].map(([moduleId, moduleTasks]) => {
-            const nextTaskId = moduleTasks.find((task) => !task.completed)?.id;
             return (
               <section key={moduleId} aria-label={t(locale, `onboarding.modules.item.${moduleId}.title`)}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -192,11 +218,6 @@ export function OnboardingChecklist({ locale = 'pt-BR', companyId = null, initia
                           </span>
                           <span className={cn(S.cardMuted, 'mt-0.5 block')}>{taskDesc(task)}</span>
                         </span>
-                        {!task.completed ? (
-                          <span className="shrink-0 self-center font-ui text-xs font-semibold text-brand-600">
-                            {t(locale, task.id === nextTaskId ? 'panel.firstSteps.nextAction' : 'panel.firstSteps.openNextAction')}
-                          </span>
-                        ) : null}
                       </button>
                     </li>
                   ))}

@@ -48,8 +48,8 @@ test('final polish: employee English home, IDP and courses remain responsive', a
   const switched = page.waitForResponse(response => response.url().endsWith('/api/employee/me') && response.request().method() === 'PATCH');
   await page.getByRole('option', { name: /English/ }).click();
   expect((await switched).ok()).toBeTruthy();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Profile');
-  for (const [path, title] of [['', /^Hi, /], ['/pdi', 'My IDP'], ['/lms', 'My courses']]) {
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('My profile');
+  for (const [path, title] of [['', /^Hi, /], ['/pdi', 'My development'], ['/lms', 'My courses']]) {
     await page.goto(`/employee${path}`);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
     for (const dark of [false, true]) {

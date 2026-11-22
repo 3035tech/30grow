@@ -386,7 +386,6 @@ async function runOfflineLibs() {
       'getClimateCompanyBenchmark',
       'getCompanyClimatePulse',
       'getCompanyEnpsPulse',
-      'climateMinResponses',
       'archiveClimateSurvey',
       'versionClimateSurvey',
       'climateQuestionsEditable',
@@ -394,6 +393,10 @@ async function runOfflineLibs() {
       if (!clima.includes(`export async function ${name}`) && !clima.includes(`export function ${name}`)) {
         throw new Error(`missing ${name}`);
       }
+    }
+    const climateThreshold = await readFile(join(root, 'lib', 'people', 'climate-response-threshold.js'), 'utf8');
+    if (!clima.includes('export { climateMinResponses };') || !climateThreshold.includes('export function climateMinResponses()')) {
+      throw new Error('climate minimum response helper is not exported from the shared threshold module');
     }
     const viz = await readFile(join(root, 'lib', 'people', 'climate-viz.js'), 'utf8');
     for (const name of ['climateMeanLevel', 'buildClimateTrendChart']) {
