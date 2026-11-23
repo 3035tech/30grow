@@ -109,7 +109,7 @@ export function VacancyCandidateDialog({ row, vacancyId, locale, stages, recruit
               </p>
               <p className="m-0">{t(locale, 'recruiting.salaryExpectationLabel')}: {data?.salaryExpectation ? formatSalaryBr(data.salaryExpectation) || data.salaryExpectation : '—'}</p>
               <p className="m-0">{t(locale, 'recruiting.candidateDialogCv')}: {' '}
-                {data?.cvUrl && /^https:\/\//i.test(data.cvUrl)
+                {data?.cvUrl
                   ? <a href={data.cvUrl} target="_blank" rel="noopener noreferrer" className="text-brand-600 underline">{t(locale, 'recruiting.cvOpenPdf')}</a>
                   : '—'}
               </p>

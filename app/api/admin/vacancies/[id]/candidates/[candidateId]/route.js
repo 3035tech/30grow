@@ -63,7 +63,9 @@ export async function GET(request, props) {
     const detail = await query(
       `SELECT c.id AS "candidateId", v.company_id AS "companyId", v.title AS "vacancyTitle",
               c.full_name AS name, c.email, c.phone, c.city, c.state, c.employment_status AS "employmentStatus",
-              c.linkedin_url AS "linkedinUrl", c.salary_expectation AS "salaryExpectation", c.cv_url AS "cvUrl",
+              c.linkedin_url AS "linkedinUrl", c.salary_expectation AS "salaryExpectation",
+              CASE WHEN c.cv_key IS NOT NULL OR c.cv_url IS NOT NULL
+                THEN '/api/admin/candidates/' || c.id::text || '/cv/file' END AS "cvUrl",
               c.professional_summary AS "professionalSummary", vc.interview_notes AS "interviewNotes",
               profile.top_type AS "profileTopType", motivators.ranking AS "motivatorsRanking"
        FROM vacancies v

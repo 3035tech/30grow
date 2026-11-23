@@ -50,7 +50,9 @@ export async function GET(request, props) {
             c.consent_at AS "consentAt", c.created_at AS "createdAt",
             c.created_by_user_id AS "createdByUserId",
             u.display_name AS "createdByName",
-            c.cv_url AS "cvUrl", c.cv_updated_at AS "cvUpdatedAt",
+            CASE WHEN c.cv_key IS NOT NULL OR c.cv_url IS NOT NULL
+              THEN '/api/admin/candidates/' || c.id::text || '/cv/file' END AS "cvUrl",
+            c.cv_updated_at AS "cvUpdatedAt",
             (c.cv_extracted_text IS NOT NULL AND c.cv_extracted_text <> '') AS "hasCvText"
      FROM candidates c
      LEFT JOIN job_roles jr ON jr.id = c.job_role_id AND jr.company_id = c.company_id
