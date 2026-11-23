@@ -31,12 +31,12 @@ test('regional locales normalize with stable aliases and region metadata', () =>
 });
 
 test('regional catalogs override high-traffic copy and fall back safely', () => {
-  assert.equal(t('pt-PT', 'pricing.navEarly'), 'Experimentar 30 dias grátis');
+  assert.equal(t('pt-PT', 'pricing.navEarly'), 'Experimentar 90 dias grátis');
   assert.equal(t('pt-BR', 'pricing.planName'), '30Grow Completo');
   assert.equal(t('en', 'pricing.planName'), '30Grow Complete');
   assert.equal(t('pt-BR', 'pricing.completePlanName'), '30Grow Completo');
   assert.equal(t('en', 'pricing.completePlanName'), '30Grow Complete');
-  assert.equal(t('es-419', 'pricing.navEarly'), 'Probar 30 días gratis');
+  assert.equal(t('es-419', 'pricing.navEarly'), 'Probar 90 días gratis');
   assert.equal(t('es-419', 'pricing.completePlanName'), '30Grow Completo');
   assert.equal(t('es-419', 'common.closeMenu'), 'Cerrar menú');
   assert.equal(t('es-419', 'login.enter'), 'Iniciar sesión →');

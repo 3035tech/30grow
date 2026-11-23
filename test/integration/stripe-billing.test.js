@@ -80,7 +80,7 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
     const context=vm.createContext({console,process:{env},Date,Buffer,URL,Math,Number,Set,Map});
     const module=new vm.SourceTextModule(await readFile(new URL('../../'+file,import.meta.url),'utf8'),{context});
     await module.link(specifier=>{
-      const exports=specifier==='node:crypto'?{randomUUID}:specifier.includes('api-error-codes.js')?errorCodes:specifier.includes('public-legal.js')?publicLegal:specifier.includes('db.js')?db:specifier.includes('catalog.js')?fakeCatalog:specifier.includes('stripe.js')?fakeStripe:specifier.includes('refunds.js')?refundApi:specifier.includes('license.js')?{loadCompanyLicense:async()=>null}:specifier.includes('sync.js')?syncApi:null;
+      const exports=specifier==='node:crypto'?{randomUUID}:specifier.includes('api-error-codes.js')?errorCodes:specifier.includes('public-legal.js')?publicLegal:specifier.includes('trial-offer.js')?{TRIAL_OFFER_DAYS:90}:specifier.includes('db.js')?db:specifier.includes('catalog.js')?fakeCatalog:specifier.includes('stripe.js')?fakeStripe:specifier.includes('refunds.js')?refundApi:specifier.includes('license.js')?{loadCompanyLicense:async()=>null}:specifier.includes('sync.js')?syncApi:null;
       if(!exports)throw new Error('Unexpected dependency '+specifier);
       return new vm.SyntheticModule(Object.keys(exports),function(){for(const[k,v]of Object.entries(exports))this.setExport(k,v);},{context});
     });await module.evaluate();return module.namespace;
