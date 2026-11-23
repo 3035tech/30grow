@@ -105,12 +105,13 @@ test('Stripe billing migration, retries, tenant isolation and founder concurrenc
     const before=(await db.query('SELECT * FROM company_licenses WHERE company_id=$1',[legacy.companyId])).rows[0];
     const migration=await readFile(new URL('../../migrations/166_stripe_billing.sql',import.meta.url),'utf8');
     await db.query(migration);
-    const fresh=await company();
     await db.query(migration);
-    await t.test('migration retries preserve old licenses and give new companies 30 days',async()=>{
+    await db.query(await readFile(new URL('../../migrations/186_black_friday_trial_duration.sql',import.meta.url),'utf8'));
+    const fresh=await company();
+    await t.test('migration retries preserve old licenses and give new companies 90 days',async()=>{
       assert.deepEqual((await db.query('SELECT * FROM company_licenses WHERE company_id=$1',[legacy.companyId])).rows[0],before);
       assert.equal((await db.query('SELECT managed FROM company_billing_terms WHERE company_id=$1',[legacy.companyId])).rows[0].managed,false);
-      assert.equal((await db.query('SELECT trial_days FROM company_licenses WHERE company_id=$1',[fresh.companyId])).rows[0].trial_days,30);
+      assert.equal((await db.query('SELECT trial_days FROM company_licenses WHERE company_id=$1',[fresh.companyId])).rows[0].trial_days,90);
       assert.equal((await db.query('SELECT managed FROM company_billing_terms WHERE company_id=$1',[fresh.companyId])).rows[0].managed,true);
       await assert.rejects(db.query("INSERT INTO company_billing_accounts(company_id,livemode,status) VALUES($1,FALSE,'fake')",[fresh.companyId]),{code:'23514'});
     });

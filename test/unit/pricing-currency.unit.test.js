@@ -18,7 +18,8 @@ for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr-FR', 'de-DE
     for (const text of [copy.pricingSnapshotBody, t(locale, 'pricing.trialNote', values),
       t(locale, 'pricing.faq1A', values), t(locale, 'signup.intro', values)]) {
       assert.ok(text.includes(price), text);
-      assert.doesNotMatch(text, /\{monthlyPrice\}|\{firstTierMax\}|90|20%|200/);
+      assert.doesNotMatch(text, /\{monthlyPrice\}|\{firstTierMax\}|20%|200/);
+      assert.match(text, /90/);
     }
     assert.equal(getPricingCoreFeatures(locale).length, 11);
     for (const build of [buildProductLandingJsonLd, buildPricingJsonLd]) {
@@ -28,10 +29,11 @@ for (const locale of ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr-FR', 'de-DE
       assert.equal(offer.priceSpecification.billingDuration, 'P1M');
     }
     const commercial = JSON.stringify({ hero: copy.heroBody, badge: copy.earlyBadge, proof: copy.ui.heroProof, offer: copy.earlyBody, faqs: copy.faqs });
-    assert.doesNotMatch(commercial, /90 days|90 dias|firstTierMax|monthlyPrice|20%/);
+    assert.match(commercial, /90/);
+    assert.doesNotMatch(commercial, /firstTierMax|monthlyPrice|first 20.{0,30}90 days|primeiras 20.{0,30}90 dias/);
     if (locale === 'pt-BR') {
       assert.match(copy.earlyTitle, /até 5 colaboradores ativos/i);
-      assert.match(copy.earlyBody, /após o teste de 30 dias.*até 5 colaboradores ativos.*grátis/i);
+      assert.match(copy.earlyBody, /após o teste de 90 dias.*até 5 colaboradores ativos.*grátis/i);
       assert.doesNotMatch(commercial, /sem faixas|R\$\s*69|ilimitad/i);
     } else {
       assert.doesNotMatch(commercial, /first 20|primeiras 20|R\$/);
@@ -48,8 +50,8 @@ test('crawler offer describes BRL tiers and bounded launch terms', () => {
   assert.match(offer, /above 100 by quote/);
   assert.match(offer, /BRL 1490 paid upfront/);
   assert.match(offer, /First 20 eligible companies.*BRL 99.*12 months.*then BRL 149/);
-  assert.match(offer, /30-day trial without a card/);
-  assert.doesNotMatch(offer, /90 days|20%|BRL 69/);
+  assert.match(offer, /90-day trial without a card/);
+  assert.doesNotMatch(offer, /20%|BRL 69/);
 });
 
 test('BRL launch and annual terms agree with rendered copy', () => {

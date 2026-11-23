@@ -13,7 +13,7 @@ O checkout, os retornos, webhooks e o portal estão implementados. Ativar um amb
 | `usd_company_monthly` | US$ 39/mês | oferta internacional atual, sem faixas |
 | oferta `brl_launch_monthly` | R$ 99/mês por 12 meses; depois R$ 149 | 20 |
 
-Novas empresas self-service têm 30 dias de teste sem cartão desde o cadastro. Contratar antes do vencimento preserva o prazo restante. Checkout exige pelo menos 48 horas de trial: uma contratação nas últimas 48 horas recebe até dois dias extras, sem antecipar a cobrança. O cliente vê data e valor no Stripe antes de confirmar.
+Durante a oferta Black Friday, novas empresas self-service têm 90 dias de teste sem cartão desde o cadastro. Contratar antes do vencimento preserva o prazo restante. Checkout exige pelo menos 48 horas de trial: uma contratação nas últimas 48 horas recebe até dois dias extras, sem antecipar a cobrança. O cliente vê data e valor no Stripe antes de confirmar. Licenças existentes mantêm o prazo original.
 
 A oferta de lançamento é exclusiva do mensal inicial. As 20 vagas são controladas transacionalmente e separadas por modo Stripe. Checkouts abertos reservam a vaga por até 24 horas. Antes de recuperar uma reserva expirada, o servidor verifica no Stripe se houve conclusão, protegendo pagamentos com webhook atrasado. Uma vaga já usada não volta para a campanha quando a empresa cancela.
 
