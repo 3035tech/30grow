@@ -134,6 +134,26 @@ function RequestReview({ detail, companyId, locale }) {
       {after && item.status === TIME_REQUEST_STATUS.PENDING ? (
         <section className="flex flex-col gap-2">
           <h3 className={cn(S.label, 'm-0')}>{t(locale, `${KR}.reviewAfter`)}</h3>
+          {detail.afterSummary ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatMetricTile
+                value={formatMinutesClock(detail.afterSummary.workedMinutes)}
+                label={t(locale, `${KM}.colWorked`)}
+              />
+              <StatMetricTile
+                value={formatMinutesClock(detail.afterSummary.expectedMinutes)}
+                label={t(locale, `${KM}.expected`)}
+              />
+              <StatMetricTile
+                value={formatMinutesClock(detail.afterSummary.extraMinutes)}
+                label={t(locale, `${KM}.colExtra`)}
+              />
+              <StatMetricTile
+                value={formatMinutesClock(detail.afterSummary.missingMinutes)}
+                label={t(locale, `${KM}.colMissing`)}
+              />
+            </div>
+          ) : null}
           {after.length === 0 ? (
             <p className={cn(S.muted, 'm-0 text-prose')}>{t(locale, `${KM}.noPunch`)}</p>
           ) : (

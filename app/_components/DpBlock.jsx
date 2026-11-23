@@ -1184,7 +1184,7 @@ export function DpBlock({ locale, candidateId, employmentStatus, companyId, navi
             </ProfileSection>
             {!readOnly && scopedCompanyId && timeClockEnabled ? (
               <section className="mt-4 border-t border-ink/10 pt-4">
-                <TimeClockScheduleBlock locale={locale} companyId={scopedCompanyId} candidateId={candidateId} />
+                <TimeClockScheduleBlock locale={locale} companyId={scopedCompanyId} candidateId={candidateId} onChanged={() => void load()} />
               </section>
             ) : null}
             <ProfileSection
