@@ -32,7 +32,9 @@ test('publish files, retry without duplicate notice or attachment, and view priv
  const view=page.getByRole('dialog',{name:'Comunicado da empresa'});
  await expect(view.getByText('foto.png',{exact:true})).toBeVisible();await expect(view.getByText('politica.pdf',{exact:true})).toBeVisible();
  await expect(view.getByRole('link',{name:'Baixar arquivo'}).first()).toHaveAttribute('href',/\/api\/admin\/company-feed\/posts\/5\/attachments\/10\?companyId=1/);
- await expect(view.getByRole('img',{name:'foto.png'})).toHaveAttribute('src',/preview=1/);
+ await view.getByRole('button',{name:'Ampliar imagem: foto.png'}).click();
+ const preview=page.getByRole('dialog',{name:'foto.png'});
+ await expect(preview.getByRole('img',{name:'foto.png'})).toHaveAttribute('src',/preview=1/);
  await page.screenshot({path:testInfo.outputPath('notice-attachments.png'),fullPage:true});
 });
 
