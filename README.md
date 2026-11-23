@@ -52,7 +52,7 @@ app/                  páginas e API Routes (finas)
   api/                admin, auth, public, employee, mobile/v1, cron…
 lib/                  regras: scoring, pipeline, i18n, mail, db, permissões
   ae/                 Motivadores (separado do T1–T9)
-migrations/           schema canônico (hoje até 136)
+migrations/           schema canônico (hoje até 185)
 scripts/              migrate, seeds, ops
 test/                 DTOV + unit + Playwright
 docs/                 referência, runbooks, LGPD, backlog

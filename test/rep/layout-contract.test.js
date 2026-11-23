@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import * as formats from '../../lib/rep/formats.js';
 import { fiscalSchedule } from '../../lib/rep/exports.js';
 import { repRegistrySchema } from '../../lib/rep/registry.js';
+import { REP_P_INPI_REGISTRATION } from '../../lib/rep/provider.js';
 const establishment = {
   id: 1,
   employer_document: '11222333000181',
@@ -15,6 +16,7 @@ const establishment = {
 };
 const developer = {
   document: '11222333000181',
+  registration: REP_P_INPI_REGISTRATION,
   name: '30Grow',
   version: '1.0',
   legalName: '3035TECH',
@@ -75,8 +77,14 @@ async function exportFixture(days, workers = [worker]) {
       });
     },
   );
+  const providerMod = new vm.SyntheticModule(
+    ['REP_P_INPI_REGISTRATION'],
+    function () {
+      this.setExport('REP_P_INPI_REGISTRATION', REP_P_INPI_REGISTRATION);
+    },
+  );
   await mod.link((spec) =>
-    spec.includes('formats.js') ? formatMod : mirrorMod,
+    spec.includes('formats.js') ? formatMod : spec.includes('provider.js') ? providerMod : mirrorMod,
   );
   await mod.evaluate();
   const db = {
@@ -114,7 +122,7 @@ function aej(overrides = {}) {
   });
 }
 
-test('real numeric INPI length is accepted without changing the identifier', () => {
+test('employer input cannot override the provider INPI registration', () => {
   const value = repRegistrySchema.parse({
     action: 'establishment',
     employerDocument: establishment.employer_document,
@@ -124,7 +132,7 @@ test('real numeric INPI length is accepted without changing the identifier', () 
     timezone: establishment.timezone,
     responsibleCpf: '52998224725',
   });
-  assert.equal(value.registration, '5120261234567');
+  assert.equal(value.registration, REP_P_INPI_REGISTRATION);
 });
 test('AFD 004 has exact official offsets, right-space padding and CRLF bytes', () => {
   const buffer = formats.buildAfd({
@@ -138,7 +146,7 @@ test('AFD 004 has exact official offsets, right-space padding and CRLF bytes', (
   assert.equal(lines[0].length, 302);
   assert.equal(lines[0].slice(0, 25), '0000000001111222333000181');
   assert.equal(lines[0].slice(25, 39), '              ');
-  assert.equal(lines[0].slice(189, 206), '5120261234567    ');
+  assert.equal(lines[0].slice(189, 206), 'BR512026010154-9 ');
   assert.equal(
     lines[0].slice(206, 253),
     '2026-10-042026-10-042026-10-05T09:00:00-0300004',

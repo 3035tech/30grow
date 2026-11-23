@@ -4,6 +4,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import pg from 'pg';
 import { repRegistrySchema, saveRepRegistry } from '../../lib/rep/registry.js';
 import { fiscalExport } from '../../lib/rep/exports.js';
+import { REP_P_INPI_REGISTRATION } from '../../lib/rep/provider.js';
 import {
   createTimePunch,
   getEmployeeTimeClockToday,
@@ -152,6 +153,7 @@ test('full canonical schema migrates and REP expansion is reentrant', async () =
       timezone: 'America/Sao_Paulo',
       responsibleCpf: '52998224725',
     });
+    assert.equal(config.registration, REP_P_INPI_REGISTRATION);
     assert.equal(await saveRepRegistry(db, 900001, config), '900001');
     assert.equal(
       (
@@ -159,14 +161,14 @@ test('full canonical schema migrates and REP expansion is reentrant', async () =
           'SELECT registration FROM rep_establishments WHERE id=900001',
         )
       ).rows[0].registration,
-      '5120261234567',
+      '00005120261234567',
     );
     assert.equal(
       await saveRepRegistry(db, 900001, {
         ...config,
         registration: '5120269999999',
       }),
-      null,
+      '900001',
     );
     await assert.rejects(
       db.query(

@@ -200,6 +200,19 @@ CDN dedicado, autoscaling, PgBouncer/RDS Proxy, réplicas, Redis separado, parti
 
 **Gatilho:** capacidade medida insuficiente para cliente/campanha contratada, não uma hipótese de crescimento.
 
+### Oportunidade futura — Integração de ponto e folha (23/11/2026)
+
+**Descoberta de produto:** comparação inicial entre o ponto do 30Grow e o Secullum RH/Ponto Web. Não representa compromisso de construir folha própria nem paridade de funcionalidades.
+
+- O 30Grow já oferece marcação pelo colaborador, histórico, solicitações de ajuste/justificativa, banco de horas, feriados, fechamento com espelho para conferência/assinatura e configuração do registrador com geração de AFD/AEJ. A implementação atual do ponto é um MVP e não inclui folha, eSocial ou reconhecimento facial (`lib/people/time-clock.js`). A localização da marcação é evidência complementar, não requisito para registrar o ponto.
+- O Secullum anuncia integração com relógios, coleta de AFD e integração com sistemas de folha; conforme plano/fluxo, oferece registro por aplicativo, localização/perímetro, uso offline, foto, reconhecimento facial, solicitações e aprovações, férias e relatórios de jornada.
+- A oportunidade mais próxima do escopo atual é consolidar e exportar eventos variáveis de jornada para a folha existente, além de investigar compatibilidade com os formatos aceitos por contadores e sistemas usados pelos clientes. Regras de jornada mais avançadas e recursos adicionais de registro móvel dependem de validação de demanda.
+- **Não iniciar uma folha própria** antes de evidência de clientes, análise de cobertura legal/operacional e definição de responsabilidade pelo cálculo, fechamento e transmissão ao eSocial.
+
+**Próxima validação:** perguntar a clientes e contadores quais sistemas de folha/ponto utilizam, quais dados hoje redigitam, qual formato conseguem importar e com que frequência esse processo gera erro ou retrabalho. Priorizar uma exportação somente se houver formato e fluxo confirmados por clientes piloto.
+
+**Referências consultadas em 23/11/2026:** [Secullum RH/Ponto Web — recursos e planos](https://www.secullum.com.br/pt/produtos/secullum-rh/ponto); [Central do Funcionário — recursos para colaboradores e gestores](https://www.secullum.com.br/pt/perguntas-frequentes/660); implementação local em `lib/people/time-clock.js`, `lib/rep/exports.js` e `app/employee/time-clock/EmployeeTimeClockClient.jsx`.
+
 ---
 
 ## Explicitamente fora do MVP agora

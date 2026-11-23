@@ -12,6 +12,7 @@ import { formatCpfBr, formatCpfCnpjBr } from '../../../../lib/br-masks.js';
 import { formatMinutesClock } from '../../../../lib/time-clock-format.js';
 import { EmployeeDedicatedShell } from '../../../_components/EmployeeDedicatedShell';
 import { EmployeeTimeClockMirrorPrintButton } from '../../../_components/EmployeeTimeClockMirrorPrintButton';
+import { REP_P_INPI_REGISTRATION } from '../../../../lib/rep/provider.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,7 +84,7 @@ export default async function EmployeeTimeClockMirrorPage({ searchParams }) {
       `SELECT w.cpf, w.worker_name AS "registeredWorkerName", e.employer_name AS "employerName",
               e.employer_document AS "employerDocument",
               e.complementary_document AS "complementaryDocument",
-              e.workplace, e.registration, e.timezone
+              e.workplace, e.timezone
        FROM rep_workers w
        JOIN rep_establishments e
          ON e.id = w.establishment_id AND e.company_id = w.company_id
@@ -91,7 +92,7 @@ export default async function EmployeeTimeClockMirrorPage({ searchParams }) {
        LIMIT 1`,
       [payload.companyId, payload.candidateId],
     );
-    identity = result.rows[0] || null;
+    identity = result.rows[0] ? { ...result.rows[0], registration: REP_P_INPI_REGISTRATION } : null;
   } catch {
     identity = null;
   }

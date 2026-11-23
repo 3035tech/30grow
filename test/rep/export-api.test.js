@@ -7,6 +7,7 @@ import { zipSync, unzipSync } from 'fflate';
 import { ERR } from '../../lib/api-error-codes.js';
 import { CAP } from '../../lib/identity/permissions.js';
 import { buildAfd } from '../../lib/rep/formats.js';
+import { REP_P_INPI_REGISTRATION } from '../../lib/rep/provider.js';
 const query = {
   establishmentId: 1,
   from: '2026-10-01',
@@ -26,7 +27,7 @@ async function fixture(error) {
     records: [],
     from: query.from,
     to: query.to,
-    developer: { document: '11222333000181' },
+    developer: { document: '11222333000181', registration: REP_P_INPI_REGISTRATION },
   });
   const values = {
     z,
@@ -88,7 +89,7 @@ async function fixture(error) {
 test('AFD ZIP names use canonical INPI with no field padding, plus matching detached p7s', async () => {
   const { response, calls } = await fixture();
   assert.equal(response.status, 200);
-  const filename = 'AFD512026123456711222333000181REP_P.txt';
+  const filename = 'AFDBR512026010154-911222333000181REP_P.txt';
   assert.equal(
     response.headers.get('content-disposition'),
     `attachment; filename="${filename}.zip"`,

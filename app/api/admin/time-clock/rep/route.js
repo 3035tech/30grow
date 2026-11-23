@@ -9,12 +9,13 @@ import {
 import { apiError, ERR } from '../../../../../lib/api-error.js';
 import { timeClockEnabledSql } from '../../../../../lib/people/time-clock-eligibility.js';
 import { isTimeClockScheduleReady, isTimeClockSetupReady } from '../../../../../lib/people/time-clock-setup.js';
+import { REP_P_INPI_REGISTRATION } from '../../../../../lib/rep/provider.js';
 const options = { anyCap: [CAP.DP_VIEW, CAP.TEAM_VIEW], requireCompany: true };
 export const GET = withAdminApi(
   { ...options, companyFrom: 'query' },
   async ({ companyId }) => {
     const e = await dbQuery(
-      'SELECT id,employer_document,employer_name,workplace,registration,responsible_cpf,timezone,complementary_document,last_nsr FROM rep_establishments WHERE company_id=$1 ORDER BY id',
+      'SELECT id,employer_document,employer_name,workplace,responsible_cpf,timezone,complementary_document,last_nsr FROM rep_establishments WHERE company_id=$1 ORDER BY id',
       [companyId],
     );
     const establishmentFieldNames = {
@@ -22,7 +23,6 @@ export const GET = withAdminApi(
       employerName: 'employer_name',
       complementaryDocument: 'complementary_document',
       workplace: 'workplace',
-      registration: 'registration',
       timezone: 'timezone',
       responsibleCpf: 'responsible_cpf',
     };
@@ -33,7 +33,7 @@ export const GET = withAdminApi(
         employerName: item.employer_name,
         complementaryDocument: item.complementary_document || '',
         workplace: item.workplace,
-        registration: item.registration,
+        registration: REP_P_INPI_REGISTRATION,
         timezone: item.timezone,
         responsibleCpf: item.responsible_cpf,
       });
@@ -42,7 +42,7 @@ export const GET = withAdminApi(
         : [...new Set(validation.error.issues
             .map((issue) => establishmentFieldNames[issue.path[0]])
             .filter(Boolean))];
-      return { ...item, setupValid: validation.success, setupIssues };
+      return { ...item, registration: REP_P_INPI_REGISTRATION, setupValid: validation.success, setupIssues };
     });
     const counts = await dbQuery(
       `SELECT

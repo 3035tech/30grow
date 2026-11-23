@@ -9,6 +9,7 @@ import {
   SIGNATURE_LINE,
 } from '../../lib/rep/formats.js';
 import { validPeriod } from '../../lib/rep/exports.js';
+import { REP_P_INPI_REGISTRATION } from '../../lib/rep/provider.js';
 test('official document check digits, Latin-1, explicit clock zone and strict periods', () => {
   for (const doc of ['52998224725', '11222333000181', '00000000E08G12'])
     assert.equal(validDocument(doc), true);
@@ -72,6 +73,7 @@ test('AEJ 002 record fields, original/disregarded/manual sources and trailers', 
     to: '2026-10-16',
     developer: {
       document: '11222333000181',
+      registration: REP_P_INPI_REGISTRATION,
       name: '30Grow',
       version: '1.0',
       legalName: '3035TECH',
@@ -84,6 +86,7 @@ test('AEJ 002 record fields, original/disregarded/manual sources and trailers', 
     lines[0],
     '01|1|11222333000181|||Escola A|2026-10-16|2026-10-16|2026-10-17T13:00:00-0300|002',
   );
+  assert.ok(lines.includes(`02|1|3|${REP_P_INPI_REGISTRATION}`));
   assert.ok(lines.includes('04|1|480|0900|1700||'));
   assert.ok(
     lines.includes('05|1|2026-10-16T17:00:00-0300|1|D|001|O||Duplicada'),

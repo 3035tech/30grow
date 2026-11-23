@@ -1,6 +1,6 @@
 # Prompt — funcionalidades atuais do 30Grow
 
-Copie o bloco abaixo para um chat / agente quando precisar de contexto de **produto já entregue** (não de backlog). Data de referência: **set/2026**. Fonte: `AGENTS.md`, Guia (`HelpTab` / `panel.help.*`), `docs/BACKLOG.md` (epics fechados), código em `app/` + `lib/`.
+Copie o bloco abaixo para um chat / agente quando precisar de contexto de **produto já entregue** (não de backlog). Data de referência: **nov/2026**. Fonte funcional: `docs/FEATURES.md`; detalhes de uso no Guia (`HelpTab` / `panel.help.*`); confirmar no código em `app/` + `lib/`.
 
 ---
 
@@ -15,7 +15,7 @@ Você está trabalhando no 30Grow (30team) — produto de RH da 3035Tech para pe
 - Candidatos NÃO têm conta. Gestores: landpage `/` → CTA “Acessar o sistema” → `/login` → `/dashboard` (roles admin | direction | hr).
 
 ## Stack (resumo)
-Next.js 16.3.3 App Router + React 19.3 JSX (sem TypeScript) + PostgreSQL 16 + JWT cookie team30_session + Tailwind (tokens brand/pipeline) + i18n pt-BR e en. Multi-tenant por company_id. Scoring autoritativo no servidor. Soft delete em companies/vacancies/users.
+Next.js 16.3.8 App Router + React 19.3 JSX (sem TypeScript) + PostgreSQL 16 + JWT cookie team30_session + Tailwind (tokens brand/pipeline) + i18n pt-BR, en, fr e de (com variantes regionais). Multi-tenant por company_id. Scoring autoritativo no servidor. Soft delete em companies/vacancies/users.
 
 ## Identidade da pessoa
 Hub = tabela candidates (company_id + e-mail). O mesmo candidate_id une:
@@ -118,7 +118,7 @@ Gap vs roteiro de demo concorrentes (cliente oculto): `docs/GAP-cliente-oculto-r
 - Links: `/v` (teste) e `/jobs/{slug}-{id}` (página pública: ativar, indexar, mostrar empresa, salário); score de completude SEO.
 - Cadastro de candidatos (e-mail = chave); convite eneagrama por e-mail; notes ricas; scorecard 1–5 (perguntas do briefing).
 - Pipeline kanban: new → interview → test_completed → screening → approved → hired | rejected | archived (drag-and-drop; rejeição com motivo; hire com data de início; auto-close ao preencher posições). Badge aging “N d” (≥7 / ≥14) no kanban da vaga e da Equipe.
-- Detalhe da vaga: Pipeline e Candidatos em evidência; Aderência, Funil, Indicação, Relatório e Config em “Mais…”.
+- Detalhe da vaga organizado por tarefa em seções navegáveis, sem repetir a navegação principal como abas internas. Cadastro de candidato abre em drawer, com leitura de currículo por IA opcional e alternativa manual; análises e gestão do funil ficam em áreas separadas.
 - Clonar vaga (campos + rubrica; sem candidatos; página pública off).
 - Funil analytics (views → apps → entrevistas → hires; UTM/ref) — precisa página pública.
 - Indicação: códigos ?ref= (escopo vaga ou empresa).
@@ -155,6 +155,18 @@ Gap vs roteiro de demo concorrentes (cliente oculto): `docs/GAP-cliente-oculto-r
 - **Aniversários (B-2300):** Overview card (nascimento + tempo de casa via `start_date` + aniversário da empresa); `birth_date` na Equipe; `anniversary_date` em Empresas.
 - **LMS (B-2400 + B-2401):** menu LMS → Cursos; aulas URL/PDF (S3); matrícula individual/lote/turma; prazo + obrigatório; progresso no `/e` e em `/employee` (marcar/desmarcar); PDI↔curso; Overview/Equipe atraso; notifs + cron overdue. Academy continua catálogo PDI (sem progresso).
 - **Login colaborador (B-2500):** convite set-password → `/employee`; cookie `team30_employee_session`; hub PDI/LMS/tarefas/empresa. Equipe → Convidar acesso.
+- **Primeiros passos:** checklist por módulo com próxima ação recomendada, detalhes recolhidos, CTAs contextuais para formulários e subseções, escopo por capability e progresso revalidado ao retornar/trocar empresa. O funil de super admin mede primeiro valor após o wizard (vaga, análise, admissão, clima após anonimização mínima e curso concluído), sem conteúdo de respostas.
+
+### DP e ponto
+- DP organiza pendências, férias/afastamentos, documentos, ponto/banco de horas, equipe de campo e admissão por subseções na navegação principal.
+- Ponto: marcação, localização complementar, histórico, pedidos de correção/justificativa, jornada, feriados, banco de horas e fechamento com espelho para assinatura ou contestação. A configuração do registrador gera AFD/AEJ quando configurada e validada tecnicamente.
+- Certificado A1 é configuração global da plataforma acessível somente ao super admin em Administração → Certificado digital; não é cadastro por empresa nem informação de rotina no workspace de ponto. Validação técnica não significa conformidade legal.
+- O 30Grow não tem cálculo/fechamento de folha nem transmissão própria ao eSocial.
+
+### UX recente (nov/2026)
+- Menu lateral agrupado por domínio e submenus tratados como navegação canônica, removendo repetição de destinos em tabs internas quando já existem no menu.
+- Formulários extensos de configuração abrem em drawers; Overview, LMS, Empresas e portal do colaborador priorizam ações e reduzem densidade vertical.
+- Organograma quebra nomes/cargos longos; imagens do Mural abrem em visualizador centralizado e ampliado.
 
 ### Notificações e ops
 - Sino in-app (Eneagrama/Motivadores concluídos, retention_watch, kit pós-hire, digest semanal, prazo, vaga fechada).
@@ -201,4 +213,4 @@ Gap vs roteiro de demo concorrentes (cliente oculto): `docs/GAP-cliente-oculto-r
 | Onboarding de agente | Colar no início da sessão junto com `AGENTS.md`. |
 | Pitch / vendas | Usar as seções “O que é”, superfícies públicas e pilares (recrutar / perfil / time / pós-hire). |
 
-Atualize este arquivo quando um epic relevante fechar (ex.: novo módulo no painel ou superfície pública nova).
+Atualize este arquivo e `docs/FEATURES.md` quando um epic relevante fechar (ex.: novo módulo no painel, mudança de fluxo importante ou superfície pública nova).

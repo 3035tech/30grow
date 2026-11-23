@@ -34,6 +34,8 @@ Convenções que valem para todos os módulos:
 
 - Wizard para todo gestor novo vinculado a empresa (`onboarding_completed = FALSE`): começa pelo objetivo, sugere módulos, permite revisão. Super admin não recebe o wizard.
 - Tour pós-signup e playbooks contextuais no topo das abas (RH contratando, gestor de time, liderança).
+- Checklist contextual com tarefas por módulo, progresso e uma próxima ação recomendada; lista completa recolhida por padrão. As ações profundas abrem a tela e o formulário/seção pertinentes quando disponíveis, e tarefas sem acesso para aquele gestor são ocultadas. O progresso é revalidado ao voltar à Visão geral ou trocar de empresa enquanto incompleto.
+- O funil do onboarding por empresa mede o primeiro valor após o início do wizard: vaga, análise, admissão, respostas de clima que atingem o mínimo anônimo e conclusão de curso. Super admin acompanha coortes de 30/90 dias, resultados e mediana até o primeiro valor, sem expor conteúdo de resposta.
 - Detalhe: [`onboarding-contextual.md`](onboarding-contextual.md).
 
 ### Planos, módulos e licenças
@@ -55,6 +57,7 @@ Convenções que valem para todos os módulos:
 ### Vagas e pipeline
 
 - Workspace da vaga por tarefa: **Pipeline**, **Candidatos**, **Informações**, **Divulgação**, **Configurações** (`vacancySection` na URL).
+- A tela de candidatos mantém o cadastro fora do fluxo de leitura da lista: a ação de novo candidato abre o formulário em drawer, e as análises complementares da vaga ficam organizadas em seções navegáveis.
 - Kanban configurável: responsáveis, busca, filtros, visões salvas, densidade compacta, colunas vazias ocultáveis, tempo na etapa, lista recolhível no mobile.
 - **Modelos de funil** por empresa: padrão pré-selecionado, snapshot em `vacancy_pipeline_stages`, editar/reordenar/duplicar/arquivar, “Salvar como modelo”. Migrations `111`, `113`.
 - Analytics do funil: entradas, tempo médio, conversão e gargalos com amostra mínima.
@@ -124,10 +127,18 @@ Convenções que valem para todos os módulos:
 ### Departamento pessoal (DP leve)
 
 - Hub DP: pendências, férias e afastamentos (saldo por período aquisitivo), documentos com anexo privado, assinatura interna, admissão.
-- **Ponto digital** e **banco de horas** (saldo calculado do espelho + lançamentos, teto por empresa, congelado no fechamento, CSV mensal; migrations `099` e `143`), jornada por colaborador e feriados. Resumo por fechamento (totais congelados por pessoa + CSV) e assinatura/contestação do espelho pelo colaborador (migration `147`).
+- **Ponto digital** com marcação do colaborador, localização complementar, histórico, pedidos de ajuste/justificativa e comprovantes; **banco de horas** (saldo calculado do espelho + lançamentos, teto por empresa, congelado no fechamento, CSV mensal; migrations `099` e `143`), jornada padrão, feriados e fechamento por período. O colaborador pode conferir e assinar ou contestar o espelho (migration `147`).
+- O registrador possui configuração de estabelecimento/jornada e geração dos arquivos AFD/AEJ quando os requisitos técnicos estão atendidos. O certificado A1 é configuração global da plataforma, acessível apenas ao super admin em **Administração → Certificado digital**; não é um cadastro de certificado por empresa nem uma etapa de configuração exposta no workspace de ponto. Validação técnica do certificado não declara conformidade legal.
 - **Equipe de campo**: rota do dia com check-in geolocalizado, foto opcional e reembolsos com comprovante e aprovação (DP → Campo; colaborador em `/employee/field`; migration `154`). Push do Ponto/Campo no app abre a tela certa só em apps que declaram o destino (migration `153`). Ver `docs/field-team.md`.
 - **Copiloto de pessoas** (Visão geral → Sinais operacionais): quem está no radar e o que olhar no próximo 1:1 a partir de ferramentas tipadas no servidor; pauta por IA opcional sem nomes, rate limit e auditoria (migration `155`).
 - Fora de escopo: eSocial, holerite, folha. Detalhe: [`DP-PRIVATE-ATTACHMENTS.md`](DP-PRIVATE-ATTACHMENTS.md), [`dp-address-and-clock-timeline.md`](dp-address-and-clock-timeline.md).
+
+### Evolução recente da experiência (nov/2026)
+
+- Navegação principal agrupada por domínio, com submenus como navegação canônica; telas que repetiam esses destinos em tabs internas foram simplificadas para evitar dois caminhos concorrentes.
+- DP e ponto organizados por tarefa, com formulários de configuração recolhidos em drawers; vagas separadas em áreas de trabalho para pipeline, candidatos e gestão da vaga.
+- Visão geral, LMS, Empresas e área do colaborador receberam revisão de hierarquia, densidade e prioridade das ações.
+- Organograma permite quebra de linha em nomes/cargos longos; imagens do mural abrem em visualizador centralizado, maior e com ajuste integral da imagem.
 
 ---
 

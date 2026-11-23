@@ -5,6 +5,7 @@ import { authenticateMobileEmployee, mobileEmployeeBearerToken } from '../../../
 import { getTimeClockAccess } from '../../../../../../../lib/people/time-clock.js';
 import { getEmployeeTimeMirror } from '../../../../../../../lib/people/time-clock-manager.js';
 import { isValidTimeClockFormalMonth, missingTimeClockFormalMirrorFields } from '../../../../../../../lib/people/time-clock-formal-mirror.js';
+import { REP_P_INPI_REGISTRATION } from '../../../../../../../lib/rep/provider.js';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = Object.freeze({ 'Cache-Control': 'no-store' });
@@ -56,7 +57,7 @@ export async function GET(request) {
       `SELECT w.cpf, w.worker_name AS "registeredWorkerName", e.employer_name AS "employerName",
               e.employer_document AS "employerDocument",
               e.complementary_document AS "complementaryDocument",
-              e.workplace, e.registration, e.timezone
+              e.workplace, e.timezone
        FROM rep_workers w
        JOIN rep_establishments e
          ON e.id = w.establishment_id AND e.company_id = w.company_id
@@ -64,7 +65,7 @@ export async function GET(request) {
        LIMIT 1`,
       [session.companyId, session.candidateId],
     );
-    const identity = identityResult.rows[0] || null;
+    const identity = identityResult.rows[0] ? { ...identityResult.rows[0], registration: REP_P_INPI_REGISTRATION } : null;
 
     const missingFields = missingTimeClockFormalMirrorFields(mirror, identity);
     const timezone = mirror.schedule?.timezone || 'America/Sao_Paulo';

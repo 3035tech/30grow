@@ -16,7 +16,6 @@ const ESTABLISHMENT_FIELDS = [
   'employerName',
   'complementaryDocument',
   'workplace',
-  'registration',
   'responsibleCpf',
   'timezone',
 ];
@@ -96,7 +95,6 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
       if (action === 'establishment') {
         data.employerDocument = stripCpfCnpjBr(data.employerDocument) || '';
         data.complementaryDocument = digitsOnly(data.complementaryDocument).slice(0, 14);
-        data.registration = digitsOnly(data.registration).slice(0, 17);
         data.responsibleCpf = stripCpf(data.responsibleCpf) || '';
       } else {
         data.cpf = stripCpf(data.cpf) || '';
@@ -227,20 +225,18 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
   const input = (name, defaultValue = '', formKey = '') => {
     if (name === 'candidateId') return null;
     const required = name !== 'complementaryDocument';
-    const isMasked = ['employerDocument', 'cpf', 'responsibleCpf', 'registration', 'complementaryDocument'].includes(name);
+    const isMasked = ['employerDocument', 'cpf', 'responsibleCpf', 'complementaryDocument'].includes(name);
     const initialValue = name === 'employerDocument'
       ? formatCpfCnpjBr(defaultValue)
       : ['cpf', 'responsibleCpf'].includes(name)
         ? formatCpfBr(defaultValue)
-        : digitsOnly(defaultValue).slice(0, name === 'registration' ? 17 : 14);
+        : digitsOnly(defaultValue).slice(0, 14);
     const value = formValues[formKey]?.[name] ?? initialValue;
     const pattern = name === 'employerDocument'
       ? '(?:\\d{11}|\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}|[A-Z0-9]{12}\\d{2}|[A-Z0-9]{2}\\.[A-Z0-9]{3}\\.[A-Z0-9]{3}/[A-Z0-9]{4}-\\d{2})'
       : ['cpf', 'responsibleCpf'].includes(name)
         ? '(?:\\d{11}|\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2})'
-        : name === 'registration'
-          ? '[0-9]{1,17}'
-          : name === 'complementaryDocument'
+      : name === 'complementaryDocument'
             ? '([0-9]{12}|[0-9]{14})?'
             : undefined;
     if (name === 'establishmentId' || name === 'weeklyRestDay') {
@@ -294,7 +290,7 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
                 ? formatCpfCnpjBr(raw)
                 : ['cpf', 'responsibleCpf'].includes(name)
                   ? formatCpfBr(raw)
-                  : digitsOnly(raw).slice(0, name === 'registration' ? 17 : 14);
+                  : digitsOnly(raw).slice(0, 14);
               setFormValues((current) => ({
                 ...current,
                 [formKey]: { ...current[formKey], [name]: next },
@@ -308,7 +304,6 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
             [
               'cpf',
               'responsibleCpf',
-              'registration',
               'complementaryDocument',
             ].includes(name)
               ? 'numeric'
@@ -323,7 +318,6 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
               workerName: 52,
               cpf: 14,
               responsibleCpf: 14,
-              registration: 17,
               complementaryDocument: 14,
               timezone: 64,
             }[name]
@@ -353,7 +347,7 @@ export function RepAdminSettings({ companyId, locale, onOpenSchedule, onOpenEmpl
     missingFields: item.setupIssues || [],
   })).filter((item) => !item.setupValid);
   const missingFieldLabels = {
-    employer_name: 'employerName', employer_document: 'employerDocument', registration: 'registration',
+    employer_name: 'employerName', employer_document: 'employerDocument',
     complementary_document: 'complementaryDocument', responsible_cpf: 'responsibleCpf', timezone: 'timezone', workplace: 'workplace',
     admission: 'admissionDate', jobRole: 'jobRole', repLink: 'workers',
   };

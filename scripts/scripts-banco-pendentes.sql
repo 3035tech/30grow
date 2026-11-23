@@ -4363,6 +4363,7 @@ INSERT INTO schema_migrations(name) VALUES('165_rep_layout_corrections.sql') ON 
 
 COMMIT;
 
+
 -- 166_stripe_billing.sql
 BEGIN;
 -- Relational billing state: one commercial policy per company, distinct Stripe
@@ -5097,5 +5098,21 @@ DO $$ BEGIN
 END $$;
 INSERT INTO schema_migrations(name)
 VALUES('185_trainee_work_format_time_clock.sql')
+ON CONFLICT(name) DO NOTHING;
+COMMIT;
+
+-- 187 — REP-P INPI registration belongs to the 30Grow/3035Tech provider.
+BEGIN;
+ALTER TABLE rep_establishments
+  ALTER COLUMN registration SET DEFAULT 'BR512026010154-9';
+ALTER TABLE rep_establishments
+  DROP CONSTRAINT IF EXISTS rep_establishments_registration_check;
+ALTER TABLE rep_establishments
+  ADD CONSTRAINT rep_establishments_registration_check
+  CHECK (registration ~ '^[0-9]{17}$' OR registration = 'BR512026010154-9');
+COMMENT ON COLUMN rep_establishments.registration IS
+  'Legacy compatibility field. REP-P INPI registration belongs to 30Grow/3035Tech and is sourced from provider configuration.';
+INSERT INTO schema_migrations(name)
+VALUES('187_rep_provider_inpi_registration.sql')
 ON CONFLICT(name) DO NOTHING;
 COMMIT;
