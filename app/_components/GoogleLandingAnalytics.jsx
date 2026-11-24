@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 
 const CONSENT_KEY = '30grow.analytics-consent.v1';
+const META_PIXEL_ID = '1441007351043257';
 const COPY = {
-  'pt-BR': { title: 'Sua privacidade', body: 'Podemos usar o Google Analytics para entender visitas e cliques nesta página? Você pode mudar sua escolha em Cookies.', accept: 'Aceitar métricas', reject: 'Recusar métricas', settings: 'Cookies', privacy: 'Política de privacidade' },
-  en: { title: 'Your privacy', body: 'May we use Google Analytics to understand visits and clicks on this page? You can change your choice in Cookies.', accept: 'Accept analytics', reject: 'Reject analytics', settings: 'Cookies', privacy: 'Privacy policy' },
-  fr: { title: 'Votre confidentialité', body: 'Pouvons-nous utiliser Google Analytics pour comprendre les visites et les clics sur cette page ? Vous pouvez modifier votre choix dans Cookies.', accept: 'Accepter les statistiques', reject: 'Refuser les statistiques', settings: 'Cookies', privacy: 'Politique de confidentialité' },
-  de: { title: 'Ihre Privatsphäre', body: 'Dürfen wir Google Analytics verwenden, um Besuche und Klicks auf dieser Seite zu verstehen? Sie können Ihre Auswahl unter Cookies ändern.', accept: 'Statistiken akzeptieren', reject: 'Statistiken ablehnen', settings: 'Cookies', privacy: 'Datenschutzerklärung' },
+  'pt-BR': { title: 'Sua privacidade', body: 'Podemos usar o Google Analytics e o Meta Pixel para medir visitas e cliques nesta página? Você pode mudar sua escolha em Cookies.', accept: 'Aceitar métricas', reject: 'Recusar métricas', settings: 'Cookies', privacy: 'Política de privacidade' },
+  en: { title: 'Your privacy', body: 'May we use Google Analytics and the Meta Pixel to measure visits and clicks on this page? You can change your choice in Cookies.', accept: 'Accept metrics', reject: 'Reject metrics', settings: 'Cookies', privacy: 'Privacy policy' },
+  fr: { title: 'Votre confidentialité', body: 'Pouvons-nous utiliser Google Analytics et Meta Pixel pour mesurer les visites et les clics sur cette page ? Vous pouvez modifier votre choix dans Cookies.', accept: 'Accepter les statistiques', reject: 'Refuser les statistiques', settings: 'Cookies', privacy: 'Politique de confidentialité' },
+  de: { title: 'Ihre Privatsphäre', body: 'Dürfen wir Google Analytics und Meta Pixel verwenden, um Besuche und Klicks auf dieser Seite zu messen? Sie können Ihre Auswahl unter Cookies ändern.', accept: 'Statistiken akzeptieren', reject: 'Statistiken ablehnen', settings: 'Cookies', privacy: 'Datenschutzerklärung' },
 };
 
 export default function GoogleLandingAnalytics({ measurementId = '', nonce, locale = 'pt-BR' }) {
@@ -16,10 +17,10 @@ export default function GoogleLandingAnalytics({ measurementId = '', nonce, loca
   const [consent, setConsent] = useState(null);
   const [open, setOpen] = useState(false);
   const initialized = useRef(false);
+  const metaPageViewSent = useRef(false);
   const copy = COPY[locale] || COPY['pt-BR'];
 
   useEffect(() => {
-    if (!validId) return;
     let saved;
     try { saved = localStorage.getItem(CONSENT_KEY); } catch { /* Storage is optional. */ }
     setConsent(saved === 'granted' ? 'granted' : saved === 'denied' ? 'denied' : null);
@@ -56,14 +57,54 @@ export default function GoogleLandingAnalytics({ measurementId = '', nonce, loca
     };
   }, [consent, measurementId, validId]);
 
+  useEffect(() => {
+    if (consent !== 'granted') return;
+
+    // Keep campaign metrics on the public landing page and avoid forwarding
+    // unexpected query values that could contain personal information.
+    const url = new URL(window.location.href);
+    const allowedQueryKey = /^(?:utm_(?:source|medium|campaign|term|content)|fbclid)$/i;
+    if (![...url.searchParams.keys()].every((key) => allowedQueryKey.test(key))) return;
+
+    const f = window;
+    if (!f.fbq) {
+      const n = f.fbq = function () {
+        if (n.callMethod) n.callMethod.apply(n, arguments);
+        else n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = true;
+      n.version = '2.0';
+      n.queue = [];
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+      document.head.appendChild(script);
+    }
+
+    f.fbq('consent', 'grant');
+    if (!f.__30growMetaPixelInitialized) {
+      f.fbq('init', META_PIXEL_ID);
+      f.__30growMetaPixelInitialized = true;
+    }
+    if (!metaPageViewSent.current) {
+      f.fbq('track', 'PageView');
+      metaPageViewSent.current = true;
+    }
+    return () => f.fbq?.('consent', 'revoke');
+  }, [consent]);
+
   function choose(value) {
     if (value === 'denied') {
       initialized.current = false;
-      window[`ga-disable-${measurementId}`] = true;
+      metaPageViewSent.current = false;
+      if (validId) window[`ga-disable-${measurementId}`] = true;
       window.gtag?.('consent', 'update', { analytics_storage: 'denied' });
+      window.fbq?.('consent', 'revoke');
       for (const cookie of document.cookie.split(';')) {
         const name = cookie.trim().split('=')[0];
-        if (!/^_ga(?:_|$)/.test(name)) continue;
+        if (!/^(?:_ga(?:_|$)|_fbp$|_fbc$)/.test(name)) continue;
         const domains = window.location.hostname.split('.');
         document.cookie = `${name}=; Max-Age=0; Path=/`;
         for (let i = 0; i < domains.length - 1; i++) document.cookie = `${name}=; Max-Age=0; Path=/; Domain=${domains.slice(i).join('.')}`;
@@ -74,9 +115,8 @@ export default function GoogleLandingAnalytics({ measurementId = '', nonce, loca
     setOpen(false);
   }
 
-  if (!validId) return null;
   return <>
-    {consent === 'granted' ? <Script id="google-landing-analytics" src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} nonce={nonce} strategy="afterInteractive" /> : null}
+    {consent === 'granted' && validId ? <Script id="google-landing-analytics" src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} nonce={nonce} strategy="afterInteractive" /> : null}
     <div className="mx-auto max-w-6xl px-5 py-3 sm:px-8"><button type="button" className="min-h-touch text-xs text-ink-muted underline underline-offset-4" onClick={() => setOpen(true)}>{copy.settings}</button></div>
     {open ? <aside aria-label={copy.title} className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-card border border-ink/10 bg-surface p-5 shadow-card sm:inset-x-6">
       <p className="m-0 font-semibold text-ink">{copy.title}</p>
