@@ -4363,7 +4363,6 @@ INSERT INTO schema_migrations(name) VALUES('165_rep_layout_corrections.sql') ON 
 
 COMMIT;
 
-
 -- 166_stripe_billing.sql
 BEGIN;
 -- Relational billing state: one commercial policy per company, distinct Stripe
@@ -5114,5 +5113,25 @@ COMMENT ON COLUMN rep_establishments.registration IS
   'Legacy compatibility field. REP-P INPI registration belongs to 30Grow/3035Tech and is sourced from provider configuration.';
 INSERT INTO schema_migrations(name)
 VALUES('187_rep_provider_inpi_registration.sql')
+ON CONFLICT(name) DO NOTHING;
+COMMIT;
+
+-- 188 — recipient mapping for pending climate survey reminders.
+BEGIN;
+CREATE TABLE IF NOT EXISTS climate_survey_invite_recipients (
+  invite_id BIGINT PRIMARY KEY
+    REFERENCES climate_survey_invites(id) ON DELETE CASCADE,
+  recipient_email TEXT NOT NULL,
+  delivered_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT climate_survey_invite_recipients_email_chk
+    CHECK (char_length(recipient_email) <= 254
+      AND recipient_email = lower(btrim(recipient_email))
+      AND recipient_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$')
+);
+COMMENT ON TABLE climate_survey_invite_recipients IS
+  'Temporary recipient mapping for unanswered climate survey invites; deleted on response, expiry, or campaign closure so answers remain unidentifiable.';
+INSERT INTO schema_migrations(name)
+VALUES('188_climate_invite_reminder_recipients.sql')
 ON CONFLICT(name) DO NOTHING;
 COMMIT;

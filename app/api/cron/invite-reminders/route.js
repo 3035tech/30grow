@@ -30,6 +30,13 @@ export async function POST(request) {
       return apiError(request, ERR.APP_URL_MISSING, 500);
     }
 
+    // Recipient data for climate invites exists only while the invitation is open.
+    await query(
+      `DELETE FROM climate_survey_invite_recipients r
+       USING climate_survey_invites i
+       WHERE i.id = r.invite_id AND (i.used_at IS NOT NULL OR i.expires_at <= NOW())`
+    );
+
     const pending = await queryRead(
       `SELECT ci.id, ci.candidate_id AS "candidateId", ci.company_id AS "inviteCompanyId", ci.token, ci.candidate_name AS "candidateName", CASE WHEN ci.candidate_id IS NULL THEN ci.candidate_email ELSE person.email END AS "candidateEmail",
               ci.reminder_count AS "reminderCount", ci.sent_at AS "sentAt", ci.last_reminder_at AS "lastReminderAt",

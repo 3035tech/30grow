@@ -748,6 +748,29 @@ export function ClimateTab({ locale, isAdmin, companies = [], selectedCompanyId 
         appOrigin: typeof window !== 'undefined' ? window.location.origin : undefined,
       });
       toast(t(locale, 'panel.climate.emailOk', { n: data.sent || 0 }), 'ok');
+      await loadDetail(selectedId);
+    } catch (e) {
+      toast(e?.message || t(locale, 'panel.climate.saveError'), 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remindPending = async () => {
+    if (!selectedId || !detail?.inviteStats?.trackedPending) return;
+    const ok = await confirm({
+      message: t(locale, 'panel.climate.remindConfirm', { n: detail.inviteStats.trackedPending }),
+      confirmLabel: t(locale, 'panel.climate.remindConfirmBtn'),
+    });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const data = await patch(selectedId, {
+        remindPending: true,
+        locale,
+        appOrigin: typeof window !== 'undefined' ? window.location.origin : undefined,
+      });
+      toast(t(locale, 'panel.climate.remindOk', { n: data.sent || 0 }), 'ok');
     } catch (e) {
       toast(e?.message || t(locale, 'panel.climate.saveError'), 'error');
     } finally {
@@ -1180,6 +1203,11 @@ export function ClimateTab({ locale, isAdmin, companies = [], selectedCompanyId 
                           <button type="button" disabled={busy} className={S.btnGhost} onClick={emailInvites}>
                             {t(locale, 'panel.climate.emailBtn')}
                           </button>
+                          {detail.inviteStats?.trackedPending > 0 ? (
+                            <button type="button" disabled={busy} aria-busy={busy} className={S.btnGhost} onClick={remindPending}>
+                              {t(locale, 'panel.climate.remindBtn', { n: detail.inviteStats.trackedPending })}
+                            </button>
+                          ) : null}
                         </>
                       ) : null}
                       {detailSection === 'questionnaire' && questionsEditable ? (
@@ -1240,6 +1268,12 @@ export function ClimateTab({ locale, isAdmin, companies = [], selectedCompanyId 
                         used: detail.inviteStats.used || 0,
                         pending: detail.inviteStats.pending || 0,
                       })}
+                    </p>
+                  ) : null}
+
+                  {detailSection === 'distribution' && detail.status === CLIMATE_SURVEY_STATUS.OPEN ? (
+                    <p className={cn(S.faint, 'm-0')}>
+                      {t(locale, 'panel.climate.recipientPrivacyHint')}
                     </p>
                   ) : null}
 

@@ -12,6 +12,7 @@ import {
   emailClimateSurveyInvites,
   getClimateSurvey,
   getClimateSurveyAggregate,
+  remindClimateSurveyPendingInvitees,
   updateClimateSurvey,
   updateClimateSurveyQuestion,
   versionClimateSurvey,
@@ -181,6 +182,31 @@ export async function PATCH(request, props) {
         skipped: mailed.skipped,
         invites: mailed.invites,
       });
+    }
+
+    if (body.remindPending) {
+      const origin =
+        body.appOrigin ||
+        runtimeAppUrl() ||
+        new URL(request.url).origin;
+      const reminded = await remindClimateSurveyPendingInvitees(query, {
+        companyId,
+        surveyId,
+        appOrigin: origin,
+        locale: body.locale || payload.locale || 'pt-BR',
+      });
+      if (!reminded.ok) {
+        const status = reminded.errorCode === 'MAIL_NOT_CONFIGURED' ? 503 : 400;
+        return apiError(request, reminded.errorCode || 'INVALID_DATA', status);
+      }
+      await audit({
+        actorUserId: payload.userId || null,
+        action: 'climate_survey.remind_pending',
+        targetType: 'climate_survey',
+        targetId: surveyId,
+        metadata: { sent: reminded.sent, skipped: reminded.skipped },
+      });
+      return NextResponse.json({ ok: true, sent: reminded.sent, skipped: reminded.skipped });
     }
 
     if (body.addQuestion) {
