@@ -25,7 +25,6 @@ import { CandidateCvFirstImport } from '../_components/CandidateCvFirstImport';
 import { FormField, formFieldGrowClass, formFieldRowClass } from '../_components/FormField';
 import { AdminRichFormDrawer } from '../_components/AdminRichFormDrawer';
 import { VacancyInterviewSlotsBlock } from '../_components/VacancyInterviewSlotsBlock';
-import { DisclosureToggle, disclosureToggleButtonClass } from '../_components/CollapsibleBlock';
 import { OFFER_STATUS } from '../../lib/domain-status';
 
 const FIELD = cn(S.input, 'w-full bg-surface/80');
@@ -147,7 +146,6 @@ function CandidateCard({
   const [inviteBusy, setInviteBusy] = useState(false);
   const [motivatorsBusy, setMotivatorsBusy] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [decisionBrief, setDecisionBrief] = useState(null);
   const [fitScores, setFitScores] = useState(null);
   const [briefLoading, setBriefLoading] = useState(false);
@@ -172,7 +170,7 @@ function CandidateCard({
   }, [row]);
 
   useEffect(() => {
-    if ((!expanded && !fullPage) || !row.candidateId) return undefined;
+    if (!fullPage || !row.candidateId) return undefined;
     let cancelled = false;
     (async () => {
       setBriefLoading(true);
@@ -205,7 +203,7 @@ function CandidateCard({
     return () => {
       cancelled = true;
     };
-  }, [expanded, fullPage, row.candidateId, locale, vacancyId]);
+  }, [fullPage, row.candidateId, locale, vacancyId]);
 
   const saveNotes = async () => {
     setBusy(true);
@@ -340,6 +338,19 @@ function CandidateCard({
   const anyInviteBusy = inviteBusy || motivatorsBusy || deleting;
   const locBits = [row.city, row.state].filter(Boolean).join(' / ');
 
+  const openCandidateFromCard = (event) => {
+    if (fullPage || event.target.closest('button, a, input, label, select, textarea, [role="button"]')) return;
+    onOpenCandidate?.();
+  };
+
+  const handleCandidateCardKeyDown = (event) => {
+    if (fullPage || event.target !== event.currentTarget) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onOpenCandidate?.();
+    }
+  };
+
   const deleteCandidate = async () => {
     const ok = await confirm({
       message: t(locale, 'panel.team.confirmDeletePerson', { name: titleCasePersonName(row.fullName) }),
@@ -365,9 +376,14 @@ function CandidateCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-ink/12 p-4 sm:p-6',
-        fullPage ? 'bg-surface' : 'bg-ink/[0.02]'
+        'rounded-xl border border-ink/12 p-3 sm:p-4',
+        fullPage ? 'bg-surface' : 'cursor-pointer bg-ink/[0.02] transition-colors hover:bg-ink/[0.035] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500'
       )}
+      role={fullPage ? undefined : 'button'}
+      tabIndex={fullPage ? undefined : 0}
+      aria-label={fullPage ? undefined : t(locale, 'recruiting.openPersonProfile', { name: titleCasePersonName(row.fullName) })}
+      onClick={openCandidateFromCard}
+      onKeyDown={handleCandidateCardKeyDown}
     >
       {fullPage ? (
         <button
@@ -395,22 +411,32 @@ function CandidateCard({
             </label>
           ) : null}
           <div className="min-w-0">
-            {fullPage ? (
-              <h1 className="m-0 text-xl font-semibold text-ink sm:text-2xl">
-                {titleCasePersonName(row.fullName)}
-              </h1>
-            ) : (
-              <button
-                type="button"
-                onClick={onOpenCandidate}
-                aria-label={t(locale, 'recruiting.openPersonProfile', {
-                  name: titleCasePersonName(row.fullName),
-                })}
-                className="min-h-touch cursor-pointer border-0 bg-transparent p-0 text-left text-sm text-ink hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {fullPage ? (
+                <h1 className="m-0 text-xl font-semibold text-ink sm:text-2xl">
+                  {titleCasePersonName(row.fullName)}
+                </h1>
+              ) : (
+                <strong className="text-sm font-semibold text-ink">{titleCasePersonName(row.fullName)}</strong>
+              )}
+              <span
+                className="rounded-full border border-ink/12 bg-surface/60 px-2 py-0.5 font-mono text-[11px] leading-tight text-ink-muted"
+                title={t(locale, 'recruiting.enneagramBadgeTitle')}
               >
-                <strong className="font-semibold">{titleCasePersonName(row.fullName)}</strong>
-              </button>
-            )}
+                {t(locale, 'recruiting.enneagramBadgeShort')}: {inviteStatusLabel(locale, row.inviteStatus)}
+              </span>
+              <span
+                className={cn(
+                  'rounded-full border px-2 py-0.5 font-mono text-[11px] leading-tight',
+                  motivatorsDone
+                    ? 'border-success/35 bg-success/[0.07] text-success'
+                    : 'border-ink/12 bg-surface/60 text-ink-muted'
+                )}
+                title={t(locale, 'recruiting.motivatorsBadgeTitle')}
+              >
+                {t(locale, 'recruiting.motivatorsBadgeShort')}: {motivatorsStatusLabel(locale, motivatorsStatus)}
+              </span>
+            </div>
             <div className="mt-1 text-xs font-mono text-ink-muted">
               {row.email}
               {row.phone ? ` · ${formatPhoneBr(row.phone)}` : ''}
@@ -426,25 +452,6 @@ function CandidateCard({
                 ) : null}
               </div>
             ) : null}
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              <span
-                className="rounded-full border border-ink/12 bg-surface/60 px-2.5 py-1 font-mono text-2xs text-ink-muted"
-                title={t(locale, 'recruiting.enneagramBadgeTitle')}
-              >
-                {t(locale, 'recruiting.enneagramBadgeShort')}: {inviteStatusLabel(locale, row.inviteStatus)}
-              </span>
-              <span
-                className={cn(
-                  'rounded-full border px-2.5 py-1 font-mono text-2xs',
-                  motivatorsDone
-                    ? 'border-success/35 bg-success/[0.07] text-success'
-                    : 'border-ink/12 bg-surface/60 text-ink-muted'
-                )}
-                title={t(locale, 'recruiting.motivatorsBadgeTitle')}
-              >
-                {t(locale, 'recruiting.motivatorsBadgeShort')}: {motivatorsStatusLabel(locale, motivatorsStatus)}
-              </span>
-            </div>
             {(row.topType != null || row.availability || row.source || row.salaryExpectation) ? (
               <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                 <CandidateMetaItem
@@ -468,17 +475,7 @@ function CandidateCard({
             ) : null}
           </div>
         </div>
-        <div className="flex w-full flex-wrap gap-2 border-t border-ink/8 pt-3 lg:w-auto lg:justify-end lg:border-t-0 lg:pt-0">
-          {!fullPage ? (
-            <button
-              type="button"
-              onClick={() => setExpanded((x) => !x)}
-              className={disclosureToggleButtonClass}
-              aria-expanded={expanded}
-            >
-              <DisclosureToggle locale={locale} open={expanded} />
-            </button>
-          ) : null}
+        <div className="flex w-full flex-wrap gap-2 lg:w-auto lg:justify-end">
           <button
             type="button"
             onClick={sendChallenge}
@@ -540,7 +537,7 @@ function CandidateCard({
         </div>
       </div>
 
-      {(expanded || fullPage) && (
+      {fullPage && (
         <div className={cn('mt-5 border-t border-ink/12 pt-5', fullPage && 'space-y-5')}>
           {row.candidateId ? (
             <HireReadinessBlock
