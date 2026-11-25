@@ -339,7 +339,8 @@ function CandidateCard({
   const locBits = [row.city, row.state].filter(Boolean).join(' / ');
 
   const openCandidateFromCard = (event) => {
-    if (fullPage || event.target.closest('button, a, input, label, select, textarea, [role="button"]')) return;
+    const interactiveTarget = event.target.closest('button, a, input, label, select, textarea, [role="button"]');
+    if (fullPage || (interactiveTarget && interactiveTarget !== event.currentTarget)) return;
     onOpenCandidate?.();
   };
 
