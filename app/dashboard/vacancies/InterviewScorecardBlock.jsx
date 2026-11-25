@@ -11,17 +11,19 @@ import { ScaleRatingButtons } from '../../_components/ScaleRatingButtons';
 /**
  * Light interview scorecard (B-407) — ratings 1–5 vs briefing questions.
  */
-export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-BR' }) {
+export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-BR', onApplySummary }) {
   const { toast } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [suggestingFollowUp, setSuggestingFollowUp] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
   const [interviewMode, setInterviewMode] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [includeProfileContext, setIncludeProfileContext] = useState(false);
   const [contextUsed, setContextUsed] = useState(null);
+  const [summary, setSummary] = useState(null);
   const [err, setErr] = useState('');
 
   const load = useCallback(async () => {
@@ -53,11 +55,13 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   };
 
   const setComment = (idx, comment) => {
+    setSummary(null);
     setItems((cur) => cur.map((row, i) => (i === idx ? { ...row, comment } : row)));
   };
 
   const activeQuestionIndex = Math.min(currentQuestionIndex, Math.max(items.length - 1, 0));
   const activeQuestion = items[activeQuestionIndex];
+  const hasNotesForSummary = items.some((row) => String(row.comment || '').trim().length >= 8);
 
   const generateGuide = async () => {
     setGenerating(true);
@@ -130,6 +134,33 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
     }
   };
 
+  const summarizeScorecard = async () => {
+    setSummarizing(true);
+    setErr('');
+    try {
+      const res = await fetch(
+        `/api/admin/vacancies/${encodeURIComponent(vacancyId)}/candidates/${encodeURIComponent(candidateId)}/scorecard`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'summarizeInterviewScorecard', locale, items }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || t(locale, 'recruiting.scorecardSummaryError'));
+      if (!data.summary || !Array.isArray(data.summary.competencies)) {
+        throw new Error(t(locale, 'recruiting.scorecardSummaryError'));
+      }
+      setSummary(data.summary);
+      toast(t(locale, 'recruiting.scorecardSummaryReady'), 'ok');
+    } catch (e) {
+      setErr(e?.message || t(locale, 'recruiting.scorecardSummaryError'));
+      toast(e?.message || t(locale, 'recruiting.scorecardSummaryError'), 'error');
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
   const save = async () => {
     setBusy(true);
     setErr('');
@@ -161,7 +192,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   return (
     <div
       className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3"
-      aria-busy={busy || generating || suggestingFollowUp}
+      aria-busy={busy || generating || suggestingFollowUp || summarizing}
     >
       <span className={cn(S.cardSection, 'mb-1 block')}>{t(locale, 'recruiting.scorecardTitle')}</span>
       <p className="mb-3 mt-0 text-2xs leading-snug text-ink-muted">
@@ -266,6 +297,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
               className={cn(S.input, 'min-h-24 w-full resize-y bg-surface/90')}
               maxLength={2000}
               rows={4}
+              disabled={summarizing}
             />
           </FormField>
           <button
@@ -375,6 +407,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
                     onChange={(e) => setComment(idx, e.target.value)}
                     className={cn(S.input, 'w-full bg-surface/90')}
                     maxLength={2000}
+                  disabled={summarizing}
                   />
                 </FormField>
               </li>
@@ -385,15 +418,64 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
         <p className="m-0 text-xs text-ink-muted">{t(locale, 'recruiting.scorecardEmpty')}</p>
       )}
       {err ? <p className="mb-0 mt-2 text-xs text-danger" role="alert">{err}</p> : null}
+      {summary ? (
+        <section className="mt-3 rounded-control border border-brand-700/20 bg-surface p-3" aria-live="polite">
+          <h4 className="mb-2 mt-0 text-sm font-semibold text-ink">{t(locale, 'recruiting.scorecardSummaryTitle')}</h4>
+          <p className="mb-3 mt-0 text-xs leading-snug text-ink-muted">
+            {t(locale, 'recruiting.scorecardSummaryHint')}
+          </p>
+          {summary.overview ? <p className="mb-3 mt-0 text-sm leading-snug text-ink">{summary.overview}</p> : null}
+          <div className="flex flex-col gap-3">
+            {summary.competencies.map((group, index) => (
+              <div key={`${group.competency}-${index}`} className="border-t border-ink/10 pt-2 first:border-0 first:pt-0">
+                <p className="mb-1 mt-0 text-xs font-semibold text-brand-700">{group.competency}</p>
+                {group.notesSummary ? <p className="mb-2 mt-0 text-sm leading-snug text-ink">{group.notesSummary}</p> : null}
+                {Array.isArray(group.pointsToClarify) && group.pointsToClarify.length ? (
+                  <>
+                    <p className="mb-1 mt-0 text-xs font-semibold text-ink-muted">{t(locale, 'recruiting.scorecardSummaryPointsToClarify')}</p>
+                    <ul className="mb-0 mt-0 list-disc space-y-1 pl-5 text-sm text-ink-muted">
+                      {group.pointsToClarify.map((point, pointIndex) => <li key={`${index}-point-${pointIndex}`}>{point}</li>)}
+                    </ul>
+                  </>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          {onApplySummary ? (
+            <button
+              type="button"
+              onClick={() => onApplySummary(summary)}
+              className={cn(S.btnBrandSoft, 'mt-3')}
+            >
+              {t(locale, 'recruiting.scorecardSummaryApplyToNotes')}
+            </button>
+          ) : null}
+        </section>
+      ) : null}
       {items.length ? (
-        <button
-          type="button"
-          onClick={save}
-          disabled={busy || suggestingFollowUp}
-          className={cn(S.btnBrandSoft, 'mt-3', busy && 'opacity-60')}
-        >
-          {busy ? t(locale, 'panel.common.loading') : t(locale, 'recruiting.scorecardSave')}
-        </button>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={save}
+            disabled={busy || suggestingFollowUp || summarizing}
+            className={cn(S.btnBrandSoft, (busy || suggestingFollowUp || summarizing) && 'opacity-60')}
+          >
+            {busy ? t(locale, 'panel.common.loading') : t(locale, 'recruiting.scorecardSave')}
+          </button>
+          <button
+            type="button"
+            onClick={summarizeScorecard}
+            disabled={busy || suggestingFollowUp || summarizing || !hasNotesForSummary}
+            className={cn(S.btnBrandSoft, (busy || suggestingFollowUp || summarizing || !hasNotesForSummary) && 'opacity-60')}
+          >
+            {summarizing
+              ? t(locale, 'recruiting.scorecardSummarizing')
+              : t(locale, 'recruiting.scorecardSummarize')}
+          </button>
+        </div>
+      ) : null}
+      {items.length && !hasNotesForSummary ? (
+        <p className="mb-0 mt-1 text-2xs text-ink-muted">{t(locale, 'recruiting.scorecardSummaryNeedsNotes')}</p>
       ) : null}
     </div>
   );

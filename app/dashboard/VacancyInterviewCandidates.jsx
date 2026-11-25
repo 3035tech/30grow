@@ -92,6 +92,33 @@ function CandidateMetaItem({ label, value, tone = 'neutral' }) {
   );
 }
 
+function escapeHtmlText(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function interviewSummaryToHtml(summary, locale) {
+  const sections = (Array.isArray(summary?.competencies) ? summary.competencies : []).map((group) => {
+    const points = (Array.isArray(group.pointsToClarify) ? group.pointsToClarify : [])
+      .map((point) => `<li>${escapeHtmlText(point)}</li>`)
+      .join('');
+    return [
+      `<p><strong>${escapeHtmlText(group.competency)}</strong></p>`,
+      group.notesSummary ? `<p>${escapeHtmlText(group.notesSummary)}</p>` : '',
+      points ? `<p><strong>${escapeHtmlText(t(locale, 'recruiting.scorecardSummaryPointsToClarify'))}</strong></p><ul>${points}</ul>` : '',
+    ].filter(Boolean).join('');
+  }).join('');
+  return [
+    `<h3>${escapeHtmlText(t(locale, 'recruiting.scorecardSummaryTitle'))}</h3>`,
+    summary?.overview ? `<p>${escapeHtmlText(summary.overview)}</p>` : '',
+    sections,
+  ].filter(Boolean).join('');
+}
+
 function CandidateCard({
   row,
   vacancyId,
@@ -225,6 +252,13 @@ function CandidateCard({
     } finally {
       setNotesAiBusy(false);
     }
+  };
+
+  const applyScorecardSummary = (summary) => {
+    const summaryHtml = interviewSummaryToHtml(summary, locale);
+    if (!summaryHtml) return;
+    setNotes((current) => `${current || ''}${current ? '<p><br></p>' : ''}${summaryHtml}`);
+    toast(t(locale, 'recruiting.scorecardSummaryApplied'), 'ok');
   };
 
   const saveProfile = async () => {
@@ -543,6 +577,7 @@ function CandidateCard({
               vacancyId={vacancyId}
               candidateId={row.candidateId}
               locale={locale}
+              onApplySummary={applyScorecardSummary}
             />
           ) : null}
 

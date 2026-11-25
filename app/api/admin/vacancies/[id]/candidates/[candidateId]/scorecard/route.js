@@ -15,6 +15,7 @@ import { isOpenAiConfigured } from '../../../../../../../../lib/openai-chat.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../lib/identity/rate-limit.js';
 import {
   generateInterviewGuideAi,
+  summarizeInterviewScorecardAi,
   suggestInterviewFollowUpAi,
 } from '../../../../../../../../lib/recruiting/interview-guide-ai.js';
 import {
@@ -170,7 +171,7 @@ export async function POST(request, props) {
     }
 
     const body = await request.json().catch(() => ({}));
-    if (!['generateInterviewGuide', 'suggestInterviewFollowUp'].includes(body.action)) {
+    if (!['generateInterviewGuide', 'suggestInterviewFollowUp', 'summarizeInterviewScorecard'].includes(body.action)) {
       return apiError(request, ERR.INVALID_ACTION, 400);
     }
 
@@ -203,6 +204,21 @@ export async function POST(request, props) {
     }
 
     const locale = body.locale ? body.locale : localeFromRequest(request);
+    if (body.action === 'summarizeInterviewScorecard') {
+      const items = Array.isArray(body.items) ? body.items.slice(0, 12) : [];
+      if (!items.some((item) => String(item?.comment || '').trim().length >= 8)) {
+        return apiError(request, ERR.INVALID_DATA, 422);
+      }
+      const out = await summarizeInterviewScorecardAi({
+        vacancy: record,
+        candidate: record,
+        items,
+        locale,
+        usage: { companyId: record.companyId, userId: payload.userId },
+      });
+      return NextResponse.json({ ok: true, action: body.action, summary: out.summary, model: out.model });
+    }
+
     const profileContext = body.includeProfileContext === true
       ? await loadInterviewProfileContext({ candidateId, companyId: record.companyId, locale })
       : null;
@@ -244,12 +260,17 @@ export async function POST(request, props) {
     });
   } catch (err) {
     const code = err?.code || 'INTERVIEW_GUIDE_AI_FAILED';
-    if (code === 'INTERVIEW_GUIDE_AI_PARSE' || code === 'INTERVIEW_FOLLOW_UP_AI_PARSE') {
+    if (
+      code === 'INTERVIEW_GUIDE_AI_PARSE' ||
+      code === 'INTERVIEW_FOLLOW_UP_AI_PARSE' ||
+      code === 'INTERVIEW_SCORECARD_SUMMARY_AI_PARSE'
+    ) {
       return apiError(request, ERR.ASSIST_AI_PARSE, 422);
     }
     if (code === 'INTERVIEW_FOLLOW_UP_NOTES_REQUIRED') {
       return apiError(request, ERR.INVALID_DATA, 422);
     }
+    if (code === ERR.INVALID_DATA) return apiError(request, code, 422);
     if (code === ERR.CV_IMPORT_EMPTY) return apiError(request, code, 422);
     console.error('POST interview guide AI', err);
     return apiError(request, ERR.INTERNAL, 502);
