@@ -1008,7 +1008,7 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
             />
           </FormField>
         </div>
-        <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)_minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,1fr)]">
           <FormField label={t(locale, 'recruiting.stateLabel')} className="min-w-0">
             <BrStateSelect
               value={stateUf}
@@ -1027,7 +1027,6 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
               value={city}
               onChange={setCity}
               locale={locale}
-              className={FIELD_SELECT}
             />
           </FormField>
           <FormField label={t(locale, 'recruiting.salaryExpectationLabel')} className="min-w-0">
