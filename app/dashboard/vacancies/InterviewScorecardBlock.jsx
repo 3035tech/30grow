@@ -23,6 +23,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   const [editingQuestions, setEditingQuestions] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [includeProfileContext, setIncludeProfileContext] = useState(false);
+  const [recruiterDoubts, setRecruiterDoubts] = useState('');
   const [contextUsed, setContextUsed] = useState(null);
   const [summary, setSummary] = useState(null);
   const [err, setErr] = useState('');
@@ -118,7 +119,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'generateInterviewGuide', locale, includeProfileContext }),
+          body: JSON.stringify({ action: 'generateInterviewGuide', locale, includeProfileContext, recruiterDoubts }),
         }
       );
       const data = await res.json().catch(() => ({}));
@@ -255,6 +256,16 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
           <p className="mb-2 mt-0 text-2xs leading-snug text-ink-muted">
             {t(locale, 'recruiting.scorecardAiHint')}
           </p>
+          <FormField label={t(locale, 'recruiting.scorecardAiDoubtsLabel')} hint={t(locale, 'recruiting.scorecardAiDoubtsHint')} className="mb-3">
+            <textarea
+              value={recruiterDoubts}
+              onChange={(event) => setRecruiterDoubts(event.target.value)}
+              className={cn(S.input, 'min-h-20 w-full bg-surface/90')}
+              maxLength={1500}
+              rows={3}
+              placeholder={t(locale, 'recruiting.scorecardAiDoubtsPlaceholder')}
+            />
+          </FormField>
           <label className="mb-1 flex items-start gap-2 text-xs text-ink">
             <input
               type="checkbox"
@@ -367,6 +378,11 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
           {activeQuestion.candidateEvidence ? (
             <p className="mb-2 mt-0 text-sm leading-snug text-ink-muted">
               <strong>{t(locale, 'recruiting.scorecardEvidenceLabel')}:</strong> {activeQuestion.candidateEvidence}
+            </p>
+          ) : null}
+          {activeQuestion.gapReason ? (
+            <p className="mb-2 mt-0 text-sm leading-snug text-ink-muted">
+              <strong>{t(locale, 'recruiting.scorecardGapLabel')}:</strong> {activeQuestion.gapReason}
             </p>
           ) : null}
           {activeQuestion.followUp ? (
@@ -525,6 +541,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
                   <p className="mb-1.5 mt-0 text-prose leading-snug text-ink">{row.text}</p>
                 )}
                 {row.candidateEvidence ? <p className="mb-1 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardEvidenceLabel')}:</strong> {row.candidateEvidence}</p> : null}
+                {row.gapReason ? <p className="mb-1 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardGapLabel')}:</strong> {row.gapReason}</p> : null}
                 {row.followUp ? <p className="mb-1 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardFollowUpLabel')}:</strong> {row.followUp}</p> : null}
                 {row.listenFor ? <p className="mb-2 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardListenForLabel')}:</strong> {row.listenFor}</p> : null}
                 {Array.isArray(row.aiFollowUps) && row.aiFollowUps.length ? (

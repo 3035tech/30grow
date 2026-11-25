@@ -242,6 +242,7 @@ export async function POST(request, props) {
       vacancy: record,
       candidate: record,
       profileContext,
+      recruiterDoubts: String(body.recruiterDoubts || '').trim().slice(0, 1500),
       locale,
       usage: { companyId: record.companyId, userId: payload.userId },
     });
