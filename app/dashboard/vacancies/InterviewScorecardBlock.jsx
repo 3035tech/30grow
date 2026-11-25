@@ -12,7 +12,7 @@ import { ScaleRatingButtons } from '../../_components/ScaleRatingButtons';
  * Light interview scorecard (B-407) — ratings 1–5 vs briefing questions.
  */
 export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-BR', onApplySummary }) {
-  const { toast } = useAppFeedback();
+  const { toast, confirm } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -20,6 +20,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   const [suggestingFollowUp, setSuggestingFollowUp] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const [interviewMode, setInterviewMode] = useState(false);
+  const [editingQuestions, setEditingQuestions] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [includeProfileContext, setIncludeProfileContext] = useState(false);
   const [contextUsed, setContextUsed] = useState(null);
@@ -57,6 +58,51 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   const setComment = (idx, comment) => {
     setSummary(null);
     setItems((cur) => cur.map((row, i) => (i === idx ? { ...row, comment } : row)));
+  };
+
+  const setQuestionText = (idx, text) => {
+    setSummary(null);
+    setItems((cur) => cur.map((row, i) => (i === idx ? { ...row, text } : row)));
+  };
+
+  const addQuestion = () => {
+    if (items.length >= 12) {
+      toast(t(locale, 'recruiting.scorecardAiLimit'), 'error');
+      return;
+    }
+    const id = globalThis.crypto?.randomUUID?.() || `manual-${Date.now()}`;
+    setItems((current) => [...current, {
+      questionId: id,
+      text: '',
+      rating: null,
+      comment: '',
+    }]);
+    setSummary(null);
+    setEditingQuestions(true);
+  };
+
+  const removeQuestion = async (idx) => {
+    const row = items[idx];
+    const accepted = await confirm({
+      title: t(locale, 'recruiting.scorecardRemoveQuestionTitle'),
+      message: t(locale, 'recruiting.scorecardRemoveQuestionMessage', { question: row?.text || '' }),
+      confirmLabel: t(locale, 'recruiting.scorecardRemoveQuestion'),
+      danger: true,
+    });
+    if (!accepted) return;
+    setItems((current) => current.filter((_, index) => index !== idx));
+    setSummary(null);
+  };
+
+  const moveQuestion = (idx, delta) => {
+    const target = idx + delta;
+    if (target < 0 || target >= items.length) return;
+    setItems((current) => {
+      const next = [...current];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+    setSummary(null);
   };
 
   const activeQuestionIndex = Math.min(currentQuestionIndex, Math.max(items.length - 1, 0));
@@ -162,6 +208,12 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   };
 
   const save = async () => {
+    if (items.some((row) => !String(row.text || '').trim())) {
+      const message = t(locale, 'recruiting.scorecardQuestionRequiredError');
+      setErr(message);
+      toast(message, 'error');
+      return;
+    }
     setBusy(true);
     setErr('');
     try {
@@ -198,7 +250,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
       <p className="mb-3 mt-0 text-2xs leading-snug text-ink-muted">
         {t(locale, 'recruiting.scorecardHint')}
       </p>
-      {!interviewMode ? (
+      {!interviewMode && !editingQuestions ? (
         <>
           <p className="mb-2 mt-0 text-2xs leading-snug text-ink-muted">
             {t(locale, 'recruiting.scorecardAiHint')}
@@ -237,17 +289,63 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
           ].filter(Boolean).join(' · ')}
         </p>
       ) : null}
-      {items.length && !interviewMode ? (
-        <button
-          type="button"
-          onClick={() => {
-            setCurrentQuestionIndex(0);
-            setInterviewMode(true);
-          }}
-          className={cn(S.btnBrandSoft, 'mb-3 ml-2')}
-        >
-          {t(locale, 'recruiting.scorecardStartInterview')}
-        </button>
+      {!interviewMode ? (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {editingQuestions ? (
+            <>
+              <button
+                type="button"
+                onClick={addQuestion}
+                disabled={items.length >= 12}
+                className={cn(S.btnBrandSoft, items.length >= 12 && 'opacity-60')}
+              >
+                {t(locale, 'recruiting.scorecardAddQuestion')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingQuestions(false)}
+                className={S.btnBrandSoft}
+              >
+                {t(locale, 'recruiting.scorecardDoneEditing')}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={addQuestion}
+                disabled={items.length >= 12}
+                className={cn(S.btnBrandSoft, items.length >= 12 && 'opacity-60')}
+              >
+                {t(locale, 'recruiting.scorecardAddQuestion')}
+              </button>
+              {items.length ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentQuestionIndex(0);
+                      setInterviewMode(true);
+                    }}
+                    className={S.btnBrandSoft}
+                  >
+                    {t(locale, 'recruiting.scorecardStartInterview')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingQuestions(true)}
+                    className={S.btnBrandSoft}
+                  >
+                    {t(locale, 'recruiting.scorecardEditQuestions')}
+                  </button>
+                </>
+              ) : null}
+            </>
+          )}
+          {editingQuestions && items.length >= 12 ? (
+            <p className="mb-0 self-center text-2xs text-ink-muted">{t(locale, 'recruiting.scorecardAiLimit')}</p>
+          ) : null}
+        </div>
       ) : null}
       {items.length && interviewMode && activeQuestion ? (
         <section
@@ -379,8 +477,53 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
             {items.map((row, idx) => (
               <li key={row.questionId || idx} className="border-t border-ink/10 pt-2.5 first:border-0 first:pt-0">
+                {editingQuestions ? (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveQuestion(idx, -1)}
+                      disabled={idx === 0}
+                      aria-label={t(locale, 'recruiting.scorecardMoveQuestionUp')}
+                      title={t(locale, 'recruiting.scorecardMoveQuestionUp')}
+                      className={cn(S.btnBrandSoft, idx === 0 && 'opacity-50')}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveQuestion(idx, 1)}
+                      disabled={idx === items.length - 1}
+                      aria-label={t(locale, 'recruiting.scorecardMoveQuestionDown')}
+                      title={t(locale, 'recruiting.scorecardMoveQuestionDown')}
+                      className={cn(S.btnBrandSoft, idx === items.length - 1 && 'opacity-50')}
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeQuestion(idx)}
+                      className={cn(S.btnBrandSoft, 'text-danger')}
+                    >
+                      {t(locale, 'recruiting.scorecardRemoveQuestion')}
+                    </button>
+                  </div>
+                ) : null}
                 {row.competency ? <p className="mb-1 mt-0 text-2xs font-semibold text-brand-700">{t(locale, 'recruiting.scorecardCompetencyLabel')}: {row.competency}</p> : null}
-                <p className="mb-1.5 mt-0 text-prose leading-snug text-ink">{row.text}</p>
+                {editingQuestions ? (
+                  <FormField label={t(locale, 'recruiting.scorecardQuestionLabel')}>
+                    <textarea
+                      value={row.text || ''}
+                      onChange={(event) => setQuestionText(idx, event.target.value)}
+                      className={cn(S.input, 'min-h-20 w-full bg-surface/90')}
+                      maxLength={500}
+                      rows={3}
+                      required
+                      aria-required="true"
+                    />
+                  </FormField>
+                ) : (
+                  <p className="mb-1.5 mt-0 text-prose leading-snug text-ink">{row.text}</p>
+                )}
                 {row.candidateEvidence ? <p className="mb-1 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardEvidenceLabel')}:</strong> {row.candidateEvidence}</p> : null}
                 {row.followUp ? <p className="mb-1 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardFollowUpLabel')}:</strong> {row.followUp}</p> : null}
                 {row.listenFor ? <p className="mb-2 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardListenForLabel')}:</strong> {row.listenFor}</p> : null}
@@ -407,7 +550,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
                     onChange={(e) => setComment(idx, e.target.value)}
                     className={cn(S.input, 'w-full bg-surface/90')}
                     maxLength={2000}
-                  disabled={summarizing}
+                    disabled={summarizing}
                   />
                 </FormField>
               </li>
