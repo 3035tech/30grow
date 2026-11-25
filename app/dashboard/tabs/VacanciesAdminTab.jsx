@@ -191,6 +191,25 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
   // (evita setState em componente desmontado quando o gestor troca de aba/vaga).
   const msgTimerRef = useRef(null);
   const createFromNavigationHandledRef = useRef(false);
+  const moreActionsRef = useRef(null);
+  useEffect(() => {
+    const closeWhenOutside = (event) => {
+      const menu = moreActionsRef.current;
+      if (menu?.open && !menu.contains(event.target)) menu.open = false;
+    };
+    const closeOnEscape = (event) => {
+      const menu = moreActionsRef.current;
+      if (event.key !== 'Escape' || !menu?.open) return;
+      menu.open = false;
+      menu.querySelector('summary')?.focus();
+    };
+    document.addEventListener('pointerdown', closeWhenOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeWhenOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, []);
   useEffect(() => {
     if (urlParams.get('create') !== '1' || createFromNavigationHandledRef.current) return;
     createFromNavigationHandledRef.current = true;
@@ -1061,7 +1080,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                   >
                     {t(locale, 'recruiting.editVacancy')}
                   </button>
-                  <details className="group relative">
+                  <details ref={moreActionsRef} className="group relative">
                     <summary className={cn(S.btnGhost, 'gap-2 list-none select-none [&::-webkit-details-marker]:hidden')}>
                       {t(locale, 'recruiting.moreActions')}
                       <Icon
@@ -1072,14 +1091,15 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                     <div className="absolute right-0 z-30 mt-1.5 grid min-w-[190px] gap-1 rounded-control border border-ink/12 bg-surface p-1.5 shadow-menu">
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
+                          moreActionsRef.current.open = false;
                           setVacancyStatus(
                             v.id,
                             v.status === VACANCY_STATUS.OPEN
                               ? VACANCY_STATUS.CLOSED
                               : VACANCY_STATUS.OPEN
-                          )
-                        }
+                          );
+                        }}
                         disabled={loading}
                         className={cn(S.btnGhost, 'w-full justify-start border-transparent text-left', loading && 'opacity-60')}
                       >
@@ -1089,7 +1109,10 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                       </button>
                       <button
                         type="button"
-                        onClick={() => cloneVacancyAction(v)}
+                        onClick={() => {
+                          moreActionsRef.current.open = false;
+                          cloneVacancyAction(v);
+                        }}
                         disabled={loading}
                         className={cn(S.btnGhost, 'w-full justify-start border-transparent text-left', loading && 'opacity-60')}
                       >
@@ -1097,7 +1120,10 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                       </button>
                       <button
                         type="button"
-                        onClick={() => archiveVacancy(v.id, v.title)}
+                        onClick={() => {
+                          moreActionsRef.current.open = false;
+                          archiveVacancy(v.id, v.title);
+                        }}
                         disabled={loading}
                         className="min-h-touch w-full cursor-pointer rounded-control border border-transparent bg-transparent px-3 py-2 text-left font-ui text-sm text-red-800 dark:text-danger hover:bg-danger/[0.08] disabled:cursor-default disabled:opacity-60"
                       >
