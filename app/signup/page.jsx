@@ -2,7 +2,7 @@
 
 import { SelectField } from '../_components/SelectField';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale } from '../../lib/useLocale';
@@ -19,6 +19,8 @@ import { InlineCallout } from '../_components/InlineCallout';
 import { S } from '../dashboard/dashboard-shared';
 import { ContentEnter } from '../_components/AppLoading';
 import { SIGNUP_JOB_TITLE, SIGNUP_JOB_TITLES } from '../../lib/marketing/signup-job-titles';
+import GoogleLandingAnalytics from '../_components/GoogleLandingAnalytics';
+import { trackMetaPixelEvent } from '../../lib/marketing/meta-pixel';
 
 const TURNSTILE_SITE_KEY = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim();
 
@@ -42,6 +44,7 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
   const [turnstileError, setTurnstileError] = useState(false);
+  const registrationEventSent = useRef(false);
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
@@ -90,6 +93,9 @@ export default function SignupPage() {
         return;
       }
 
+      if (!registrationEventSent.current) {
+        registrationEventSent.current = trackMetaPixelEvent('CompleteRegistration');
+      }
       setSuccess(true);
     } catch (err) {
       console.error('Signup error:', err);
@@ -101,33 +107,38 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-canvas p-6 font-display">
-        <div className="pointer-events-none fixed inset-0 bg-radial-glow-single" />
-        <div className="relative z-[1] w-full max-w-[540px] rounded-card border border-ink/12 bg-white px-8 py-10 shadow-card">
-          <div className="mb-6 text-center">
-            <BrandMark size={48} withWordmark />
+      <>
+        <GoogleLandingAnalytics locale={locale} metaOnly trackPageView={false} />
+        <div className="flex min-h-screen items-center justify-center bg-canvas p-6 font-display">
+          <div className="pointer-events-none fixed inset-0 bg-radial-glow-single" />
+          <div className="relative z-[1] w-full max-w-[540px] rounded-card border border-ink/12 bg-white px-8 py-10 shadow-card">
+            <div className="mb-6 text-center">
+              <BrandMark size={48} withWordmark />
+            </div>
+            <h1 className="mb-4 text-center text-2xl font-normal text-ink">
+              {t(locale, 'signup.successTitle')}
+            </h1>
+            <p className="mb-6 text-center text-base leading-relaxed text-ink-muted">
+              {t(locale, 'signup.successBody', { email: formData.email })}
+            </p>
+            <InlineCallout tone="info" className="mb-4 text-sm text-ink-muted">
+              {t(locale, 'signup.successHint')}
+            </InlineCallout>
+            <button
+              onClick={() => router.push('/login')}
+              className={cn(S.btnPrimary, 'min-h-touch w-full justify-center')}
+            >
+              {t(locale, 'signup.goToLogin')}
+            </button>
           </div>
-          <h1 className="mb-4 text-center text-2xl font-normal text-ink">
-            {t(locale, 'signup.successTitle')}
-          </h1>
-          <p className="mb-6 text-center text-base leading-relaxed text-ink-muted">
-            {t(locale, 'signup.successBody', { email: formData.email })}
-          </p>
-          <InlineCallout tone="info" className="mb-4 text-sm text-ink-muted">
-            {t(locale, 'signup.successHint')}
-          </InlineCallout>
-          <button
-            onClick={() => router.push('/login')}
-            className={cn(S.btnPrimary, 'min-h-touch w-full justify-center')}
-          >
-            {t(locale, 'signup.goToLogin')}
-          </button>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
+    <>
+    <GoogleLandingAnalytics locale={locale} metaOnly />
     <div className="flex min-h-screen items-center justify-center bg-canvas p-6 font-display">
       <div className="pointer-events-none fixed inset-0 bg-radial-glow-single" />
       <div className="relative z-[1] w-full max-w-[540px] rounded-card border border-ink/12 bg-white px-8 py-10 shadow-card">
@@ -308,5 +319,6 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }
