@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { COOKIE_NAME } from '../../../../../../../../lib/identity/auth';
 import { verifySessionWithCapabilities } from '../../../../../../../../lib/identity/user-capabilities';
-import { query } from '../../../../../../../../lib/db';
+import { query, queryRead } from '../../../../../../../../lib/db.js';
 import { apiError, localeFromRequest, ERR } from '../../../../../../../../lib/api-error';
 import { CAP, isSuperAdminPayload, requireCapability } from '../../../../../../../../lib/identity/permissions';
 import {
@@ -11,6 +11,9 @@ import {
   upsertInterviewScorecard,
 } from '../../../../../../../../lib/people/interview-scorecard';
 import { buildInterviewQuestions } from '../../../../../../../../lib/people/decision-brief';
+import { isOpenAiConfigured } from '../../../../../../../../lib/openai-chat.js';
+import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../lib/identity/rate-limit.js';
+import { generateInterviewGuideAi } from '../../../../../../../../lib/recruiting/interview-guide-ai.js';
 
 async function loadVacancyScope(request, vacancyId, payload) {
   const isAdmin = isSuperAdminPayload(payload);
@@ -88,6 +91,81 @@ export async function GET(request, props) {
   } catch (err) {
     console.error('GET scorecard', err);
     return apiError(request, ERR.INTERNAL, 500);
+  }
+}
+
+/** POST /api/admin/vacancies/[id]/candidates/[candidateId]/scorecard — generate an interview guide. */
+export async function POST(request, props) {
+  const params = await props.params;
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get(COOKIE_NAME)?.value;
+    const payload = await verifySessionWithCapabilities(session);
+    if (!requireCapability(payload, CAP.VACANCIES_MANAGE)) {
+      return apiError(request, ERR.UNAUTHORIZED, 401);
+    }
+
+    const vacancyId = params?.id;
+    const candidateId = params?.candidateId;
+    if (!vacancyId || !candidateId) return apiError(request, ERR.INVALID_DATA, 400);
+
+    const scope = await loadVacancyScope(request, vacancyId, payload);
+    if (scope.error) return scope.error;
+    if (!isOpenAiConfigured()) return apiError(request, ERR.RUBRIC_AI_NOT_CONFIGURED, 503);
+
+    const ip = clientIpFromRequest(request);
+    const rl = await checkRateLimit(`interview-guide-ai:${payload.userId || ip}`, 12, 15 * 60 * 1000);
+    if (!rl.ok) {
+      return apiError(request, ERR.RATE_LIMIT, 429, {}, { headers: { 'Retry-After': String(rl.retryAfterSec) } });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    if (body.action !== 'generateInterviewGuide') return apiError(request, ERR.INVALID_ACTION, 400);
+
+    const paramsForCandidate = [vacancyId, candidateId];
+    let tenantClause = '';
+    if (!scope.isAdmin) {
+      tenantClause = 'AND v.company_id = $3';
+      paramsForCandidate.push(scope.companyId);
+    }
+    const linked = await queryRead(
+      `SELECT v.id, v.company_id AS "companyId", v.title, v.description,
+              r.notes AS "rubricNotes",
+              c.full_name AS "fullName",
+              c.cv_extracted_text AS "cvExtractedText",
+              c.professional_summary AS "professionalSummary"
+         FROM vacancies v
+         JOIN vacancy_candidates vc
+           ON vc.vacancy_id = v.id AND vc.company_id = v.company_id
+         JOIN candidates c
+           ON c.id = vc.candidate_id AND c.company_id = v.company_id
+         LEFT JOIN vacancy_rubrics r ON r.vacancy_id = v.id
+        WHERE v.id = $1 AND vc.candidate_id = $2 AND v.deleted = FALSE ${tenantClause}
+        LIMIT 1`,
+      paramsForCandidate
+    );
+    const record = linked.rows[0];
+    if (!record) return apiError(request, ERR.NOT_FOUND, 404);
+    if (!String(record.cvExtractedText || record.professionalSummary || '').trim()) {
+      return apiError(request, ERR.CV_IMPORT_EMPTY, 422);
+    }
+
+    const locale = body.locale ? body.locale : localeFromRequest(request);
+    const out = await generateInterviewGuideAi({
+      vacancy: record,
+      candidate: record,
+      locale,
+      usage: { companyId: record.companyId, userId: payload.userId },
+    });
+    return NextResponse.json({ ok: true, action: body.action, questions: out.questions, model: out.model });
+  } catch (err) {
+    const code = err?.code || 'INTERVIEW_GUIDE_AI_FAILED';
+    if (code === 'INTERVIEW_GUIDE_AI_PARSE') {
+      return apiError(request, ERR.ASSIST_AI_PARSE, 422);
+    }
+    if (code === ERR.CV_IMPORT_EMPTY) return apiError(request, code, 422);
+    console.error('POST interview guide AI', err);
+    return apiError(request, ERR.INTERNAL, 502);
   }
 }
 
