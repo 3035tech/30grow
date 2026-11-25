@@ -19,6 +19,8 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   const [generating, setGenerating] = useState(false);
   const [interviewMode, setInterviewMode] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [includeProfileContext, setIncludeProfileContext] = useState(false);
+  const [contextUsed, setContextUsed] = useState(null);
   const [err, setErr] = useState('');
 
   const load = useCallback(async () => {
@@ -65,7 +67,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'generateInterviewGuide', locale }),
+          body: JSON.stringify({ action: 'generateInterviewGuide', locale, includeProfileContext }),
         }
       );
       const data = await res.json().catch(() => ({}));
@@ -75,6 +77,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
       const additions = generated.slice(0, available);
       if (!additions.length) throw new Error(t(locale, 'recruiting.scorecardAiLimit'));
       setItems((current) => [...current, ...additions]);
+      setContextUsed(data.contextUsed || null);
       toast(t(locale, 'recruiting.scorecardAiSuccess'), 'ok');
     } catch (e) {
       setErr(e?.message || t(locale, 'recruiting.scorecardAiError'));
@@ -121,6 +124,18 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
       {!interviewMode ? (
         <>
           <p className="mb-2 mt-0 text-2xs leading-snug text-ink-muted">{t(locale, 'recruiting.scorecardAiHint')}</p>
+          <label className="mb-1 flex items-start gap-2 text-xs text-ink">
+            <input
+              type="checkbox"
+              checked={includeProfileContext}
+              onChange={(event) => setIncludeProfileContext(event.target.checked)}
+              className="mt-0.5 accent-brand-700"
+            />
+            <span>{t(locale, 'recruiting.scorecardAiIncludeProfileContext')}</span>
+          </label>
+          <p className="mb-3 mt-0 ml-5 text-2xs leading-snug text-ink-muted">
+            {t(locale, 'recruiting.scorecardAiProfileContextHint')}
+          </p>
           <button
             type="button"
             onClick={generateGuide}
@@ -130,6 +145,18 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
             {generating ? t(locale, 'recruiting.scorecardAiGenerating') : t(locale, 'recruiting.scorecardAiGenerate')}
           </button>
         </>
+      ) : null}
+      {contextUsed ? (
+        <p className="mb-3 mt-0 rounded-control bg-ink/[0.04] px-2.5 py-2 text-2xs text-ink-muted">
+          <strong>{t(locale, 'recruiting.scorecardContextSourcesTitle')}:</strong>{' '}
+          {[
+            contextUsed.vacancy ? t(locale, 'recruiting.scorecardContextVacancy') : null,
+            contextUsed.profileSummary ? t(locale, 'recruiting.scorecardContextSummary') : null,
+            contextUsed.curriculum ? t(locale, 'recruiting.scorecardContextCv') : null,
+            contextUsed.workStyle ? t(locale, 'recruiting.scorecardContextWorkStyle') : null,
+            contextUsed.motivators ? t(locale, 'recruiting.scorecardContextMotivators') : null,
+          ].filter(Boolean).join(' · ')}
+        </p>
       ) : null}
       {items.length && !interviewMode ? (
         <button
