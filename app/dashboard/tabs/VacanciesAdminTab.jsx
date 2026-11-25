@@ -172,6 +172,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
   );
 
   const vacancyDetailId = String(urlParams.get('vacancyDetail') || '').trim();
+  const vacancyCandidateDetailId = String(urlParams.get('vacancyCandidateId') || '').trim();
   const isDetailView = Boolean(vacancyDetailId);
 
   const { page: vacPage, pageSize: vacPageSize } = parseVacanciesPagination(
@@ -1347,27 +1348,41 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
 
               {detailSection === 'candidates' ? (
                 <div>
-                  <PanelSubNav
-                    ariaLabel={t(locale, 'recruiting.candidateWorkspaceTabsAria')}
-                    active={candidateSection}
-                    onChange={(id) => {
-                      if (!VACANCY_CANDIDATE_SECTIONS.includes(id)) return;
-                      setCandidateSection(id);
-                      navigateDashboard({ tab: 'vacancies', vacancyCandidateSection: id, scroll: false });
-                    }}
-                    className="mb-4 mt-4"
-                    tabs={[
-                      { id: 'list', label: t(locale, 'recruiting.candidateWorkspaceList'), tabId: 'vacancy-candidate-tab-list', panelId: 'vacancy-candidate-panel-list' },
-                      { id: 'invites', label: t(locale, 'recruiting.candidateWorkspaceInvites'), tabId: 'vacancy-candidate-tab-invites', panelId: 'vacancy-candidate-panel-invites' },
-                      { id: 'rubric', label: t(locale, 'recruiting.candidateWorkspaceRubric'), tabId: 'vacancy-candidate-tab-rubric', panelId: 'vacancy-candidate-panel-rubric' },
-                      { id: 'ranking', label: t(locale, 'recruiting.candidateWorkspaceRanking'), tabId: 'vacancy-candidate-tab-ranking', panelId: 'vacancy-candidate-panel-ranking' },
-                    ]}
-                  />
-                  <section id={`vacancy-candidate-panel-${candidateSection}`} role="tabpanel" tabIndex={0} aria-labelledby={`vacancy-candidate-tab-${candidateSection}`} className="min-w-0">
+                  {!vacancyCandidateDetailId ? (
+                    <PanelSubNav
+                      ariaLabel={t(locale, 'recruiting.candidateWorkspaceTabsAria')}
+                      active={candidateSection}
+                      onChange={(id) => {
+                        if (!VACANCY_CANDIDATE_SECTIONS.includes(id)) return;
+                        setCandidateSection(id);
+                        navigateDashboard({ tab: 'vacancies', vacancyCandidateSection: id, scroll: false });
+                      }}
+                      className="mb-4 mt-4"
+                      tabs={[
+                        { id: 'list', label: t(locale, 'recruiting.candidateWorkspaceList'), tabId: 'vacancy-candidate-tab-list', panelId: 'vacancy-candidate-panel-list' },
+                        { id: 'invites', label: t(locale, 'recruiting.candidateWorkspaceInvites'), tabId: 'vacancy-candidate-tab-invites', panelId: 'vacancy-candidate-panel-invites' },
+                        { id: 'rubric', label: t(locale, 'recruiting.candidateWorkspaceRubric'), tabId: 'vacancy-candidate-tab-rubric', panelId: 'vacancy-candidate-panel-rubric' },
+                        { id: 'ranking', label: t(locale, 'recruiting.candidateWorkspaceRanking'), tabId: 'vacancy-candidate-tab-ranking', panelId: 'vacancy-candidate-panel-ranking' },
+                      ]}
+                    />
+                  ) : null}
+                  <section
+                    id={`vacancy-candidate-panel-${candidateSection}`}
+                    role={vacancyCandidateDetailId ? undefined : 'tabpanel'}
+                    tabIndex={vacancyCandidateDetailId ? undefined : 0}
+                    aria-labelledby={vacancyCandidateDetailId ? undefined : `vacancy-candidate-tab-${candidateSection}`}
+                    className="min-w-0"
+                  >
                     {candidateSection === 'list' ? (
                       <VacancyInterviewCandidates
                         vacancyId={v.id}
                         locale={locale}
+                        candidateDetailId={vacancyCandidateDetailId}
+                        onCandidateChange={(id) => navigateDashboard({
+                          tab: 'vacancies',
+                          vacancyCandidateId: id || null,
+                          scroll: false,
+                        })}
                         onPipelineChange={() => {
                           setInvitesRefresh((x) => x + 1);
                           setPipelineRefresh((x) => x + 1);

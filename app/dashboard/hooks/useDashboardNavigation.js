@@ -107,6 +107,17 @@ export function useDashboardNavigation({
     if ((opts.tab !== undefined ? opts.tab : urlParams.get('tab')) === 'vacancies' && nextVacancyCandidateSection) {
       p.set('vacancyCandidateSection', String(nextVacancyCandidateSection));
     }
+    const nextVacancyCandidateId = opts.vacancyCandidateId !== undefined
+      ? opts.vacancyCandidateId
+      : urlParams.get('vacancyCandidateId');
+    if (
+      (opts.tab !== undefined ? opts.tab : urlParams.get('tab')) === 'vacancies' &&
+      (opts.vacancySection !== undefined ? opts.vacancySection : urlParams.get('vacancySection')) === 'candidates' &&
+      (!nextVacancyCandidateSection || nextVacancyCandidateSection === 'list') &&
+      nextVacancyCandidateId
+    ) {
+      p.set('vacancyCandidateId', String(nextVacancyCandidateId));
+    }
 
     // Deep-link Equipe → pessoa: /dashboard?tab=team&candidate=<id>
     const nextTab = opts.tab !== undefined ? opts.tab : urlParams.get('tab') || 'overview';

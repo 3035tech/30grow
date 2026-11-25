@@ -2,7 +2,7 @@
 
 import { SelectField } from '../_components/SelectField';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { t, contentLocale, t as i18nT } from '../../lib/i18n';
 import { RichTextEditor } from '../_components/RichTextEditor';
@@ -125,6 +125,9 @@ function CandidateCard({
   locale,
   onChanged,
   onPipelineChange,
+  onOpenCandidate,
+  onBack,
+  fullPage = false,
   selected = false,
   onToggleSelect = null,
   selectDisabled = false,
@@ -169,7 +172,7 @@ function CandidateCard({
   }, [row]);
 
   useEffect(() => {
-    if (!expanded || !row.candidateId) return undefined;
+    if ((!expanded && !fullPage) || !row.candidateId) return undefined;
     let cancelled = false;
     (async () => {
       setBriefLoading(true);
@@ -202,7 +205,7 @@ function CandidateCard({
     return () => {
       cancelled = true;
     };
-  }, [expanded, row.candidateId, locale, vacancyId]);
+  }, [expanded, fullPage, row.candidateId, locale, vacancyId]);
 
   const saveNotes = async () => {
     setBusy(true);
@@ -351,6 +354,7 @@ function CandidateCard({
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.team.deletePersonError'));
       onChanged?.();
       onPipelineChange?.();
+      if (fullPage) onBack?.();
     } catch (e) {
       await showError(e?.message || t(locale, 'panel.team.deletePersonError'));
     } finally {
@@ -360,11 +364,23 @@ function CandidateCard({
 
   return (
     <div
-      className="rounded-xl border border-ink/12 bg-ink/[0.02] p-3.5"
+      className={cn(
+        'rounded-xl border border-ink/12 p-4 sm:p-6',
+        fullPage ? 'bg-surface' : 'bg-ink/[0.02]'
+      )}
     >
+      {fullPage ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className={cn(S.btnGhost, 'mb-5 min-h-touch')}
+        >
+          {t(locale, 'recruiting.candidateDetailBack')}
+        </button>
+      ) : null}
       <div className="flex flex-wrap items-start justify-between gap-2.5">
         <div className="min-w-0 flex items-start gap-2.5">
-          {typeof onToggleSelect === 'function' ? (
+          {typeof onToggleSelect === 'function' && !fullPage ? (
             <label className="mt-0.5 flex min-h-touch cursor-pointer items-center justify-center px-1">
               <input
                 type="checkbox"
@@ -379,9 +395,22 @@ function CandidateCard({
             </label>
           ) : null}
           <div className="min-w-0">
-            <div className="text-sm text-ink">
-              <strong className="font-semibold">{titleCasePersonName(row.fullName)}</strong>
-            </div>
+            {fullPage ? (
+              <h1 className="m-0 text-xl font-semibold text-ink sm:text-2xl">
+                {titleCasePersonName(row.fullName)}
+              </h1>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenCandidate}
+                aria-label={t(locale, 'recruiting.openPersonProfile', {
+                  name: titleCasePersonName(row.fullName),
+                })}
+                className="min-h-touch cursor-pointer border-0 bg-transparent p-0 text-left text-sm text-ink hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+              >
+                <strong className="font-semibold">{titleCasePersonName(row.fullName)}</strong>
+              </button>
+            )}
             <div className="mt-1 text-xs font-mono text-ink-muted">
               {row.email}
               {row.phone ? ` · ${formatPhoneBr(row.phone)}` : ''}
@@ -440,14 +469,16 @@ function CandidateCard({
           </div>
         </div>
         <div className="flex w-full flex-wrap gap-2 border-t border-ink/8 pt-3 lg:w-auto lg:justify-end lg:border-t-0 lg:pt-0">
-          <button
-            type="button"
-            onClick={() => setExpanded((x) => !x)}
-            className={disclosureToggleButtonClass}
-            aria-expanded={expanded}
-          >
-            <DisclosureToggle locale={locale} open={expanded} />
-          </button>
+          {!fullPage ? (
+            <button
+              type="button"
+              onClick={() => setExpanded((x) => !x)}
+              className={disclosureToggleButtonClass}
+              aria-expanded={expanded}
+            >
+              <DisclosureToggle locale={locale} open={expanded} />
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={sendChallenge}
@@ -509,8 +540,8 @@ function CandidateCard({
         </div>
       </div>
 
-      {expanded && (
-        <div className="mt-3 border-t border-ink/12 pt-3">
+      {(expanded || fullPage) && (
+        <div className={cn('mt-5 border-t border-ink/12 pt-5', fullPage && 'space-y-5')}>
           {row.candidateId ? (
             <HireReadinessBlock
               vacancyId={vacancyId}
@@ -723,7 +754,13 @@ function CandidateCard({
   );
 }
 
-export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipelineChange }) {
+export function VacancyInterviewCandidates({
+  vacancyId,
+  locale = 'pt-BR',
+  onPipelineChange,
+  candidateDetailId = '',
+  onCandidateChange,
+}) {
   const { notice, toast } = useAppFeedback();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -744,6 +781,7 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [batchBusy, setBatchBusy] = useState(false);
+  const listScrollYRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -765,6 +803,16 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (candidateDetailId) {
+      window.scrollTo(0, 0);
+    } else if (listScrollYRef.current != null) {
+      window.scrollTo(0, listScrollYRef.current);
+      listScrollYRef.current = null;
+    }
+  }, [candidateDetailId]);
 
   const toggleSelect = useCallback((candidateId) => {
     setSelectedIds((prev) => {
@@ -921,6 +969,50 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
       setCreating(false);
     }
   };
+
+  const openCandidate = (candidateId) => {
+    if (typeof window !== 'undefined') listScrollYRef.current = window.scrollY;
+    onCandidateChange?.(String(candidateId));
+  };
+
+  const closeCandidate = () => onCandidateChange?.(null);
+  const candidateDetail = candidateDetailId
+    ? items.find((item) => String(item.candidateId) === String(candidateDetailId))
+    : null;
+
+  if (candidateDetailId) {
+    if (!candidateDetail && loading) {
+      return (
+        <div className="rounded-xl border border-ink/12 bg-surface p-6" aria-live="polite" aria-busy="true">
+          <AppLoading locale={locale} variant="panel" />
+        </div>
+      );
+    }
+    if (!candidateDetail) {
+      return (
+        <div className="rounded-xl border border-ink/12 bg-surface p-6">
+          <button type="button" onClick={closeCandidate} className={cn(S.btnGhost, 'mb-4 min-h-touch')}>
+            {t(locale, 'recruiting.candidateDetailBack')}
+          </button>
+          <p role={err ? 'alert' : 'status'} className="m-0 text-sm text-ink-muted">
+            {err || t(locale, 'recruiting.candidateDetailNotFound')}
+          </p>
+        </div>
+      );
+    }
+    return (
+      <CandidateCard
+        key={candidateDetail.candidateId}
+        row={candidateDetail}
+        vacancyId={vacancyId}
+        locale={locale}
+        onChanged={load}
+        onPipelineChange={onPipelineChange}
+        onBack={closeCandidate}
+        fullPage
+      />
+    );
+  }
 
   return (
     <div>
@@ -1174,6 +1266,7 @@ export function VacancyInterviewCandidates({ vacancyId, locale = 'pt-BR', onPipe
               locale={locale}
               onChanged={load}
               onPipelineChange={onPipelineChange}
+              onOpenCandidate={() => openCandidate(row.candidateId)}
               selected={selectedIds.has(String(row.candidateId))}
               onToggleSelect={toggleSelect}
               selectDisabled={batchBusy}
