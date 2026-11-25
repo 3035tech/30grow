@@ -7,7 +7,6 @@ import { S } from '../dashboard/dashboard-shared';
 import { useAppFeedback } from './AppFeedback';
 import { AppLoading, ContentEnter } from './AppLoading';
 import { CandidateProfileImport } from './CandidateProfileImport';
-import { CopyableLink } from './CopyableLink';
 
 /**
  * B-2706 — CV upload, suggestions, remove (Team drawer / vacancy candidate card).
@@ -170,9 +169,6 @@ export function CandidateCvBlock({
           {cv?.hasCv ? (
             <div className="mb-3 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                {cv.cvUrl ? (
-                  <CopyableLink url={cv.cvUrl} label={t(locale, 'recruiting.cvOpenPdf')} compact locale={locale} />
-                ) : null}
                 {cv.cvUpdatedAt ? (
                   <span className="font-mono text-2xs text-ink-faint">
                     {t(locale, 'recruiting.cvUpdatedAt', {
@@ -187,6 +183,16 @@ export function CandidateCvBlock({
                 ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
+                {cv.cvUrl ? (
+                  <a
+                    href={cv.cvUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(S.btnGhost, 'min-h-touch')}
+                  >
+                    {t(locale, 'recruiting.cvOpenPdf')}
+                  </a>
+                ) : null}
                 <CandidateProfileImport key={candidateId} candidateId={candidateId} locale={locale} disabled={uploading} onApplied={async data => { await load(); onApplied?.(data); }} />
                 <button
                   type="button"
