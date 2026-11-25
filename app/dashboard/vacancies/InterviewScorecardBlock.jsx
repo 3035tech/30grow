@@ -17,6 +17,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [suggestingFollowUp, setSuggestingFollowUp] = useState(false);
   const [interviewMode, setInterviewMode] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [includeProfileContext, setIncludeProfileContext] = useState(false);
@@ -87,6 +88,48 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
     }
   };
 
+  const suggestFollowUp = async () => {
+    if (!activeQuestion) return;
+    setSuggestingFollowUp(true);
+    setErr('');
+    try {
+      const res = await fetch(
+        `/api/admin/vacancies/${encodeURIComponent(vacancyId)}/candidates/${encodeURIComponent(candidateId)}/scorecard`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'suggestInterviewFollowUp',
+            locale,
+            includeProfileContext,
+            question: activeQuestion.text,
+            notes: activeQuestion.comment || '',
+          }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || t(locale, 'recruiting.scorecardAiFollowUpError'));
+      const suggestion = String(data.question || '').trim();
+      if (!suggestion) throw new Error(t(locale, 'recruiting.scorecardAiFollowUpError'));
+      const questionId = activeQuestion.questionId;
+      setItems((current) => current.map((row, index) => {
+        const matches = questionId ? row.questionId === questionId : index === activeQuestionIndex;
+        if (!matches) return row;
+        const suggestions = Array.isArray(row.aiFollowUps) ? row.aiFollowUps : [];
+        return {
+          ...row,
+          aiFollowUps: [...new Set([...suggestions, suggestion])].slice(0, 3),
+        };
+      }));
+      toast(t(locale, 'recruiting.scorecardAiFollowUpReady'), 'ok');
+    } catch (e) {
+      setErr(e?.message || t(locale, 'recruiting.scorecardAiFollowUpError'));
+      toast(e?.message || t(locale, 'recruiting.scorecardAiFollowUpError'), 'error');
+    } finally {
+      setSuggestingFollowUp(false);
+    }
+  };
+
   const save = async () => {
     setBusy(true);
     setErr('');
@@ -116,14 +159,19 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
   }
 
   return (
-    <div className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3" aria-busy={busy || generating}>
+    <div
+      className="mb-4 rounded-control border border-ink/12 bg-ink/[0.02] p-3"
+      aria-busy={busy || generating || suggestingFollowUp}
+    >
       <span className={cn(S.cardSection, 'mb-1 block')}>{t(locale, 'recruiting.scorecardTitle')}</span>
       <p className="mb-3 mt-0 text-2xs leading-snug text-ink-muted">
         {t(locale, 'recruiting.scorecardHint')}
       </p>
       {!interviewMode ? (
         <>
-          <p className="mb-2 mt-0 text-2xs leading-snug text-ink-muted">{t(locale, 'recruiting.scorecardAiHint')}</p>
+          <p className="mb-2 mt-0 text-2xs leading-snug text-ink-muted">
+            {t(locale, 'recruiting.scorecardAiHint')}
+          </p>
           <label className="mb-1 flex items-start gap-2 text-xs text-ink">
             <input
               type="checkbox"
@@ -171,18 +219,37 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
         </button>
       ) : null}
       {items.length && interviewMode && activeQuestion ? (
-        <section className="rounded-control border border-brand-700/20 bg-surface p-3" aria-label={t(locale, 'recruiting.scorecardTitle')}>
+        <section
+          className="rounded-control border border-brand-700/20 bg-surface p-3"
+          aria-label={t(locale, 'recruiting.scorecardTitle')}
+        >
           <p className="mb-3 mt-0 text-xs font-semibold text-ink-muted" aria-live="polite">
             {t(locale, 'recruiting.scorecardQuestionProgress', {
               current: activeQuestionIndex + 1,
               total: items.length,
             })}
           </p>
-          {activeQuestion.competency ? <p className="mb-1 mt-0 text-2xs font-semibold text-brand-700">{t(locale, 'recruiting.scorecardCompetencyLabel')}: {activeQuestion.competency}</p> : null}
+          {activeQuestion.competency ? (
+            <p className="mb-1 mt-0 text-2xs font-semibold text-brand-700">
+              {t(locale, 'recruiting.scorecardCompetencyLabel')}: {activeQuestion.competency}
+            </p>
+          ) : null}
           <p className="mb-3 mt-0 text-lg font-semibold leading-snug text-ink">{activeQuestion.text}</p>
-          {activeQuestion.candidateEvidence ? <p className="mb-2 mt-0 text-sm leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardEvidenceLabel')}:</strong> {activeQuestion.candidateEvidence}</p> : null}
-          {activeQuestion.followUp ? <p className="mb-2 mt-0 text-sm leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardFollowUpLabel')}:</strong> {activeQuestion.followUp}</p> : null}
-          {activeQuestion.listenFor ? <p className="mb-3 mt-0 text-sm leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardListenForLabel')}:</strong> {activeQuestion.listenFor}</p> : null}
+          {activeQuestion.candidateEvidence ? (
+            <p className="mb-2 mt-0 text-sm leading-snug text-ink-muted">
+              <strong>{t(locale, 'recruiting.scorecardEvidenceLabel')}:</strong> {activeQuestion.candidateEvidence}
+            </p>
+          ) : null}
+          {activeQuestion.followUp ? (
+            <p className="mb-2 mt-0 text-sm leading-snug text-ink-muted">
+              <strong>{t(locale, 'recruiting.scorecardFollowUpLabel')}:</strong> {activeQuestion.followUp}
+            </p>
+          ) : null}
+          {activeQuestion.listenFor ? (
+            <p className="mb-3 mt-0 text-sm leading-snug text-ink-muted">
+              <strong>{t(locale, 'recruiting.scorecardListenForLabel')}:</strong> {activeQuestion.listenFor}
+            </p>
+          ) : null}
           <ScaleRatingButtons
             min={1}
             max={5}
@@ -201,24 +268,63 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
               rows={4}
             />
           </FormField>
+          <button
+            type="button"
+            onClick={suggestFollowUp}
+            disabled={
+              suggestingFollowUp ||
+              String(activeQuestion.comment || '').trim().length < 8 ||
+              (activeQuestion.aiFollowUps || []).length >= 3
+            }
+            className={cn(
+              S.btnBrandSoft,
+              'mt-2',
+              (
+                suggestingFollowUp ||
+                String(activeQuestion.comment || '').trim().length < 8 ||
+                (activeQuestion.aiFollowUps || []).length >= 3
+              ) && 'opacity-60'
+            )}
+          >
+            {suggestingFollowUp
+              ? t(locale, 'recruiting.scorecardAiSuggestingFollowUp')
+              : t(locale, 'recruiting.scorecardAiSuggestFollowUp')}
+          </button>
+          <p className="mb-0 mt-1 text-2xs text-ink-muted">
+            {t(locale, 'recruiting.scorecardAiFollowUpNoteRequired')}
+          </p>
+          {Array.isArray(activeQuestion.aiFollowUps) && activeQuestion.aiFollowUps.length ? (
+            <div className="mt-3 rounded-control border border-brand-700/15 bg-brand-700/[0.04] p-2.5" aria-live="polite">
+              <p className="mb-1 mt-0 text-xs font-semibold text-ink">{t(locale, 'recruiting.scorecardAiFollowUps')}</p>
+              <ul className="m-0 list-disc space-y-1 pl-5 text-sm leading-snug text-ink">
+                {activeQuestion.aiFollowUps.map((suggestion, index) => (
+                  <li key={`${activeQuestion.questionId || activeQuestionIndex}-follow-up-${index}`}>
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <button
               type="button"
               onClick={() => setCurrentQuestionIndex((index) => Math.max(index - 1, 0))}
-              disabled={activeQuestionIndex === 0}
-              className={cn(S.btnBrandSoft, activeQuestionIndex === 0 && 'opacity-60')}
+              disabled={activeQuestionIndex === 0 || suggestingFollowUp}
+              className={cn(S.btnBrandSoft, (activeQuestionIndex === 0 || suggestingFollowUp) && 'opacity-60')}
             >
               {t(locale, 'recruiting.scorecardPreviousQuestion')}
             </button>
             <button
               type="button"
               onClick={() => setInterviewMode(false)}
+              disabled={suggestingFollowUp}
               className={cn(S.btnBrandSoft, 'order-3 w-full sm:order-none sm:w-auto')}
             >
               {t(locale, 'recruiting.scorecardExitInterview')}
             </button>
             <button
               type="button"
+              disabled={suggestingFollowUp}
               onClick={() => {
                 if (activeQuestionIndex >= items.length - 1) {
                   setInterviewMode(false);
@@ -246,6 +352,14 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
                 {row.candidateEvidence ? <p className="mb-1 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardEvidenceLabel')}:</strong> {row.candidateEvidence}</p> : null}
                 {row.followUp ? <p className="mb-1 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardFollowUpLabel')}:</strong> {row.followUp}</p> : null}
                 {row.listenFor ? <p className="mb-2 mt-0 text-xs leading-snug text-ink-muted"><strong>{t(locale, 'recruiting.scorecardListenForLabel')}:</strong> {row.listenFor}</p> : null}
+                {Array.isArray(row.aiFollowUps) && row.aiFollowUps.length ? (
+                  <div className="mb-2 rounded-control bg-brand-700/[0.04] p-2 text-xs text-ink">
+                    <strong>{t(locale, 'recruiting.scorecardAiFollowUps')}:</strong>
+                    <ul className="mb-0 mt-1 list-disc space-y-1 pl-5">
+                      {row.aiFollowUps.map((suggestion, index) => <li key={`${row.questionId}-follow-up-${index}`}>{suggestion}</li>)}
+                    </ul>
+                  </div>
+                ) : null}
                 <ScaleRatingButtons
                   min={1}
                   max={5}
@@ -275,7 +389,7 @@ export function InterviewScorecardBlock({ vacancyId, candidateId, locale = 'pt-B
         <button
           type="button"
           onClick={save}
-          disabled={busy}
+          disabled={busy || suggestingFollowUp}
           className={cn(S.btnBrandSoft, 'mt-3', busy && 'opacity-60')}
         >
           {busy ? t(locale, 'panel.common.loading') : t(locale, 'recruiting.scorecardSave')}

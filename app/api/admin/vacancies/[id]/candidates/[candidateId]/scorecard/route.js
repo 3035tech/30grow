@@ -13,7 +13,10 @@ import {
 import { buildInterviewQuestions } from '../../../../../../../../lib/people/decision-brief';
 import { isOpenAiConfigured } from '../../../../../../../../lib/openai-chat.js';
 import { checkRateLimit, clientIpFromRequest } from '../../../../../../../../lib/identity/rate-limit.js';
-import { generateInterviewGuideAi } from '../../../../../../../../lib/recruiting/interview-guide-ai.js';
+import {
+  generateInterviewGuideAi,
+  suggestInterviewFollowUpAi,
+} from '../../../../../../../../lib/recruiting/interview-guide-ai.js';
 import {
   motivatorDimensionLabel,
   motivatorWorkMeaning,
@@ -32,6 +35,49 @@ async function loadVacancyScope(request, vacancyId, payload) {
   const res = await query(`${sql} LIMIT 1`, params);
   if (!res.rowCount) return { error: apiError(request, ERR.VACANCY_NOT_FOUND, 404) };
   return { vacancy: res.rows[0], isAdmin, companyId };
+}
+
+async function loadInterviewProfileContext({ candidateId, companyId, locale }) {
+  const [assessmentResult, motivatorResult] = await Promise.all([
+    queryRead(
+      `SELECT top_type AS "topType"
+         FROM assessments
+        WHERE candidate_id = $1 AND company_id = $2 AND top_type IS NOT NULL
+        ORDER BY created_at DESC NULLS LAST, id DESC
+        LIMIT 1`,
+      [candidateId, companyId]
+    ).catch(() => ({ rows: [] })),
+    queryRead(
+      `SELECT dimension_scores AS "dimensionScores"
+         FROM ae_attempts
+        WHERE candidate_id = $1 AND company_id = $2
+          AND status = 'completed' AND dimension_scores IS NOT NULL
+        ORDER BY completed_at DESC NULLS LAST, id DESC
+        LIMIT 1`,
+      [candidateId, companyId]
+    ).catch(() => ({ rows: [] })),
+  ]);
+
+  const rawTopType = Number(assessmentResult.rows?.[0]?.topType);
+  const scores = motivatorResult.rows?.[0]?.dimensionScores;
+  const motivators = scores && typeof scores === 'object' && !Array.isArray(scores)
+    ? Object.entries(scores)
+      .map(([key, score]) => ({ key, score: Number(score) || 0 }))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(({ key }) => ({
+        label: motivatorDimensionLabel(key, locale),
+        workMeaning: motivatorWorkMeaning(key, locale),
+      }))
+    : [];
+  const context = {
+    workStyleType: Number.isInteger(rawTopType) && rawTopType >= 1 && rawTopType <= 9
+      ? `T${rawTopType}`
+      : null,
+    motivators,
+  };
+  return context.workStyleType || context.motivators.length ? context : null;
 }
 
 /** GET /api/admin/vacancies/[id]/candidates/[candidateId]/scorecard */
@@ -98,7 +144,7 @@ export async function GET(request, props) {
   }
 }
 
-/** POST /api/admin/vacancies/[id]/candidates/[candidateId]/scorecard — generate an interview guide. */
+/** POST /api/admin/vacancies/[id]/candidates/[candidateId]/scorecard — generate interview guidance. */
 export async function POST(request, props) {
   const params = await props.params;
   try {
@@ -124,7 +170,9 @@ export async function POST(request, props) {
     }
 
     const body = await request.json().catch(() => ({}));
-    if (body.action !== 'generateInterviewGuide') return apiError(request, ERR.INVALID_ACTION, 400);
+    if (!['generateInterviewGuide', 'suggestInterviewFollowUp'].includes(body.action)) {
+      return apiError(request, ERR.INVALID_ACTION, 400);
+    }
 
     const paramsForCandidate = [vacancyId, candidateId];
     let tenantClause = '';
@@ -150,51 +198,30 @@ export async function POST(request, props) {
     );
     const record = linked.rows[0];
     if (!record) return apiError(request, ERR.NOT_FOUND, 404);
-    if (!String(record.cvExtractedText || record.professionalSummary || '').trim()) {
+    if (body.action === 'generateInterviewGuide' && !String(record.cvExtractedText || record.professionalSummary || '').trim()) {
       return apiError(request, ERR.CV_IMPORT_EMPTY, 422);
     }
 
     const locale = body.locale ? body.locale : localeFromRequest(request);
-    let profileContext = null;
-    if (body.includeProfileContext === true) {
-      const assessmentResult = await queryRead(
-        `SELECT top_type AS "topType"
-           FROM assessments
-          WHERE candidate_id = $1 AND company_id = $2 AND top_type IS NOT NULL
-          ORDER BY created_at DESC NULLS LAST, id DESC
-          LIMIT 1`,
-        [candidateId, record.companyId]
-      ).catch(() => ({ rows: [] }));
-      const motivatorResult = await queryRead(
-        `SELECT dimension_scores AS "dimensionScores"
-           FROM ae_attempts
-          WHERE candidate_id = $1 AND company_id = $2
-            AND status = 'completed' AND dimension_scores IS NOT NULL
-          ORDER BY completed_at DESC NULLS LAST, id DESC
-          LIMIT 1`,
-        [candidateId, record.companyId]
-      ).catch(() => ({ rows: [] }));
-      const rawTopType = Number(assessmentResult.rows?.[0]?.topType);
-      const scores = motivatorResult.rows?.[0]?.dimensionScores;
-      const motivators = scores && typeof scores === 'object' && !Array.isArray(scores)
-        ? Object.entries(scores)
-          .map(([key, score]) => ({ key, score: Number(score) || 0 }))
-          .filter((entry) => entry.score > 0)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 3)
-          .map(({ key }) => ({
-            label: motivatorDimensionLabel(key, locale),
-            workMeaning: motivatorWorkMeaning(key, locale),
-          }))
-        : [];
-      profileContext = {
-        workStyleType: Number.isInteger(rawTopType) && rawTopType >= 1 && rawTopType <= 9
-          ? `T${rawTopType}`
-          : null,
-        motivators,
-      };
-      if (!profileContext.workStyleType && !profileContext.motivators.length) profileContext = null;
+    const profileContext = body.includeProfileContext === true
+      ? await loadInterviewProfileContext({ candidateId, companyId: record.companyId, locale })
+      : null;
+    if (body.action === 'suggestInterviewFollowUp') {
+      const notes = String(body.notes || '').trim();
+      const question = String(body.question || '').trim();
+      if (notes.length < 8 || question.length < 8) return apiError(request, ERR.INVALID_DATA, 422);
+      const out = await suggestInterviewFollowUpAi({
+        vacancy: record,
+        candidate: record,
+        profileContext,
+        question,
+        notes,
+        locale,
+        usage: { companyId: record.companyId, userId: payload.userId },
+      });
+      return NextResponse.json({ ok: true, action: body.action, question: out.question, model: out.model });
     }
+
     const out = await generateInterviewGuideAi({
       vacancy: record,
       candidate: record,
@@ -217,8 +244,11 @@ export async function POST(request, props) {
     });
   } catch (err) {
     const code = err?.code || 'INTERVIEW_GUIDE_AI_FAILED';
-    if (code === 'INTERVIEW_GUIDE_AI_PARSE') {
+    if (code === 'INTERVIEW_GUIDE_AI_PARSE' || code === 'INTERVIEW_FOLLOW_UP_AI_PARSE') {
       return apiError(request, ERR.ASSIST_AI_PARSE, 422);
+    }
+    if (code === 'INTERVIEW_FOLLOW_UP_NOTES_REQUIRED') {
+      return apiError(request, ERR.INVALID_DATA, 422);
     }
     if (code === ERR.CV_IMPORT_EMPTY) return apiError(request, code, 422);
     console.error('POST interview guide AI', err);
