@@ -379,6 +379,8 @@ function CandidateCard({
         'rounded-xl border border-ink/12 p-3 sm:p-4',
         fullPage ? 'bg-surface' : 'cursor-pointer bg-ink/[0.02] transition-colors hover:bg-ink/[0.035] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500'
       )}
+      data-candidate-detail={fullPage ? '' : undefined}
+      style={fullPage ? { scrollMarginTop: '1.5rem' } : undefined}
       role={fullPage ? undefined : 'button'}
       tabIndex={fullPage ? undefined : 0}
       aria-label={fullPage ? undefined : t(locale, 'recruiting.openPersonProfile', { name: titleCasePersonName(row.fullName) })}
@@ -803,12 +805,18 @@ export function VacancyInterviewCandidates({
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    let frame = null;
     if (candidateDetailId) {
-      window.scrollTo(0, 0);
+      frame = window.requestAnimationFrame(() => {
+        document.querySelector('[data-candidate-detail]')?.scrollIntoView({ block: 'start' });
+      });
     } else if (listScrollYRef.current != null) {
       window.scrollTo(0, listScrollYRef.current);
       listScrollYRef.current = null;
     }
+    return () => {
+      if (frame != null) window.cancelAnimationFrame(frame);
+    };
   }, [candidateDetailId]);
 
   const toggleSelect = useCallback((candidateId) => {
