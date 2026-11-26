@@ -329,8 +329,10 @@ function CandidateCard({
   };
 
   const alreadyCompleted = Boolean(row.assessmentId) || row.inviteStatus === 'completed';
+  const enneagramInviteExists = ['sent', 'opened'].includes(String(row.inviteStatus || ''));
   const motivatorsDone =
     Boolean(row.motivatorsAttemptId) || row.motivatorsInviteStatus === 'completed';
+  const motivatorsInviteExists = ['sent', 'opened'].includes(String(row.motivatorsInviteStatus || ''));
   const motivatorsStatus =
     motivatorsDone && row.motivatorsInviteStatus !== 'completed'
       ? 'completed'
@@ -486,7 +488,7 @@ function CandidateCard({
             title={
               alreadyCompleted
                 ? t(locale, 'recruiting.testAlreadyDone')
-                : t(locale, 'recruiting.sendEnneagramTitle')
+                : t(locale, enneagramInviteExists ? 'recruiting.resendEnneagramTitle' : 'recruiting.sendEnneagramTitle')
             }
             className={cn(
                   'min-h-touch rounded-control border px-2.5 py-2 font-mono text-xs',
@@ -500,7 +502,7 @@ function CandidateCard({
               ? t(locale, 'recruiting.inviteSending')
               : alreadyCompleted
                 ? t(locale, 'recruiting.testDone')
-                : t(locale, 'recruiting.sendEnneagram')}
+                : t(locale, enneagramInviteExists ? 'recruiting.resendEnneagram' : 'recruiting.sendEnneagram')}
           </button>
           <button
             type="button"
@@ -511,7 +513,7 @@ function CandidateCard({
                 ? t(locale, 'recruiting.motivatorsAlreadyDone')
                 : !row.email
                   ? t(locale, 'recruiting.motivatorsNeedEmail')
-                  : t(locale, 'recruiting.sendMotivatorsTitle')
+                  : t(locale, motivatorsInviteExists ? 'recruiting.resendMotivatorsTitle' : 'recruiting.sendMotivatorsTitle')
             }
             className={cn(
                   'min-h-touch rounded-control border px-2.5 py-2 font-mono text-xs',
@@ -525,7 +527,7 @@ function CandidateCard({
               ? t(locale, 'recruiting.inviteSending')
               : motivatorsDone
                 ? t(locale, 'recruiting.motivatorsDone')
-                : t(locale, 'recruiting.sendMotivators')}
+                : t(locale, motivatorsInviteExists ? 'recruiting.resendMotivators' : 'recruiting.sendMotivators')}
           </button>
           <button
             type="button"
