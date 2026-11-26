@@ -11,7 +11,7 @@ import { BrCitySelect } from '../_components/BrCitySelect';
 import { formatPhoneBr, formatSalaryBr, stripPhone, salaryToCentsDigits, stripSalary, digitsOnly } from '../../lib/br-masks';
 import { isValidPhoneBr, isValidWebUrl } from '../../lib/form-validation';
 import { titleCasePersonName } from '../../lib/person-name';
-import { S } from './dashboard-shared';
+import { PanelSubNav, S } from './dashboard-shared';
 import { useAppFeedback } from '../_components/AppFeedback';
 import { AppLoading, Spinner } from '../_components/AppLoading';
 import { HrActionBrief } from '../_components/HrActionBrief';
@@ -149,6 +149,7 @@ function CandidateCard({
   const [decisionBrief, setDecisionBrief] = useState(null);
   const [fitScores, setFitScores] = useState(null);
   const [briefLoading, setBriefLoading] = useState(false);
+  const [candidateTab, setCandidateTab] = useState('profile');
 
   const showError = async (message) => {
     await notice({
@@ -168,6 +169,10 @@ function CandidateCard({
     setAvailability(row.availability || '');
     setSource(row.source || '');
   }, [row]);
+
+  useEffect(() => {
+    setCandidateTab('profile');
+  }, [row.candidateId]);
 
   useEffect(() => {
     if (!fullPage || !row.candidateId) return undefined;
@@ -544,6 +549,35 @@ function CandidateCard({
 
       {fullPage && (
         <div className={cn('mt-5 border-t border-ink/12 pt-5', fullPage && 'space-y-5')}>
+          <PanelSubNav
+            tabs={[
+              {
+                id: 'profile',
+                tabId: 'candidate-profile-tab',
+                panelId: 'candidate-profile-panel',
+                label: t(locale, 'recruiting.candidateTabProfile'),
+              },
+              {
+                id: 'interviews',
+                tabId: 'candidate-interviews-tab',
+                panelId: 'candidate-interviews-panel',
+                label: t(locale, 'recruiting.candidateTabInterviews'),
+              },
+            ]}
+            active={candidateTab}
+            onChange={setCandidateTab}
+            ariaLabel={t(locale, 'recruiting.candidateDetailTabsAria')}
+            variant="pill"
+            className="mb-5"
+          />
+          <div
+            role="tabpanel"
+            id={`candidate-${candidateTab}-panel`}
+            aria-labelledby={`candidate-${candidateTab}-tab`}
+            tabIndex={0}
+          >
+          {candidateTab === 'profile' ? (
+          <>
           {row.candidateId ? (
             <HireReadinessBlock
               vacancyId={vacancyId}
@@ -596,24 +630,6 @@ function CandidateCard({
               onSaved={() => onChanged?.()}
             />
           ) : null}
-
-          {row.candidateId ? (
-            <InterviewPrepBlock
-              vacancyId={vacancyId}
-              candidateId={row.candidateId}
-              locale={locale}
-            />
-          ) : null}
-
-          {row.candidateId ? (
-            <InterviewScorecardBlock
-              vacancyId={vacancyId}
-              candidateId={row.candidateId}
-              locale={locale}
-              onApplySummary={applyScorecardSummary}
-            />
-          ) : null}
-
           <div className={cn(formFieldRowClass, 'mb-2.5')}>
             <FormField label={t(locale, 'recruiting.phoneLabel')} className={formFieldGrowClass}>
               <input
@@ -709,7 +725,25 @@ function CandidateCard({
           >
             {profileBusy ? t(locale, 'recruiting.savingNotes') : t(locale, 'recruiting.saveProfile')}
           </button>
+          </>
+          ) : (
+          <>
+          {row.candidateId ? (
+            <InterviewPrepBlock
+              vacancyId={vacancyId}
+              candidateId={row.candidateId}
+              locale={locale}
+            />
+          ) : null}
 
+          {row.candidateId ? (
+            <InterviewScorecardBlock
+              vacancyId={vacancyId}
+              candidateId={row.candidateId}
+              locale={locale}
+              onApplySummary={applyScorecardSummary}
+            />
+          ) : null}
           <span
             className="block mb-2 text-2xs font-mono text-ink-muted uppercase tracking-[0.6px]"
           >
@@ -749,6 +783,9 @@ function CandidateCard({
                 t(locale, 'recruiting.saveNotes')
               )}
             </button>
+          </div>
+          </>
+          )}
           </div>
         </div>
       )}
