@@ -616,8 +616,22 @@ function ThankYouScreen({ saveError = null, onRetrySave = null, retryBusy = fals
     <div className={SC.app}>
       <div className={SC.glow} />
       <div className={cn(SC.card, 'max-w-[560px] text-center')}>
-        <span className={SC.label}>{t(locale, 'candidate.thankYouLabel')}</span>
-        <h1 className={cn(SC.h1, 'mb-4 text-4xl')}>{t(locale, 'candidate.thankYouTitle')}</h1>
+        {!saveError ? (
+          <div
+            aria-hidden="true"
+            className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-success/20 bg-success/[0.08] text-success"
+          >
+            <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="m5 12.5 4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        ) : null}
+        <span className={SC.label}>
+          {t(locale, saveError ? 'candidate.saveErrorLabel' : 'candidate.thankYouLabel')}
+        </span>
+        <h1 className={cn(SC.h1, 'mb-4 text-4xl')}>
+          {t(locale, saveError ? 'candidate.saveErrorTitle' : 'candidate.thankYouTitle')}
+        </h1>
         {saveError ? (
           <div className="mb-[18px] rounded-xl border border-danger/25 bg-danger/[0.08] px-3.5 py-3 text-left text-prose leading-normal text-danger">
             {t(locale, 'candidate.saveErrorPrefix')} {saveError}
@@ -638,7 +652,12 @@ function ThankYouScreen({ saveError = null, onRetrySave = null, retryBusy = fals
             ) : null}
           </div>
         ) : (
-          <p className={cn(SC.p, 'mb-8 not-italic')}>{t(locale, 'candidate.thankYouBody')}</p>
+          <>
+            <p className={cn(SC.p, 'mb-4 not-italic')}>{t(locale, 'candidate.thankYouBody')}</p>
+            <InlineCallout tone="info" emphasis className="mb-7 text-left">
+              <p className="m-0">{t(locale, 'candidate.thankYouNote')}</p>
+            </InlineCallout>
+          </>
         )}
         {!saveError ? (
           <button type="button" className={SC.btn} onClick={onDone}>
