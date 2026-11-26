@@ -110,10 +110,15 @@ export function useDashboardNavigation({
     const nextVacancyCandidateId = opts.vacancyCandidateId !== undefined
       ? opts.vacancyCandidateId
       : urlParams.get('vacancyCandidateId');
+    const nextVacancySection = opts.vacancySection !== undefined
+      ? opts.vacancySection
+      : urlParams.get('vacancySection');
     if (
       (opts.tab !== undefined ? opts.tab : urlParams.get('tab')) === 'vacancies' &&
-      (opts.vacancySection !== undefined ? opts.vacancySection : urlParams.get('vacancySection')) === 'candidates' &&
-      (!nextVacancyCandidateSection || nextVacancyCandidateSection === 'list') &&
+      (nextVacancySection === 'interviews' || (
+        nextVacancySection === 'candidates' &&
+        (!nextVacancyCandidateSection || nextVacancyCandidateSection === 'list')
+      )) &&
       nextVacancyCandidateId
     ) {
       p.set('vacancyCandidateId', String(nextVacancyCandidateId));

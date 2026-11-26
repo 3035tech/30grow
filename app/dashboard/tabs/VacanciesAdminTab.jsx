@@ -78,6 +78,7 @@ const META_FAINT = S.faint;
 const VACANCY_DETAIL_SECTIONS = Object.freeze([
   'pipeline',
   'candidates',
+  'interviews',
   'information',
   'distribution',
   'settings',
@@ -1152,10 +1153,13 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                   onChange={(id) => {
                     const next = normalizeVacancyDetailSection(id);
                     setDetailSection(next);
+                    if (next === 'candidates') setCandidateSection('list');
                     navigateDashboard({
                       tab: 'vacancies',
                       vacancyDetail: String(v.id),
                       vacancySection: next,
+                      vacancyCandidateSection: next === 'candidates' ? 'list' : null,
+                      vacancyCandidateId: null,
                       scroll: false,
                       clientOnly: true,
                     });
@@ -1163,6 +1167,7 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                   tabs={[
                     { id: 'pipeline', label: t(locale, 'recruiting.detailTabPipeline') },
                     { id: 'candidates', label: t(locale, 'recruiting.detailTabCandidates') },
+                    { id: 'interviews', label: t(locale, 'recruiting.detailTabInterviews') },
                     { id: 'information', label: t(locale, 'recruiting.detailTabInformation') },
                     { id: 'distribution', label: t(locale, 'recruiting.detailTabDistribution') },
                     { id: 'settings', label: t(locale, 'recruiting.detailTabSettings') },
@@ -1421,6 +1426,26 @@ export function VacanciesAdminTab({ isAdmin, navigateDashboard, canViewOrganizat
                     ) : null}
                   </section>
                 </div>
+              ) : null}
+
+              {detailSection === 'interviews' ? (
+                <VacancyInterviewCandidates
+                  vacancyId={v.id}
+                  locale={locale}
+                  interviewWorkspace
+                  candidateDetailId={vacancyCandidateDetailId}
+                  onCandidateChange={(id) => navigateDashboard({
+                    tab: 'vacancies',
+                    vacancyDetail: String(v.id),
+                    vacancySection: 'interviews',
+                    vacancyCandidateId: id || null,
+                    scroll: false,
+                  })}
+                  onPipelineChange={() => {
+                    setInvitesRefresh((x) => x + 1);
+                    setPipelineRefresh((x) => x + 1);
+                  }}
+                />
               ) : null}
 
               {detailSection === 'information' ? (

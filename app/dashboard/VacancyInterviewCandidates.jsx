@@ -11,7 +11,7 @@ import { BrCitySelect } from '../_components/BrCitySelect';
 import { formatPhoneBr, formatSalaryBr, stripPhone, salaryToCentsDigits, stripSalary, digitsOnly } from '../../lib/br-masks';
 import { isValidPhoneBr, isValidWebUrl } from '../../lib/form-validation';
 import { titleCasePersonName } from '../../lib/person-name';
-import { PanelSubNav, S } from './dashboard-shared';
+import { S } from './dashboard-shared';
 import { useAppFeedback } from '../_components/AppFeedback';
 import { AppLoading, Spinner } from '../_components/AppLoading';
 import { HrActionBrief } from '../_components/HrActionBrief';
@@ -127,6 +127,7 @@ function CandidateCard({
   onOpenCandidate,
   onBack,
   fullPage = false,
+  interviewOnly = false,
   selected = false,
   onToggleSelect = null,
   selectDisabled = false,
@@ -149,7 +150,6 @@ function CandidateCard({
   const [decisionBrief, setDecisionBrief] = useState(null);
   const [fitScores, setFitScores] = useState(null);
   const [briefLoading, setBriefLoading] = useState(false);
-  const [candidateTab, setCandidateTab] = useState('profile');
 
   const showError = async (message) => {
     await notice({
@@ -175,7 +175,7 @@ function CandidateCard({
   }, [row.candidateId]);
 
   useEffect(() => {
-    if (!fullPage || !row.candidateId) return undefined;
+    if (!fullPage || interviewOnly || !row.candidateId) return undefined;
     let cancelled = false;
     (async () => {
       setBriefLoading(true);
@@ -208,7 +208,7 @@ function CandidateCard({
     return () => {
       cancelled = true;
     };
-  }, [fullPage, row.candidateId, locale, vacancyId]);
+  }, [fullPage, interviewOnly, row.candidateId, locale, vacancyId]);
 
   const saveNotes = async () => {
     setBusy(true);
@@ -401,7 +401,7 @@ function CandidateCard({
           onClick={onBack}
           className={cn(S.btnGhost, 'mb-5 min-h-touch')}
         >
-          {t(locale, 'recruiting.candidateDetailBack')}
+          {t(locale, interviewOnly ? 'recruiting.interviewWorkspaceBack' : 'recruiting.candidateDetailBack')}
         </button>
       ) : null}
       <div className="flex flex-wrap items-start justify-between gap-2.5">
@@ -485,6 +485,7 @@ function CandidateCard({
             ) : null}
           </div>
         </div>
+        {!interviewOnly ? (
         <div className="flex w-full flex-wrap gap-2 lg:w-auto lg:justify-end">
           <button
             type="button"
@@ -545,38 +546,12 @@ function CandidateCard({
             {deleting ? <Spinner className="h-4 w-4" /> : t(locale, 'panel.team.deletePerson')}
           </button>
         </div>
+        ) : null}
       </div>
 
       {fullPage && (
         <div className={cn('mt-5 border-t border-ink/12 pt-5', fullPage && 'space-y-5')}>
-          <PanelSubNav
-            tabs={[
-              {
-                id: 'profile',
-                tabId: 'candidate-profile-tab',
-                panelId: 'candidate-profile-panel',
-                label: t(locale, 'recruiting.candidateTabProfile'),
-              },
-              {
-                id: 'interviews',
-                tabId: 'candidate-interviews-tab',
-                panelId: 'candidate-interviews-panel',
-                label: t(locale, 'recruiting.candidateTabInterviews'),
-              },
-            ]}
-            active={candidateTab}
-            onChange={setCandidateTab}
-            ariaLabel={t(locale, 'recruiting.candidateDetailTabsAria')}
-            variant="pill"
-            className="mb-5"
-          />
-          <div
-            role="tabpanel"
-            id={`candidate-${candidateTab}-panel`}
-            aria-labelledby={`candidate-${candidateTab}-tab`}
-            tabIndex={0}
-          >
-          {candidateTab === 'profile' ? (
+          {!interviewOnly ? (
           <>
           {row.candidateId ? (
             <HireReadinessBlock
@@ -786,7 +761,6 @@ function CandidateCard({
           </div>
           </>
           )}
-          </div>
         </div>
       )}
     </div>
@@ -799,6 +773,7 @@ export function VacancyInterviewCandidates({
   onPipelineChange,
   candidateDetailId = '',
   onCandidateChange,
+  interviewWorkspace = false,
 }) {
   const { notice, toast } = useAppFeedback();
   const [items, setItems] = useState([]);
@@ -1055,7 +1030,58 @@ export function VacancyInterviewCandidates({
         onPipelineChange={onPipelineChange}
         onBack={closeCandidate}
         fullPage
+        interviewOnly={interviewWorkspace}
       />
+    );
+  }
+
+  if (interviewWorkspace) {
+    return (
+      <section className="min-w-0">
+        <div className="mb-5">
+          <h2 className="mb-1 mt-0 font-ui text-lg font-semibold text-ink">
+            {t(locale, 'recruiting.interviewWorkspaceTitle')}
+          </h2>
+          <p className="mb-0 max-w-3xl font-ui text-sm leading-6 text-ink-muted">
+            {t(locale, 'recruiting.interviewWorkspaceHint')}
+          </p>
+        </div>
+        {loading ? (
+          <AppLoading locale={locale} variant="panel" />
+        ) : err ? (
+          <div role="alert" className="flex flex-wrap items-center gap-2 text-sm text-danger">
+            <span>{err}</span>
+            <button type="button" className={S.btnGhost} onClick={load}>
+              {t(locale, 'panel.common.retry')}
+            </button>
+          </div>
+        ) : items.length === 0 ? (
+          <p className="font-mono text-xs text-ink-faint">{t(locale, 'recruiting.noCandidatesYet')}</p>
+        ) : (
+          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+            {items.map((candidate) => {
+              const candidateName = titleCasePersonName(candidate.fullName || candidate.name);
+              return (
+                <button
+                  key={candidate.candidateId}
+                  type="button"
+                  onClick={() => openCandidate(candidate.candidateId)}
+                  aria-label={t(locale, 'recruiting.interviewWorkspaceOpen', { name: candidateName })}
+                  className="flex min-h-24 w-full cursor-pointer flex-col items-start justify-between gap-2 rounded-card border border-ink/12 bg-surface p-4 text-left transition-colors hover:border-brand-500/35 hover:bg-brand-500/[0.025] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                >
+                  <span>
+                    <strong className="block font-ui text-sm font-semibold text-ink">{candidateName}</strong>
+                    <span className="mt-1 block font-mono text-xs text-ink-muted">{candidate.email}</span>
+                  </span>
+                  <span className="font-ui text-xs font-medium text-brand-700">
+                    {t(locale, 'recruiting.interviewWorkspaceOpen', { name: candidateName })} →
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
     );
   }
 
