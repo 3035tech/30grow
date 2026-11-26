@@ -51,6 +51,8 @@ export default function BirthdaysCard({ locale = 'pt-BR', companyId, navigateDas
     if (Number.isNaN(d.getTime())) return iso;
     return d.toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' });
   };
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   if (loading) {
     return (
@@ -116,46 +118,58 @@ export default function BirthdaysCard({ locale = 'pt-BR', companyId, navigateDas
       {empty ? (
         <p className="m-0 text-prose italic text-ink-faint">{t(locale, 'panel.birthdays.empty')}</p>
       ) : (
-        <ul className="m-0 max-h-[20rem] list-none divide-y divide-ink/8 overflow-y-auto p-0 pr-1">
-          {items.map((row) => (
-            <li
-              key={`${row.kind}-${row.candidateId}-${row.nextOn}`}
-              className="flex items-start justify-between gap-3 px-1 py-2.5 first:pt-1 last:pb-0"
-            >
-              <div className="flex min-w-0 flex-1 flex-col items-start">
-                {typeof navigateDashboard === 'function' ? (
-                  <button
-                    type="button"
-                    className="max-w-full cursor-pointer truncate rounded-sm border-none bg-transparent p-0 text-left text-sm font-medium text-ink hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35"
-                    onClick={() =>
-                      navigateDashboard({
-                        tab: 'team',
-                        candidate: String(row.candidateId),
-                        section: 'profile',
-                      })
-                    }
-                  >
-                    {row.fullName}
-                  </button>
-                ) : (
-                  <span className="max-w-full truncate text-sm font-medium text-ink">{row.fullName}</span>
+        <ul className="m-0 max-h-[20rem] list-none overflow-y-auto p-0 pr-1">
+          {items.map((row) => {
+            const isToday = row.nextOn === todayIso;
+            return (
+              <li
+                key={`${row.kind}-${row.candidateId}-${row.nextOn}`}
+                className={cn(
+                  'flex items-start justify-between gap-3 rounded-control px-2.5 py-2.5 first:mt-0 last:pb-2',
+                  isToday ? 'my-1 bg-brand-500/[0.08] ring-1 ring-inset ring-brand-500/20' : 'border-b border-ink/8 last:border-b-0'
                 )}
-                <span className="mt-0.5 font-mono text-2xs uppercase tracking-wide text-ink-muted">
-                  {row.kind === 'birth'
-                    ? t(locale, 'panel.birthdays.kindBirth')
-                    : t(locale, 'panel.birthdays.kindWork')}
-                </span>
-              </div>
-              <div className="flex shrink-0 flex-col items-end font-mono text-xs text-ink/80">
-                <span>{formatNext(row.nextOn)}</span>
-                {row.kind === 'work' && row.years ? (
-                  <span className="mt-0.5 text-2xs text-ink-muted">
-                    {t(locale, 'panel.birthdays.years', { n: row.years })}
+              >
+                <div className="flex min-w-0 flex-1 flex-col items-start">
+                  {typeof navigateDashboard === 'function' ? (
+                    <button
+                      type="button"
+                      className="max-w-full cursor-pointer truncate rounded-sm border-none bg-transparent p-0 text-left text-sm font-medium text-ink hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35"
+                      onClick={() =>
+                        navigateDashboard({
+                          tab: 'team',
+                          candidate: String(row.candidateId),
+                          section: 'profile',
+                        })
+                      }
+                    >
+                      {row.fullName}
+                    </button>
+                  ) : (
+                    <span className="max-w-full truncate text-sm font-medium text-ink">{row.fullName}</span>
+                  )}
+                  <span className={cn('mt-0.5 font-mono text-2xs tracking-wide', isToday ? 'text-brand-700' : 'text-ink-muted')}>
+                    {row.kind === 'birth'
+                      ? t(locale, isToday ? 'panel.birthdays.todayBirth' : 'panel.birthdays.kindBirth')
+                      : t(locale, isToday ? 'panel.birthdays.todayWork' : 'panel.birthdays.kindWork')}
                   </span>
-                ) : null}
-              </div>
-            </li>
-          ))}
+                </div>
+                <div className="flex shrink-0 flex-col items-end font-mono text-xs text-ink/80">
+                  {isToday ? (
+                    <span className="rounded-full bg-brand-600 px-2 py-0.5 text-2xs font-semibold text-white">
+                      {t(locale, 'panel.birthdays.today')}
+                    </span>
+                  ) : (
+                    <span>{formatNext(row.nextOn)}</span>
+                  )}
+                  {row.kind === 'work' && row.years ? (
+                    <span className={cn('mt-0.5 text-2xs', isToday ? 'font-semibold text-brand-700' : 'text-ink-muted')}>
+                      {t(locale, 'panel.birthdays.years', { n: row.years })}
+                    </span>
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
