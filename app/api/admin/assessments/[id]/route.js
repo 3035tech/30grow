@@ -14,6 +14,7 @@ import {
 import { resolveRecruitingPipelineStage } from '../../../../../lib/recruiting/pipeline-templates';
 import { canAccessCandidateRecord, isSuperAdminPayload } from '../../../../../lib/identity/permissions';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../lib/recruiting/job-funnel';
+import { sendCandidateRejectionEmail } from '../../../../../lib/recruiting/rejection-email.js';
 
 export async function PATCH(request, props) {
   const params = await props.params;
@@ -168,7 +169,17 @@ export async function PATCH(request, props) {
       },
     });
 
-    return NextResponse.json({ ...up.rows[0], access: null });
+    let rejectionEmail = null;
+    if (canonicalStage === PIPELINE_STAGE.REJECTED && body.rejectionEmail?.send === true && vacancyId && candidateId) {
+      try {
+        await sendCandidateRejectionEmail({ companyId: assCompanyId, vacancyId, candidateId, subject: body.rejectionEmail.subject, body: body.rejectionEmail.body, locale: localeFromRequest(request) });
+        rejectionEmail = { sent: true };
+      } catch (emailError) {
+        console.error('[candidate-rejection-email] send failed', { code: emailError?.code || 'SEND_FAILED' });
+        rejectionEmail = { sent: false };
+      }
+    }
+    return NextResponse.json({ ...up.rows[0], access: null, rejectionEmail });
   } catch (e) {
     if ((e)?.code === '23505' && String((e)?.constraint || '').includes('email')) return apiError(request, ERR.EMAIL_TAKEN, 409);
     if (Object.values(ERR).includes(e?.code)) return apiErrorFromResult(request,{errorCode:e.code});

@@ -31,6 +31,7 @@ async function fixture({ canonicalKey = 'screening', found = true, accessible = 
     canAccessCandidateRecord: () => true, isSuperAdminPayload: () => admin, requireCapability: () => true, CAP: { VACANCIES_MANAGE: 'manage' },
     query: db, queryRead: db, withTransaction: (fn) => fn({ query: db }),
     audit: async () => {}, auditFromRequest: async () => {},
+    sendCandidateRejectionEmail: async () => ({ sent: true }),
     localeFromRequest: () => 'pt-BR', ERR, apiError: (_, code, status) => ({ code, status }), apiErrorFromResult: (_, result) => result,
     PIPELINE_STAGE, normalizeRejectionReason, normalizeRejectionReasons, normalizeStartDate, rejectionReasonsSql, sanitizeInterviewNotesHtml: (v) => v,
     resolveRecruitingPipelineStage: async (scope) => { resolutions.push(scope); return found ? { stageKey: scope.stageKey, canonicalKey } : null; },

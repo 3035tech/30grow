@@ -168,7 +168,12 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
   const moveTo = async (row, stage) => {
     if ((row.pipelineStage || 'new') === stage) return;
     const stageObj = stageById[stage] || { id: stage, canonicalKey: stage };
-    const extras = await requestPipelineExtras(locale, stageObj);
+    const extras = await requestPipelineExtras(locale, stageObj, { rejectionEmailContext: {
+      vacancyId,
+      candidateId: row.candidateId,
+      candidateName: row.name,
+      candidateEmail: row.email,
+    } });
     if (extras == null) return;
     const key = cardKey(row);
     setMoving(key);
@@ -219,6 +224,8 @@ function VacancyKanbanContent({ tagRefresh, vacancyId, locale, refreshKey = 0, o
         );
       }
       if (access?.inviteSent === false) toast(t(locale, 'recruiting.hireInviteFailed'), 'warning');
+      if (data.rejectionEmail?.sent === true) toast(t(locale, 'recruiting.rejectionEmailSent'), 'ok');
+      if (data.rejectionEmail?.sent === false) toast(t(locale, 'recruiting.rejectionEmailFailed'), 'warning');
       onStageChanged?.();
     } catch (e) {
       setRows((prev) => prev.map((r) => (cardKey(r) === key ? { ...r, pipelineStage: row.pipelineStage } : r)));

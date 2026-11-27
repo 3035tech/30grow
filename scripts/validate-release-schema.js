@@ -51,7 +51,7 @@ const REQUIRED_SCHEMA = Object.freeze({
   org_position_recruitments: ['id','company_id','position_id','vacancy_id','filled_assignment_id','ended_at'],
   candidate_tags: ['id', 'company_id', 'name', 'normalized_name', 'color', 'active'],
   candidate_tag_assignments: ['company_id', 'candidate_id', 'tag_id', 'assigned_by_user_id', 'assigned_at'],
-  vacancies: ['id', 'company_id', 'status', 'public_page_enabled', 'pipeline_template_id', 'headcount_managed'],
+  vacancies: ['id', 'company_id', 'status', 'public_page_enabled', 'pipeline_template_id', 'headcount_managed', 'rejection_email_subject', 'rejection_email_body'],
   assessments: ['id', 'candidate_id', 'company_id', 'pipeline_stage', 'rejection_reasons'],
   vacancy_candidates: ['id', 'company_id', 'rejection_reasons'],
   assessment_pipeline_history: ['id', 'rejection_reasons'],

@@ -17,6 +17,7 @@ async function fixture({ authorized = true, companyId = 3, admin = false, found 
     apiError: (_,code,status) => Response.json({code},{status}), apiErrorFromResult: () => {}, resolveRecruitingPipelineStage: () => {},
     persistCandidateHire: () => {}, runCandidateHireEffects: () => {}, maybeCloseVacancyIfFilled: () => {}, notifyHireOnboardingKit: () => {},
     pipelineStageToFunnelEvent: () => {}, scheduleJobFunnelEvent: () => {}, auditFromRequest: () => {},
+    sendCandidateRejectionEmail: async () => ({ sent: true }),
   };
   const context = vm.createContext({ console, Response });
   const mod = new vm.SourceTextModule(await readFile(new URL('../../app/api/admin/vacancies/[id]/candidates/[candidateId]/route.js',import.meta.url),'utf8'),{context});

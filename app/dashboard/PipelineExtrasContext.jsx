@@ -1,19 +1,51 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, useEffect } from 'react';
 import { REJECTION_REASONS, normalizeStartDate } from '../../lib/recruiting/pipeline';
-import { t } from '../../lib/i18n';
+import { t, messageNode } from '../../lib/i18n';
 import { rejectionReasonLabel } from './pipeline-prompts';
 import { DateField } from '../_components/DateField';
 import { FormField } from '../_components/FormField';
 import { S } from './dashboard-shared';
+import { RichTextEditor } from '../_components/RichTextEditor';
+import { htmlToPlainText } from '../../lib/sanitize-html';
 
 const PipelineExtrasContext = createContext(null);
 
-function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
+function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel }) {
   const [reasons, setReasons] = useState([]);
   const [startDate, setStartDate] = useState('');
   const [error, setError] = useState('');
+  const [sendEmail, setSendEmail] = useState(false);
+  const [emailSubject, setEmailSubject] = useState(messageNode(locale, 'recruiting.rejectionEmailDefaultSubject'));
+  const [emailBody, setEmailBody] = useState(messageNode(locale, 'recruiting.rejectionEmailDefaultBody'));
+  const [templateLoading, setTemplateLoading] = useState(Boolean(context?.vacancyId));
+  const [templateError, setTemplateError] = useState(false);
+
+  useEffect(() => {
+    if (mode !== 'rejected' || bulk || !context?.vacancyId) return;
+    let cancelled = false;
+    fetch(`/api/admin/vacancies/${encodeURIComponent(context.vacancyId)}`)
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error('TEMPLATE_LOAD_FAILED');
+        return data;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const vacancy = data.vacancy || data;
+        const companyName = vacancy.companyName || '';
+        const values = { candidateName: context.candidateName || '', vacancyTitle: vacancy.title || '', companyName };
+        const replace = (value, html = false) => String(value || '').replace(/\{(candidateName|vacancyTitle|companyName)\}/g, (_, key) => html
+          ? values[key].replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char])
+          : values[key]);
+        setEmailSubject(replace(vacancy.rejectionEmailSubject || messageNode(locale, 'recruiting.rejectionEmailDefaultSubject')));
+        setEmailBody(replace(vacancy.rejectionEmailBody || messageNode(locale, 'recruiting.rejectionEmailDefaultBody'), true));
+      })
+      .catch(() => { if (!cancelled) setTemplateError(true); })
+      .finally(() => { if (!cancelled) setTemplateLoading(false); });
+    return () => { cancelled = true; };
+  }, [context, locale, mode, bulk]);
 
   const title =
     mode === 'rejected'
@@ -31,7 +63,15 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
         setError(t(locale, 'recruiting.rejectReasonRequired'));
         return;
       }
-      onConfirm({ rejectionReasons: reasons });
+      if (sendEmail && templateLoading) {
+        setError(t(locale, 'recruiting.rejectionEmailLoading'));
+        return;
+      }
+      if (sendEmail && (!emailSubject.trim() || !htmlToPlainText(emailBody).trim())) {
+        setError(t(locale, 'recruiting.rejectionEmailRequired'));
+        return;
+      }
+      onConfirm({ rejectionReasons: reasons, ...(sendEmail ? { rejectionEmail: { send: true, subject: emailSubject, body: emailBody } } : {}) });
       return;
     }
     const normalized = normalizeStartDate(startDate);
@@ -91,6 +131,22 @@ function PipelineExtrasDialog({ locale, mode, onConfirm, onCancel }) {
               <DateField value={startDate} onChange={(event) => setStartDate(event.target.value)} aria-label={t(locale, 'employeeAdmission.plannedStart')} />
             </FormField>
           )}
+
+        {mode === 'rejected' && !bulk && context?.vacancyId && context?.candidateId ? (
+          <section className="mt-4 rounded-control border border-ink/12 p-3">
+            <label className="flex cursor-pointer items-start gap-2 font-ui text-sm font-medium text-ink">
+              <input type="checkbox" checked={sendEmail} onChange={(event) => setSendEmail(event.target.checked)} className="mt-1 h-4 w-4 accent-brand-600" />
+              <span>{t(locale, 'recruiting.rejectionEmailOptional')}</span>
+            </label>
+            {sendEmail ? <div className="mt-3 flex flex-col gap-3">
+              {templateLoading ? <p className="m-0 text-sm text-ink-muted">{t(locale, 'recruiting.rejectionEmailLoading')}</p> : null}
+              {templateError ? <p role="alert" className="m-0 text-sm text-danger">{t(locale, 'recruiting.rejectionEmailTemplateUnavailable')}</p> : null}
+              <FormField label={t(locale, 'recruiting.rejectionEmailSubjectLabel')}><input maxLength={180} value={emailSubject} onChange={(event) => setEmailSubject(event.target.value)} className="w-full rounded-control border border-ink/15 bg-surface px-3 py-2 font-ui text-sm text-ink" /></FormField>
+              <FormField as="div" label={t(locale, 'recruiting.rejectionEmailBodyLabel')}><RichTextEditor value={emailBody} onChange={setEmailBody} minHeight={130} scrollable locale={locale} /></FormField>
+              <p className="m-0 text-xs text-ink-muted">{t(locale, 'recruiting.rejectionEmailBccHelp')}</p>
+            </div> : null}
+          </section>
+        ) : null}
         </div>
 
 
@@ -124,7 +180,7 @@ export function PipelineExtrasProvider({ children }) {
 
   // Accepts either a canonical key (preferred) or a resolved stage object with
   // `canonicalKey`. Custom stages carry their canonical from the Kanban rows.
-  const requestPipelineExtras = useCallback((locale, stageOrCanonical, { bulk = false } = {}) => {
+  const requestPipelineExtras = useCallback((locale, stageOrCanonical, { bulk = false, rejectionEmailContext = null } = {}) => {
     const canonical =
       stageOrCanonical && typeof stageOrCanonical === 'object'
         ? (stageOrCanonical.canonicalKey || stageOrCanonical.id)
@@ -134,7 +190,7 @@ export function PipelineExtrasProvider({ children }) {
     }
     return new Promise((resolve) => {
       resolveRef.current = resolve;
-      setState({ locale, mode: canonical, bulk });
+      setState({ locale, mode: canonical, bulk, context: rejectionEmailContext });
     });
   }, []);
 
@@ -148,6 +204,7 @@ export function PipelineExtrasProvider({ children }) {
           locale={state.locale}
           mode={state.mode}
           bulk={state.bulk}
+          context={state.context}
           onConfirm={(payload) => close(payload)}
           onCancel={() => close(null)}
         />

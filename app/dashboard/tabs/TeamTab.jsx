@@ -763,7 +763,13 @@ export function TeamTab({
   };
 
   const patchPipeline = async (assessmentId, pipelineStage) => {
-    const extras = await requestPipelineExtras(locale, pipelineStage);
+    const assessment = detail?.assessments?.find((item) => String(item.id) === String(assessmentId));
+    const extras = await requestPipelineExtras(locale, pipelineStage, { rejectionEmailContext: assessment ? {
+      vacancyId: assessment.vacancyId,
+      candidateId: detail?.candidate?.id,
+      candidateName: detail?.candidate?.fullName,
+      candidateEmail: detail?.candidate?.email,
+    } : null });
     if (extras == null) return;
     setStageBusy(String(assessmentId));
     try {
@@ -775,6 +781,8 @@ export function TeamTab({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || t(locale, 'panel.common.error'));
       if (data.access?.inviteSent === false) toast(t(locale, 'recruiting.hireInviteFailed'), 'warning');
+      if (data.rejectionEmail?.sent === true) toast(t(locale, 'recruiting.rejectionEmailSent'), 'ok');
+      if (data.rejectionEmail?.sent === false) toast(t(locale, 'recruiting.rejectionEmailFailed'), 'warning');
       router.refresh();
       await reloadDetailSilently();
     } catch (e) {

@@ -16,6 +16,7 @@ import {
 import { resolveRecruitingPipelineStage } from '../../../../../../../lib/recruiting/pipeline-templates';
 import { pipelineStageToFunnelEvent, scheduleJobFunnelEvent } from '../../../../../../../lib/recruiting/job-funnel';
 import { auditFromRequest } from '../../../../../../../lib/audit';
+import { sendCandidateRejectionEmail } from '../../../../../../../lib/recruiting/rejection-email.js';
 
 
 async function loadLink(request, vacancyId, candidateId, payload) {
@@ -253,11 +254,30 @@ export async function PATCH(request, props) {
       },
     });
 
+    let rejectionEmail = null;
+    if (isRejectedCanonical && body.rejectionEmail?.send === true) {
+      try {
+        await sendCandidateRejectionEmail({
+          companyId: loaded.link.companyId,
+          vacancyId: Number(vacancyId),
+          candidateId: Number(candidateId),
+          subject: body.rejectionEmail.subject,
+          body: body.rejectionEmail.body,
+          locale: localeFromRequest(request),
+        });
+        rejectionEmail = { sent: true };
+      } catch (emailError) {
+        console.error('[candidate-rejection-email] send failed', { code: emailError?.code || 'SEND_FAILED' });
+        rejectionEmail = { sent: false };
+      }
+    }
+
     return NextResponse.json({
       ...upd.rows[0],
       fullName: loaded.link.fullName,
       email: loaded.link.email,
       access: null,
+      rejectionEmail,
     });
   } catch (error) {
     if ((error)?.code === '23505' && String((error)?.constraint || '').includes('email')) return apiError(request, ERR.EMAIL_TAKEN, 409);

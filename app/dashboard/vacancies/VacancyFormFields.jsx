@@ -298,6 +298,20 @@ export function VacancyFormFields({
     </VacancyFormSection>
   );
 
+  const rejectionEmail = !isCreate ? (
+    <VacancyFormSection locale={locale} titleKey="recruiting.rejectionEmailTemplateTitle">
+      <p className="m-0 mb-3 text-sm leading-6 text-ink-muted">{t(locale, 'recruiting.rejectionEmailTemplateHelp')}</p>
+      <div className={STACK}>
+        <FormField label={t(locale, 'recruiting.rejectionEmailSubjectLabel')}>
+          <input maxLength={180} value={values.rejectionEmailSubject || ''} onChange={set('rejectionEmailSubject')} className={INPUT} placeholder={t(locale, 'recruiting.rejectionEmailDefaultSubject')} />
+        </FormField>
+        <FormField as="div" label={t(locale, 'recruiting.rejectionEmailBodyLabel')} hint={t(locale, 'recruiting.rejectionEmailVariablesHelp')}>
+          <RichTextEditor value={values.rejectionEmailBody || ''} onChange={(html) => onChange({ rejectionEmailBody: html })} minHeight={140} scrollable locale={locale} />
+        </FormField>
+      </div>
+    </VacancyFormSection>
+  ) : null;
+
   const errorCallout = error ? (
     <InlineCallout tone="danger" role="alert" emphasis>{error}</InlineCallout>
   ) : null;
@@ -311,6 +325,7 @@ export function VacancyFormFields({
             {essentials}
             {contract}
             {description}
+            {rejectionEmail}
           </div>
           <aside className={STACK} aria-label={t(locale, 'recruiting.formSettingsAside')}>
             {statusDeadline}
@@ -330,6 +345,7 @@ export function VacancyFormFields({
       {contract}
       {jobRole}
       {description}
+      {rejectionEmail}
       {publicPage}
     </div>
   );
