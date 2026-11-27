@@ -8,9 +8,13 @@ import { DateField } from '../_components/DateField';
 import { FormField } from '../_components/FormField';
 import { S } from './dashboard-shared';
 import { RichTextEditor } from '../_components/RichTextEditor';
-import { htmlToPlainText } from '../../lib/sanitize-html';
+import { htmlToPlainText, sanitizeInterviewNotesHtml } from '../../lib/sanitize-html';
 
 const PipelineExtrasContext = createContext(null);
+
+function feedbackToHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]).replace(/\r?\n/g, '<br />');
+}
 
 function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel }) {
   const [reasons, setReasons] = useState([]);
@@ -19,6 +23,12 @@ function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel
   const [sendEmail, setSendEmail] = useState(false);
   const [emailSubject, setEmailSubject] = useState(messageNode(locale, 'recruiting.rejectionEmailDefaultSubject'));
   const [emailBody, setEmailBody] = useState(messageNode(locale, 'recruiting.rejectionEmailDefaultBody'));
+  const [candidateFeedback, setCandidateFeedback] = useState('');
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [aiTone, setAiTone] = useState('warm');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiStatus, setAiStatus] = useState('');
   const [templateLoading, setTemplateLoading] = useState(Boolean(context?.vacancyId));
   const [templateError, setTemplateError] = useState(false);
 
@@ -40,7 +50,7 @@ function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel
           ? values[key].replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char])
           : values[key]);
         setEmailSubject(replace(vacancy.rejectionEmailSubject || messageNode(locale, 'recruiting.rejectionEmailDefaultSubject')));
-        setEmailBody(replace(vacancy.rejectionEmailBody || messageNode(locale, 'recruiting.rejectionEmailDefaultBody'), true));
+        setEmailBody(replace(vacancy.rejectionEmailBody || messageNode(locale, 'recruiting.rejectionEmailDefaultBody'), true).replace(/\{rejectionReasons\}/g, '{candidateFeedback}'));
       })
       .catch(() => { if (!cancelled) setTemplateError(true); })
       .finally(() => { if (!cancelled) setTemplateLoading(false); });
@@ -56,6 +66,39 @@ function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel
       ? t(locale, 'recruiting.rejectModalIntro')
       : t(locale, 'recruiting.hireModalIntro');
 
+  const feedbackHtml = feedbackToHtml(candidateFeedback);
+  const emailBodyWithFeedback = emailBody.includes('{candidateFeedback}')
+    ? emailBody.replace(/\{candidateFeedback\}/g, feedbackHtml)
+    : `${emailBody}${feedbackHtml ? `<p>${feedbackHtml}</p>` : ''}`;
+  const finalEmailBody = sanitizeInterviewNotesHtml(emailBodyWithFeedback)
+    .replace(/\{rejectionReasons\}/g, '')
+    .replace(/<p>\s*<\/p>/g, '');
+
+  const suggestFeedbackWithAi = async () => {
+    setAiError('');
+    setAiStatus('');
+    if (!context?.vacancyId || candidateFeedback.trim().length < 8) {
+      setAiError(t(locale, 'recruiting.rejectionEmailAiInputRequired'));
+      return;
+    }
+    setAiBusy(true);
+    try {
+      const response = await fetch(`/api/admin/vacancies/${encodeURIComponent(context.vacancyId)}/rejection-feedback-ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: candidateFeedback, tone: aiTone, locale }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.draft) throw new Error('REJECTION_FEEDBACK_AI_FAILED');
+      setCandidateFeedback(String(data.draft));
+      setAiStatus(t(locale, 'recruiting.rejectionEmailAiGenerated'));
+    } catch {
+      setAiError(t(locale, 'recruiting.rejectionEmailAiFailed'));
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
   const submit = () => {
     setError('');
     if (mode === 'rejected') {
@@ -67,13 +110,10 @@ function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel
         setError(t(locale, 'recruiting.rejectionEmailLoading'));
         return;
       }
-      if (sendEmail && (!emailSubject.trim() || !htmlToPlainText(emailBody).trim())) {
+      if (sendEmail && (!emailSubject.trim() || !htmlToPlainText(finalEmailBody).trim())) {
         setError(t(locale, 'recruiting.rejectionEmailRequired'));
         return;
       }
-      const rejectionReasonsText = reasons.map((reason) => rejectionReasonLabel(locale, reason)).join(', ');
-      const rejectionReasonsHtml = rejectionReasonsText.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
-      const finalEmailBody = emailBody.replace(/\{rejectionReasons\}/g, rejectionReasonsHtml);
       onConfirm({ rejectionReasons: reasons, ...(sendEmail ? { rejectionEmail: { send: true, subject: emailSubject, body: finalEmailBody } } : {}) });
       return;
     }
@@ -145,7 +185,39 @@ function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel
               {templateLoading ? <p className="m-0 text-sm text-ink-muted">{t(locale, 'recruiting.rejectionEmailLoading')}</p> : null}
               {templateError ? <p role="alert" className="m-0 text-sm text-danger">{t(locale, 'recruiting.rejectionEmailTemplateUnavailable')}</p> : null}
               <FormField label={t(locale, 'recruiting.rejectionEmailSubjectLabel')}><input maxLength={180} value={emailSubject} onChange={(event) => setEmailSubject(event.target.value)} className="w-full rounded-control border border-ink/15 bg-surface px-3 py-2 font-ui text-sm text-ink" /></FormField>
-              <FormField as="div" label={t(locale, 'recruiting.rejectionEmailBodyLabel')}><RichTextEditor value={emailBody} onChange={setEmailBody} minHeight={130} scrollable locale={locale} /></FormField>
+              <FormField as="div" label={t(locale, 'recruiting.rejectionEmailFeedbackLabel')} hint={t(locale, 'recruiting.rejectionEmailFeedbackHint')}>
+                <textarea rows={3} maxLength={1800} value={candidateFeedback} onChange={(event) => { setCandidateFeedback(event.target.value); setAiStatus(''); }} className="w-full rounded-control border border-ink/15 bg-surface px-3 py-2 font-ui text-sm text-ink" />
+              </FormField>
+              <div className="rounded-control border border-ink/10 bg-canvas p-3">
+                <p className="mb-2 mt-0 text-xs leading-5 text-ink-muted">{t(locale, 'recruiting.rejectionEmailAiPrivacy')}</p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <FormField label={t(locale, 'recruiting.rejectionEmailAiTone')}>
+                    <select value={aiTone} onChange={(event) => setAiTone(event.target.value)} className="min-h-touch rounded-control border border-ink/15 bg-surface px-3 py-2 font-ui text-sm text-ink">
+                      <option value="warm">{t(locale, 'recruiting.rejectionEmailAiWarm')}</option>
+                      <option value="direct">{t(locale, 'recruiting.rejectionEmailAiDirect')}</option>
+                      <option value="detailed">{t(locale, 'recruiting.rejectionEmailAiDetailed')}</option>
+                    </select>
+                  </FormField>
+                  <button type="button" onClick={suggestFeedbackWithAi} disabled={aiBusy || candidateFeedback.trim().length < 8} aria-busy={aiBusy} className={S.btnGhost}>
+                    {aiBusy ? t(locale, 'recruiting.rejectionEmailAiLoading') : t(locale, 'recruiting.rejectionEmailAiButton')}
+                  </button>
+                </div>
+                {aiError ? <p role="alert" className="mb-0 mt-2 text-sm text-danger">{aiError}</p> : null}
+                {aiStatus ? <p role="status" className="mb-0 mt-2 text-sm text-success">{aiStatus}</p> : null}
+              </div>
+              <div className="flex justify-end">
+                <button type="button" className={S.btnGhost} onClick={() => setShowEmailPreview((shown) => !shown)}>
+                  {t(locale, showEmailPreview ? 'recruiting.rejectionEmailEdit' : 'recruiting.rejectionEmailPreview')}
+                </button>
+              </div>
+              {showEmailPreview ? (
+                <section aria-label={t(locale, 'recruiting.rejectionEmailPreview')} className="rounded-control border border-ink/12 bg-canvas p-3">
+                  <p className="mb-2 mt-0 break-words text-sm"><strong>{t(locale, 'recruiting.rejectionEmailSubjectLabel')}:</strong> {emailSubject}</p>
+                  <div className="prose prose-sm max-w-none text-ink" dangerouslySetInnerHTML={{ __html: finalEmailBody }} />
+                </section>
+              ) : (
+                <FormField as="div" label={t(locale, 'recruiting.rejectionEmailBodyLabel')}><RichTextEditor value={emailBody} onChange={setEmailBody} minHeight={130} scrollable locale={locale} /></FormField>
+              )}
               <p className="m-0 text-xs text-ink-muted">{t(locale, 'recruiting.rejectionEmailBccHelp')}</p>
             </div> : null}
           </section>

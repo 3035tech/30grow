@@ -29,6 +29,7 @@ async function loadPipeline(path) {
     apiError:(_,code,status)=>Response.json({errorCode:code},{status}),
     apiErrorFromResult:(_,result)=>Response.json(result,{status:httpStatusForError(result.errorCode,400)}),
     localeFromRequest:()=> 'pt-BR',audit:async()=>{},auditFromRequest:async()=>{},
+    sendCandidateRejectionEmail:async()=>({sent:true}),
     pipelineStageToFunnelEvent:()=>null,scheduleJobFunnelEvent:()=>{},
   };
   const context = vm.createContext({ console, Response });
