@@ -171,10 +171,6 @@ function CandidateCard({
   }, [row]);
 
   useEffect(() => {
-    setCandidateTab('profile');
-  }, [row.candidateId]);
-
-  useEffect(() => {
     if (!fullPage || interviewOnly || !row.candidateId) return undefined;
     let cancelled = false;
     (async () => {
