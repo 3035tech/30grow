@@ -795,6 +795,7 @@ export function VacancyInterviewCandidates({
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [batchBusy, setBatchBusy] = useState(false);
+  const [interviewSearch, setInterviewSearch] = useState('');
   const listScrollYRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -999,6 +1000,13 @@ export function VacancyInterviewCandidates({
   const candidateDetail = candidateDetailId
     ? items.find((item) => String(item.candidateId) === String(candidateDetailId))
     : null;
+  const searchQuery = interviewSearch.trim().toLocaleLowerCase(locale);
+  const filteredInterviewCandidates = searchQuery
+    ? items.filter((candidate) =>
+        [candidate.fullName, candidate.name, candidate.email]
+          .some((value) => String(value || '').toLocaleLowerCase(locale).includes(searchQuery))
+      )
+    : items;
 
   if (candidateDetailId) {
     if (!candidateDetail && loading) {
@@ -1012,7 +1020,7 @@ export function VacancyInterviewCandidates({
       return (
         <div className="rounded-xl border border-ink/12 bg-surface p-6">
           <button type="button" onClick={closeCandidate} className={cn(S.btnGhost, 'mb-4 min-h-touch')}>
-            {t(locale, 'recruiting.candidateDetailBack')}
+            {t(locale, interviewWorkspace ? 'recruiting.interviewWorkspaceBack' : 'recruiting.candidateDetailBack')}
           </button>
           <p role={err ? 'alert' : 'status'} className="m-0 text-sm text-ink-muted">
             {err || t(locale, 'recruiting.candidateDetailNotFound')}
@@ -1046,6 +1054,19 @@ export function VacancyInterviewCandidates({
             {t(locale, 'recruiting.interviewWorkspaceHint')}
           </p>
         </div>
+        {!loading && items.length > 0 ? (
+          <div className="mb-4 max-w-lg">
+            <FormField label={t(locale, 'recruiting.interviewWorkspaceSearchLabel')}>
+              <input
+                type="search"
+                value={interviewSearch}
+                onChange={(event) => setInterviewSearch(event.target.value)}
+                placeholder={t(locale, 'recruiting.interviewWorkspaceSearchPlaceholder')}
+                className={cn(S.input, 'w-full bg-surface')}
+              />
+            </FormField>
+          </div>
+        ) : null}
         {loading ? (
           <AppLoading locale={locale} variant="panel" />
         ) : err ? (
@@ -1056,10 +1077,14 @@ export function VacancyInterviewCandidates({
             </button>
           </div>
         ) : items.length === 0 ? (
-          <p className="font-mono text-xs text-ink-faint">{t(locale, 'recruiting.noCandidatesYet')}</p>
+          <p className="font-ui text-sm text-ink-muted">{t(locale, 'recruiting.interviewWorkspaceEmpty')}</p>
+        ) : filteredInterviewCandidates.length === 0 ? (
+          <p role="status" className="font-ui text-sm text-ink-muted">
+            {t(locale, 'recruiting.interviewWorkspaceNoMatches')}
+          </p>
         ) : (
           <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-            {items.map((candidate) => {
+            {filteredInterviewCandidates.map((candidate) => {
               const candidateName = titleCasePersonName(candidate.fullName || candidate.name);
               return (
                 <button
@@ -1074,7 +1099,7 @@ export function VacancyInterviewCandidates({
                     <span className="mt-1 block font-mono text-xs text-ink-muted">{candidate.email}</span>
                   </span>
                   <span className="font-ui text-xs font-medium text-brand-700">
-                    {t(locale, 'recruiting.interviewWorkspaceOpen', { name: candidateName })} →
+                    {t(locale, 'recruiting.interviewWorkspaceCta')}
                   </span>
                 </button>
               );
