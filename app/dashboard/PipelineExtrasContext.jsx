@@ -71,7 +71,10 @@ function PipelineExtrasDialog({ locale, mode, context, bulk, onConfirm, onCancel
         setError(t(locale, 'recruiting.rejectionEmailRequired'));
         return;
       }
-      onConfirm({ rejectionReasons: reasons, ...(sendEmail ? { rejectionEmail: { send: true, subject: emailSubject, body: emailBody } } : {}) });
+      const rejectionReasonsText = reasons.map((reason) => rejectionReasonLabel(locale, reason)).join(', ');
+      const rejectionReasonsHtml = rejectionReasonsText.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+      const finalEmailBody = emailBody.replace(/\{rejectionReasons\}/g, rejectionReasonsHtml);
+      onConfirm({ rejectionReasons: reasons, ...(sendEmail ? { rejectionEmail: { send: true, subject: emailSubject, body: finalEmailBody } } : {}) });
       return;
     }
     const normalized = normalizeStartDate(startDate);
